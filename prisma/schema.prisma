@@ -1,0 +1,366 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mongodb"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id              String @id @default(auto()) @map("_id") @db.ObjectId
+  name            String?
+  email           String?   @unique
+  emailVerified   DateTime?
+  image           String?
+  hashedPassword  String?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  favoriteIds     String[] @db.ObjectId
+  taggedInboxIds  String[] @db.ObjectId
+  isAdmin         Boolean  @default(false)
+  cardReadMode    Boolean  @default(true)
+  showBGImage     Boolean  @default(false)
+  cardYscroll     Boolean  @default(true)
+  cardShowTitle   Boolean  @default(true)
+  roles           String[] 
+  pageSize        Int  @default(8)
+  recentDays      Int @default(7)
+  notificationToaster Boolean @default(true)  
+  showMobileView Boolean @default(true)
+  togglePendingTasksOrAll Boolean @default(true)
+  toggleRecentTaskorAll Boolean @default(true)
+  toggleOverdueorAll Boolean @default(false)  
+  toggleInverse Boolean @default(false)
+  toggleInverseTable Boolean @default(false)
+  emptyListShow Boolean @default(false)
+  showMyProjectsOnLoad Boolean @default(true)
+  collapseBoards Boolean@default(true)
+  accounts Account[] 
+  boards Board[]
+  lists List[]
+  cards Card[]
+  cardImages CardImage[]
+  taggedCards CardToUser[]
+  comments Comment[]
+  boardIds  String[] @db.ObjectId
+  boadViews BoardView[]   @relation(fields: [boardIds], references: [id])
+}
+
+
+model Account {
+  id String @id @default(auto()) @map("_id") @db.ObjectId
+  userId             String   @db.ObjectId
+  type               String
+  provider           String
+  providerAccountId  String
+  refresh_token      String?  @db.String
+  access_token       String?  @db.String
+  expires_at         Int?
+  token_type         String?
+  scope              String?
+  id_token           String?  @db.String
+  session_state      String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+}
+
+
+
+
+model Board {
+  id            String @id @default(auto()) @map("_id") @db.ObjectId
+  orgId         String?
+  title         String
+  imageId       String  @db.String
+  imageThumbUrl String  @db.String
+  imageFullUrl  String  @db.String
+  imageUserName String  @db.String
+  imageLinkHTML String  @db.String
+  lists         List[]
+  views        BoardView[]
+
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  active        Boolean  @default(true)
+  public        Boolean  @default(false)
+  userId        String? @db.ObjectId
+  percent       Int @default(0)
+  progressStatus String @default("no value given")
+  dragMode      Boolean  @default(true)
+  user          User? @relation(fields: [userId], references: [id], onDelete: Cascade) // onDelete: Cascade here
+
+}
+
+model List {
+  id        String @id @default(auto()) @map("_id") @db.ObjectId
+  title     String
+  order     Int
+
+  boardId   String //  @db.ObjectId //added to remove swiggles...
+  board     Board @relation(fields: [boardId], references: [id], onDelete: Cascade)
+
+  cards     Card[]
+  
+  visible   Boolean  @default(true) //some cards carry senstivity information, user need to protect it
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  active    Boolean  @default(true)
+  userId    String  @db.ObjectId
+  user      User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  percent   Int @default(0)
+  @@index([boardId])
+  @@index([userId])
+}
+
+model Card {
+  id          String @id @default(auto()) @map("_id") @db.ObjectId
+  title       String
+  order       Int
+  description String? @db.String
+  progress    String  @db.String @default("not_started")
+  listId      String // @db.ObjectId//added to remove swiggles.....
+  list        List  @relation(fields: [listId], references: [id], onDelete: Cascade)  
+  visible     Boolean  @default(false) //some cards carry senstivity information, user need to protect it
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  active      Boolean  @default(true)
+  userId      String  @db.ObjectId
+  dueDate     DateTime?  
+  completedDate     DateTime?  
+  tagIDs      String[]  @db.ObjectId
+  tags        Tag[] @relation(fields: [tagIDs], references: [id])
+  user        User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  taggedUsers CardToUser[]
+  comments   Comment[]
+  cardImages   CardImage[] // Store URLs or IDs of the images
+
+  
+  @@index([listId])
+  @@index([userId])
+  @@index([tagIDs])
+
+}
+
+model CardImage {
+  id          String @id @default(auto()) @map("_id") @db.ObjectId
+  cardId      String  @db.ObjectId
+  url         String
+  card        Card @relation(fields: [cardId], references: [id], onDelete: Cascade)
+  type        String @default("image")
+  userId      String?  @db.ObjectId
+  //user        User? @relation(fields: [userId], references: [id])
+  user        User? @relation(fields: [userId], references: [id], onDelete: Cascade) // onDelete: Cascade here
+
+  fileName    String?
+  createdAt   DateTime? @default(now())
+
+  @@index([cardId])
+}
+model CardToUser {
+  id          String @id @default(auto()) @map("_id") @db.ObjectId
+  cardId      String  @db.ObjectId
+  card        Card @relation(fields: [cardId], references: [id], onDelete: Cascade)
+  userId      String @db.ObjectId
+  userEmail   String? // copy for ready search overheads
+  //user        User @relation(fields: [userId], references: [id])   
+  user        User? @relation(fields: [userId], references: [id], onDelete: Cascade) // onDelete: Cascade here
+
+  @@index([cardId,userId])
+}
+model Tag {
+  id        String @id @default(auto()) @map("_id") @db.ObjectId  
+  name      String // @unique 
+  description String? @db.String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt  
+  cardIDs  String[] @db.ObjectId
+  cards    Card[]   @relation(fields: [cardIDs], references: [id])
+
+  @@unique([name])
+
+}
+
+model Comment{
+  id        String @id @default(auto()) @map("_id") @db.ObjectId 
+  cardId    String  @db.ObjectId
+  comment   String? @db.String  
+  imageThumbUrl       String? //copy duplicate to reduce fetch overheads
+  ownerEmail String?// copy to reduce overheads
+  card      Card @relation(fields: [cardId], references: [id], onDelete: Cascade)
+  userId    String @db.ObjectId
+  user      User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt 
+  @@index([cardId])
+  @@index([userId])
+}
+
+ 
+
+model Career {
+  id             String   @id @default(auto()) @map("_id") @db.ObjectId
+  title          String?  // Main job title
+  listingTitle   String?  // Optional: Shorter title for listings (if different)
+  shortDescription String?
+  fullDescription String
+  slug           String   @unique // Add unique index for efficient lookup
+  active         Boolean  @default(true)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  location       String
+  type           String
+  department       String
+  // Optional: Relations (uncomment and adjust if needed)
+  // locationId   String?
+  // location     Location? @relation(fields: [locationId], references: [id])
+  // departmentId String?
+  // department   Department? @relation(fields: [departmentId], references: [id])
+  // jobTypeId    String?
+  // jobType      JobType? @relation(fields: [jobTypeId], references: [id])
+
+  @@map("careers") // Explicitly map the collection name (optional but good practice)
+}
+
+model Enquiry{
+  id          String   @id @default(auto()) @map("_id") @db.ObjectId
+  first_name  String?  //copy duplicate to reduce fetch overheads
+  last_name   String?  // copy to reduce overheads
+  email       String
+  phone_number String?
+  message       String
+  active         Boolean  @default(true)
+  category String[] @default([]) // Added default empty array
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model ProductEnquiry{
+  id          String   @id @default(auto()) @map("_id") @db.ObjectId
+  first_name  String?  //copy duplicate to reduce fetch overheads
+  last_name   String?  // copy to reduce overheads
+  email       String
+  phone_number String?
+  message       String
+  active         Boolean  @default(true)
+  demoproducts String[] @default([]) // Added default empty array
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+model InvestmentPortfolio {
+    id          String               @id @default(auto()) @map("_id") @db.ObjectId
+    title       String
+    description String
+    type        String
+    country     String
+    active     Boolean @default(true)
+    targetAmount  Int
+    raisedAmount  Int                  @default(0)
+    imageUrl    String
+    expectedReturn String?
+    investments InvestorInvestment[] // Removed onDelete here
+    createdAt   DateTime             @default(now())
+    updatedAt   DateTime             @updatedAt
+}
+
+model Investor {
+    id          String               @id @default(auto()) @map("_id") @db.ObjectId
+    name        String
+    country     String
+    email       String
+    active     Boolean @default(true)
+    investments InvestorInvestment[] // Removed onDelete here
+    createdAt   DateTime             @default(now())
+    updatedAt   DateTime             @updatedAt
+}
+
+model InvestorInvestment {
+    id          String               @id @default(auto()) @map("_id") @db.ObjectId
+    investor    Investor             @relation(fields: [investorId], references: [id])
+    investorId  String               @db.ObjectId
+    portfolio   InvestmentPortfolio @relation(fields: [portfolioId], references: [id], onDelete: Cascade) // Keep onDelete here
+    portfolioId String               @db.ObjectId
+    amount      Int
+    active     Boolean @default(true)
+    investedAt  DateTime             @default(now())
+    createdAt   DateTime             @default(now())
+    updatedAt   DateTime             @updatedAt
+
+    @@index([investorId])
+    @@index([portfolioId])
+}
+
+
+model BoardView{// per user
+  id        String @id @default(auto()) @map("_id") @db.ObjectId 
+  boardId    String  @db.ObjectId
+  board      Board @relation(fields: [boardId], references: [id])
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt 
+  viewCount  Int? @default(0)
+   // 0n 21 January 2025 Test the code if there are multiple user per boardView but none
+  userID  String[] @db.ObjectId
+  users    User[]   @relation(fields: [userID], references: [id])
+
+  @@index([boardId])
+}
+ 
+
+enum ACTION {
+  CREATE
+  UPDATE
+  DELETE
+}
+
+enum ENTITY_TYPE {
+  INVESTOR
+  PORTFOLIO
+  ENQUIRY
+  BOARD
+  LIST
+  CARD
+  ASSET
+  WORKORDER  
+}
+
+model AuditLog {
+  id          String @id @default(auto()) @map("_id") @db.ObjectId
+  orgId       String
+  action      ACTION
+  entityId    String
+  entityType  ENTITY_TYPE
+  entityTitle String
+  userId      String?
+  userImage   String @db.String
+  userName    String @db.String
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime  @updatedAt
+}
+
+model OrgLimit {
+  id          String @id @default(auto()) @map("_id") @db.ObjectId
+  orgId       String @unique
+  count       Int @default(0)
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime  @updatedAt
+}
+
+model OrgSubscription {
+  id                String @id @default(auto()) @map("_id") @db.ObjectId
+  orgId             String @unique
+  stripeCustomerId  String? @unique @map(name: "stripe_customer_id")
+  stripeSubscriptionId String? @unique @map(name: "stripe_subscription_id")
+  stripePriceId        String? @map(name: "stripe_price_id")
+  stripeCurrentPeriodEnd DateTime? @map(name: "stripe_current_period_end")
+}
+
+
+
