@@ -1,0 +1,10 @@
+
+
+git init
+git add .
+git commit -m "first commit"
+git branch -M main
+PS C:\Users\i7\Desktop\candentia> git remote add origin https://github.com/andrewbakasa/candentia.git
+PS C:\Users\i7\Desktop\candentia> git commit -m "first commit 2"
+PS C:\Users\i7\Desktop\candentia> git push --set-upstream origin master
+Enumerating objects: 707, done.

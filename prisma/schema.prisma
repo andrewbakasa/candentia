@@ -217,14 +217,7 @@ model Career {
   location       String
   type           String
   department       String
-  // Optional: Relations (uncomment and adjust if needed)
-  // locationId   String?
-  // location     Location? @relation(fields: [locationId], references: [id])
-  // departmentId String?
-  // department   Department? @relation(fields: [departmentId], references: [id])
-  // jobTypeId    String?
-  // jobType      JobType? @relation(fields: [jobTypeId], references: [id])
-
+  
   @@map("careers") // Explicitly map the collection name (optional but good practice)
 }
 

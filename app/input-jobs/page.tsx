@@ -2,14 +2,11 @@
 import EmptyState from "../../app/components/EmptyState";
 import ClientOnly from "../../app/components/ClientOnly";
 import getCurrentUser from "../../app/actions/getCurrentUser"
-import getInvestmentPortfolios2 from "../actions/getInvestmentPortfilios2";
-import PortfolioInvestmentClient from "./InputInvestmentsClient";
+import InputInvestmentClient from "./InputJobsClient";
 
 
-const EditInvestmentsPortfolioPage = async () => {
-  const currentUser = await getCurrentUser();
-  const mockPortfolios:any[] = await getInvestmentPortfolios2()
-  
+const InvestmentsPortfolioPage = async () => {
+const currentUser = await getCurrentUser();
 
   if (!currentUser) {
     return (
@@ -23,11 +20,11 @@ const EditInvestmentsPortfolioPage = async () => {
   }
   return (
     <ClientOnly>
-      <PortfolioInvestmentClient mockPortfolios={mockPortfolios}
+      <InputInvestmentClient
       />
     </ClientOnly>
   );
 }
  
-export default EditInvestmentsPortfolioPage;
+export default InvestmentsPortfolioPage;
 
