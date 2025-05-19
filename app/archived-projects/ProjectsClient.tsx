@@ -1,27 +1,22 @@
 'use client';
 
 import { toast } from "react-hot-toast";
-import axios from "axios";
 import { useCallback, useState, useEffect } from "react";
-
 import { redirect, useRouter } from "next/navigation";
-
 import { SafeBoard, SafeUser } from "../types";
-
 import Heading from "../components/Heading";
 import Search from "../components/Search";
 import Container from "../components/Container";
 import Link from "next/link";
 import { useAction } from "@/hooks/use-action";
-// import { activateBoard } from "../../actions/activate-board";
-import DeleteButton from "../components/DeleteButton";
 import Avatar from "@/app/components/Avatar";
 import { activateBoard } from "@/actions/activate-board";
-import { SafeBoard2 } from "@/types";
+import { RotateCw } from "lucide-react";
+import ConfirmAction from "../components/ConfirmAction";
 
 interface ProjectsClientProps {
-  boards:any[],// SafeBoard2[],
-  currentUser?: SafeUser | null,
+  boards: any[]; // SafeBoard2[],
+  currentUser?: SafeUser | null;
 }
 
 const ProjectsClient: React.FC<ProjectsClientProps> = ({
@@ -29,147 +24,151 @@ const ProjectsClient: React.FC<ProjectsClientProps> = ({
   currentUser
 }) => {
   const router = useRouter();
-  const [deletingId, setDeletingId] = useState(''); 
+  const [deletingId, setDeletingId] = useState('');
   const [searchTerm, setSearchTerm] = useState("");
   const [filteredBoards, setFilteredBoards] = useState(boards);
 
-//  console.log(filteredBoards)
-  // 24 January 2024  Prisma search nested models
   useEffect(() => {
     if (searchTerm !== "") {
-      // const results = boards.filter((board) =>
-      //     (//Outer bracket           
-      //         //Select current board title
-      //         board.title.toLowerCase().includes(searchTerm.toLowerCase())
-      //         ||
-      //         //Search List within the board
-      //         board.lists.some(
-      //           (x_list)=>(
-      //             (  // Search List title
-      //                 x_list.title.toLowerCase().includes(searchTerm.toLowerCase())
-      //                 ||
-      //                 //Search Card  within the List
-      //                 x_list.cards.some(
-      //                   ( x_card)=>(
-      //                     //Search Card Title
-      //                     x_card.title.toLowerCase().includes(searchTerm.toLowerCase())
-      //                     ||
-      //                     // OR Select card Description if exist
-      //                     x_card.description?.toLowerCase().includes(searchTerm.toLowerCase())
-      //                   )// Return clossing bracket
-      //                 )
-      //             )// Return clossing bracket
-      //           )
-      //         ) // End of board List
-              
-      //     )// Out bracker
-       
-      // );
-      setFilteredBoards(boards);//results);
+      const results = boards.filter((board) =>
+        (
+          board.title.toLowerCase().includes(searchTerm.toLowerCase())
+          ||
+          board.lists.some(
+            (x_list: { title: string; cards: any[]; }) => (
+              (
+                x_list.title.toLowerCase().includes(searchTerm.toLowerCase())
+                ||
+                x_list.cards.some(
+                  (x_card: { title: string; description: string; }) => (
+                    x_card.title.toLowerCase().includes(searchTerm.toLowerCase())
+                    ||
+                    x_card.description?.toLowerCase().includes(searchTerm.toLowerCase())
+                  )
+                )
+              )
+            )
+          )
+        )
+      );
+      setFilteredBoards(results);
     } else {
       setFilteredBoards(boards);
     }
   }, [searchTerm, boards]);
 
-  const handleSearch = (event: React.ChangeEvent<HTMLInputElement>) => {
-    setSearchTerm(event.target.value);
+
+  const handleDelteBOQ = async (id: string) => {
+    try {
+      console.log("id", id,);
+      const response = await fetch(`/api/board-delete/${id}`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ id }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || 'Failed to delete board');
+      }
+      toast.success(`Deleted ${id}`);
+      router.refresh();
+
+    } catch (error: any) {
+      console.log("---->", error);
+      toast.error(`Failed to delete: ${error.message}`);
+    }
   };
 
-  
-
-  const { execute:executeActivate, isLoading } = useAction(activateBoard, {
+  const { execute: executeActivate, isLoading } = useAction(activateBoard, {
     onSuccess: (data) => {
       toast.success(`Board restored`);
-      //console.log(data)
+      router.refresh();
     },
     onError: (error) => {
       toast.error(error);
     },
   });
 
-  const handleDClick =(id:string) => {
+  const handleRestoreClick = (id: string) => {
     executeActivate({ id });
-}
- // TESTING>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-// console.log('archived:' ,currentUser)
- if (!currentUser?.isAdmin) return redirect('/denied')
+  };
+
+  if (!currentUser?.isAdmin) return redirect('/denied');
+
   return (
     <Container>
-      <div className="flex flex-col  sm:flex-row  justify-between">
+      <div className="flex flex-col sm:flex-row justify-between items-center mb-4">
         <Heading
           title="Archived Projects"
-          subtitle="Click to restore project"
+          subtitle="Manage and restore your archived projects"
         />
-       <Search 
-          // handleSearch ={handleSearch}
-          setSearchTerm={setSearchTerm}                   
-          searchTerm = {searchTerm} />
-     </div>
-    <div className="space-y-4 ">
-      <div className="flex items-center font-semibold text-lg text-neutral-700">
-        {/* <User2 className="h-6 w-6 mr-2" /> */}
-        Your Archived Projects boards 
+        <Search
+          setSearchTerm={setSearchTerm}
+          searchTerm={searchTerm}
+          //placeholder="Search archived projects..."
+        />
       </div>
-      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
-        {filteredBoards.map((board) => (
-
-          <>
-              <div 
-                className="
-                  aspect-square 
-                  w-full 
-                  relative 
-                  overflow-hidden 
-                  rounded-xl
-                  group relative aspect-video bg-no-repeat bg-center bg-cover bg-sky-700 rounded-sm h-full w-full p-2 overflow-hidden"
+      <div className="space-y-4">
+        <div className="flex items-center font-semibold text-lg text-neutral-700">
+          <RotateCw className="h-6 w-6 mr-2" />
+          Your Archived Projects
+        </div>
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+          {filteredBoards.map((board) => (
+            <div
+              key={board.id}
+              className="relative rounded-xl overflow-hidden shadow-md hover:shadow-lg transition duration-200"
+            >
+              <div
+                className="aspect-video bg-cover bg-center"
                 style={{ backgroundImage: `url(${board.imageThumbUrl})` }}
               >
-                     
-                     <div className="absolute inset-0 ">
-                      <Avatar classList="border-[1.5px] border-white"  src={board?.user_image} />
-                    </div>
-                      <Link
-                            key={board.id}
-                            href={`#`}
-                            onDoubleClick={() => {handleDClick(board.id)}}
-                          
-                          >
-                            <div className="absolute inset-0 bg-black/30 group-hover:bg-black/40 transition" />
-                            <p className="relative font-semibold text-white">
-                              {board.title}
-                              </p>
-                        </Link>
-                      
-                    
-                      <div className="
-                        absolute
-                        top-3
-                        right-3
-                      ">
-                    <DeleteButton 
-                        deleteId={board.id}
-                        url={'/api/deleteBoard'} 
-                      /> 
-
-                      </div> 
-                        {/*  Hover to display action to user*/}
-                      <div className="opacity-0 hover:opacity-100 
-                                duration-300 absolute insert-0 z-10 
-                                flex text-[9px] text-white font-semibold">Double click Anywhere to restore the board
-                      </div>
-         
+                <div className="absolute inset-0 bg-black/30 flex items-center justify-center opacity-0 hover:opacity-100 transition duration-300">
+                  <button
+                    onClick={() => handleRestoreClick(board.id)}
+                    className="bg-white text-sky-700 p-2 rounded-md shadow-md hover:bg-sky-100 focus:outline-none focus:ring-2 focus:ring-sky-500 active:bg-sky-200"
+                  >
+                    <RotateCw className="h-5 w-5" />
+                    <span className="sr-only">Restore</span>
+                  </button>
+                </div>
               </div>
-            
-          </>
-
-     
-        ))}
-       
+              <div className="p-4 bg-white">
+                <div className="absolute top-2 right-2">
+                  <Avatar classList="border-[1.5px] border-neutral-200 shadow-sm" src={board?.user_image}
+                  // size="small"
+                   />
+                </div>
+                <h3 className="font-semibold text-neutral-800 truncate">{board.title}</h3>
+                <p className="text-sm text-neutral-500 truncate">{board.description || 'No description'}</p>
+                <div className="absolute bottom-2 right-2">
+                  <ConfirmAction
+                    onConfirm={(id) => {
+                      console.log(`Deleting item with ID: ${id}`);
+                      handleDelteBOQ(id);
+                    }}
+                    itemId={board.id}
+                    action="Delete"
+                    heading={`Delete ${board.title}`}
+                    description="Are you sure you want to permanently delete this project? This action cannot be undone."
+                  
+                  />
+                </div>
+              </div>
+            </div>
+          ))}
+          {filteredBoards.length === 0 && (
+            <div className="col-span-full text-center py-8 text-neutral-500">
+              No archived projects found.
+            </div>
+          )}
+        </div>
       </div>
-    </div>
-  
-     </Container>
-   );
-}
- 
+    </Container>
+  );
+};
+
 export default ProjectsClient;

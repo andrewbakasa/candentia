@@ -21,7 +21,6 @@ import { areDatesSimilar, cn, findLabelByValue, getCardsFromSafeBoard, getColorF
          getLabelsFromValues, 
          getLatestCard, getValuesFromLabels, isNumber, sortDates } from "@/lib/utils";
 import ReactPaginate from "react-paginate";
-import TanStackTable from "../components/TanstackTable";
 import { createColumnHelper } from "@tanstack/react-table";
 import useIsMobile from "../hooks/isMobile";
 import { toast } from "sonner";
@@ -91,8 +90,6 @@ const ProjectsClient: React.FC<ProjectsClientProps> = ({
 
         // console.log("First boards:",boards[0].views._count)
   let recentDays=currentUser?.recentDays?currentUser.recentDays:7 
-  const router = useRouter();
-  const [deletingId, setDeletingId] = useState(''); 
   const [searchTerm, setSearchTerm] = useState("");
   const [filteredBoards, setFilteredBoards] = useState(boards);
   const [pageSize, setPageSize] = useState<number>(currentUser? currentUser.pageSize:8); // Adjust as needed
@@ -123,16 +120,9 @@ const ProjectsClient: React.FC<ProjectsClientProps> = ({
 const handleToggleSelectUniqueBoard = (id:string)=>{
  //filter only on
   if (uniqueBoardId?.length==0){//(filteredBoards.length==1){//change logic
-    //toggle to full....
-    // setFilteredBoards(boards)
-    //clear all previous search
     setSearchTerm('')
     setUniqueBoardId(id)
-    // setUniqueSelection(false)
   }else{
-    //---filter only this
-    // const uniqueBoard = boards?.filter(x=>(x.id==id))
-    // setFilteredBoards(uniqueBoard)
     setUniqueBoardId('')
   }
 };
@@ -172,126 +162,7 @@ const { execute:executeTag } = useAction(createTag, {
     toast.error(error);
   },
 });
-
-const columnHelper = createColumnHelper<SafeBoard2>()
-// toast.message(`is collapsed:?:${collapseState}`)
-const columns = [  
-  ...((inverseTableState==true) && (collapseState==false)?
-        [
-          columnHelper.accessor('imageThumbUrl', {
-                cell: (info) =>{
-                    const id=info?.table.getRow(info.row.id).original.id 
-                    const title=info?.table.getRow(info.row.id).original.title;
-                    const progressStatus=info?.table.getRow(info.row.id).original.progressStatus;
-                    const percent=info?.table.getRow(info.row.id).original.percent ;
-                    const board =info?.table.getRow(info.row.id).original
-                return (
-                  <>
-                   < div
-                        className="flex flex-col bg-no-repeat bg-cover bg-center rounded-sm"
-                        style={showBGImage ? { backgroundImage: `url(${info?.getValue()})` } : undefined}
-                    >
-                        
-                          <div className="flex gap-1">
-                           
-                              <img
-                                  src={info?.getValue()}
-                                  alt={'...'}
-                                  className="rounded-full w-10 h-10 object-cover"
-                                  onClick={()=>{handleToggleSelectUniqueBoard(id)}}
-                                />
-                            <div
-                              key={id}
-                              className="flex flex-col"
-                            >
-                              <Link  
-                                 key={id}
-                                 href={`/board/${id}`}
-                                 className="cursor-pointer"
-                              >
-                                <h2 className={cn("font-bold text-xl text-white bg-black mix-blend-difference ")}>{title}</h2>
-                              </Link>
-
-                              <span className="text-[10px] px-2 text-white bg-black mix-blend-difference ">{progressStatus}</span>
-                              
-                            </div>
-                                   
-                        
-                          </div>
-                        
-                          <div className="mt-2 flex flex-row gap-1">
-                              <div 
-                                className="w-[150px]"
-                              >
-                                    <ProgressBar 
-                                        height={'3px'}
-                                        isLabelVisible={false}  
-                                        bgColor={getColorFromPercent(Number(percent))}  
-                                        completed={Number(percent)} 
-                                    />
-                              </div>
-                              <div className='flex gap-1 mt-[-10px]'>
-                              
-                                    <div className="flex flex-row">
-                                      <span className="text-white bg-black mix-blend-difference ">{percent}%</span>
-                                    </div>
-                                    {currentUser?.id == board?.userId 
-                                            && <PrivacyButton 
-                                                    boardId={board.id}
-                                                    currentState={board.public} 
-                                                    currentUser={currentUser}
-                                          /> 
-                                        }
-                                    
-                              </div>
-                            
-                          </div>
-                      </div> 
-                    </> 
-                )
-                },
-                    header: "Title",
-          }),
-        ]
-    :
-    //collapsed state and invesrseTable==Truess
-       []
-      
-      ),
-
-  columnHelper.accessor("imageThumbUrl", {
-    cell: (info) => {
-      const title=info?.table.getRow(info.row.id).original.title;
-      const progressStatus=info?.table.getRow(info.row.id).original.progressStatus;
-      const percent=info?.table.getRow(info.row.id).original.percent ;
-      const board =info?.table.getRow(info.row.id).original;   
-      const id=info?.table.getRow(info.row.id).original.id 
-     
-    return (
-      // show header if false 
-        <PageViewTable
-          board={board}
-          currentUser={currentUser}
-          tagNames={tagNames}
-          userNames={userNames}
-          setCategory={setCategory}
-          category={category}
-          compositeDecorator={compositeDecorator}
-          handleToggleSelectUniqueBoard={handleToggleSelectUniqueBoard}
-          initialEditingState={initialCollapseState}
-          inverseTableState={inverseTableState}
-        />
-    )
-  },
-    header: "Description",
-  }),                           
-  
-   
-]
-
-
   Cookies.set('originString', origin)  
-  
   useEffect(() => {
     // filter
     let boardsPostTag = boards
@@ -943,8 +814,6 @@ useEffect(()=>{
         const startIndex = text.toLocaleLowerCase().indexOf(word.toLocaleLowerCase());  
         if (startIndex !== -1) {
           const endIndex = startIndex + word.length;
-          // console.log('nnn', word, text)
-          // Check if the highlighted word overlaps with the current selection
           const isWithinSelection = currentSelection.getStartOffset() <= startIndex &&
                                     currentSelection.getEndOffset() >= endIndex;  
           const style = isWithinSelection ? 'HIGHLIGHTED_SELECTED' : 'HIGHLIGHTED';  
@@ -1025,11 +894,6 @@ let title_= `Personal Projects ${fList.length} of ${boards.length}`
                 />
             </div>
         </div>
-
-
-
-
-        
      </div>
      <div className={cn("mt-1 pb-5",uniqueBoardId.length==0?'':'shadow-xl rounded-md p-1 border-yellow-400 border-2')}>{/* space-y-4 pb-10*/}
         <div>
@@ -1089,35 +953,6 @@ let title_= `Personal Projects ${fList.length} of ${boards.length}`
                   </div>
               </div>
             )
-            // :
-            // (
-            //   <>
-            //     <TanStackTable  
-            //         data={fList} columns={columns} 
-            //         userPageSize={Number(pageSize)} 
-            //         currentUser={currentUser}
-            //         setPageSize= {setPageSize}
-            //     /> 
-            //     <FormPopover sideOffset={10} side={popover_content_pos }>
-            //         <div
-            //           role="button"
-            //           className="aspect-video relative h-[75px] w-[200px] bg-muted rounded-sm flex flex-col gap-y-1 items-center justify-center hover:opacity-75 transition"
-            //         >
-            //           <p className="text-sm">Create new project board</p>
-            //           <span className="text-xs"></span>
-            //           <Hint
-            //             sideOffset={40}
-            //             description={`Create project board here.`}
-            //           >
-            //             <HelpCircle
-            //               className="absolute bottom-2 right-2 h-[14px] w-[14px]"
-            //             />
-            //           </Hint>
-            //         </div>
-            //     </FormPopover>
-            //   </>    
-            // ) 
-
           }      
         </div>
      </div>  
