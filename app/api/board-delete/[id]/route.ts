@@ -6,8 +6,13 @@ export async function POST(
     { params }: { params: { id: string } }
 ) {
     const id = params.id;
-
     try {
+        // Delete all related boardView records first
+        await prisma.boardView.deleteMany({
+            where: {
+                boardId: id,
+            },
+        });
         // Now delete the BOQ record
         const recordDeleted = await prisma.board.delete({
             where: { id: id },

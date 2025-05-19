@@ -293,7 +293,7 @@ model InvestorInvestment {
 model BoardView{// per user
   id        String @id @default(auto()) @map("_id") @db.ObjectId 
   boardId    String  @db.ObjectId
-  board      Board @relation(fields: [boardId], references: [id])
+  board      Board @relation(fields: [boardId], references: [id], onDelete: Cascade)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt 
   viewCount  Int? @default(0)
