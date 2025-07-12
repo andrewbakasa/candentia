@@ -1,8 +1,6 @@
-import { Board } from "@prisma/client";
+
 import prisma from "../libs/prismadb";
 import getCurrentUser from "./getCurrentUser";
-import { SafeBoard2 } from "@/types";
-import { SafeBoard } from "../types";
 import { getCardsFromSafeBoardT } from "@/lib/utils";
 
 export default async function getPortifolios() {
@@ -69,11 +67,7 @@ export default async function getPortifolios() {
           },
           user:true,
           views:true,
-          // views: {
-          //   select: {
-          //     _count: true, // Simply count the number of BoardView records
-          //   },
-          // },
+          
         },
       });
 
@@ -128,18 +122,14 @@ export default async function getPortifolios() {
           },
           user:true,
           views:true,
-          // views: {
-          //   select: {
-          //     _count: true, // Simply count the number of BoardView records
-          //   },
-          // },
+        
         },
       });
      
       
     }
   
- console.log('1/.....',boards )
+ //console.log('1/.....',boards )
  
     const safeBoards = boards.map((board) => ({
       ...board,
@@ -180,17 +170,12 @@ export default async function getPortifolios() {
  
     })
   );
-    //console.log('This is now ok but an array:',safeBoards?safeBoards[0]:safeBoards)
-    //return safeBoards;
-    console.log("safeBoards", safeBoards)
+   
+   // console.log("safeBoards", safeBoards)
 
-    let cardListLocal =getCardsFromSafeBoardT(safeBoards[0])
+    let cardListLocal = getCardsFromSafeBoardT(safeBoards[0])
     return cardListLocal
   } catch (error: any) {
     throw new Error(error);
   }
 }
-// function getTopUsers(views: { id: string; boardId: string; createdAt: Date; updatedAt: Date; viewCount: number | null; userID: string[]; }[]): any {
-//   throw new Error("Function not implemented.");
-// }
-

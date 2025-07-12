@@ -8,17 +8,18 @@ import Services from "@/app/components/Services";
 import Career from "./components/Career";
 import getJobOpenings from "./actions/getJobOpenings"; // Keep the import
 import Investments from "./components/Investments";
-import { saveseedPortfolios } from "./financing/data/saveInvestmentPortfolios";
 import getPortifolios from "./actions/getPortFolios";
+
 //import { saveInitialJobs } from "./job/[jobId]/_components/initialDB";
+//import { saveseedPortfolios } from "./financing/data/saveInvestmentPortfolios";
 
 const Home = async () => {
-
+  
   const jobs = await getJobOpenings();
-
-   const  portfolioItems = await getPortifolios();
+  const  portfolioItems = await getPortifolios();
+  
   //saveInitialJobs()
- //saveseedPortfolios()
+  //saveseedPortfolios()
   return (
     <>
       <Hero />
