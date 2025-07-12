@@ -54,7 +54,7 @@ const Portfolio: React.FC<PortfolioProps> = ({ portfolioItems }) => {
     <>
       <div className="my-4 py-4" id="portfolio">
         <h2 className="my-2 text-center text-3xl text-yellow-900 uppercase font-bold">
-          Experience Candentia&apos;s Innovative Products That Shine
+          Experience Candentia&apos;s Innovative Projects That Shine
         </h2>
         <div className="flex justify-center">
           <div className="w-24 border-b-4 border-yellow-400 mb-8"></div>
