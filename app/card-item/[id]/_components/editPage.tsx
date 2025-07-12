@@ -3,11 +3,11 @@ import React, { useEffect, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Formik } from 'formik';
 import { Loader } from 'lucide-react';
+//import { FUploaderFile } from './fLoaderFile';
 import { cn } from '@/lib/utils';
 import toast from 'react-hot-toast';
 import { SafeUser } from '@/app/types';
-import { FUploaderFile } from '@/app/card-item/[id]/_components/FUploaderFile';
-//import { FUploaderFile } from '@/app/card-item/[id]/_components/FUploaderFile';
+import { FUploaderFile } from './FUploaderFile';
 
 interface Image {
   id: string;
@@ -46,12 +46,7 @@ const EditCardMedia: React.FC<FileUploadProps> = ({
     setInitialValues({}); // No need to set initial values if they are empty objects
   }, []);
 
-  useEffect(() => {
-   // console.log('dbImages', dbImages);
-    setUserImageList(newImageList); // Update userImageList when newImageList prop changes
-  }, [newImageList]); // Add newImageList to the dependency array
-
-
+ 
   const onSubmitHandler = async (formValue: {}) => {
     setLoading(true);
 
@@ -111,7 +106,7 @@ const EditCardMedia: React.FC<FileUploadProps> = ({
 
   return (
     <div className='w-full px-4 sm:px-0 flex justify-center'>
-      {/* flex items-center justify-center my-2 w-[75vw] */}
+      {/* flex items-center justify-center my-2 */}
       <Formik
         initialValues={initialValues}
         onSubmit={onSubmitHandler} // Directly use onSubmitHandler

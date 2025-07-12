@@ -3,11 +3,10 @@ import React, { useEffect, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Formik } from 'formik';
 import { Loader } from 'lucide-react';
+import { FUploaderFile } from './fLoaderFile';
 import { cn } from '@/lib/utils';
 import toast from 'react-hot-toast';
 import { SafeUser } from '@/app/types';
-import { FUploaderFile } from '@/app/card-item/[id]/_components/FUploaderFile';
-//import { FUploaderFile } from '@/app/card-item/[id]/_components/FUploaderFile';
 
 interface Image {
   id: string;
@@ -110,8 +109,7 @@ const EditCardMedia: React.FC<FileUploadProps> = ({
   };
 
   return (
-    <div className='w-full px-4 sm:px-0 flex justify-center'>
-      {/* flex items-center justify-center my-2 w-[75vw] */}
+    <div className='flex items-center justify-center my-2 w-[75vw]'>
       <Formik
         initialValues={initialValues}
         onSubmit={onSubmitHandler} // Directly use onSubmitHandler

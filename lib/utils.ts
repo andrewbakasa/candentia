@@ -74,7 +74,8 @@ export const getFactors =(x:number):number[]=>{
 export const getCardsFromSafeBoard0 = (data: SafeBoard2): SafeCardWithList2[] => {
   // Combine all cards from all lists into a single array
   let allCards: SafeCardWithList2[] = [];
-  data.lists.forEach((list) => allCards.push(...list.cards));
+  console.log('input',data)
+  data?.lists.forEach((list) => allCards.push(...list.cards));
   
  allCards?.sort((a, b) => 
                                 new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
@@ -106,6 +107,27 @@ export const getCardsFromSafeBoard2 = (data: SafeBoard2): SafeCardWithList2[] =>
     return 0; // No further sorting needed if updatedAt differs
   });
 //  console.log('xxx---.',allCards)
+  return allCards;
+};
+
+export const getCardsFromSafeBoardT = (data: any): SafeCardWithList2[] => {
+  //60 minutes...
+  // Combine all cards from all lists into a single array
+  let allCards: SafeCardWithList2[] = [];
+  data.lists.forEach((list: { cards: any; }) => allCards.push(...list.cards));
+
+  // Sort cards by updatedAt in descending order (newest to oldest)
+  allCards.sort((a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime());
+
+  // Sort by createdAt within a one-minute window of updatedAt
+  allCards.sort((a, b) => {
+    const updatedAtDiff = new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime();
+    if (Math.abs(updatedAtDiff) <= 1000*60*60*24) {  // Check for 60minute one-minute difference*24hours
+      return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(); // Descending order
+    }
+    return updatedAtDiff;  // Maintain original updatedAt sort
+  });
+
   return allCards;
 };
 

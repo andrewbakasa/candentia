@@ -1,4 +1,3 @@
-
 'use client';
 
 import React, { useEffect, useState, useRef } from 'react';
@@ -10,23 +9,23 @@ import { FaArchive } from 'react-icons/fa';
 import { AlertCircle } from 'lucide-react'; // Import AlertCircle for error display
 import { PencilIcon, CheckIcon, XIcon } from 'lucide-react'; // Import icons for editing controls
 
-// Extend MediaProps to include description
+// Extend MediaProps to include description (already done, but confirming)
 interface MediaProps {
   id: string;
   url: string;
   cardId: string;
-  type: string;
+  type: string;//'image' | 'video' | 'raw' | 'emptyMedia'; // Explicit types for clarity
   fileName: string | null;
-  description: string | null; // Added description
+  description: string | null;
 }
 
-// Extend SliderProps to include new handlers and canEdit flag
+// Extend SliderProps to include new handlers and canEdit flag (already done, but confirming)
 interface SliderProps {
   mediaList?: MediaProps[];
   fullView: boolean;
   onCardIdChange: (cardId: string | null, index: number) => void;
-  onDescriptionChange: (mediaId: string, newDescription: string | null) => void; // New prop
-  onFileNameChange: (mediaId: string, newFileName: string | null) => void; // New prop
+  onDescriptionChange: (mediaId: string, newDescription: string | null) => void; // New prop for description update
+  onFileNameChange: (mediaId: string, newFileName: string | null) => void; // New prop for filename update
   canEdit: boolean; // New prop to control editability
 }
 
@@ -73,7 +72,7 @@ const Slider: React.FC<SliderProps> = ({ mediaList, fullView, onCardIdChange, on
               alt={item.fileName || "media"}
               fill
               sizes="100vw"
-              style={{ objectFit: 'contain' }} // Removed borderRadius here, added to parent div
+              style={{ objectFit: 'contain' }}
               priority={currentImage === 0}
               quality={75}
               onError={() => setError(`Failed to load image: ${item.url}`)}
@@ -95,7 +94,6 @@ const Slider: React.FC<SliderProps> = ({ mediaList, fullView, onCardIdChange, on
               <a href={item.url} target="_blank" rel="noopener noreferrer" className="flex flex-col items-center max-w-full">
                 <span className="text-6xl text-gray-500">{getFileIcon(fileExtension)}</span>
                 <span className="text-gray-600 mt-2 text-sm break-all">{fileExtension.toUpperCase()} File</span>
-                {/* Filename is now handled by fileNameControls below */}
               </a>
             </div>
           );
@@ -290,25 +288,31 @@ const Slider: React.FC<SliderProps> = ({ mediaList, fullView, onCardIdChange, on
   };
 
   return (
-    <div className="relative w-full shadow-md p-3">
+    <div className={cn('flex justify-center relative h-full w-full')}>
       {mediaList && mediaList?.length > 0 ? (
-        <div className="relative">
+        <div className="relative w-full">
           <Carousel
-            className={cn(fullView ? "h-[65vh] w-[65vw]" : "h-[50vh] w-[50vw]", "rounded-md")}
+            className={cn(
+              "w-full", // Full width on mobile
+              fullView ? "h-[65vh] sm:w-[65vw]" : "h-[50vh] sm:w-[50vw]" // Responsive widths for larger screens
+            )}
             ref={carouselRef}
             setApi={onEmblaInit}
           >
             <CarouselContent>
-              {mediaList.map((item, index) => (
+              {mediaList.map((item) => (
                 <CarouselItem
                   key={item.id} // Use item.id as key for better stability
-                  className={cn(fullView ? "h-[65vh] w-[65vw]" : "h-[50vh] w-[50vw]", "flex flex-col")}
+                  className={cn(
+                    "w-full flex flex-col", // Ensure flex-col for stacking media and description
+                    fullView ? "h-[65vh] sm:w-[65vw]" : "h-[50vh] sm:w-[50vw]" // Responsive heights and widths
+                  )}
                 >
-                  {/* Media Content Area */}
-                  <div className="relative w-full h-full rounded-t-md overflow-hidden bg-gray-100 flex items-center justify-center">
+                  {/* Media Content Area - takes available height, but not all of it to leave space for description */}
+                  <div className="relative w-full flex-grow rounded-t-md overflow-hidden bg-gray-100 flex items-center justify-center">
                     {renderMediaContent(item)}
 
-                    {/* Filename Display and Edit Controls */}
+                    {/* Filename Display and Edit Controls (positioned at the bottom of the media area) */}
                     {canEdit && (
                       <div ref={fileNameContainerRef} className={cn("absolute bottom-0 left-0 right-0 text-white text-sm p-2 rounded-b-lg overflow-hidden flex items-center justify-between", editingFileNameId === item.id ? "bg-black bg-opacity-70" : "bg-black bg-opacity-50")}>
                         {editingFileNameId === item.id ? (
@@ -356,8 +360,8 @@ const Slider: React.FC<SliderProps> = ({ mediaList, fullView, onCardIdChange, on
                     )}
                   </div>
 
-                  {/* Description Display and Edit Controls */}
-                  <div ref={descriptionContainerRef} className="relative p-2 text-sm text-gray-700 bg-white rounded-b-md flex-grow overflow-auto">
+                  {/* Description Display and Edit Controls - fixed height with overflow for scrollability */}
+                  <div ref={descriptionContainerRef} className="relative p-2 text-sm text-gray-700 bg-white rounded-b-md flex-none h-[100px] overflow-y-auto border-t border-gray-200">
                     {canEdit && editingMediaId === item.id ? (
                       <div className="flex flex-col h-full">
                         <textarea
@@ -385,8 +389,8 @@ const Slider: React.FC<SliderProps> = ({ mediaList, fullView, onCardIdChange, on
                         </div>
                       </div>
                     ) : (
-                      <div className="flex justify-between items-center h-full">
-                        <span className="text-left flex-grow overflow-y-auto max-h-full break-words">
+                      <div className="flex justify-between items-start h-full"> {/* Use items-start to align text to top */}
+                        <span className="text-left flex-grow break-words">
                           {item.description || 'No description provided.'}
                         </span>
                         {canEdit && (
@@ -408,12 +412,20 @@ const Slider: React.FC<SliderProps> = ({ mediaList, fullView, onCardIdChange, on
             <CarouselNext className="p-1 bg-gray-800 rounded-full opacity-70 hover:opacity-100" />
           </Carousel>
         </div>
-      ) : mediaList && mediaList?.length === 0 ? ( // Correct comparison here
-        <div className={cn("flex items-center justify-center w-[50vw] rounded-lg bg-gray-400", fullView ? "h-[50vh]" : "h-[200px]")}>
+      ) : mediaList && mediaList?.length === 0 ? (
+        <div className={cn(
+          "flex items-center justify-center w-full rounded-lg bg-gray-400", // Full width on mobile
+          fullView ? "h-[50vh]" : "h-[200px]",
+          "sm:w-[50vw]" // Responsive width for larger screens
+        )}>
           <p className="text-white">No media available.</p>
         </div>
       ) : (
-        <div className={cn("w-[50vw] animate-pulse rounded-lg bg-zinc-700", fullView ? "h-[70vh]" : "h-[200px]")} />
+        <div className={cn(
+          "w-full animate-pulse rounded-lg bg-zinc-700", // Full width on mobile
+          fullView ? "h-[70vh]" : "h-[200px]",
+          "sm:w-[50vw]" // Responsive width for larger screens
+        )} />
       )}
       {error && (
         <div className="absolute bottom-4 left-4 bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded max-w-[80%] z-10" role="alert">
@@ -431,6 +443,7 @@ const Slider: React.FC<SliderProps> = ({ mediaList, fullView, onCardIdChange, on
 
 export default Slider;
 // 'use client';
+
 // import React, { useEffect, useState, useRef } from 'react';
 // import Image from 'next/image';
 // import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from '@/components/ui/carousel';
@@ -439,189 +452,188 @@ export default Slider;
 // import { FaArchive } from 'react-icons/fa';
 
 // interface MediaProps {
-//   id: string;
-//   url: string;
-//   cardId: string;
-//   type: string;
-//   fileName: string | null;
+//     id: string;
+//     url: string;
+//     cardId: string;
+//     type: string;
+//     fileName: string | null;
+//     description: string | null;
 // }
 
 // interface SliderProps {
-//   mediaList?: MediaProps[];
-//   fullView: boolean;
-//   onCardIdChange: (cardId: string | null, index: number) => void;
+//     mediaList?: MediaProps[];
+//     fullView: boolean;
+//     onCardIdChange: (cardId: string | null, index: number) => void;
 // }
 
 // const Slider: React.FC<SliderProps> = ({ mediaList, fullView, onCardIdChange }) => {
-//   const [currentImage, setCurrentImage] = useState(0);
-//   const carouselRef = useRef<HTMLDivElement>(null);
-//   const [emblaApi, setEmblaApi] = useState<any | null>(null);
+//     const [currentImage, setCurrentImage] = useState(0);
+//     const carouselRef = useRef<HTMLDivElement>(null);
+//     const [emblaApi, setEmblaApi] = useState<any | null>(null);
 
-//   useEffect(() => {
-//     if (mediaList) {
-//       mediaList.forEach((item) => {
-//         if (item.type === 'image') {
-//           const img = new window.Image();
-//           img.src = item.url;
+//     useEffect(() => {
+//         if (mediaList) {
+//             mediaList.forEach((item) => {
+//                 if (item.type === 'image') {
+//                     const img = new window.Image();
+//                     img.src = item.url;
+//                 }
+//             });
 //         }
-//       });
-//     }
-//   }, [mediaList]);
+//     }, [mediaList]);
 
-//   const renderMedia = (item: MediaProps) => {
-//     switch (item.type) {
-//       case 'image':
-//         return (
-//           <div className="relative w-full h-full">
-//             <Image
-//               src={item.url}
-//               alt={item.fileName || "media"}
-//               fill
-//               sizes="100vw"
-//               style={{ objectFit: 'contain', borderRadius: '0.5rem' }}
-//               priority={currentImage === 0}
-//               quality={75}
-//             />
-//           </div>
-//         );
-//       case 'video':
-//         return (
-//           <video
-//             src={item.url}
-//             controls
-//             className="rounded-xl object-contain w-full h-full"
-//           />
-//         );
-//       case 'raw':
-//         const fileExtension = item.url.substring(item.url.lastIndexOf('.') + 1);
-//         return (
-//           <div className="flex items-center justify-center w-full h-full">
-//             <a href={item.url} target="_blank" rel="noopener noreferrer" className="flex flex-col items-center">
-//               <span className="text-4xl">{getFileIcon(fileExtension)}</span>
-//               <span className="text-gray-600 mt-2">{fileExtension.toUpperCase()} File</span>
-//               {item?.fileName && <span className="text-gray-600 mt-2 truncate text-sm">{truncateString(item?.fileName, 30)}</span>}
-//             </a>
-//           </div>
-//         );
-//       case 'emptyMedia':
-//         return (
-//           <div className="flex items-center justify-center w-full h-full">
-//             <p className='items-center justify-center'>No media</p>
-//           </div>
-//         );
-//       default:
-//         return (
-//           <div className="flex items-center justify-center w-full h-full">
-//             <p className='items-center justify-center'>Unsupported media type</p>
-//           </div>
-//         );
-//     }
-//   };
+//     const renderMedia = (item: MediaProps) => {
+//         const fileNameDisplay = item.fileName ? (
+//             <div className="absolute bottom-0 left-0 right-0 bg-black bg-opacity-50 text-white text-sm p-2 rounded-b-lg">
+//                 <span className="font-semibold">{truncateString(item.fileName, 75)}</span>
+//             </div>
+//         ) : null;
 
-//   const getFileIcon = (extension: string) => {
-//     switch (extension.toLowerCase()) {
-//       case 'pdf': return <BsFilePdfFill />;
-//       case 'docx': case 'doc': return <BsFileWordFill />;
-//       case 'xlsx': case 'xls': return <BsFileExcelFill />;
-//       case 'zip': case 'rar': return <FaArchive />;
-//       default: return ' File';
-//     }
-//   };
+//         switch (item.type) {
+//             case 'image':
+//                 return (
+//                     <div className="relative w-full h-full">
+//                         <Image
+//                             src={item.url}
+//                             alt={item.fileName || "media"}
+//                             fill
+//                             sizes="100vw"
+//                             style={{ objectFit: 'contain', borderRadius: '0.5rem' }}
+//                             priority={currentImage === 0}
+//                             quality={75}
+//                         />
+//                         {fileNameDisplay}
+//                     </div>
+//                 );
+//             case 'video':
+//                 return (
+//                     <div className="relative w-full h-full">
+//                         <video
+//                             src={item.url}
+//                             controls
+//                             className="rounded-xl object-contain w-full h-full"
+//                         />
+//                         {fileNameDisplay}
+//                     </div>
+//                 );
+//             case 'raw':
+//                 const fileExtension = item.url.substring(item.url.lastIndexOf('.') + 1);
+//                 return (
+//                     <div className="flex items-center justify-center w-full h-full">
+//                         <a href={item.url} target="_blank" rel="noopener noreferrer" className="flex flex-col items-center">
+//                             <span className="text-4xl text-gray-600 dark:text-gray-300">{getFileIcon(fileExtension)}</span>
+//                             <span className="text-gray-600 dark:text-gray-300 mt-2">{fileExtension.toUpperCase()} File</span>
+//                             {/* Filename already handled here, but ensure consistent styling if needed */}
+//                             {item?.fileName && <span className="text-gray-600 dark:text-gray-300 mt-2 truncate text-sm">{truncateString(item?.fileName, 30)}</span>}
+//                         </a>
+//                     </div>
+//                 );
+//             case 'emptyMedia':
+//                 return (
+//                     <div className="flex items-center justify-center w-full h-full">
+//                         <p className='text-gray-500 dark:text-gray-400'>No media</p>
+//                     </div>
+//                 );
+//             default:
+//                 return (
+//                     <div className="flex items-center justify-center w-full h-full">
+//                         <p className='text-gray-500 dark:text-gray-400'>Unsupported media type</p>
+//                     </div>
+//                 );
+//         }
+//     };
 
-//   const handleCarouselChange = (index: number) => {
-//     setCurrentImage(index);
-//     if (mediaList && mediaList.length > 0) {
-//       const currentItem = mediaList[index];
-//       onCardIdChange(currentItem?.cardId || null, index); // Pass index here
-//     } else {
-//       onCardIdChange(null, index); // Pass index even if mediaList is empty
-//     }
-//   };
+//     const getFileIcon = (extension: string) => {
+//         switch (extension.toLowerCase()) {
+//             case 'pdf': return <BsFilePdfFill />;
+//             case 'docx': case 'doc': return <BsFileWordFill />;
+//             case 'xlsx': case 'xls': return <BsFileExcelFill />;
+//             case 'zip': case 'rar': return <FaArchive />;
+//             default: return ' File';
+//         }
+//     };
 
-//   useEffect(() => {
-//     if (mediaList && mediaList.length > 0) {
-//       handleCarouselChange(0); // Call with initial index (0)
-//     }
-//     //console.log('why reseting')
-//   }, [mediaList ]);
-
-//   const onEmblaInit2 = (api: any) => {
-//     setEmblaApi(api);
-
-//     api.on("select", () => {
-//       const index = api.selectedSnap();
-//       if (typeof index === 'number') {
-//         handleCarouselChange(index);
-//       } else if (api.index !== undefined) {
-//         handleCarouselChange(api.index);
-//         console.warn("Embla's selectedSnap() is not available. Using api.index as fallback.");
-//       } else if (api.currentIndex !== undefined) {
-//         handleCarouselChange(api.currentIndex);
-//         console.warn("Embla's selectedSnap() and api.index are not available. Using api.currentIndex as fallback.");
-//       } else {
-//         console.error("Could not determine Embla index. Check Embla version and configuration.");
-//       }
-//     });
-//   };
-//   const onEmblaInit = (api: any) => {
-//     setEmblaApi(api);
-  
-//       api.on("select", () => {
-//         //console.log("Embla 'select' event fired");
-  
-//         const slides = api.slideNodes(); // Get all slide DOM elements
-//        // console.log("Embla slides:", slides); // Check the slides array
-  
-//         if (slides && slides.length > 0) { // Make sure slides exist
-//           const activeSlide = slides[api.selectedScrollSnap()]; // Get the active slide element
-//           if (activeSlide) { // Check if activeSlide exists
-//               const index = slides.indexOf(activeSlide); // Find its index
-//               if (index !== -1) { // Check if index is valid
-//                   handleCarouselChange(index);
-//               } else {
-//                   console.error("Could not find active slide index.");
-//               }
-//           } else {
-//               console.error("Could not find active slide.");
-//           }
+//     const handleCarouselChange = (index: number) => {
+//         setCurrentImage(index);
+//         if (mediaList && mediaList.length > 0) {
+//             const currentItem = mediaList[index];
+//             onCardIdChange(currentItem?.cardId || null, index); // Pass index here
 //         } else {
-//           console.error("Embla slides are not available.");
+//             onCardIdChange(null, index); // Pass index even if mediaList is empty
 //         }
-//       });
-   
-//   };
-//   return (
-//     <div className={cn('flex justify-center relative h-full')}>
-//       {mediaList && mediaList?.length > 0 ? (
-//         <div className="relative">
-//           <Carousel
-//             className={cn(fullView ? "h-[65vh] w-[65vw]" : "h-[50vh] w-[50vw]")}
-//             ref={carouselRef}
-//             setApi={onEmblaInit}
-//           >
-//             <CarouselContent>
-//               {mediaList.map((item, index) => (
-//                 <CarouselItem
-//                   key={index}
-//                   className={cn(fullView ? "h-[65vh] w-[65vw]" : "h-[50vh] w-[50vw]")}
-//                 >
-//                   {renderMedia(item)}
-//                 </CarouselItem>
-//               ))}
-//             </CarouselContent>
-//             <CarouselPrevious className="p-1 bg-gray-800 rounded-full opacity-70 hover:opacity-100" />
-//             <CarouselNext className="p-1 bg-gray-800 rounded-full opacity-70 hover:opacity-100" />
-//           </Carousel>
+//     };
+
+//     useEffect(() => {
+//         if (mediaList && mediaList.length > 0) {
+//             handleCarouselChange(0); // Call with initial index (0)
+//         }
+//     }, [mediaList]); // Removed handleCarouselChange from dependency array to prevent infinite loop
+
+//     const onEmblaInit = (api: any) => {
+//         setEmblaApi(api);
+//         api.on("select", () => {
+//             // Corrected method name to selectedScrollSnap()
+//             const index = api.selectedScrollSnap();
+//             handleCarouselChange(index);
+//         });
+//     };
+
+//     return (
+//         <div className={cn('flex justify-center relative h-full w-full')}> {/* Ensured w-full here */}
+//             {mediaList && mediaList?.length > 0 ? (
+//                 <div className="relative w-full"> {/* Ensured w-full here */}
+//                     <Carousel
+//                         className={cn(
+//                             "w-full", // Full width on mobile
+//                             fullView ? "h-[65vh] sm:w-[65vw]" : "h-[50vh] sm:w-[50vw]" // Responsive widths for larger screens
+//                         )}
+//                         ref={carouselRef}
+//                         setApi={onEmblaInit}
+//                     >
+//                         <CarouselContent>
+//                             {mediaList.map((item, index) => (
+//                                 <CarouselItem
+//                                     key={item.id} // Use item.id as key for better stability
+//                                     className={cn(
+//                                         "w-full", // Full width on mobile
+//                                         fullView ? "h-[65vh] sm:w-[65vw]" : "h-[50vh] sm:w-[50vw]" // Responsive widths for larger screens
+//                                     )}
+//                                 >
+//                                     {renderMedia(item)}
+//                                     {/* Description Display */}
+//                                     <div className="relative p-2 text-sm text-gray-700 bg-white rounded-b-md flex-grow overflow-hidden">
+//                                         <div className="flex justify-between items-center h-full">
+//                                             {/* Use text-wrap or max-w-full and overflow-hidden, p-2 to control description overflow */}
+//                                             <span className="text-left flex-grow overflow-y-auto max-h-full break-words">
+//                                                 {item.description || 'No description provided.'}
+                                              
+//                                             </span>
+//                                         </div>
+//                                     </div>
+//                                 </CarouselItem>
+//                             ))}
+//                         </CarouselContent>
+//                         <CarouselPrevious className="p-1 bg-gray-800 rounded-full opacity-70 hover:opacity-100" />
+//                         <CarouselNext className="p-1 bg-gray-800 rounded-full opacity-70 hover:opacity-100" />
+//                     </Carousel>
+//                 </div>
+//             ) : mediaList && mediaList?.length === 0 ? (
+//                 <div className={cn(
+//                     "flex items-center justify-center w-full rounded-lg bg-gray-400", // Full width on mobile
+//                     fullView ? "h-[50vh]" : "h-[200px]",
+//                     "sm:w-[50vw]" // Responsive width for larger screens
+//                 )}>
+//                     <p className="text-white">No media available.</p>
+//                 </div>
+//             ) : (
+//                 <div className={cn(
+//                     "w-full animate-pulse rounded-lg bg-zinc-700", // Full width on mobile
+//                     fullView ? "h-[70vh]" : "h-[200px]",
+//                     "sm:w-[50vw]" // Responsive width for larger screens
+//                 )} />
+//             )}
 //         </div>
-//       ) : mediaList && mediaList?.length === 0 ? ( // Correct comparison here
-//         <div className={cn("flex items-center justify-center w-[50vw] rounded-lg bg-gray-400", fullView ? "h-[50vh]" : "h-[200px]")}>
-//           <p className="text-white">No media available.</p>
-//         </div>
-//       ) : (
-//         <div className={cn("w-[50vw] animate-pulse rounded-lg bg-zinc-700", fullView ? "h-[70vh]" : "h-[200px]")} />
-//       )}
-//     </div>
-//   );
+//     );
 // };
 
 // export default Slider;

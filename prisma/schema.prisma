@@ -157,8 +157,10 @@ model CardImage {
   //user        User? @relation(fields: [userId], references: [id])
   user        User? @relation(fields: [userId], references: [id], onDelete: Cascade) // onDelete: Cascade here
 
+  description String?
   fileName    String?
   createdAt   DateTime? @default(now())
+  order       Float    @default(0.0) // Using Float for flexible reordering (LexoRank/Fractional Indexing)
 
   @@index([cardId])
 }

@@ -1,4 +1,4 @@
-import { Board, BoardView, Card, CardImage, CardToUser, Comment, InvestmentPortfolio, Investor, InvestorInvestment, List } from "@prisma/client";
+import { Board, BoardView, Card, CardImage, CardToUser, Comment, InvestmentPortfolio, Investor, InvestorInvestment, List, Prisma } from "@prisma/client";
 
 export type ListWithCards = List & { cards: Card[] };
 export type ListWithCards2 = List & { cards: CardWithList2[] };
@@ -133,3 +133,25 @@ export type SafeInvestor2 = Omit<
   updatedAt: string;
   investments: SafeInvestorInvestment2 [];
 };
+export type CardWithDetails = Prisma.CardGetPayload<{
+  include: {
+    cardImages: true; // Include associated CardImages
+    user: true;         // Include the User who created the card
+    tags: true;         // Include associated Tags
+    comments: {         // Include associated Comments
+      include: {
+        user: true;     // Include the User who made the comment
+      };
+    };
+    list: {             // Include the List this card belongs to
+      include: {
+        board: true;    // Include the Board through the List
+      };
+    };
+    taggedUsers: {      // Include users tagged in this card
+      include: {
+        user: true;     // Include the User details for tagged users
+      };
+    };
+  };
+}>;

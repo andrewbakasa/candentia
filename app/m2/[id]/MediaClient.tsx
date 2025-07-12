@@ -9,8 +9,8 @@ import moment from "moment";
 import Head from "next/head";
 import { Skeleton } from "@/components/ui/skeleton";
 import useFavorite from "@/app/hooks/useFavorite";
-//import CardTags from "@/app/mycontent/_components/card-tags";
-//import CreatedAtUpdatedAt from "@/app/mycontent/_components/updatedCreated";
+import CardTags from "@/app/myprojects/_components/card-tags";
+import CreatedAtUpdatedAt from "@/app/myprojects/_components/updatedCreated";
 import { SafeUser } from "@/app/types";
 import Container from "@/app/components/Container";
 import { Hint } from "@/components/hint";
@@ -19,8 +19,6 @@ import { Button } from "@/components/ui/button";
 import { AiFillPicture } from "react-icons/ai";
 import { useMediaModal } from "@/hooks/use-media-modal";
 import Link from "next/link";
-import CreatedAtUpdatedAt from "@/app/myprojects/updatedCreated";
-import CardTags from "@/app/myprojects/_components/card-tags";
 // import Heading from "@/app/components/Heading";
 //import Container from "../components/Container";
 
@@ -111,13 +109,10 @@ const MediaClient: React.FC<MediaClientProps> = ({ currentUser, tagNames, userNa
               {/* if has no media  dont show <slider> component*/}
               {hasAnyMedia && (
                 <Slider
-                    mediaList={cardMedia || []}
-                    fullView={true}
-                    onCardIdChange={handleCardIdChange} onDescriptionChange={function (mediaId: string, newDescription: string | null): void {
-                      throw new Error("Function not implemented.");
-                    } } onFileNameChange={function (mediaId: string, newFileName: string | null): void {
-                      throw new Error("Function not implemented.");
-                    } } canEdit={false}                />
+                  mediaList={cardMedia|| []}
+                  fullView={true}
+                  onCardIdChange={handleCardIdChange}
+                />
         )}
               <Separator />
               <p className="text-sm text-blue-300 mr-auto">media {sliderIndex+1} of  [{filteredMediaCount}] </p>
