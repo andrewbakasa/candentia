@@ -15,22 +15,21 @@ import { createCardImage } from '@/actions/create-cardImage';
 import ClientOnly from '@/app/components/ClientOnly';
 import { Hint } from '@/components/hint';
 import moment from 'moment'; // Assuming this is used for date formatting
-import CreatedAtUpdatedAt from "@/app/mycontent/_components/updatedCreated";
-import CardTags from "@/app/mycontent/_components/card-tags";
-
 import { CompositeDecorator, Editor, EditorState, ContentState } from "draft-js";
 import { cn, isWithinOneDay } from "@/lib/utils";
 import { useMediaModal } from '@/hooks/use-media-modal';
 import { useCommentModal } from '@/hooks/use-comment-modal';
 import { Button } from '@/components/ui/button';
-import { CommentShow } from '@/app/learn/_components/display-comment';
-import { CommentList } from '@/app/learn/_components/display-all-comments';
 import { getTextFromEditor3_2 } from '@/components/modals/card-modal/description';
 import { AiFillPicture, AiOutlineLink } from 'react-icons/ai'; // Added AiOutlineLink for copy icon
 
 import { CardImage } from '@prisma/client';
 import { Skeleton } from '@/components/ui/skeleton';
 import CardImageReorderList from './_components/cardImage-reorder-list';
+import CreatedAtUpdatedAt from '@/app/myprojects/updatedCreated';
+import CardTags from '@/app/myprojects/_components/card-tags';
+import { CommentShow } from '@/app/myprojects/_components/display-comment';
+import { CommentList } from '@/app/myprojects/_components/display-all-comments';
 
 // Define the necessary related types for CardWithDetails (as provided in the latest immersive artifact)
 interface Board {
