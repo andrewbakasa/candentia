@@ -24,7 +24,7 @@ const Home = async () => {
     <>
       <Hero />
       <Intro />
-      <Services />
+      {/* <Services /> */}
       <Portfolio portfolioItems={portfolioItems}/>
       <Career jobOpenings={jobs}/>
       <Investments />

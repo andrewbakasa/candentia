@@ -73,7 +73,7 @@ const NavLinks: React.FC<NavLinksProps> = ({ currentUser, onLinkClick }) => {
         >
           About
         </Link>
-        <Link
+        {/* <Link
           href="#services"
           onClick={(e) => {
             e.preventDefault();
@@ -84,7 +84,7 @@ const NavLinks: React.FC<NavLinksProps> = ({ currentUser, onLinkClick }) => {
           className={`group font-medium ${gold} ${darkGoldHover} ${hoverUnderline} ${subtleShadow} ${linkPadding} ${isMobile ? mobileLinkStyle : ''} ${isHovering === 'services' ? goldAccent : ''}`}
         >
           Services
-        </Link>
+        </Link> */}
         <Link
           href="#portfolio"
           onClick={(e) => {
@@ -133,7 +133,7 @@ const NavLinks: React.FC<NavLinksProps> = ({ currentUser, onLinkClick }) => {
         >
           Contact Us
         </Link>
-        <Link
+        {/* <Link
           href="/demo#demo"
           onClick={(e) => {
             e.preventDefault();
@@ -144,7 +144,7 @@ const NavLinks: React.FC<NavLinksProps> = ({ currentUser, onLinkClick }) => {
           className={`group font-medium ${gold} ${darkGoldHover} ${hoverUnderline} ${subtleShadow} ${linkPadding} ${isMobile ? mobileLinkStyle : ''} ${isHovering === 'demo' ? goldAccent : ''}`}
         >
           Products Demo
-        </Link>
+        </Link> */}
 
         {!isMobile && <UserMenu
           currentUser={currentUser}
