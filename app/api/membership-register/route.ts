@@ -27,7 +27,7 @@ export async function POST(
     role, // This field is from the frontend form, but not in the current Membership Prisma model
     teamCode, // This field is from the frontend form, but not in the current Membership Prisma model
   } = body;
-
+ console.log('body',body)
   // Basic validation for fields that are required for a minimal membership entry
   // More comprehensive validation should be done with Zod on the backend as well.
   if (!email || !membershipCategory || !sex) {
@@ -35,7 +35,7 @@ export async function POST(
   }
 
   // Convert interests string (e.g., "farming, technology") to an array of strings
-  const interestsArray = interests ? interests.split(',').map((item: string) => item.trim()) : [];
+ // const interestsArray = interests ? interests.split(',').map((item: string) => item.trim()) : [];
 
   // Parse age and shares to integers, handling cases where they might be empty strings or null
   const parsedAge = age !== undefined && age !== null && age !== '' ? parseInt(age, 10) : null;
@@ -45,7 +45,8 @@ export async function POST(
     const membership = await prisma.membership.create({
       data: {
         userEmail: email, // Maps the incoming 'email' to the 'userEmail' field in the Membership model
-        
+        firstName:firstName,
+        lastName:lastName,
         // Fields directly from the Membership Prisma model
         membershipCategory: membershipCategory,
         sex: sex,
@@ -53,13 +54,14 @@ export async function POST(
         profession: profession,
         age: parsedAge,
         nextOfKin: nextOfKin,
-        interests: interestsArray, // Storing as String[]
+        interests: interests, // Storing as String[]
         memberExpectations: memberExpectations,
         pledge: pledge,
         shares: parsedShares,
         experienceOrBackground: experienceOrBackground,
-
-        // Note: 'firstName', 'lastName', 'password', 'confirmPassword', 'role', and 'teamCode'
+        role: role,
+        teamCode: teamCode,
+        // Note: 'role', and 'teamCode'
         // are present in the frontend form but are NOT part of the current 'Membership' Prisma model.
         // If you need to store these with the Membership record, you must update your Prisma schema
         // for the 'Membership' model to include them.
