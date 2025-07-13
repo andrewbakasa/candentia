@@ -68,9 +68,10 @@ export async function POST(
         // Password and confirmPassword are typically handled by a separate User authentication model.
       }
     });
-
+    console.log(membership)
     return NextResponse.json(membership);
   } catch (error: any) {
+     console.log(error)
     console.error("Error creating membership:", error);
     // Provide a more descriptive error message in production environments
     return new NextResponse(`Failed to create membership: ${error.message || 'An unknown error occurred'}`, { status: 500 });

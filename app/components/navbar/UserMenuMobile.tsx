@@ -40,6 +40,9 @@ const UserMenuMobile: React.FC<UserMenuProps> = ({ currentUser}) => {
           {currentUser?.isAdmin && (
             <MenuItem label="Users" onClick={() => { router.push("/users");  }} />
           )}
+           {currentUser?.isAdmin && (
+            <MenuItem label="members" onClick={() => { router.push("/members");  }} />
+          )}
           <hr />
           {currentUser?.isAdmin && (
             <MenuItem label="General Tags" onClick={() => { router.push("/tags");  }} />

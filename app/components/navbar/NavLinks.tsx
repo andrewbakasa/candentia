@@ -312,6 +312,20 @@ const NavLinks: React.FC<NavLinksProps> = ({ currentUser, onLinkClick }) => {
                     Users
                   </Link>
                 )}
+                  {currentUser?.isAdmin && (
+                  <Link
+                    href="/members"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      handleNavigate("/members");
+                    }}
+                    onMouseEnter={() => setIsHovering('members')}
+                    onMouseLeave={() => setIsHovering('')}
+                    className={`group font-medium ${gold} ${darkGoldHover} ${hoverUnderline} ${subtleShadow} ${linkPadding} ${mobileLinkStyle} ${isHovering === 'users' ? goldAccent : ''}`}
+                  >
+                    Members
+                  </Link>
+                )}
               </div>
             ) : (
               <>

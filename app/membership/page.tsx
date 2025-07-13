@@ -96,11 +96,13 @@ const MemberRegistrationForm = () => {
       // In a real application, replace this with your actual API endpoint for team member registration
       const response = await axios.post('/api/membership-register', dataToSend);
 
-      if (response.status === 201) { // Assuming 201 for successful creation
+      if (response.status === 200) { // Assuming 201 for successful creation
         toast.success('Member registration successful! Welcome to the team.');
         reset(); // Clear the form
-        router.push('/login'); // Redirect to login page
+        router.push('/'); // Redirect to login page
       } else {
+        console.log(response.status)
+        console.log(response)
         toast.error('Member registration failed. Please try again.');
       }
     } catch (error: any) {

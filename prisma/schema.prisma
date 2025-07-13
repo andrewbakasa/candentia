@@ -384,7 +384,7 @@ enum Sex {
 model Membership {
   id                 String             @id @default(auto()) @map("_id") @db.ObjectId
   // userId             String             @db.ObjectId // Commented out as per your input
-  userEmail          String?            @unique // Added @unique to prevent duplicate entries
+  userEmail          String            @unique // Added @unique to prevent duplicate entries
   // user               User?              @relation(fields: [userId], references: [id], onDelete: Cascade) // Commented out as per your input
   lastName           String
   firstName          String
@@ -395,11 +395,13 @@ model Membership {
   age                Int?
   nextOfKin          String? // Changed to String for simplicity
   interests          String?//[]
-  paymentDetails     Json? // Use Json to store structured data like fees and payment status
+  //paymentDetails     Json? // Use Json to store structured data like fees and payment status
   memberExpectations String?
   pledge             String?
   shares             Int?
   experienceOrBackground String? // Added new field for experience or background
   role String?
   teamCode String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime  @updatedAt
 }

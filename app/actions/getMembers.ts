@@ -2,7 +2,7 @@
 import prisma from "../libs/prismadb";
 
 import getCurrentUser from "./getCurrentUser";
-export default async function getMembers() {
+export default async function getUsers() {
   try {
     const currentUser = await getCurrentUser();
     if (!currentUser) {
@@ -11,27 +11,27 @@ export default async function getMembers() {
 
 
     const owner_id = currentUser.id
-    let users
+    let members
 
     if (currentUser.isAdmin ){
       //admin can view all
-      users = await prisma.user.findMany({        
+      members = await prisma.membership.findMany({        
         orderBy: { updatedAt: "desc" },        
       });
 
     }else {
       //if not admin nothing return
-      users = await prisma.user.findMany({        
-        where: { name: "NoesticensxeBname" },        
+      members = await prisma.membership.findMany({        
+        where: { userEmail: "NoesticensxeBname" },        
       });
     }
 
-    const safeUsers = users.map((user) => ({
+    const safeUsers = members.map((user) => ({
       ...user,
       //check if user has access roles list inside of project
      
-      createdAt: user.createdAt.toString(),
-      updatedAt: user.updatedAt.toString(),
+      createdAt: user?.createdAt?.toString()||null,
+      updatedAt: user?.updatedAt?.toString()||null,
      // emailVerified: user?.emailVerified?.toString()||null,
     
     })

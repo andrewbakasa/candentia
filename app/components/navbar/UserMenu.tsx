@@ -168,6 +168,9 @@ const UserMenu: React.FC<UserMenuProps> = ({ currentUser }) => {
                 {currentUser?.isAdmin && (
                   <MenuItem label="Users" onClick={() => { router.push("/users"); handleMenuItemClick(); }} />
                 )}
+                 {currentUser?.isAdmin && (
+                  <MenuItem label="Members" onClick={() => { router.push("/members"); handleMenuItemClick(); }} />
+                )}
                 <hr />
                 {currentUser?.isAdmin && (
                   <MenuItem label="General Tags" onClick={() => { router.push("/tags"); handleMenuItemClick(); }} />
