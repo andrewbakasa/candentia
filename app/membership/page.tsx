@@ -89,7 +89,7 @@ const MemberRegistrationForm = () => {
       // Prepare data for API, converting interests string to array
       const dataToSend = {
         ...values,
-        interests: values.interests ? values.interests.split(',').map(item => item.trim()) : [],
+       // interests: values.interests ? values.interests.split(',').map(item => item.trim()) : [],
       };
      
       // Simulate API call for member registration
