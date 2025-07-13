@@ -32,7 +32,7 @@ export default async function getMembers() {
      
       createdAt: user.createdAt.toString(),
       updatedAt: user.updatedAt.toString(),
-     // emailVerified: user?.emailVerified?.toString()||null,
+      emailVerified: user?.emailVerified?.toString()||null,
     
     })
   );
