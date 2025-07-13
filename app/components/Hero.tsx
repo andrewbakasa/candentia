@@ -11,7 +11,7 @@ const Hero = () => {
           <div id='hero' className="flex flex-col lg:flex-row py-8 justify-between text-center lg:text-left">
             <div className="lg:w-1/2 flex flex-col justify-center" data-aos="zoom-in" data-aos-delay="200">
               <h1 className="mb-3 md:text-5xl text-3xl font-bold text-yellow-900">
-              Collective Action Power
+              Synergistic Strength
               </h1>
   <section className="mt-8">
                 <h2 className="mb-6 text-2xl font-bold text-slate-700">Our Foundation: Collaboration and Foresight</h2>

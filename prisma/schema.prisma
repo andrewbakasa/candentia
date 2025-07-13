@@ -48,6 +48,8 @@ model User {
   comments Comment[]
   boardIds  String[] @db.ObjectId
   boadViews BoardView[]   @relation(fields: [boardIds], references: [id])
+
+ // Membership Membership[]
 }
 
 
@@ -358,4 +360,43 @@ model OrgSubscription {
 }
 
 
+// Define enums for specific fields
+enum MembershipCategory {
+  ORDINARY
+  SILVER
+  GOLD
+}
 
+enum Sex {
+  MALE
+  FEMALE
+  NON_BINARY
+  PREFER_NOT_TO_SAY
+}
+
+// Assuming the User model is already defined elsewhere in your schema.
+// model User {
+//   id          String       @id @default(auto()) @map("_id") @db.ObjectId
+//   ...
+//   memberships Membership[]
+// }
+
+model Membership {
+  id                 String             @id @default(auto()) @map("_id") @db.ObjectId
+  // userId             String             @db.ObjectId // Commented out as per your input
+  userEmail          String?            @unique // Added @unique to prevent duplicate entries
+  // user               User?              @relation(fields: [userId], references: [id], onDelete: Cascade) // Commented out as per your input
+
+  membershipCategory MembershipCategory
+  sex                Sex
+  country            String?
+  profession         String?
+  age                Int?
+  nextOfKin          String? // Changed to String for simplicity
+  interests          String[]
+  paymentDetails     Json? // Use Json to store structured data like fees and payment status
+  memberExpectations String?
+  pledge             String?
+  shares             Int?
+  experienceOrBackground String? // Added new field for experience or background
+}

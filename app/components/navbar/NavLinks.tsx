@@ -133,24 +133,26 @@ const NavLinks: React.FC<NavLinksProps> = ({ currentUser, onLinkClick }) => {
         >
           Contact Us
         </Link>
-        {/* <Link
-          href="/demo#demo"
+
+        <Link
+          href="/membership#membership"
           onClick={(e) => {
             e.preventDefault();
-            handleNavigate("/demo#demo");
+            handleNavigate("/membership#membership");
           }}
-          onMouseEnter={() => setIsHovering('demo')}
+          onMouseEnter={() => setIsHovering('membership')}
           onMouseLeave={() => setIsHovering('')}
-          className={`group font-medium ${gold} ${darkGoldHover} ${hoverUnderline} ${subtleShadow} ${linkPadding} ${isMobile ? mobileLinkStyle : ''} ${isHovering === 'demo' ? goldAccent : ''}`}
+          className={`group font-medium ${gold} ${darkGoldHover} ${hoverUnderline} ${subtleShadow} ${linkPadding} ${isMobile ? mobileLinkStyle : ''} ${isHovering === 'contact' ? goldAccent : ''}`}
         >
-          Products Demo
-        </Link> */}
+          MemberShip
+        </Link>
+     
 
         {!isMobile && <UserMenu
           currentUser={currentUser}
-          isOpen={isUserMenuOpenMobile}
-          onClose={closeMobileUserMenu}
-          onOpenToggle={toggleMobileUserMenu}
+          // isOpen={isUserMenuOpenMobile}
+          // onClose={closeMobileUserMenu}
+          // onOpenToggle={toggleMobileUserMenu}
         />}
 
         {isMobile &&

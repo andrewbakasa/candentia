@@ -23,7 +23,7 @@ const Footer: React.FC<FooterProps> = () => {
               <div className="box-border border-b-4 border-yellow-900 p-8 bg-yellow-200 text-gray-600 text-center rounded-lg xl:w-80 mx-auto">
                 <h3 className="font-bold text-4xl mb-4">Candentia</h3>
                 <div className="text-md font-medium text-gray-600">
-                  <h5>Engineering Solutions</h5>
+                  <h5>Integrated Solutions</h5>
                   <p>Harare,</p>
                   <p>Zimbabwe.</p>
                   {/*  <p>Manicaland State.</p>*/}
@@ -54,31 +54,58 @@ const Footer: React.FC<FooterProps> = () => {
             </div>
 
             {/* 3rd block */}
-            <div className="col-span-6 md:col-span-6 lg:col-span-4 mx-auto">
+            {/* <div className="col-span-6 md:col-span-6 lg:col-span-4 mx-auto">
               <h6 className="text-yellow-900 text-xl font-bold mb-4">OUR SERVICES</h6>
               <ul className="text-md">
                 <li className="mb-2">
                   <Link href="#" className="text-[#013289] hover:text-gray-900 hover:tracking-wider transition duration-250 ease-in-out">
-                    3D Modelling & Engineering
+                    Creating Weather for Our Investor
                   </Link>
                 </li>
                 <li className="mb-2">
                   <Link href="#" className="text-[#013289] hover:text-gray-900 hover:tracking-wider transition duration-250 ease-in-out">
-                    Operations Management
+                    Build strong teams
                   </Link>
                 </li>
                 <li className="mb-2">
                   <Link href="#" className="text-[#013289] hover:text-gray-900 hover:tracking-wider transition duration-250 ease-in-out">
-                    Data Analytics, AI, ML
+                    GBuild and guarntee the future
                   </Link>
                 </li>
                 <li className="mb-2">
                   <Link href="#" className="text-[#013289] hover:text-gray-900 hover:tracking-wider transition duration-250 ease-in-out">
-                    General Business Consultancy
+                    Build Resilient Infrastucture
                   </Link>
                 </li>
               </ul>
-            </div>
+            </div> */}
+            <div className="col-span-6 md:col-span-6 lg:col-span-4 mx-auto">
+    <h6 className="text-yellow-900 text-xl font-bold mb-4">OUR SERVICES</h6>
+    <ul className="text-md">
+        <li className="mb-2">
+            <Link href="#" className="text-[#013289] hover:text-gray-900 hover:tracking-wider transition duration-250 ease-in-out">
+                Strategic Investment and Partnership Solutions
+            </Link>
+        </li>
+        <li className="mb-2">
+            <Link href="#" className="text-[#013289] hover:text-gray-900 hover:tracking-wider transition duration-250 ease-in-out">
+                Talent Development and Team Building
+            </Link>
+        </li>
+        <li className="mb-2">
+            <Link href="#" className="text-[#013289] hover:text-gray-900 hover:tracking-wider transition duration-250 ease-in-out">
+                Future-Proofing and Sustainable Growth
+            </Link>
+        </li>
+        <li className="mb-2">
+            <Link href="#" className="text-[#013289] hover:text-gray-900 hover:tracking-wider transition duration-250 ease-in-out">
+                Building Resilient Infrastructure
+            </Link>
+        </li>
+       
+       
+    </ul>
+</div>
 
             {/* 4th block */}
             <div className="col-span-12 text-center mx-auto lg:col-span-3 font-bold uppercase text-yellow-900">
