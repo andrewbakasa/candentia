@@ -11,8 +11,9 @@ import getCurrentUser from './actions/getCurrentUser';
 import { Toaster } from "sonner";
 import { cn } from '@/lib/utils';
 import Hero from './components/Hero';
-import NavBar from './components/navbar/NavBar2';
+//import NavBar from './components/navbar/NavBar2';
 import getJobOpenings from './actions/getJobOpenings';
+import NavBar from './components/navbar/Navigation/NavBar';
 //import { saveInitialJobs } from './vacancy/[jobId]/_components/initialDB';
 export const metadata = {
   title: 'Candentia: Illuminating Engineering Solutions',
