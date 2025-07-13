@@ -6,13 +6,13 @@ import { getCardsFromSafeBoardT } from "@/lib/utils";
 export default async function getPortifolios() {
   try {
     const currentUser = await getCurrentUser();
-    if (!currentUser) {
-      return [];
-    }
-    const owner_id = currentUser.id
+    // if (!currentUser) {
+    //   return [];
+    // }
+    const owner_id = currentUser?.id||""
     let boards
 
-    if (currentUser.isAdmin ){
+    if (currentUser?.isAdmin ){
       //admin can view all
       boards = await prisma.board.findMany({
         where: {
@@ -135,18 +135,18 @@ export default async function getPortifolios() {
       ...board,
       //check if user has access roles list inside of project
       lists:board?.lists.filter(list =>{ 
-        const isOwner = (board?.userId ==currentUser.id)
-        const isAdminOrOwner = isOwner || currentUser.isAdmin
-        const listCreator =(list.userId ==currentUser.id)
+        const isOwner = (board?.userId ==currentUser?.id)
+        const isAdminOrOwner = isOwner || currentUser?.isAdmin
+        const listCreator =(list.userId ==currentUser?.id)
         return ((list.visible || isAdminOrOwner || listCreator) && list.active); 
       }).map((x)=>({
             ...x,
             userId:x.userId ==null?"":x.userId ,//reference added after
             cards: x.cards.filter(card => {
               //check if user has access role card of list
-              const isOwner =(board?.userId ==currentUser.id)
-              const isAdminOrOwner = isOwner || currentUser.isAdmin
-              const cardCreator =(card.userId==currentUser.id)
+              const isOwner =(board?.userId ==currentUser?.id)
+              const isAdminOrOwner = isOwner || currentUser?.isAdmin
+              const cardCreator =(card.userId==currentUser?.id)
               return ((card.visible || isAdminOrOwner || cardCreator) && card.active)
             }).map((card)=>({
                 ...card,
