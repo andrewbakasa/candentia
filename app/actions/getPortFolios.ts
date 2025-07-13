@@ -9,7 +9,7 @@ export default async function getPortifolios() {
     // if (!currentUser) {
     //   return [];
     // }
-    const owner_id = currentUser?.id||""
+    const owner_id = currentUser?.id
     let boards
 
     if (currentUser?.isAdmin ){
