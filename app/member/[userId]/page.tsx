@@ -3,7 +3,7 @@ import getCurrentUser from "../../actions/getCurrentUser";
 import EmptyState from "@/app/components/EmptyState";
 import ClientOnly from "@/app/components/ClientOnly";
 import { notFound } from "next/navigation";
-import MemberData from "./_components/memberData";
+import MemberData from "./_components/MemberDataCore";
 
 interface UserIdPageProps {
   params: {
