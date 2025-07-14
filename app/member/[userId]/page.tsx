@@ -2,8 +2,8 @@ import prisma from "@/app/libs/prismadb";
 import getCurrentUser from "../../actions/getCurrentUser";
 import EmptyState from "@/app/components/EmptyState";
 import ClientOnly from "@/app/components/ClientOnly";
-import { UserData } from "./_components/userdata";
 import { notFound } from "next/navigation";
+import MemberData from "./_components/memberData";
 
 interface UserIdPageProps {
   params: {
@@ -42,14 +42,14 @@ const UserIdPage = async ({
         const safeData = {
           ...user,
         
-          // createdAt: user.createdAt.toString(),
-          // updatedAt: user.updatedAt.toString(),
+          createdAt: user.createdAt.toString(),
+          updatedAt: user.updatedAt.toString(),
           // emailVerified: user?.emailVerified?.toString()||null,
         };
       
       return (
         <div className="p-4 h-full overflow-x-auto">
-         {/* <UserData data={safeData} currentUser={currentUser}/> */}
+           <MemberData data={safeData} currentUser={currentUser}/>
         </div>
       );
 

@@ -5,7 +5,6 @@ import prisma from "@/app/libs/prismadb";
 import getCurrentUser from "@/app/actions/getCurrentUser";
 import ClientOnly from "@/app/components/ClientOnly";
 import EmptyState from "@/app/components/EmptyState";
-import { UserData } from "./_components/userdata";
 
 export async function generateMetadata({ 
   params
@@ -66,8 +65,8 @@ const UserIdLayout = async ({
  const safeData = {
   ...user,
  
-  // createdAt: user.createdAt.toString(),
-  // updatedAt: user.updatedAt.toString(),
+  createdAt: user.createdAt.toString(),
+  updatedAt: user.updatedAt.toString(),
   // emailVerified: user?.emailVerified?.toString()||null,
 };
   return (

@@ -27,7 +27,7 @@ export async function POST(
     role, // This field is from the frontend form, but not in the current Membership Prisma model
     teamCode, // This field is from the frontend form, but not in the current Membership Prisma model
   } = body;
- console.log('body',body)
+ //console.log('body',body)
   // Basic validation for fields that are required for a minimal membership entry
   // More comprehensive validation should be done with Zod on the backend as well.
   if (!email || !membershipCategory || !sex) {

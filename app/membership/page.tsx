@@ -94,7 +94,7 @@ const MemberRegistrationForm = () => {
      
       // Simulate API call for member registration
       // In a real application, replace this with your actual API endpoint for team member registration
-      const response = await axios.post('/api/membership-register', dataToSend);
+      const response = await axios.post('/api/membership', dataToSend);
 
       if (response.status === 200) { // Assuming 201 for successful creation
         toast.success('Member registration successful! Welcome to the team.');
