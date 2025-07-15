@@ -1,54 +1,58 @@
 import prisma from "../libs/prismadb";
-import { Career } from "@prisma/client";
+import { JobApplication, Prisma } from "@prisma/client"; // Import Prisma here
 import getCurrentUser from "./getCurrentUser";
 
-export default async function getJobOpenings() {
+export default async function getJobApplications() {
   try {
     const currentUser = await getCurrentUser();
-    // No need to check if currentUser exists if you want to show public job openings
 
-    let careers: Career[];
-
-    if (currentUser?.isAdmin) {
-      // Admin can view all active job openings
-      careers = await prisma.career.findMany({
-        where: {
-          active: true,
-        },
-        orderBy: { updatedAt: "desc" },
-        // Include any relevant relations for Career here
-        // Example: If Career has a relation to Department
-        // include: {
-        //   department: true,
-        //   // ... other relations
-        // },
-      });
-    } else {
-      // Non-admin users can view all active job openings (assuming all are public)
-      careers = await prisma.career.findMany({
-        where: {
-          active: true,
-        },
-        orderBy: { updatedAt: "desc" },
-        // Include any relevant relations for Career here
-        // Example: If Career has a relation to Department
-        // include: {
-        //   department: true,
-        //   // ... other relations
-        // },
-      });
+    if (!currentUser) {
+      throw new Error("Unauthorized: User not logged in to view job applications.");
     }
 
-    // Transform the career data if needed for the frontend
-    const safeCareers = careers.map((career) => ({
-      ...career,
-      createdAt: career.createdAt ? career.createdAt.toISOString() : null,
-      updatedAt: career.updatedAt ? career.updatedAt.toISOString() : null,
-      // Add any other transformations if necessary
+    let jobApplications: JobApplication[];
+
+    // Let TypeScript infer the type, or use Prisma.JobApplicationFindManyArgs for explicit typing
+    const baseQueryOptions: Prisma.JobApplicationFindManyArgs = { // Explicitly type using Prisma's generated type
+      orderBy: { createdAt: "desc" }, // 'desc' is a valid value for SortOrder
+      include: {
+        career: true,
+       // user: true,
+      },
+    };
+
+    if (currentUser.isAdmin) {
+      jobApplications = await prisma.jobApplication.findMany({
+        ...baseQueryOptions,
+      });
+    } else if (currentUser.id) {
+        jobApplications = await prisma.jobApplication.findMany({
+            ...baseQueryOptions,
+           
+        });
+    } else {
+      throw new Error("Forbidden: User does not have permission to view job applications.");
+    }
+
+    const safeJobApplications = jobApplications.map((application) => ({
+      ...application,
+      createdAt: application.createdAt ? application.createdAt.toISOString() : null,
+      updatedAt: application.updatedAt ? application.updatedAt.toISOString() : null,
+      // career: application. ? {
+      //   ...application.career,
+      //   createdAt: application.career.createdAt?.toISOString() || null,
+      //   updatedAt: application.career.updatedAt?.toISOString() || null,
+      // } : null,
+      // user: application.user ? {
+      //   ...application.user,
+      //   createdAt: application.user.createdAt?.toISOString() || null,
+      //   updatedAt: application.user.updatedAt?.toISOString() || null,
+      // } : null,
     }));
 
-    return safeCareers;
+    return safeJobApplications;
   } catch (error: any) {
-    throw new Error(error);
+    console.error("Error fetching job applications:", error);
+    throw new Error(`Failed to retrieve job applications: ${error.message}`);
   }
 }

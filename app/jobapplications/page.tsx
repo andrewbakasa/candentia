@@ -4,23 +4,20 @@ import ClientOnly from "../../app/components/ClientOnly";
 
 import getCurrentUser from "../../app/actions/getCurrentUser";
 import ProjectsClient from "./JobsClient";
-import getMyBoards from "../actions/getMyBoards";
-import getTagNames from "../actions/getTagNames";
-import getUserNames from "../actions/getUserNames";
-import getJobOpenings from "../actions/getJobOpenings";
+import getJobApplications from "../actions/getJobApplications";
 
 
 const ProjectsPage = async () => {
   const currentUser = await getCurrentUser();
-  let jobs:any
-   jobs = await getJobOpenings();
+  let jobsapp:any
+   jobsapp = await getJobApplications();
    //console.log('From DB',jobs)
 
   
   return (
     <ClientOnly>
       <ProjectsClient
-        jobs={jobs}
+        jobApplications={jobsapp}
         currentUser={currentUser}
       />
     </ClientOnly>
