@@ -67,7 +67,11 @@ export const JobContainer = ({
       </div>
 
       <div className="mt-8">
-        <Link href="/apply" className="inline-flex items-center px-4 py-2 bg-blue-500 hover:bg-blue-700 text-white rounded-md">
+        <Link 
+         href  = {`/job-apply/${job.id}`} 
+            className="inline-flex items-center px-4 py-2 bg-blue-500 hover:bg-blue-700 text-white rounded-md"
+        >
+
           Apply Now
         </Link>
       </div>
