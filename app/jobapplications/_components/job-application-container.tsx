@@ -38,7 +38,7 @@ export const JobApplicationContainer: React.FC<JobApplicationContainerProps> = (
                         Application for: {jobApplication.career?.title || 'Unknown Job'}
                     </CardTitle>
                     <CardDescription className="text-gray-600">
-                        Applicant: {jobApplication.user?.name || 'N/A'} (Email: {jobApplication.user?.email || 'N/A'})
+                        Applicant: {jobApplication.applicantName || 'N/A'} (Email: {jobApplication.applicantEmail || 'N/A'})
                     </CardDescription>
                 </CardHeader>
                 <CardContent className="flex-grow">

@@ -12,41 +12,36 @@ export default async function getJobApplications() {
     }
 
     let jobApplications: JobApplication[];
-    if (currentUser.isAdmin) {
-      // Admins can view all job applications
-      jobApplications = await prisma.jobApplication.findMany();
-    }
-    // 2. IMPORTANT: If current user is not an admin, they should ONLY see their own applications.
-    // Assuming 'JobApplication' has a 'userId' field linking to the applicant.
-    else if (currentUser.id) {
-        jobApplications = await prisma.jobApplication.findMany();
-    }
-    // 3. Deny access for any other roles not explicitly handled.
-    else {
-      throw new Error("Forbidden: User does not have permission to view job applications.");
-    }
 
+    // Admins can view all job applications.
+    // Assuming 'admin' is a role you have defined in your User model.
+    
+      jobApplications = await prisma.jobApplication.findMany({
+        orderBy: { createdAt: "desc" },
+        include: {
+          career: true,
+        },
+      });
+    
     // 4. Ensure all Date objects are converted to ISO strings for client-side consumption.
     // This is vital for Server Components.
     const safeJobApplications = jobApplications.map((application) => ({
       ...application,
-      createdAt: application.createdAt ? application.createdAt.toString() : null,
-      updatedAt: application.updatedAt ? application.updatedAt.toString() : null,
-      // Transform nested 'career' object dates if included
-     
-    
+      createdAt: application.createdAt ? application.createdAt.toISOString() : null,
+      updatedAt: application.updatedAt ? application.updatedAt.toISOString() : null,
+      
     }));
 
     return safeJobApplications;
   } catch (error: any) {
-    // Log the full error in development for debugging.
-    // In production, the digest error is used for security.
     console.error("Error fetching job applications in getJobApplications:", error);
-    // Re-throw a generic error message for production, or a more specific one if safe.
-    // The original error object's 'digest' property is for internal logging/tracing.
-    throw new Error(`Failed to retrieve job applications. Please try again later.`);
-    // Or if you want to be slightly more descriptive while still safe:
-    // throw new Error(`Failed to retrieve job applications: ${error.message.includes('Unauthorized') || error.message.includes('Forbidden') ? error.message : 'An unexpected error occurred.'}`);
+    // Re-throw a more specific error if it's an authorization issue,
+    // otherwise, a generic message for other errors.
+    if (error.message.includes("Unauthorized") || error.message.includes("Forbidden")) {
+      throw error; // Re-throw the original error if it's related to authorization
+    } else {
+      throw new Error(`Failed to retrieve job applications. Please try again later.`);
+    }
   }
 }
 // import prisma from "../libs/prismadb";
