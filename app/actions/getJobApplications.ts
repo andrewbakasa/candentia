@@ -1,5 +1,5 @@
 import prisma from "../libs/prismadb";
-import { Career, JobApplication } from "@prisma/client";
+import { Career } from "@prisma/client";
 import getCurrentUser from "./getCurrentUser";
 
 export default async function getJobOpenings() {
@@ -7,11 +7,11 @@ export default async function getJobOpenings() {
     const currentUser = await getCurrentUser();
     // No need to check if currentUser exists if you want to show public job openings
 
-    let careers: JobApplication[];
+    let careers: Career[];
 
     if (currentUser?.isAdmin) {
       // Admin can view all active job openings
-      careers = await prisma.jobApplication.findMany({
+      careers = await prisma.career.findMany({
         where: {
           active: true,
         },
@@ -25,7 +25,7 @@ export default async function getJobOpenings() {
       });
     } else {
       // Non-admin users can view all active job openings (assuming all are public)
-      careers = await prisma.jobApplication.findMany({
+      careers = await prisma.career.findMany({
         where: {
           active: true,
         },

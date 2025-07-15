@@ -237,7 +237,7 @@ model JobApplication {
   resumeUrl        String?      // URL to the uploaded resume (e.g., S3, Cloudinary)
   coverLetterText  String?     // Optional: Text of the cover letter
   status           String      @default("Pending") // e.g., "Pending", "Reviewed", "Interviewed", "Rejected", "Hired"
-  appliedAt        DateTime    @default(now())
+  createdAt        DateTime    @default(now())
   updatedAt        DateTime    @updatedAt
 
   @@map("applications") // Explicitly map the collection name
