@@ -1,3 +1,4 @@
+
 /* eslint-disable @next/next/no-img-element */
 'use client';
 import { useCallback, useState, useEffect } from "react";
@@ -309,3 +310,287 @@ const JobsClient: React.FC<JobsClientProps> = ({
 }
 
 export default JobsClient;
+
+
+// app/components/JobApplicationForm.tsx (This path seems incorrect based on previous discussion, should be JobClient.tsx)
+// Assume this is app/jobs/JobsClient.tsx or similar
+
+/* eslint-disable @next/next/no-img-element */
+// 'use client';
+
+// import { useCallback, useState, useEffect } from "react";
+// import { useRouter } from "next/navigation";
+// import { SafeUser } from "../types";
+// import Heading from "../components/Heading"; // Ensure this is styled well
+// import Search from "../components/Search"; // Ensure this uses shadcn/ui inputs
+// import Container from "../components/Container"; // Should provide max-width and padding
+// import { useWindowSize } from "@/hooks/use-screenWidth";
+// import Cookies from 'js-cookie';
+// import { cn } from "@/lib/utils";
+// import ReactPaginate from "react-paginate";
+// import useIsMobile from "../hooks/isMobile";
+// import { toast } from "sonner";
+// import { useAction } from "@/hooks/use-action";
+// import { updatePagSize } from "@/actions/update-user-pagesize";
+// import { createTag } from "@/actions/create-tag"; // Not directly used in UI improvement, but kept
+// import { Career } from "@prisma/client";
+// import { JobContainer } from "../job/[jobId]/_components/job-container"; // Ensure this component is well-styled
+
+// // Shadcn UI components for better pagination controls
+// import {
+//   Select,
+//   SelectContent,
+//   SelectItem,
+//   SelectTrigger,
+//   SelectValue,
+// } from "@/components/ui/select";
+// import { Skeleton } from "@/components/ui/skeleton"; // Optional: For loading states
+
+// interface JobsClientProps {
+//   jobs: Career[];
+//   currentUser?: SafeUser | null;
+// }
+
+// const JobsClient: React.FC<JobsClientProps> = ({
+//   jobs,
+//   currentUser,
+// }) => {
+//   const router = useRouter();
+//   const [deletingId, setDeletingId] = useState(''); // Not used in current UI logic
+//   const [searchTerm, setSearchTerm] = useState("");
+//   const [filteredJobs, setFilteredJobs] = useState<Career[]>(jobs); // Explicitly type
+//   const [pageSize, setPageSize] = useState<number>(currentUser?.pageSize || 8); // Default to 8 if no user setting
+//   const [itemOffset, setItemOffset] = useState(0);
+//   const isMobile = useIsMobile(); // Custom hook for mobile detection
+//   const [fList, setFList] = useState<Career[]>(jobs); // Filtered list for pagination
+//   const [fListPage, setFListPage] = useState<Career[]>([]); // Current page slice of jobs
+
+//   const [uniqueJobId, setUniqueJobId] = useState(''); // For single job view mode
+//   const [category, setCategory] = useState<string>(''); // For category filtering, not fully implemented in UI but kept for logic
+
+//   const { execute: updatePageSizeAction } = useAction(updatePagSize, {
+//     onSuccess: (data) => {
+//       toast.success(`Page size updated to ${data.pageSize}`);
+//     },
+//     onError: (error) => {
+//       toast.error(error);
+//     },
+//   });
+
+//   // Not directly used in UI, but kept for context
+//   const { execute: createTagAction } = useAction(createTag, {
+//     onSuccess: (data) => {
+//       toast.success(`Tag "${data.name}" created`);
+//     },
+//     onError: (error) => {
+//       toast.error(error);
+//     },
+//   });
+
+//   Cookies.set('originString', window.location.origin); // Use window.location.origin instead of global 'origin'
+
+//   // Effect for filtering jobs based on search term and uniqueJobId
+//   useEffect(() => {
+//     let jobsToFilter = jobs;
+
+//     // Apply unique job filter first
+//     if (uniqueJobId.length > 0) {
+//       jobsToFilter = jobs.filter(x => x.id === uniqueJobId.trim());
+//     }
+
+//     // Apply search term filter
+//     if (searchTerm !== "") {
+//       const searchTermsArray = searchTerm.split(';').filter(Boolean); // Filter out empty strings
+//       const results = jobsToFilter.filter((job) =>
+//         searchTermsArray.some(term => {
+//           const individualTerms = term.split(',').map(s => s.trim().toLowerCase());
+//           return (
+//             (job.fullDescription?.toLowerCase().includes(individualTerms.join(' ')) || // Search full description
+//              job.shortDescription?.toLowerCase().includes(individualTerms.join(' ')) || // Search short description
+//              job.title?.toLowerCase().includes(individualTerms.join(' ')) || // Search title
+//              job.location?.toLowerCase().includes(individualTerms.join(' ')) || // Search location
+//              job.department?.toLowerCase().includes(individualTerms.join(' ')) || // Search department
+//              job.type?.toLowerCase().includes(individualTerms.join(' '))
+//             ) // Search type
+//           );
+//         })
+//       );
+//       setFList(results);
+//     } else {
+//       setFList(jobsToFilter); // When search is empty, fList is jobs filtered by uniqueJobId
+//     }
+
+//     setItemOffset(0); // Always reset pagination to the first page after filtering
+//   }, [jobs, uniqueJobId, searchTerm]); // Removed 'category' as it's not used in current filtering logic
+
+//   const handleSearch = useCallback((event: React.ChangeEvent<HTMLInputElement>) => {
+//     setSearchTerm(event.target.value);
+//   }, []);
+
+//   // Removed useWindowSize as `isMobile` hook is sufficient for conditional rendering
+//   // If `popover_content_pos` is still needed based on exact width, re-add `useWindowSize`
+
+//   // Define valid page size options (numeric values for Select)
+//   const pageSizeOptions = [8, 16, 24, 32, 48, 60];
+
+//   const handlePageSizeChange = useCallback((value: string) => {
+//     const numericPageSize = parseInt(value, 10);
+//     setPageSize(numericPageSize);
+//     if (currentUser) {
+//       updatePageSizeAction({
+//         id: currentUser.id,
+//         pageSize: numericPageSize
+//       });
+//     }
+//     setItemOffset(0); // Reset to the first page when page size changes
+//   }, [currentUser, updatePageSizeAction]);
+
+
+//   const handlePageClick = useCallback((event: { selected: number }) => {
+//     const newOffset = (event.selected * pageSize) % fList.length;
+//     setItemOffset(newOffset);
+//   }, [pageSize, fList.length]);
+
+//   // Calculate the slice of jobs for the current page
+//   useEffect(() => {
+//     const endpoint = Math.min(itemOffset + pageSize, fList.length);
+//     setFListPage(fList.slice(itemOffset, endpoint));
+//   }, [itemOffset, fList, pageSize]);
+
+//   // Update page count when fList or pageSize changes
+//   const pageCount = Math.ceil(fList.length / pageSize) || 0; // Calculate directly here
+
+//   // Reset itemOffset when pageCount changes (e.g., when search results change dramatically)
+//   useEffect(() => {
+//     setItemOffset(0);
+//   }, [pageCount]);
+
+
+//   // Helper for single job view mode toggle
+//   const handleToggleUniqueJobView = useCallback((id: string) => {
+//     setUniqueJobId(prevId => prevId === id ? '' : id); // Toggle on/off
+//     setSearchTerm(''); // Clear search when toggling unique job view
+//   }, []);
+
+//   const title_ = uniqueJobId.length === 0
+//     ? `Available Jobs (${fList.length} of ${jobs.length})`
+//     : 'Viewing Single Job'; // Clearer title for unique job view
+//   const subtitle_ = "Discover exciting career opportunities";
+
+//   return (
+//     <Container className="py-8"> {/* Added vertical padding */}
+//       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
+//         {/* Heading Section */}
+//         <div className="flex-1">
+//           <Heading
+//             title={title_}
+//             subtitle={subtitle_}
+//             isSetBackground={uniqueJobId?.length > 0} // Conditionally set background for unique view
+//             // onClick={uniqueJobId.length > 0 ? () => handleToggleUniqueJobView('') : undefined} // Click to exit unique view
+//             // className={uniqueJobId.length > 0 ? "cursor-pointer hover:opacity-80 transition" : ""}
+//           />
+//           {uniqueJobId.length > 0 && (
+//             <p className="text-sm text-gray-500 mt-1">
+//               Click the title or the job card to exit single job view.
+//             </p>
+//           )}
+//         </div>
+
+//         {/* Search Bar */}
+//         <div className="w-full sm:w-1/3 min-w-[250px]"> {/* Control width of search */}
+//           <Search
+//             setSearchTerm={setSearchTerm
+//               // handleSearch
+//             } // Pass the handler
+//             searchTerm={searchTerm}
+//             // placeholder="Search jobs by title, description, location..."
+//           />
+//         </div>
+//       </div>
+
+//       {/* Main Content Area */}
+//       <div className={cn(
+//         "mt-4 pb-5 transition-all duration-300",
+//         uniqueJobId.length > 0 ? 'shadow-xl rounded-lg p-4 border-2 border-blue-400 bg-white' : ''
+//       )}>
+//         {/* Conditional rendering for no jobs or no results */}
+//         {fList.length === 0 && searchTerm !== "" && (
+//           <p className="text-center text-gray-500 text-lg py-10">
+//             No jobs found matching ${searchTerm}. Try a different search term.
+//           </p>
+//         )}
+//          {fList.length === 0 && searchTerm === "" && ( // For when there are simply no jobs at all
+//           <p className="text-center text-gray-500 text-lg py-10">
+//             No job postings available at the moment. Please check back later!
+//           </p>
+//         )}
+
+//         {/* Job Listings Grid */}
+//         {fList.length > 0 && (
+//           <div
+//             className={cn(
+//               "grid gap-6",
+//               isMobile ? 'grid-cols-1' : 'grid-cols-1 md:grid-cols-2 lg:grid-cols-2 xl:grid-cols-2',
+//               uniqueJobId.length > 0 ? 'max-w-xl mx-auto' : '' // Center single job in desktop view
+//             )}
+//           >
+//             {fListPage.length > 0 ? (
+//               fListPage.map((job) => (
+//                 <JobContainer
+//                   key={job.id}
+//                   job={job}
+//                   jobId={job.id}
+//                   // onClick={() => handleToggleUniqueJobView(job.id)} // Make job container clickable for single view
+//                 />
+//               ))
+//             ) : (
+//               // Loading Skeleton or specific "no jobs on this page" message
+//               <div className="col-span-full text-center text-gray-500 py-4">
+//                 Loading jobs...
+//                 {/* Or a more complex skeleton */}
+//                 <Skeleton className="h-48 w-full mt-4" />
+//               </div>
+//             )}
+//           </div>
+//         )}
+
+//         {/* Pagination Controls */}
+//         {fList.length > 0 && pageCount > 1 && ( // Only show pagination if there are items and more than one page
+//           <div className="flex flex-col sm:flex-row justify-center items-center gap-4 mt-8 px-2 sm:px-0">
+//             <ReactPaginate
+//               breakLabel="..."
+//               containerClassName="flex items-center space-x-2 border border-gray-300 rounded-md p-2 shadow-sm"
+//               pageLinkClassName="px-3 py-1 rounded-md text-gray-700 hover:bg-gray-100 transition-colors"
+//               previousLinkClassName="px-3 py-1 rounded-md text-gray-700 hover:bg-gray-100 transition-colors"
+//               nextLinkClassName="px-3 py-1 rounded-md text-gray-700 hover:bg-gray-100 transition-colors"
+//               activeLinkClassName="bg-blue-500 text-white hover:bg-blue-600"
+//               disabledClassName="opacity-50 cursor-not-allowed"
+//               previousLabel="« Previous"
+//               nextLabel="Next »"
+//               onPageChange={handlePageClick}
+//               pageRangeDisplayed={isMobile ? 2 : 3} // Fewer page numbers on mobile
+//               marginPagesDisplayed={1}
+//               pageCount={pageCount}
+//               forcePage={Math.floor(itemOffset / pageSize)}
+//             />
+
+//             <Select onValueChange={handlePageSizeChange} value={String(pageSize)}>
+//               <SelectTrigger className="w-[180px]">
+//                 <SelectValue placeholder="Items per page" />
+//               </SelectTrigger>
+//               <SelectContent>
+//                 {pageSizeOptions.map((option) => (
+//                   <SelectItem key={option} value={String(option)}>
+//                     {option} per page
+//                   </SelectItem>
+//                 ))}
+//               </SelectContent>
+//             </Select>
+//           </div>
+//         )}
+//       </div>
+//     </Container>
+//   );
+// }
+
+// export default JobsClient;
