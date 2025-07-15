@@ -374,12 +374,7 @@ enum Sex {
   PREFER_NOT_TO_SAY
 }
 
-// Assuming the User model is already defined elsewhere in your schema.
-// model User {
-//   id          String       @id @default(auto()) @map("_id") @db.ObjectId
-//   ...
-//   memberships Membership[]
-// }
+
 
 model Membership {
   id                 String             @id @default(auto()) @map("_id") @db.ObjectId

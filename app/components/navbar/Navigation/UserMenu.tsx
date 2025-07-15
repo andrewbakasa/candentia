@@ -171,6 +171,10 @@ const UserMenu: React.FC<UserMenuProps> = ({ currentUser, handleNavigate }) => {
                   label="Profile Settings"
                   onClick={() => handleMenuItemClickWithNav(`/user/${currentUser.id}`)}
                 />
+                <MenuItem
+                  label="Member Profile"
+                  onClick={() => handleMenuItemClickWithNav(`/member-profile`)}
+                />
 
                
                 <hr className="my-1" />
