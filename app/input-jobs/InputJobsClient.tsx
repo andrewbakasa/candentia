@@ -360,11 +360,17 @@ const CareerForm: React.FC<CareerFormProps> = ({ initialData, onClose }) => {
                                 Go Back to Careers List
                             </Button>
                         </Link>
-                        {/* Alternatively, for dynamic back button (browser history):
+                        <Link href="/ edit-jobs" passHref>
+                            <Button variant="outline" className="text-blue-500 hover:text-blue-700">
+                                Go Back to Edit Jobs
+                            </Button>
+                        </Link>
+                       
+                      
                         <Button variant="outline" onClick={handleGoBack} className="text-blue-500 hover:text-blue-700">
                             Go Back
                         </Button>
-                        */}
+                      
                     </div>
                 </CardContent>
             </Card>
