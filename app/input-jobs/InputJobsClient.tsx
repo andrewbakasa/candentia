@@ -117,7 +117,7 @@ const CareerForm: React.FC<CareerFormProps> = ({ initialData, onClose }) => {
             if (onClose) {
                 onClose();
             } else {
-                router.push('/careersjobs'); // Redirect after creation if not in modal
+                router.push('/careerjobs'); // Redirect after creation if not in modal
             }
         },
         onError: (error) => {
@@ -413,7 +413,7 @@ const CareerForm: React.FC<CareerFormProps> = ({ initialData, onClose }) => {
                     {/* Navigation Buttons */}
                     <div className="mt-8 grid grid-cols-1 sm:grid-cols-2 gap-4">
                         {!onClose && ( // Only show "Go Back to Careers List" if not in a modal
-                            <Link href="/careersjobs" passHref>
+                            <Link href="/careerjobs" passHref>
                                 <Button variant="outline" className="w-full text-blue-600 hover:bg-blue-50 transition-colors">
                                     Go Back to Careers List
                                 </Button>
