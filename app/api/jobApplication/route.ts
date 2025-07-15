@@ -19,9 +19,9 @@ export async function POST(request: Request) {
 
     // --- Basic Validation ---
     // Ensure all required fields are present
-    if (!careerId || !applicantName || !applicantEmail || !resumeUrl) {
+    if (!careerId || !applicantName || !applicantEmail ) {
       return new NextResponse(
-        JSON.stringify({ message: 'Missing required fields: careerId, applicantName, applicantEmail, resumeUrl.' }),
+        JSON.stringify({ message: 'Missing required fields: careerId, applicantName, applicantEmail.' }),
         { status: 400 }
       );
     }

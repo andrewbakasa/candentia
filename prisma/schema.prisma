@@ -234,7 +234,7 @@ model JobApplication {
   applicantName    String
   applicantEmail   String
   applicantPhone   String?
-  resumeUrl        String      // URL to the uploaded resume (e.g., S3, Cloudinary)
+  resumeUrl        String?      // URL to the uploaded resume (e.g., S3, Cloudinary)
   coverLetterText  String?     // Optional: Text of the cover letter
   status           String      @default("Pending") // e.g., "Pending", "Reviewed", "Interviewed", "Rejected", "Hired"
   appliedAt        DateTime    @default(now())
