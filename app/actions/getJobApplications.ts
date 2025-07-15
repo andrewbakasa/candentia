@@ -30,8 +30,8 @@ export default async function getJobApplications() {
     // This is vital for Server Components.
     const safeJobApplications = jobApplications.map((application) => ({
       ...application,
-      createdAt: application.createdAt ? application.createdAt.toISOString() : null,
-      updatedAt: application.updatedAt ? application.updatedAt.toISOString() : null,
+      // createdAt: application.createdAt ? application.createdAt.toISOString() : null,
+      // updatedAt: application.updatedAt ? application.updatedAt.toISOString() : null,
       // Transform nested 'career' object dates if included
      
     
