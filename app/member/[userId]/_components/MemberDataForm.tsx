@@ -75,7 +75,7 @@ const MemberDataForm: React.FC<MemberDataFormProps> = ({ form, onSubmit, isEditi
   const isOwner = currentUser?.email === data.userEmail; // Assuming userEmail is unique and identifies the owner
 
   // Helper function to determine if a field should be disabled for owner-editable fields
-  const isOwnerEditableDisabled = !isEditing || (!isOwner || !isAdmin);// false if owner or admin
+  const isOwnerEditableDisabled = !isEditing || (!(isOwner || isAdmin));// false if owner or admin
 
   // Helper function to determine if a field should be disabled for admin-only fields
   const isAdminOnlyEditableDisabled = !isEditing || !isAdmin;
