@@ -360,7 +360,7 @@ const CareerForm: React.FC<CareerFormProps> = ({ initialData, onClose }) => {
                                 Go Back to Careers List
                             </Button>
                         </Link>
-                        <Link href="/ edit-jobs" passHref>
+                        <Link href="/edit-jobs" passHref>
                             <Button variant="outline" className="text-blue-500 hover:text-blue-700">
                                 Go Back to Edit Jobs
                             </Button>
