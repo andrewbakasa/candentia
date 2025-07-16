@@ -12,12 +12,10 @@ import useIsMobile from "../hooks/isMobile";
 import { toast } from "sonner";
 import { useAction } from "@/hooks/use-action";
 import { updatePagSize } from "@/actions/update-user-pagesize"; // Still relevant for user preferences
-// import { createTag } from "@/actions/create-tag"; // Less likely to be directly used here for applications
-// import { PageView } from "./_components/page-view"; // This might be a specific component for job openings, consider its relevance
 import { JobApplication, Career, User } from "@prisma/client"; // Import JobApplication, Career, User
 import { JobApplicationContainer } from "./_components/job-application-container";
 import { useWindowSize } from "@/hooks/use-screenWidth";
-//import { JobApplicationContainer } from "./[jobApplicationId]/_components/job-application-container"; // New component for displaying applications
+import { updateJobApplicationStatus } from "@/actions/update-jobApplicationStatus";
 
 // Extend JobApplication type to include relations if they are fetched by getJobApplications
 interface JobApplicationWithRelations extends JobApplication {
@@ -26,9 +24,11 @@ interface JobApplicationWithRelations extends JobApplication {
 }
 
 interface JobApplicationsClientProps {
-    jobApplications: any[];//JobApplicationWithRelations[]; // Changed from jobs to jobApplications
+    jobApplications: JobApplicationWithRelations[]; // Changed from jobs to jobApplications
     currentUser?: SafeUser | null;
 }
+
+
 
 const JobApplicationsClient: React.FC<JobApplicationsClientProps> = ({
     jobApplications, // Changed prop name
@@ -45,12 +45,7 @@ const JobApplicationsClient: React.FC<JobApplicationsClientProps> = ({
     const [fList, setFList] = useState(jobApplications);
     const [fListPage, setFListPage] = useState<JobApplicationWithRelations[]>([]); // Renamed and typed
 
-    // `uniqueJobId` doesn't make sense for applications directly.
-    // Perhaps `uniqueApplicationId` for a detailed view, or `filterByJobId`?
-    // Let's replace it with `selectedApplicationId` for single application view.
     const [selectedApplicationId, setSelectedApplicationId] = useState<string>('');
-
-    // Renamed for clarity - this is for filtering by a specific application ID
     const handleToggleSelectApplication = (id: string) => {
         if (selectedApplicationId === id) { // If clicking the same one, deselect
             setSelectedApplicationId('');
@@ -61,7 +56,6 @@ const JobApplicationsClient: React.FC<JobApplicationsClientProps> = ({
         }
     };
 
-    // `category` might be used for filtering by application status, or job department
     const [statusFilter, setStatusFilter] = useState<string>(''); // Example: "PENDING", "REVIEWED"
 
     const { execute, fieldErrors } = useAction(updatePagSize, {
@@ -73,11 +67,22 @@ const JobApplicationsClient: React.FC<JobApplicationsClientProps> = ({
         },
     });
 
-    // `createTag` action is likely not relevant for a list of applications
-    // const { execute: executeTag } = useAction(createTag, { /* ... */ });
+    // Use useAction for the new status update functionality
+    const { execute: executeStatusUpdate } = useAction(updateJobApplicationStatus, {
+        onSuccess: (data) => {
+            toast.success(`Application status updated to ${data.status.replace(/_/g, ' ')}`);
+            // No need to explicitly update fList here, as handleStatusUpdate already does it for immediate feedback.
+            // If the backend call fails, you might want to revert the local state.
+        },
+        onError: (error) => {
+            toast.error(`Failed to update status: ${error}`);
+            // Optionally, revert the status in the UI if the backend update fails
+            // This would require storing the previous status or refetching
+        },
+    });
 
-    // No need for Cookies.set('originString', origin); unless you have a specific use case
 
+    // Effect to filter applications based on various criteria
     useEffect(() => {
         let currentApplications = jobApplications;
 
@@ -88,7 +93,7 @@ const JobApplicationsClient: React.FC<JobApplicationsClientProps> = ({
 
         // 2. Filter by status
         if (statusFilter !== '') {
-            currentApplications = currentApplications.filter(app => app.status === statusFilter);
+            currentApplications = currentApplications.filter(app => app.status.toLocaleLowerCase() === statusFilter.toLocaleLowerCase());
         }
 
         // 3. Filter by search term
@@ -99,9 +104,9 @@ const JobApplicationsClient: React.FC<JobApplicationsClientProps> = ({
                 searchTermsArray.some((term) => {
                     const lowerCaseTerm = term.trim().toLowerCase();
                     // Search by applicant name (if user is included)
-                    if (app.user?.name?.toLowerCase().includes(lowerCaseTerm)) return true;
+                    if (app.applicantName.toLowerCase().includes(lowerCaseTerm)) return true;
                     // Search by applicant email (if user is included)
-                    if (app.user?.email?.toLowerCase().includes(lowerCaseTerm)) return true;
+                    if (app.applicantEmail.toLowerCase().includes(lowerCaseTerm)) return true;
                     // Search by job title (if career is included)
                     if (app.career?.title?.toLowerCase().includes(lowerCaseTerm)) return true;
                     // Search by cover letter content (if present)
@@ -124,11 +129,27 @@ const JobApplicationsClient: React.FC<JobApplicationsClientProps> = ({
         setSearchTerm(event.target.value);
     };
 
-    // No direct use of `width` and `height` from `useWindowSize` here for popover position,
-    // but keep `isMobile` if needed for responsive grid layout.
     const { width } = useWindowSize(); // Keep width for responsive adjustments if needed
     const mobileWidth = 400; // Define mobile breakpoint
 
+
+    // Handler for updating application status
+    const handleStatusUpdate = useCallback((id: string, status: string) => {
+        // Optimistically update the UI
+        setFList(prevList =>
+            prevList.map(app =>
+                app.id === id ? { ...app, status: status } : app
+            )
+        );
+        setFilteredApplications(prevFiltered =>
+            prevFiltered.map(app =>
+                app.id === id ? { ...app, status: status } : app
+            )
+        );
+
+        // Call the backend action to persist the change
+        executeStatusUpdate({ id, status });
+    }, [executeStatusUpdate]);
 
 
     /* ----------------Pagination------------ */
@@ -237,8 +258,6 @@ const JobApplicationsClient: React.FC<JobApplicationsClientProps> = ({
 
     // If access is not allowed, redirect or display an error
     if (!isAllowedAccess) {
-        // You might want to show a message or a less harsh redirect depending on UX
-        // For now, let's redirect to home or a forbidden page
         router.push('/'); // Or '/forbidden'
         toast.error("You do not have permission to view job applications.");
         return null; // Don't render anything if not allowed
@@ -251,7 +270,6 @@ const JobApplicationsClient: React.FC<JobApplicationsClientProps> = ({
                     title={selectedApplicationId.length === 0 ? title_ : 'Application Details View. Click on the application card or here to exit.'}
                     subtitle={subtitle_}
                     isSetBackground={selectedApplicationId.length > 0} // Background if a specific application is selected
-                    // onClick={selectedApplicationId.length > 0 ? () => handleToggleSelectApplication('') : undefined} // Allow clicking heading to exit single view
                 />
 
                 <div className={cn("flex gap-1 z-51", isMobile ? 'flex-col' : 'flex-row justify-between items-start')}>
@@ -302,8 +320,7 @@ const JobApplicationsClient: React.FC<JobApplicationsClientProps> = ({
                                 >
                                     <JobApplicationContainer
                                         jobApplication={application}
-                                        // You might pass a prop to indicate if it's the selected one for styling
-                                        // isSelected={selectedApplicationId === application.id}
+                                        onStatusChange={handleStatusUpdate} // Pass the new handler here
                                     />
                                 </div>
                             ))}
