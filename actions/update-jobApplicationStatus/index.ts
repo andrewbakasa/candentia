@@ -15,6 +15,11 @@ const UpdateJobApplicationStatusSchema = z.object({
     status: z.string().min(1, { message: "New status is required" }), // You might want to refine this with an enum of valid statuses
 });
 
+// New Schema for Career Active Status Update
+const UpdateCareerActiveSchema = z.object({
+    id: z.string().min(1, { message: "Career ID is required" }),
+    active: z.boolean(),
+});
 
 // --- Types ---
 
@@ -24,8 +29,44 @@ interface ReturnType<T = any> {
   data?: T | null;
   error?: string;
 }
+type CareerActiveUpdateType = z.infer<typeof UpdateCareerActiveSchema>; // New type
 
 // --- Handlers ---
+const handleToggleCareerActive = async (data: CareerActiveUpdateType): Promise<ReturnType<any>> => {
+    try {
+        const { id, active } = data;
+
+        const existingCareer = await prisma.career.findUnique({
+            where: { id },
+        });
+
+        if (!existingCareer) {
+            return { error: `Career with ID "${id}" not found.` };
+        }
+
+        const updatedCareer = await prisma.career.update({
+            where: { id },
+            data: { active },
+        });
+
+        // Log the audit event for the status update
+        await createAuditLog({
+            entityId: updatedCareer.id,
+            entityTitle: `Career "${updatedCareer.title}" set to ${updatedCareer.active ? 'active' : 'inactive'}`,
+            entityType: ENTITY_TYPE.BOARD, // Adjust if you have a more specific ENTITY_TYPE for careers
+            action: ACTION.UPDATE,
+        });
+
+        // Revalidate paths to reflect the changes
+        revalidatePath(`/careers/${id}`); // Revalidate the specific career's page
+        revalidatePath('/careers'); // Revalidate the main careers list page
+        revalidatePath('/input-jobs'); // Revalidate input-jobs page where careers are listed
+
+        return { data: updatedCareer };
+    } catch (error: any) {
+        return { error: `Failed to toggle career active status: ${error.message}` };
+    }
+};
 
 
 // New Handler for Job Application Status Update
@@ -67,3 +108,8 @@ const handleUpdateJobApplicationStatus = async (data: JobApplicationStatusUpdate
 // --- Exports ---
 // Export the new action
 export const updateJobApplicationStatus = createSafeAction(UpdateJobApplicationStatusSchema, handleUpdateJobApplicationStatus);
+
+
+
+
+export const updateCareerActive = createSafeAction(UpdateCareerActiveSchema, handleToggleCareerActive); // Export the new action

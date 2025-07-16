@@ -23,7 +23,7 @@ const EditJobsPortfolioPage = async () => {
   }
   return (
     <ClientOnly>
-      <CareerClient mockCareers={jobs}
+      <CareerClient dbCareers={jobs}
       />
     </ClientOnly>
   );
