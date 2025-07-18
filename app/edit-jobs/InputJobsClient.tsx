@@ -300,36 +300,39 @@ const CareerClient: React.FC<CareerFormProps> = ({ dbCareers }) => {
                                 "hover:shadow-lg hover:border-blue-500/30",
                                 "group",
                                 "backdrop-blur-md",
+                                "flex flex-col h-full", // Added flexbox for consistent height
                                 career.active ? "bg-white/90 border border-white/10" : "bg-gray-200/90 border border-gray-300 opacity-80" // Different colors based on active status
                             )}
                         >
                             <CardHeader>
-                                <CardTitle className="flex items-center text-lg font-semibold">
+                                <CardTitle className="flex items-center text-lg font-semibold text-gray-900">
                                     {career.title}
                                 </CardTitle>
                                 <CardDescription className="flex items-center text-gray-500">
-                                    <MapPin className="w-4 h-4 mr-1" />
+                                    <MapPin className="w-4 h-4 mr-1 text-blue-500" />
                                     {career.location}
                                 </CardDescription>
                             </CardHeader>
-                            <CardContent>
-                                <p className="text-gray-700 mb-2">
-                                    {career.shortDescription}
-                                </p>
-                                <div className="mb-2">
-                                    <span className="font-semibold">Type:</span> {career.type}
+                            <CardContent className="flex-grow flex flex-col justify-between"> {/* flex-grow to push buttons down */}
+                                <div className="mb-4"> {/* Added margin-bottom for spacing */}
+                                    <p className="text-gray-700 mb-2 line-clamp-3"> {/* line-clamp for consistent description height */}
+                                        {career.shortDescription || 'No description provided.'}
+                                    </p>
+                                    <div className="text-sm text-gray-600">
+                                        <span className="font-semibold">Type:</span> {career.type}
+                                    </div>
+                                    <div className="text-sm text-gray-600">
+                                        <span className="font-semibold">Department:</span> {career.department}
+                                    </div>
                                 </div>
-                                <div className="mb-2">
-                                    <span className="font-semibold">Department:</span> {career.department}
-                                </div>
-                                <div className="flex justify-between items-center mt-4">
+                                <div className="flex justify-between items-center mt-auto pt-4 border-t border-gray-200"> {/* mt-auto and pt-4 for consistent button position */}
                                     {/* Toggle Active/Inactive Button */}
                                     <Button
                                         variant="outline"
                                         size="sm"
                                         onClick={() => handleToggleActive(career.id, career.active)}
                                         className={cn(
-                                            "flex items-center gap-1",
+                                            "flex items-center gap-1 rounded-md shadow-sm",
                                             career.active ? "bg-green-500 text-white hover:bg-green-600" : "bg-red-500 text-white hover:bg-red-600"
                                         )}
                                     >
@@ -343,13 +346,15 @@ const CareerClient: React.FC<CareerFormProps> = ({ dbCareers }) => {
                                             variant="outline"
                                             size="sm"
                                             onClick={() => handleEditClick(career)}
+                                            className="flex items-center gap-1 rounded-md shadow-sm hover:bg-blue-100"
                                         >
-                                            <Edit className="h-4 w-4 mr-1" /> Edit
+                                            <Edit className="h-4 w-4 mr-1 text-blue-500" /> Edit
                                         </Button>
                                         <Button
                                             variant="destructive"
                                             size="sm"
                                             onClick={() => handleDeleteClick(career.id)}
+                                            className="flex items-center gap-1 rounded-md shadow-sm hover:bg-red-600"
                                         >
                                             <Trash2 className="h-4 w-4 mr-1" /> Delete
                                         </Button>
@@ -358,35 +363,40 @@ const CareerClient: React.FC<CareerFormProps> = ({ dbCareers }) => {
                             </CardContent>
                         </Card>
                     )) : (
-                        <div className="col-span-full text-center py-4 min-h-screen flex items-center justify-center">
-                            <p className='text-red-400 text-3xl'>No career postings found matching your criteria.</p>
+                        <div className="col-span-full text-center py-10 min-h-[calc(100vh-200px)] flex items-center justify-center bg-white rounded-lg shadow-md">
+                            <p className='text-red-500 text-3xl font-semibold'>No career postings found matching your criteria.</p>
                         </div>
                     )}
                 </div>
 
                 {/* Pagination Controls */}
                 {fList && fList.length > 0 && (
-                    <div className="mt-4 max-w-9 flex flex-wrap gap-1">
+                    <div className="mt-8 flex justify-center gap-4"> {/* Increased margin-top, centered */}
                         {renderPaginationButtons()}
                     </div>
                 )}
-                {!fList && <p>Loading data...</p>}
+                {!fList && (
+                    <div className="text-center py-10">
+                        <p className="text-gray-500 text-lg">Loading career data...</p>
+                    </div>
+                )}
 
             </div>
 
             {/* Edit Career Modal */}
             <Dialog open={isEditModalOpen} onOpenChange={setIsEditModalOpen}>
-                <DialogContent className="sm:max-w-[90vw] overflow-y-auto max-h-[80vh]">
-                    <DialogHeader>
-                        <DialogTitle className='text-yellow-300 hover:text-yellow-700'>Edit Career Posting</DialogTitle>
-                        <DialogDescription className='text-yellow-700'>
+                <DialogContent className="sm:max-w-[90vw] overflow-y-auto max-h-[80vh] rounded-lg shadow-xl">
+                    <DialogHeader className="pb-4 border-b border-gray-200">
+                        <DialogTitle className='text-2xl font-bold text-indigo-600'>Edit Career Posting</DialogTitle>
+                        <DialogDescription className='text-gray-600'>
                             Make changes to the career posting below. Click save when you&apos;re done.
                         </DialogDescription>
                     </DialogHeader>
-                    <div className="max-h-[100vh] overflow-x-hidden overflow-y-auto">
+                    <div className="w-full max-h-[calc(80vh-120px)] overflow-y-auto pr-2"> {/* Added w-full and removed overflow-x-hidden */}
                         {selectedCareer && (
                             <CareerForm
                                 initialData={selectedCareer}
+                                onClose={handleCloseEditModal} // Pass a callback to close the modal
                             />
                         )}
                     </div>
@@ -395,17 +405,17 @@ const CareerClient: React.FC<CareerFormProps> = ({ dbCareers }) => {
 
             {/* Delete Confirmation Dialog */}
             <AlertDialog open={isDeleteConfirmOpen} onOpenChange={setIsDeleteConfirmOpen}>
-                <AlertDialogContent>
+                <AlertDialogContent className="rounded-lg shadow-xl">
                     <AlertDialogHeader>
-                        <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
-                        <AlertDialogDescription>
+                        <AlertDialogTitle className="text-xl font-bold text-red-700">Are you absolutely sure?</AlertDialogTitle>
+                        <AlertDialogDescription className="text-gray-700">
                             This action cannot be undone. This will permanently delete this career posting
                             and remove its data from our servers.
                         </AlertDialogDescription>
                     </AlertDialogHeader>
                     <AlertDialogFooter>
-                        <AlertDialogCancel>Cancel</AlertDialogCancel>
-                        <AlertDialogAction onClick={confirmDelete} className="bg-red-600 hover:bg-red-700 text-white">
+                        <AlertDialogCancel className="rounded-md px-4 py-2 hover:bg-gray-100">Cancel</AlertDialogCancel>
+                        <AlertDialogAction onClick={confirmDelete} className="bg-red-600 hover:bg-red-700 text-white rounded-md px-4 py-2">
                             Delete
                         </AlertDialogAction>
                     </AlertDialogFooter>
@@ -416,6 +426,7 @@ const CareerClient: React.FC<CareerFormProps> = ({ dbCareers }) => {
 };
 
 export default CareerClient;
+
 // /* eslint-disable @next/next/no-img-element */
 // 'use client';
 // import React, { useState, useEffect, useCallback, useMemo } from 'react';
@@ -429,7 +440,7 @@ export default CareerClient;
 //     CardTitle,
 // } from "@/components/ui/card";
 // import { Button } from '@/components/ui/button';
-// import { Edit, Trash2, MapPin } from 'lucide-react'; // Import Edit and Trash2 icons
+// import { Edit, Trash2, MapPin, ToggleRight, ToggleLeft } from 'lucide-react'; // Import icons
 // import { toast } from 'sonner'; // For user notifications
 
 // import CareerForm from '../input-jobs/InputJobsClient';
@@ -454,6 +465,9 @@ export default CareerClient;
 
 // import Search from '../components/Search';
 // import ReactPaginate from "react-paginate";
+// import { useAction } from '@/hooks/use-action'; // Import useAction hook
+// import { updateCareerActive } from '@/actions/update-jobApplicationStatus';
+// //import { updateCareerActive } from '@/actions/update-job-application-status'; // Import the new server action
 
 // // Define the type for our form data
 // interface CareerFormValues {
@@ -463,6 +477,7 @@ export default CareerClient;
 //     shortDescription?: string | null;
 //     fullDescription: string;
 //     slug: string;
+//     active: boolean; // Add active status
 //     location: string;
 //     type: string;
 //     department: string;
@@ -470,8 +485,6 @@ export default CareerClient;
 
 // interface CareerFormProps {
 //     dbCareers: Career[];
-//     // You might want to add a refetch function if data is fetched on the server
-//     // For client components, `router.refresh()` is often sufficient for revalidation.
 // }
 
 // const CareerClient: React.FC<CareerFormProps> = ({ dbCareers }) => {
@@ -489,6 +502,17 @@ export default CareerClient;
 //     const [fListPage, setFListPage] = useState<Career[]>([]);
 
 //     const router = useRouter();
+
+//     // Use the useAction hook for the new updateCareerActive server action
+//     const { execute: executeToggleActive } = useAction(updateCareerActive, {
+//         onSuccess: (data) => {
+//             toast.success(`Career "${data?.title}" status updated to ${data?.active ? 'Active' : 'Inactive'}`);
+//             router.refresh(); // Revalidate data to show updated list
+//         },
+//         onError: (error) => {
+//             toast.error(`Failed to update career status: ${error}`);
+//         },
+//     });
 
 //     const filteredAndSearchedRecords = useMemo(() => {
 //         let careerList = dbCareers; // Always start with the original dbCareers
@@ -554,6 +578,7 @@ export default CareerClient;
 //             shortDescription: career.shortDescription || null,
 //             fullDescription: career.fullDescription,
 //             slug: career.slug,
+//             active: career.active, // Pass active status
 //             location: career.location,
 //             type: career.type,
 //             department: career.department,
@@ -589,8 +614,6 @@ export default CareerClient;
 
 //             toast.success('Career deleted successfully!');
 //             router.refresh(); // Revalidate data to show updated list
-//             // Optionally, you can also update the `dbCareers` state directly if it's feasible
-//             // setdbCareers(prev => prev.filter(c => c.id !== careerToDeleteId));
 //             setCareerToDeleteId(null);
 //             setIsDeleteConfirmOpen(false);
 //         } catch (error: any) {
@@ -600,6 +623,25 @@ export default CareerClient;
 //             setIsDeleteConfirmOpen(false);
 //         }
 //     };
+
+//     // --- Toggle Active Status Functionality ---
+//     const handleToggleActive = useCallback((careerId: string, currentActiveStatus: boolean) => {
+//         // Optimistically update the UI
+//         setFList(prevList =>
+//             prevList.map(career =>
+//                 career.id === careerId ? { ...career, active: !currentActiveStatus } : career
+//             )
+//         );
+//         setFListPage(prevListPage =>
+//             prevListPage.map(career =>
+//                 career.id === careerId ? { ...career, active: !currentActiveStatus } : career
+//             )
+//         );
+
+//         // Call the server action to persist the change
+//         executeToggleActive({ id: careerId, active: !currentActiveStatus });
+//     }, [executeToggleActive]);
+
 
 //     /* ----------------Pagination logic------------ */
 //     type PageSizeOption = '1' | '2' | '3' | '4' | '8' | '16' | '24' | '32' | '48' | '60';
@@ -686,81 +728,104 @@ export default CareerClient;
 //                                 "border-0 shadow-md",
 //                                 "hover:shadow-lg hover:border-blue-500/30",
 //                                 "group",
-//                                 "bg-white/90 backdrop-blur-md",
-//                                 "border border-white/10"
+//                                 "backdrop-blur-md",
+//                                 "flex flex-col h-full", // Added flexbox for consistent height
+//                                 career.active ? "bg-white/90 border border-white/10" : "bg-gray-200/90 border border-gray-300 opacity-80" // Different colors based on active status
 //                             )}
-//                             // Removed onClick from Card to allow individual button clicks
 //                         >
 //                             <CardHeader>
-//                                 <CardTitle className="flex items-center text-lg font-semibold">
+//                                 <CardTitle className="flex items-center text-lg font-semibold text-gray-900">
 //                                     {career.title}
 //                                 </CardTitle>
 //                                 <CardDescription className="flex items-center text-gray-500">
-//                                     <MapPin className="w-4 h-4 mr-1" />
+//                                     <MapPin className="w-4 h-4 mr-1 text-blue-500" />
 //                                     {career.location}
 //                                 </CardDescription>
 //                             </CardHeader>
-//                             <CardContent>
-//                                 <p className="text-gray-700 mb-2">
-//                                     {career.shortDescription}
-//                                 </p>
-//                                 <div className="mb-2">
-//                                     <span className="font-semibold">Type:</span> {career.type}
+//                             <CardContent className="flex-grow flex flex-col justify-between"> {/* flex-grow to push buttons down */}
+//                                 <div className="mb-4"> {/* Added margin-bottom for spacing */}
+//                                     <p className="text-gray-700 mb-2 line-clamp-3"> {/* line-clamp for consistent description height */}
+//                                         {career.shortDescription || 'No description provided.'}
+//                                     </p>
+//                                     <div className="text-sm text-gray-600">
+//                                         <span className="font-semibold">Type:</span> {career.type}
+//                                     </div>
+//                                     <div className="text-sm text-gray-600">
+//                                         <span className="font-semibold">Department:</span> {career.department}
+//                                     </div>
 //                                 </div>
-//                                 <div className="mb-2">
-//                                     <span className="font-semibold">Department:</span> {career.department}
-//                                 </div>
-//                                 {/* Edit and Delete Buttons */}
-//                                 <div className="flex justify-end gap-2 mt-4">
+//                                 <div className="flex justify-between items-center mt-auto pt-4 border-t border-gray-200"> {/* mt-auto and pt-4 for consistent button position */}
+//                                     {/* Toggle Active/Inactive Button */}
 //                                     <Button
 //                                         variant="outline"
 //                                         size="sm"
-//                                         onClick={() => handleEditClick(career)}
+//                                         onClick={() => handleToggleActive(career.id, career.active)}
+//                                         className={cn(
+//                                             "flex items-center gap-1 rounded-md shadow-sm",
+//                                             career.active ? "bg-green-500 text-white hover:bg-green-600" : "bg-red-500 text-white hover:bg-red-600"
+//                                         )}
 //                                     >
-//                                         <Edit className="h-4 w-4 mr-1" /> Edit
+//                                         {career.active ? <ToggleRight className="h-4 w-4" /> : <ToggleLeft className="h-4 w-4" />}
+//                                         {career.active ? 'Deactivate' : 'Activate'}
 //                                     </Button>
-//                                     <Button
-//                                         variant="destructive"
-//                                         size="sm"
-//                                         onClick={() => handleDeleteClick(career.id)}
-//                                     >
-//                                         <Trash2 className="h-4 w-4 mr-1" /> Delete
-//                                     </Button>
+
+//                                     {/* Edit and Delete Buttons */}
+//                                     <div className="flex gap-2">
+//                                         <Button
+//                                             variant="outline"
+//                                             size="sm"
+//                                             onClick={() => handleEditClick(career)}
+//                                             className="flex items-center gap-1 rounded-md shadow-sm hover:bg-blue-100"
+//                                         >
+//                                             <Edit className="h-4 w-4 mr-1 text-blue-500" /> Edit
+//                                         </Button>
+//                                         <Button
+//                                             variant="destructive"
+//                                             size="sm"
+//                                             onClick={() => handleDeleteClick(career.id)}
+//                                             className="flex items-center gap-1 rounded-md shadow-sm hover:bg-red-600"
+//                                         >
+//                                             <Trash2 className="h-4 w-4 mr-1" /> Delete
+//                                         </Button>
+//                                     </div>
 //                                 </div>
 //                             </CardContent>
 //                         </Card>
 //                     )) : (
-//                         <div className="col-span-full text-center py-4 min-h-screen flex items-center justify-center">
-//                             <p className='text-red-400 text-3xl'>No career postings found matching your criteria.</p>
+//                         <div className="col-span-full text-center py-10 min-h-[calc(100vh-200px)] flex items-center justify-center bg-white rounded-lg shadow-md">
+//                             <p className='text-red-500 text-3xl font-semibold'>No career postings found matching your criteria.</p>
 //                         </div>
 //                     )}
 //                 </div>
 
 //                 {/* Pagination Controls */}
 //                 {fList && fList.length > 0 && (
-//                     <div className="mt-4 max-w-9 flex flex-wrap gap-1">
+//                     <div className="mt-8 flex justify-center gap-4"> {/* Increased margin-top, centered */}
 //                         {renderPaginationButtons()}
 //                     </div>
 //                 )}
-//                 {!fList && <p>Loading data...</p>}
+//                 {!fList && (
+//                     <div className="text-center py-10">
+//                         <p className="text-gray-500 text-lg">Loading career data...</p>
+//                     </div>
+//                 )}
 
 //             </div>
 
 //             {/* Edit Career Modal */}
 //             <Dialog open={isEditModalOpen} onOpenChange={setIsEditModalOpen}>
-//                 <DialogContent className="sm:max-w-[90vw] overflow-y-auto max-h-[80vh]">
-//                     <DialogHeader>
-//                         <DialogTitle className='text-yellow-300 hover:text-yellow-700'>Edit Career Posting</DialogTitle>
-//                         <DialogDescription className='text-yellow-700'>
+//                 <DialogContent className="sm:max-w-[90vw] overflow-y-auto max-h-[80vh] rounded-lg shadow-xl">
+//                     <DialogHeader className="pb-4 border-b border-gray-200">
+//                         <DialogTitle className='text-2xl font-bold text-indigo-600'>Edit Career Posting</DialogTitle>
+//                         <DialogDescription className='text-gray-600'>
 //                             Make changes to the career posting below. Click save when you&apos;re done.
 //                         </DialogDescription>
 //                     </DialogHeader>
-//                     <div className="max-h-[100vh] overflow-x-hidden overflow-y-auto">
+//                     <div className="max-h-[calc(80vh-120px)] overflow-x-hidden overflow-y-auto pr-2"> {/* Adjusted max-height and added pr-2 for scrollbar */}
 //                         {selectedCareer && (
-//                             // Assuming CareerForm can handle updates and has a way to close itself or signal completion
 //                             <CareerForm
 //                                 initialData={selectedCareer}
-//                                 //onClose={handleCloseEditModal} // Pass a callback to close the modal
+//                                 onClose={handleCloseEditModal} // Pass a callback to close the modal
 //                             />
 //                         )}
 //                     </div>
@@ -769,17 +834,17 @@ export default CareerClient;
 
 //             {/* Delete Confirmation Dialog */}
 //             <AlertDialog open={isDeleteConfirmOpen} onOpenChange={setIsDeleteConfirmOpen}>
-//                 <AlertDialogContent>
+//                 <AlertDialogContent className="rounded-lg shadow-xl">
 //                     <AlertDialogHeader>
-//                         <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
-//                         <AlertDialogDescription>
+//                         <AlertDialogTitle className="text-xl font-bold text-red-700">Are you absolutely sure?</AlertDialogTitle>
+//                         <AlertDialogDescription className="text-gray-700">
 //                             This action cannot be undone. This will permanently delete this career posting
 //                             and remove its data from our servers.
 //                         </AlertDialogDescription>
 //                     </AlertDialogHeader>
 //                     <AlertDialogFooter>
-//                         <AlertDialogCancel>Cancel</AlertDialogCancel>
-//                         <AlertDialogAction onClick={confirmDelete} className="bg-red-600 hover:bg-red-700 text-white">
+//                         <AlertDialogCancel className="rounded-md px-4 py-2 hover:bg-gray-100">Cancel</AlertDialogCancel>
+//                         <AlertDialogAction onClick={confirmDelete} className="bg-red-600 hover:bg-red-700 text-white rounded-md px-4 py-2">
 //                             Delete
 //                         </AlertDialogAction>
 //                     </AlertDialogFooter>

@@ -3,12 +3,12 @@ import EmptyState from "../../app/components/EmptyState";
 import ClientOnly from "../../app/components/ClientOnly";
 import getCurrentUser from "../../app/actions/getCurrentUser"
 import CareerClient from "./InputJobsClient";
-import getJobs from "../actions/getJobs";
+import getJobsAdmin from "../actions/getJobsAdmin";
 
 
 const EditJobsPortfolioPage = async () => {
   const currentUser = await getCurrentUser();
-  const jobs:any[] = await getJobs()
+  const jobs:any[] = await getJobsAdmin()
   
 
   if (!currentUser) {

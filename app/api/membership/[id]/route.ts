@@ -27,6 +27,7 @@ export async function POST( // Changed to PATCH for semantic correctness
       experienceOrBackground,
       role, // This field is present in your Membership Prisma model
       teamCode, // This field is present in your Membership Prisma model
+      subcommittees
     } = body;
 
     // --- Server-side Validation ---
@@ -54,7 +55,7 @@ export async function POST( // Changed to PATCH for semantic correctness
     if (experienceOrBackground !== undefined) updateData.experienceOrBackground = experienceOrBackground;
     if (role !== undefined) updateData.role = role;
     if (teamCode !== undefined) updateData.teamCode = teamCode;
-
+    if (subcommittees !== undefined) updateData.subcommittees = subcommittees;
     // Execute the update operation
     const updatedRecord = await prisma.membership.update({
       where: {
@@ -66,7 +67,7 @@ export async function POST( // Changed to PATCH for semantic correctness
       //   user: true,
       // },
     });
-
+    console.log("updatedRecord",updatedRecord )
     return NextResponse.json(updatedRecord, { status: 200 });
   } catch (error: any) {
     console.error("Error updating membership:", error);

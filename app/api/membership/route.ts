@@ -23,6 +23,7 @@ export async function POST(
       experienceOrBackground,
       role,
       teamCode,
+      subcommittees
     } = body;
 
     // Basic validation for fields that are required for a minimal membership entry
@@ -68,6 +69,7 @@ export async function POST(
         experienceOrBackground: experienceOrBackground,
         role: role,
         teamCode: teamCode,
+        subcommittees:subcommittees
       }
     });
 

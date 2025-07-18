@@ -413,6 +413,7 @@ model Membership {
   shares             Int?
   experienceOrBackground String? // Added new field for experience or background
   role String?
+  subcommittees      String[]           // New field: Array of strings for subcommittees
   teamCode String?
   createdAt   DateTime @default(now())
   updatedAt   DateTime  @updatedAt
