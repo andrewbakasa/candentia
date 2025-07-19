@@ -7,7 +7,7 @@ import Link from 'next/link';
 import { useState } from 'react';
 import { useJobMediaModal } from '@/hooks/use-job-media-modal';
 import { Button } from '@/components/ui/button'; // Import Button component
-import { AiFillEdit } from 'react-icons/ai'; // Import AiFillEdit icon
+import { AiFillEdit, AiFillPicture } from 'react-icons/ai'; // Import AiFillEdit icon
 import { SafeUser } from '@/app/types';
 
 // Extend JobApplication type to include relations if they are fetched
@@ -119,7 +119,7 @@ export const JobApplicationContainer: React.FC<JobApplicationContainerProps> = (
                                                     size="sm"
                                                     variant="ghost"
                                                 >
-                                                    <AiFillEdit
+                                                    <AiFillPicture
                                                         size={10}
                                                         className="cursor-pointer h-4 w-4 hover:h-[18px] hover:w-[18px] hover:text-blue-600"
                                                     />
