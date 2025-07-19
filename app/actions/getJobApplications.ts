@@ -16,6 +16,7 @@ export default async function getJobApplications() {
         orderBy: { createdAt: "desc" },
         include: {
           career: true,
+          jobAttachment:true
         },
       });
     

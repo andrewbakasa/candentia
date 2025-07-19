@@ -12,12 +12,16 @@ import { PencilIcon, CheckIcon, XIcon } from 'lucide-react'; // Import icons for
 
 // Extend MediaProps to include description
 interface MediaProps {
+
   id: string;
-  url: string;
-  cardId: string;
-  type: string;
-  fileName: string | null;
-  description: string | null; // Added description
+    url: string;
+    type: string;
+    userId: string | null;
+    jobAppId: string;
+    description: string | null;
+    fileName: string | null;
+    createdAt: Date | null;
+    order: number;
 }
 
 // Extend SliderProps to include new handlers and canEdit flag
@@ -149,7 +153,7 @@ const Slider: React.FC<SliderProps> = ({ mediaList, fullView, onCardIdChange, on
 
     if (mediaList && mediaList.length > 0) {
       const currentItem = mediaList[index];
-      onCardIdChange(currentItem?.cardId || null, index);
+      onCardIdChange(currentItem?.jobAppId || null, index);
     } else {
       onCardIdChange(null, index);
     }

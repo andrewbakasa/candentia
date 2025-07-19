@@ -35,6 +35,9 @@ const CareerLayout = async ({
     where: {
       id: params.jobId,
     },
+     include:{
+          jobApplication:true
+        },
   });
   // console.log("here.......")
   if (!career) {

@@ -16,18 +16,18 @@ import { SafeUser } from '@/app/types';
 
 interface HeaderProps {
     data: CardWithList;
-    boardId:string;
-    showEditCardMedia: boolean;
-    toggleEditCardMedia: () => void;
+    jobId:string;
+    showEditJobMedia: boolean;
+    toggleEditJobMedia: () => void;
     onClose: () => void; // Add this prop for the dialog close button
     currentUser?: SafeUser | null;
 }
 
 export const Header = ({
     data,
-    boardId,
-    showEditCardMedia,
-    toggleEditCardMedia,
+    jobId,
+    showEditJobMedia,
+    toggleEditJobMedia,
     onClose, // Destructure onClose
     currentUser
 }: HeaderProps) => {
@@ -65,11 +65,11 @@ export const Header = ({
             return;
         }
 
-        execute({
-            title,
-            boardId,
-            id: data.id,
-        });
+        // execute({
+        //     title,
+        //     jobId,
+        //     id: data.id,
+        // });
     }
     return (
         <div className="flex items-start mb-1 gap-x-3 w-full">
@@ -105,15 +105,15 @@ export const Header = ({
                        { currentUser && <Button
                             className={cn(
                                 "py-2 px-4 flex items-center gap-x-2 text-sm",
-                                showEditCardMedia
+                                showEditJobMedia
                                     ? 'bg-blue-100 text-green-700 border-green-700 hover:bg-green-200'
                                     : 'border-gray-300 text-gray-700 hover:bg-gray-100'
                             )}
-                            onClick={toggleEditCardMedia}
+                            onClick={toggleEditJobMedia}
                             variant="outline"
-                            aria-label={showEditCardMedia ? "Hide drawing media editor" : "Show drawing media editor"}
+                            aria-label={showEditJobMedia ? "Hide drawing media editor" : "Show drawing media editor"}
                         >
-                            {showEditCardMedia ? (
+                            {showEditJobMedia ? (
                                 <Hint
                                     sideOffset={20}
                                     description={`Click to Hide Media Editor`}
@@ -129,7 +129,7 @@ export const Header = ({
                                 </Hint>
                             )}
                             <span className="hidden sm:inline-block">
-                                {showEditCardMedia ? 'Hide Media Editor' : 'Show Media Editor'}
+                                {showEditJobMedia ? 'Hide Media Editor' : 'Show Media Editor'}
                             </span>
                         </Button>
                       }

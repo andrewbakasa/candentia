@@ -16,6 +16,9 @@ export default async function getJobOpenings() {
           active: true,
         },
         orderBy: { updatedAt: "desc" },
+        include:{
+          jobApplication:true
+        }
         // Include any relevant relations for Career here
         // Example: If Career has a relation to Department
         // include: {
@@ -30,6 +33,9 @@ export default async function getJobOpenings() {
           active: true,
         },
         orderBy: { updatedAt: "desc" },
+         include:{
+          jobApplication:true
+        }
         // Include any relevant relations for Career here
         // Example: If Career has a relation to Department
         // include: {

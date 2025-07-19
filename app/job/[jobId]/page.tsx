@@ -19,6 +19,9 @@ const JobIdPage = async ({
       where: {
         id: params.jobId,
       },
+      include:{
+        jobApplication:true
+      }
     });
      
 
@@ -40,6 +43,7 @@ const JobIdPage = async ({
             <JobContainer          
               job={job}
               jobId={params.jobId}
+              numberOfApplicants={job.jobApplication.length}
             />
           </div>
       );

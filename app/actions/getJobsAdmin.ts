@@ -12,7 +12,10 @@ export default async function getJobsAdmin() {
     if (currentUser?.isAdmin) {
       // Admin can view all active job openings
       record = await prisma.career.findMany({       
-        orderBy: { updatedAt: "desc" },        
+        orderBy: { updatedAt: "desc" }, 
+           include:{
+          jobApplication:true
+        },     
       });
     } else {
       // Non-admin users can view all active job openings (assuming all are public)
@@ -21,6 +24,9 @@ export default async function getJobsAdmin() {
           active: true,
         },
         orderBy: { updatedAt: "desc" },
+         include:{
+          jobApplication:true
+        },
        
       });
     }

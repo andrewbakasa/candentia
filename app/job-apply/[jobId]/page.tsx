@@ -2,6 +2,7 @@
 import { notFound } from 'next/navigation';
 import JobApplicationForm from './_components/JobAppForm' // Adjust path
 import prisma from '@/app/libs/prismadb'; // Adjust path to your Prisma client
+import getCurrentUser from '@/app/actions/getCurrentUser';
 
 interface JobApplyPageProps {
   params: {
@@ -14,6 +15,8 @@ const JobApplyPage = async ({ params }: JobApplyPageProps) => {
 
   // Fetch the career details to pass the title to the form (optional)
   let career = null;
+  const currentUser = await getCurrentUser();
+  
   try {
     career = await prisma.career.findUnique({
       where: {
@@ -37,6 +40,7 @@ const JobApplyPage = async ({ params }: JobApplyPageProps) => {
     <JobApplicationForm
       careerId={career.id}
       careerTitle={career.title || undefined}
+      currentUser={currentUser}
     />
   );
 };

@@ -50,6 +50,8 @@ model User {
   boadViews BoardView[]   @relation(fields: [boardIds], references: [id])
 
  // Membership Membership[]
+
+  JobAttachment JobAttachment[]
 }
 
 
@@ -156,9 +158,9 @@ model CardImage {
   card        Card @relation(fields: [cardId], references: [id], onDelete: Cascade)
   type        String @default("image")
   userId      String?  @db.ObjectId
-  //user        User? @relation(fields: [userId], references: [id])
   user        User? @relation(fields: [userId], references: [id], onDelete: Cascade) // onDelete: Cascade here
 
+ 
   description String?
   fileName    String?
   createdAt   DateTime? @default(now())
@@ -230,7 +232,6 @@ model JobApplication {
   id               String      @id @default(auto()) @map("_id") @db.ObjectId
   careerId         String?      @db.ObjectId // Foreign key to the Career model
   career           Career?      @relation(fields: [careerId], references: [id], onDelete: Cascade) // Relation field
-
   applicantName    String
   applicantEmail   String
   applicantPhone   String?
@@ -239,9 +240,30 @@ model JobApplication {
   status           String      @default("Pending") // e.g., "Pending", "Reviewed", "Interviewed", "Rejected", "Hired"
   createdAt        DateTime    @default(now())
   updatedAt        DateTime    @updatedAt
+  jobAttachment JobAttachment[]
 
   @@map("applications") // Explicitly map the collection name
+ 
 }
+
+model JobAttachment {
+  id          String @id @default(auto()) @map("_id") @db.ObjectId
+  url         String
+  type        String @default("image")
+  userId      String?  @db.ObjectId
+  user        User? @relation(fields: [userId], references: [id], onDelete: Cascade) // onDelete: Cascade here
+
+  jobAppId      String  @db.ObjectId
+  JobApplication        JobApplication @relation(fields: [jobAppId], references: [id], onDelete: Cascade) // onDelete: Cascade here
+
+  description String?
+  fileName    String?
+  createdAt   DateTime? @default(now())
+  order       Float    @default(0.0) // Using Float for flexible reordering (LexoRank/Fractional Indexing)
+
+  @@index([jobAppId])
+}
+
 model Enquiry{
   id          String   @id @default(auto()) @map("_id") @db.ObjectId
   first_name  String?  //copy duplicate to reduce fetch overheads

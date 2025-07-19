@@ -15,6 +15,9 @@ export default async function getJobs() {
         where: {
           active: true,
         },
+        include:{
+          jobApplication:true
+        },
         orderBy: { updatedAt: "desc" },
         
       });
@@ -23,6 +26,9 @@ export default async function getJobs() {
       record = await prisma.career.findMany({
         where: {
           active: true,
+        }, 
+        include:{
+          jobApplication:true
         },
         orderBy: { updatedAt: "desc" },
        

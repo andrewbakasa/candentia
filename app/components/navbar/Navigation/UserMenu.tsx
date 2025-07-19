@@ -167,6 +167,11 @@ const UserMenu: React.FC<UserMenuProps> = ({ currentUser, handleNavigate }) => {
                   {currentUser?.isAdmin  && (
                   <MenuItem label="Manage Job Applications" onClick={() => handleMenuItemClickWithNav("/jobapplications")} />
                 )}
+
+ 
+                <MenuItem label="My Job Applications" onClick={() => handleMenuItemClickWithNav("/myjobapplications")} />
+              
+
                 {currentUser?.isAdmin && (
                   <MenuItem label="Broadcast Boards" onClick={() => handleMenuItemClickWithNav("/boards-list")} />
                 )}
