@@ -55,10 +55,10 @@ const JobApplicationForm: React.FC<JobApplicationFormProps> = ({ careerId, caree
     const form = useForm<JobApplicationFormValues>({
         resolver: zodResolver(JobApplicationSchema),
         defaultValues: {
-            applicantName: '',
+            applicantName: currentUser?.name|| '',
             // Pre-fill applicantEmail with currentUser.email if available, otherwise empty string
             applicantEmail: currentUser?.email || '',
-            applicantPhone: '',
+            applicantPhone: "",
             resumeUrl: '',
             coverLetterText: '',
         },
