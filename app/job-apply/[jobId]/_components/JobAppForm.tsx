@@ -55,8 +55,7 @@ const JobApplicationForm: React.FC<JobApplicationFormProps> = ({ careerId, caree
     const form = useForm<JobApplicationFormValues>({
         resolver: zodResolver(JobApplicationSchema),
         defaultValues: {
-            applicantName: currentUser?.name|| '',
-            // Pre-fill applicantEmail with currentUser.email if available, otherwise empty string
+            applicantName: currentUser?.name || '',
             applicantEmail: currentUser?.email || '',
             applicantPhone: "",
             resumeUrl: '',
@@ -84,7 +83,7 @@ const JobApplicationForm: React.FC<JobApplicationFormProps> = ({ careerId, caree
 
                 const newJobApplicationId = response.data.id;
 
-                jobMediaModal.onOpen(newJobApplicationId, careerId, currentUser); // Pass careerId, not newJobApplicationId again
+                jobMediaModal.onOpen(newJobApplicationId, careerId, currentUser);
             } else {
                 toast.error('Failed to submit application. Please try again.');
             }
@@ -120,9 +119,13 @@ const JobApplicationForm: React.FC<JobApplicationFormProps> = ({ careerId, caree
                                 name="applicantName"
                                 render={({ field }) => (
                                     <FormItem>
-                                        <FormLabel>Full Name</FormLabel>
+                                        <FormLabel className="text-gray-900 font-semibold">Full Name</FormLabel> {/* Enhanced label */}
                                         <FormControl>
-                                            <Input placeholder="John Doe" {...field} />
+                                            <Input
+                                                className="border-gray-300 focus-visible:ring-blue-500 text-gray-800 placeholder:text-gray-500" // Enhanced input
+                                                placeholder="John Doe"
+                                                {...field}
+                                            />
                                         </FormControl>
                                         <FormMessage />
                                     </FormItem>
@@ -135,9 +138,14 @@ const JobApplicationForm: React.FC<JobApplicationFormProps> = ({ careerId, caree
                                 name="applicantEmail"
                                 render={({ field }) => (
                                     <FormItem>
-                                        <FormLabel>Email Address</FormLabel>
+                                        <FormLabel className="text-gray-900 font-semibold">Email Address</FormLabel> {/* Enhanced label */}
                                         <FormControl>
-                                            <Input type="email" placeholder="john.doe@example.com" {...field} />
+                                            <Input
+                                                type="email"
+                                                className="border-gray-300 focus-visible:ring-blue-500 text-gray-800 placeholder:text-gray-500" // Enhanced input
+                                                placeholder="john.doe@example.com"
+                                                {...field}
+                                            />
                                         </FormControl>
                                         <FormMessage />
                                     </FormItem>
@@ -150,29 +158,35 @@ const JobApplicationForm: React.FC<JobApplicationFormProps> = ({ careerId, caree
                                 name="applicantPhone"
                                 render={({ field }) => (
                                     <FormItem>
-                                        <FormLabel>Phone Number (Optional)</FormLabel>
+                                        <FormLabel className="text-gray-900 font-semibold">Phone Number (Optional)</FormLabel> {/* Enhanced label */}
                                         <FormControl>
-                                            <Input type="tel" placeholder="+1234567890" {...field} />
+                                            <Input
+                                                type="tel"
+                                                className="border-gray-300 focus-visible:ring-blue-500 text-gray-800 placeholder:text-gray-500" // Enhanced input
+                                                placeholder="+1234567890"
+                                                {...field}
+                                            />
                                         </FormControl>
                                         <FormMessage />
                                     </FormItem>
                                 )}
                             />
 
-                            {/* Resume URL (Optional) - This field might become less relevant if CV upload is primary */}
+                            {/* Resume URL (Optional) */}
                             <FormField
                                 control={form.control}
                                 name="resumeUrl"
                                 render={({ field }) => (
                                     <FormItem>
-                                        <FormLabel>Resume URL (Optional)</FormLabel>
+                                        <FormLabel className="text-gray-900 font-semibold">Resume URL (Optional)</FormLabel> {/* Enhanced label */}
                                         <FormControl>
                                             <Input
+                                                className="border-gray-300 focus-visible:ring-blue-500 text-gray-800 placeholder:text-gray-500" // Enhanced input
                                                 placeholder="e.g., https://yourdomain.com/my-resume.pdf"
                                                 {...field}
                                             />
                                         </FormControl>
-                                        <FormDescription className="text-sm text-gray-500">
+                                        <FormDescription className="text-sm text-gray-600"> {/* Adjusted description color */}
                                             If provided, please include a direct link to your resume.
                                             This will be overridden if you upload a file.
                                         </FormDescription>
@@ -187,12 +201,12 @@ const JobApplicationForm: React.FC<JobApplicationFormProps> = ({ careerId, caree
                                 name="coverLetterText"
                                 render={({ field }) => (
                                     <FormItem>
-                                        <FormLabel>Cover Letter (Optional)</FormLabel>
+                                        <FormLabel className="text-gray-900 font-semibold">Cover Letter (Optional)</FormLabel> {/* Enhanced label */}
                                         <FormControl>
                                             <Textarea
                                                 placeholder="Tell us why you're a great fit for this role..."
                                                 rows={5}
-                                                className="resize-y"
+                                                className="resize-y border-gray-300 focus-visible:ring-blue-500 text-gray-800 placeholder:text-gray-500" // Enhanced textarea
                                                 {...field}
                                             />
                                         </FormControl>
@@ -231,7 +245,7 @@ export default JobApplicationForm;
 // import * as z from 'zod';
 // import { zodResolver } from '@hookform/resolvers/zod';
 // import axios from 'axios';
-// import { toast } from 'sonner'; // Using sonner for toasts
+// import { toast } from 'sonner';
 // import Link from 'next/link';
 
 // // shadcn/ui components
@@ -248,10 +262,8 @@ export default JobApplicationForm;
 // } from '@/components/ui/form';
 // import { Textarea } from '@/components/ui/textarea';
 // import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-// import { ArrowLeft } from 'lucide-react'; // Icon for back button
+// import { ArrowLeft } from 'lucide-react';
 
-// // Removed unused icons: AiFillEdit, AiFillLock, AiFillPicture, AiFillAppstore
-// // AiOutlineFolderView is also removed as the button for it is removed.
 // import { useJobMediaModal } from '@/hooks/use-job-media-modal';
 // import { SafeUser } from '@/app/types';
 
@@ -273,19 +285,20 @@ export default JobApplicationForm;
 //     currentUser?: SafeUser | null;
 // }
 
-// const JobApplicationForm: React.FC<JobApplicationFormProps> = ({ careerId, careerTitle, currentUser}) => {
+// const JobApplicationForm: React.FC<JobApplicationFormProps> = ({ careerId, careerTitle, currentUser }) => {
 //     const router = useRouter();
 //     const [isSubmitting, setIsSubmitting] = useState(false);
-//     const jobMediaModal = useJobMediaModal(); // Renamed to avoid conflict with 'jobModal' in user's original code
+//     const jobMediaModal = useJobMediaModal();
 
 //     // Initialize react-hook-form with Zod resolver
 //     const form = useForm<JobApplicationFormValues>({
 //         resolver: zodResolver(JobApplicationSchema),
 //         defaultValues: {
-//             applicantName: '',
-//             applicantEmail: '',
-//             applicantPhone: '',
-//             resumeUrl: '', // Default to empty string for optional URL
+//             applicantName: currentUser?.name|| '',
+//             // Pre-fill applicantEmail with currentUser.email if available, otherwise empty string
+//             applicantEmail: currentUser?.email || '',
+//             applicantPhone: "",
+//             resumeUrl: '',
 //             coverLetterText: '',
 //         },
 //     });
@@ -293,33 +306,24 @@ export default JobApplicationForm;
 //     const onSubmit = async (values: JobApplicationFormValues) => {
 //         setIsSubmitting(true);
 
-//         // Clean up values: remove empty strings for optional fields if your backend expects null or undefined
 //         const dataToSend = {
 //             ...values,
 //             careerId: careerId,
-//             applicantPhone: values.applicantPhone || undefined, // Convert empty string to undefined
-//             resumeUrl: values.resumeUrl || undefined, // Convert empty string to undefined for optional field
-//             coverLetterText: values.coverLetterText || undefined, // Convert empty string to undefined
+//             applicantPhone: values.applicantPhone || undefined,
+//             resumeUrl: values.resumeUrl || undefined,
+//             coverLetterText: values.coverLetterText || undefined,
 //         };
 
 //         try {
 //             const response = await axios.post('/api/jobApplication', dataToSend);
 
-//             if (response.status === 201) { // 201 Created is the expected status for successful creation
+//             if (response.status === 201) {
 //                 toast.success('Your application has been submitted successfully!');
-//                 form.reset(); // Clear the form
+//                 form.reset();
 
-//                 // Assuming the API response contains the ID of the newly created job application
-//                 // Adjust 'response.data.id' based on your actual API response structure
 //                 const newJobApplicationId = response.data.id;
 
-//                 // Prompt user to attach CV using the modal
-//                 // useJobMediaModal.onOpen is expected to take (jobApplicationId, careerId, isCVUpload)
-//                 jobMediaModal.onOpen(newJobApplicationId, newJobApplicationId, currentUser);
-
-//                 // Removed immediate router.push to allow the modal to appear.
-//                 // The modal itself or its onClose callback should handle further navigation if needed.
-//                 // router.push(`/careerjobs`);
+//                 jobMediaModal.onOpen(newJobApplicationId, careerId, currentUser); // Pass careerId, not newJobApplicationId again
 //             } else {
 //                 toast.error('Failed to submit application. Please try again.');
 //             }
