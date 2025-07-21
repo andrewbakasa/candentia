@@ -147,10 +147,10 @@ const UserMenu: React.FC<UserMenuProps> = ({ currentUser, handleNavigate }) => {
                 )}
                 <hr className="my-1" />
                 {currentUser?.isAdmin && (
-                  <MenuItem label="Financing" onClick={() => handleMenuItemClickWithNav("/financing")} />
+                  <MenuItem label="Investment Options" onClick={() => handleMenuItemClickWithNav("/financing")} />
                 )}
                  {currentUser?.isAdmin && (
-                  <MenuItem label="Manage Portfolio" onClick={() => handleMenuItemClickWithNav("/edit-investments")} />
+                  <MenuItem label="Manage Investments" onClick={() => handleMenuItemClickWithNav("/edit-investments")} />
                 )}
 
                   <hr className="my-1" />
