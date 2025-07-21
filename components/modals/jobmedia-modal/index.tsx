@@ -5,7 +5,7 @@ import React, { useEffect, useState } from 'react';
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { CardWithList2 } from "@/types"; // Assuming CardWithList2 is a type defined in your project
 import { fetcher } from "@/lib/fetcher";
-import { JobAttachment } from "@prisma/client"; // Prisma model for CardImage
+import { Career, JobApplication, JobAttachment } from "@prisma/client"; // Prisma model for CardImage
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { Header } from "./header";
 import { Separator } from "@radix-ui/react-separator";
@@ -13,12 +13,8 @@ import EditJobMedia from "./editPage";
 import { useAction } from "@/hooks/use-action";
 import toast from "react-hot-toast";
 import { createJobImage } from "@/actions/create-job-application-attachment";
-//import Slider from '@/app/card-item/[id]/_components/slider'; // Your custom Slider component
 import { Skeleton } from '@/components/ui/skeleton';
-//import CardImageReorderList from '@/app/card-item/[id]/_components/cardImage-reorder-list';
 import Slider from './slider';
-// import { updateJobMediaDescription } from '@/app/actions/update-JobMedia-descriptions';
-// import { updateJobMediaFileName } from '@/app/actions/update-JobMedia-filename';
 import { useJobMediaModal } from '@/hooks/use-job-media-modal';
 import CardImageReorderList from './cardImage-reorder-list';
 import { updateJobMediaDescription } from '@/app/actions/update-jobMedia-descriptions';
@@ -103,8 +99,8 @@ export const JobMediaModal = () => {
     });
 
     // Fetch card data (e.g., for header)
-    const { data: cardData } = useQuery<CardWithList2[] | null>({
-        queryKey: ["card", id],
+    const { data: jobData } = useQuery<(JobApplication & { career: Career; jobAttachment: JobAttachment; }) | null>({
+        queryKey: ["job", id],
         queryFn: () => (id ? fetcher(`/api/jobApplications/${id}`) : Promise.resolve(null)),
         enabled: !!id,
     });
@@ -181,8 +177,8 @@ export const JobMediaModal = () => {
                 className="max-w-5xl w-[95%] p-4 sm:p-8 rounded-xl shadow-2xl bg-white border border-gray-100 overflow-y-auto [&>button:last-child]:hidden "
             >
                 {/* Header section */}
-                {!cardData ? <Header.Skeleton /> : <Header
-                    data={cardData[0]}
+                {!jobData ? <Header.Skeleton /> : <Header
+                    data={jobData}
                     jobId={jobId}
                     showEditJobMedia={showEditJobMedia}
                     toggleEditJobMedia={toggleEditJobMedia}
@@ -238,10 +234,10 @@ export const JobMediaModal = () => {
                                 jobId={jobId}
                                 currentUser={currentUser}
                             />
-                            {cardData?.[0]?.id && (
+                            {jobData?.id && (
                                 <CardImageReorderList
                                     initialCardImages={jobImages || []}
-                                    jobAppId={cardData?.[0]?.id || ""}
+                                    jobAppId={jobData?.id || ""}
                                     onReorderSuccess={refreshCardImages}
                                 />
                             )}

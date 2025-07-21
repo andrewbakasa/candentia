@@ -17,7 +17,7 @@ const ProjectsPage = async () => {
   return (
     <ClientOnly>
       <ProjectsClient
-        jobApplications={jobsapp}
+        initialJobApplications={jobsapp}
         currentUser={currentUser}
       />
     </ClientOnly>

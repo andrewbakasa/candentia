@@ -4,18 +4,19 @@ import { useCallback, useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { SafeUser } from "../types"; // Assuming SafeUser is defined elsewhere
 import Heading from "../components/Heading";
-import Search from "../components/Search"; // This will need adjustments for application-specific search
+import Search from "../components/Search";
 import Container from "../components/Container";
 import { cn } from "@/lib/utils";
 import ReactPaginate from "react-paginate";
 import useIsMobile from "../hooks/isMobile";
 import { toast } from "sonner";
 import { useAction } from "@/hooks/use-action";
-import { updatePagSize } from "@/actions/update-user-pagesize"; // Still relevant for user preferences
-import { JobApplication, Career, User } from "@prisma/client"; // Import JobApplication, Career, User
+import { updatePagSize } from "@/actions/update-user-pagesize";
+import { JobApplication, Career, User } from "@prisma/client";
 import { JobApplicationContainer } from "./_components/job-application-container";
 import { useWindowSize } from "@/hooks/use-screenWidth";
 import { updateJobApplicationStatus } from "@/actions/update-jobApplicationStatus";
+import { deleteJobApplication } from "@/actions/delete-job-application";
 
 // Extend JobApplication type to include relations if they are fetched by getJobApplications
 interface JobApplicationWithRelations extends JobApplication {
@@ -24,40 +25,29 @@ interface JobApplicationWithRelations extends JobApplication {
 }
 
 interface JobApplicationsClientProps {
-    jobApplications: JobApplicationWithRelations[]; // Changed from jobs to jobApplications
+    initialJobApplications: JobApplicationWithRelations[]; // Renamed prop to clarify it's the initial data
     currentUser?: SafeUser | null;
 }
 
-
-
 const JobApplicationsClient: React.FC<JobApplicationsClientProps> = ({
-    jobApplications, // Changed prop name
+    initialJobApplications,
     currentUser,
 }) => {
     const router = useRouter();
-    const [deletingId, setDeletingId] = useState(''); // Keep if you have delete functionality
+    // Use initialJobApplications to populate a state that can be filtered/modified
+    const [allJobApplications, setAllJobApplications] = useState(initialJobApplications);
     const [searchTerm, setSearchTerm] = useState("");
-    const [filteredApplications, setFilteredApplications] = useState(jobApplications); // Renamed state
+    const [filteredApplications, setFilteredApplications] = useState(initialJobApplications); // This state holds the result of all filters
     const [pageSize, setPageSize] = useState<number>(currentUser ? currentUser.pageSize : 8);
-    const [pageCount, setPageCount] = useState(Math.ceil(jobApplications.length / (currentUser ? currentUser.pageSize : 8)));
     const [itemOffset, setItemOffset] = useState(0);
+
     const isMobile = useIsMobile();
-    const [fList, setFList] = useState(jobApplications);
-    const [fListPage, setFListPage] = useState<JobApplicationWithRelations[]>([]); // Renamed and typed
+    const [fListPage, setFListPage] = useState<JobApplicationWithRelations[]>([]); // Current page slice for rendering
 
     const [selectedApplicationId, setSelectedApplicationId] = useState<string>('');
-    const handleToggleSelectApplication = (id: string) => {
-        if (selectedApplicationId === id) { // If clicking the same one, deselect
-            setSelectedApplicationId('');
-            setSearchTerm(''); // Clear search when deselecting single view
-        } else {
-            setSelectedApplicationId(id);
-            setSearchTerm(''); // Clear search when selecting a single view
-        }
-    };
+    const [statusFilter, setStatusFilter] = useState<string>('');
 
-    const [statusFilter, setStatusFilter] = useState<string>(''); // Example: "PENDING", "REVIEWED"
-
+    // Action to update user page size
     const { execute, fieldErrors } = useAction(updatePagSize, {
         onSuccess: (data) => {
             toast.success(`PageSize for ${data.email} updated to ${data.pageSize}`);
@@ -67,12 +57,10 @@ const JobApplicationsClient: React.FC<JobApplicationsClientProps> = ({
         },
     });
 
-    // Use useAction for the new status update functionality
+    // Action to update job application status
     const { execute: executeStatusUpdate } = useAction(updateJobApplicationStatus, {
         onSuccess: (data) => {
             toast.success(`Application status updated to ${data.status.replace(/_/g, ' ')}`);
-            // No need to explicitly update fList here, as handleStatusUpdate already does it for immediate feedback.
-            // If the backend call fails, you might want to revert the local state.
         },
         onError: (error) => {
             toast.error(`Failed to update status: ${error}`);
@@ -81,37 +69,46 @@ const JobApplicationsClient: React.FC<JobApplicationsClientProps> = ({
         },
     });
 
+    // Action to delete job application
+    const { execute: executeDeleteApplication } = useAction(deleteJobApplication, {
+        onSuccess: (data) => {
+            // Remove the deleted application from the main list of applications
+            setAllJobApplications(prevApplications =>
+                prevApplications.filter(app => app.id !== data.id)
+            );
+            toast.success(`Job application deleted successfully.`);
+        },
+        onError: (error) => {
+            toast.error(`Failed to delete application: ${error}`);
+            console.error("Error deleting job application:", error);
+        },
+    });
 
     // Effect to filter applications based on various criteria
     useEffect(() => {
-        let currentApplications = jobApplications;
+        let currentApplications = allJobApplications; // Start with the full list of applications
 
-        // 1. Filter by selectedApplicationId if one is active
+        // 1. Filter by selectedApplicationId if one is active (single view)
         if (selectedApplicationId.length > 0) {
             currentApplications = currentApplications.filter(app => app.id === selectedApplicationId);
         }
 
         // 2. Filter by status
         if (statusFilter !== '') {
-            currentApplications = currentApplications.filter(app => app.status.toLocaleLowerCase() === statusFilter.toLocaleLowerCase());
+            currentApplications = currentApplications.filter(app => app.status.toLowerCase() === statusFilter.toLowerCase());
         }
 
         // 3. Filter by search term
         if (searchTerm !== "") {
-            const searchTermsArray = searchTerm.split(';').filter(Boolean); // Split by ';', remove empty strings
+            const searchTermsArray = searchTerm.split(';').filter(Boolean);
 
             const results = currentApplications.filter((app) =>
                 searchTermsArray.some((term) => {
                     const lowerCaseTerm = term.trim().toLowerCase();
-                    // Search by applicant name (if user is included)
                     if (app.applicantName.toLowerCase().includes(lowerCaseTerm)) return true;
-                    // Search by applicant email (if user is included)
                     if (app.applicantEmail.toLowerCase().includes(lowerCaseTerm)) return true;
-                    // Search by job title (if career is included)
                     if (app.career?.title?.toLowerCase().includes(lowerCaseTerm)) return true;
-                    // Search by cover letter content (if present)
                     if (app.coverLetterText?.toLowerCase().includes(lowerCaseTerm)) return true;
-                    // Search by application ID
                     if (app.id.toLowerCase().includes(lowerCaseTerm)) return true;
                     return false;
                 })
@@ -119,11 +116,9 @@ const JobApplicationsClient: React.FC<JobApplicationsClientProps> = ({
             currentApplications = results;
         }
 
-        setFilteredApplications(currentApplications);
-        setFList(currentApplications); // Update fList with the final filtered results
+        setFilteredApplications(currentApplications); // Update the list used for pagination
         setItemOffset(0); // Reset pagination to the first page after filtering
-    }, [jobApplications, selectedApplicationId, statusFilter, searchTerm]);
-
+    }, [allJobApplications, selectedApplicationId, statusFilter, searchTerm]);
 
     const handleSearch = (event: React.ChangeEvent<HTMLInputElement>) => {
         setSearchTerm(event.target.value);
@@ -132,24 +127,28 @@ const JobApplicationsClient: React.FC<JobApplicationsClientProps> = ({
     const { width } = useWindowSize(); // Keep width for responsive adjustments if needed
     const mobileWidth = 400; // Define mobile breakpoint
 
-
     // Handler for updating application status
     const handleStatusUpdate = useCallback((id: string, status: string) => {
-        // Optimistically update the UI
-        setFList(prevList =>
+        // Optimistically update the UI for allJobApplications and filteredApplications
+        setAllJobApplications(prevList =>
             prevList.map(app =>
                 app.id === id ? { ...app, status: status } : app
             )
         );
-        setFilteredApplications(prevFiltered =>
-            prevFiltered.map(app =>
-                app.id === id ? { ...app, status: status } : app
-            )
-        );
+        // The useEffect for filtering will re-run and update filteredApplications accordingly
+        // after allJobApplications is updated.
 
         // Call the backend action to persist the change
         executeStatusUpdate({ id, status });
     }, [executeStatusUpdate]);
+
+
+    // Handler for deleting a job application
+    const handleDeleteJobApplication = useCallback(async (applicationId: string) => {
+        // executeDeleteApplication handles the state update (removing from allJobApplications)
+        // and displays toasts based on its onSuccess/onError callbacks.
+        executeDeleteApplication({ id: applicationId });
+    }, [executeDeleteApplication]);
 
 
     /* ----------------Pagination------------ */
@@ -168,7 +167,7 @@ const JobApplicationsClient: React.FC<JobApplicationsClientProps> = ({
     };
 
     const handlePageClick = (event: { selected: number }) => {
-        const newOffset = (event.selected * pageSize) % fList.length;
+        const newOffset = (event.selected * pageSize) % filteredApplications.length;
         setItemOffset(newOffset);
     };
 
@@ -186,22 +185,19 @@ const JobApplicationsClient: React.FC<JobApplicationsClientProps> = ({
     };
 
     useEffect(() => {
-        const pageSlice = calculatePageSlice(fList, itemOffset, pageSize);
+        const pageSlice = calculatePageSlice(filteredApplications, itemOffset, pageSize);
         setFListPage(pageSlice);
-    }, [itemOffset, fList, pageSize]);
+    }, [itemOffset, filteredApplications, pageSize]); // Depend on filteredApplications for changes
 
+    // Calculate pageCount based on filteredApplications
+    const pageCount = Math.ceil(filteredApplications.length / pageSize);
+
+    // Only reset itemOffset if the pageCount changes and the current offset is out of bounds
     useEffect(() => {
-        if (fList && pageSize) {
-            const newPageCount = Math.ceil(fList.length / pageSize);
-            if (pageCount !== newPageCount) {
-                setPageCount(newPageCount);
-            }
+        if (itemOffset >= filteredApplications.length && filteredApplications.length > 0) {
+            setItemOffset(0);
         }
-    }, [fList, pageSize, pageCount]); // Added pageCount to dependency array to prevent infinite loop
-
-    useEffect(() => {
-        setItemOffset(0);
-    }, [pageCount]);
+    }, [filteredApplications, itemOffset]);
 
 
     const renderPaginationButtons = () => {
@@ -216,7 +212,7 @@ const JobApplicationsClient: React.FC<JobApplicationsClientProps> = ({
                 key={'pagination-buttons'}
                 onPageChange={handlePageClick}
                 pageRangeDisplayed={5}
-                pageCount={Math.ceil(fList?.length / pageSize) || 0}
+                pageCount={pageCount} // Use the derived pageCount
                 forcePage={Math.floor(itemOffset / pageSize)}
                 renderOnZeroPageCount={null}
             />
@@ -244,7 +240,7 @@ const JobApplicationsClient: React.FC<JobApplicationsClientProps> = ({
     };
 
     // Title and subtitle adjusted for job applications
-    let title_ = `Job Applications (${fList.length} of ${jobApplications.length})`;
+    let title_ = `Job Applications (${filteredApplications.length} of ${allJobApplications.length})`; // Use filteredApplications for current count
     let subtitle_ = "Manage and review job submissions.";
 
     // Access roles for the current user
@@ -297,7 +293,7 @@ const JobApplicationsClient: React.FC<JobApplicationsClientProps> = ({
                         <Search
                             setSearchTerm={setSearchTerm}
                             searchTerm={searchTerm}
-                            // placeholder="Search by name, email, job title or ID..." // Updated placeholder
+                            //placeholder="Search by name, email, job title or ID..." // Updated placeholder
                         />
                     </div>
                 </div>
@@ -320,8 +316,9 @@ const JobApplicationsClient: React.FC<JobApplicationsClientProps> = ({
                                 >
                                     <JobApplicationContainer
                                         jobApplication={application}
-                                        onStatusChange={handleStatusUpdate} // Pass the new handler here
+                                        onStatusChange={handleStatusUpdate}
                                         currentUser={currentUser}
+                                        onDelete={handleDeleteJobApplication} // Pass the handler
                                     />
                                 </div>
                             ))}
@@ -330,7 +327,7 @@ const JobApplicationsClient: React.FC<JobApplicationsClientProps> = ({
                         <p className="text-center text-gray-500 mt-8">No job applications found matching your criteria.</p>
                     )}
 
-                    {fList && fList.length > 0 && (
+                    {filteredApplications && filteredApplications.length > 0 && ( // Use filteredApplications here
                         <div className="mt-4 flex flex-wrap justify-center gap-1">
                             {renderPaginationButtons()}
                         </div>
