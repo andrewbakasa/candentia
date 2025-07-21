@@ -133,57 +133,61 @@ const UserMenu: React.FC<UserMenuProps> = ({ currentUser, handleNavigate }) => {
           <div className="flex flex-col cursor-pointer">
             {currentUser ? (
               <>
-                {/* Authenticated User Menu Items */}
+              
                 <MenuItem
-                  label="Manage projects"
+                  label="All Content"
                   onClick={() => handleMenuItemClickWithNav(`/projects`)}
                 />
                 
                 {currentUser?.isAdmin && (
-                  <MenuItem label="My projects" onClick={() => handleMenuItemClickWithNav("/myprojects")} />
+                  <MenuItem label="My Content" onClick={() => handleMenuItemClickWithNav("/myprojects")} />
+                )}
+                {currentUser?.isAdmin && (
+                  <MenuItem label="Broadcast Content" onClick={() => handleMenuItemClickWithNav("/boards-list")} />
                 )}
                 <hr className="my-1" />
                 {currentUser?.isAdmin && (
                   <MenuItem label="Financing" onClick={() => handleMenuItemClickWithNav("/financing")} />
                 )}
-                {currentUser?.isAdmin && (
-                  <MenuItem label="Members" onClick={() => handleMenuItemClickWithNav("/members")} />
-                )}
-                {currentUser?.isAdmin && (
-                  <MenuItem label="Users" onClick={() => handleMenuItemClickWithNav("/users")} />
-                )}
-                {currentUser?.isAdmin && (
-                  <MenuItem label="Enquiries" onClick={() => handleMenuItemClickWithNav("/enquiries")} />
-                )}
-                {currentUser?.isAdmin && (
-                  <MenuItem label="Product Enquiries" onClick={() => handleMenuItemClickWithNav("/productenquiries")} />
-                )}
                  {currentUser?.isAdmin && (
                   <MenuItem label="Manage Portfolio" onClick={() => handleMenuItemClickWithNav("/edit-investments")} />
                 )}
+
+                  <hr className="my-1" />
                 {currentUser?.isAdmin && (
-                  <MenuItem label="Manage Jobs" onClick={() => handleMenuItemClickWithNav("/edit-jobs")} />
+                  <MenuItem label="Careers" onClick={() => handleMenuItemClickWithNav("/edit-jobs")} />
                 )}
                   {currentUser?.isAdmin  && (
-                  <MenuItem label="Manage Job Applications" onClick={() => handleMenuItemClickWithNav("/jobapplications")} />
+                  <MenuItem label="All Job Applications" onClick={() => handleMenuItemClickWithNav("/jobapplications")} />
                 )}
 
  
                 <MenuItem label="My Job Applications" onClick={() => handleMenuItemClickWithNav("/myjobapplications")} />
-              
+               <hr className="my-1" />
 
-                {currentUser?.isAdmin && (
-                  <MenuItem label="Broadcast Boards" onClick={() => handleMenuItemClickWithNav("/boards-list")} />
-                )}
+                
                 <MenuItem
                   label="Profile Settings"
                   onClick={() => handleMenuItemClickWithNav(`/user/${currentUser.id}`)}
                 />
                 <MenuItem
-                  label="Member Profile"
+                  label="My Member Profile"
                   onClick={() => handleMenuItemClickWithNav(`/member-profile`)}
                 />
-
+               {currentUser?.isAdmin && (
+                  <MenuItem label="All Members" onClick={() => handleMenuItemClickWithNav("/members")} />
+                )}
+                   <hr className="my-1" />
+                {currentUser?.isAdmin && (
+                  <MenuItem label="Users" onClick={() => handleMenuItemClickWithNav("/users")} />
+                )}
+                {currentUser?.isAdmin && (
+                  <MenuItem label="General Enquiries" onClick={() => handleMenuItemClickWithNav("/enquiries")} />
+                )}
+                {currentUser?.isAdmin && (
+                  <MenuItem label="Product Enquiries" onClick={() => handleMenuItemClickWithNav("/productenquiries")} />
+                )}
+              
                
                 <hr className="my-1" />
                 <MenuItem label="Logout" onClick={() => signOut()} />

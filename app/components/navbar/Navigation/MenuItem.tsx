@@ -5,7 +5,7 @@
 export const MenuItem: React.FC<{ label: string; onClick: () => void }> = ({ label, onClick }) => (
   <div
     onClick={onClick}
-    className="px-4 py-3 hover:bg-neutral-100 transition font-semibold cursor-pointer"
+    className="px-2 py-2 hover:bg-neutral-100 transition font-semibold cursor-pointer"
   >
     {label}
   </div>
