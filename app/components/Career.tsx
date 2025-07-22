@@ -23,7 +23,7 @@ const Career: React.FC<CareerProps> = ({ jobOpenings }: CareerProps) => {
         <div className="my-8 py-10 bg-gradient-to-br from-gray-50 to-gray-100 rounded-xl shadow-lg" id="careers">
             <div className="container mx-auto px-4 sm:px-6 lg:px-8">
                 <h2 className="text-center text-4xl font-extrabold text-yellow-800 mb-4 drop-shadow-sm">
-                    Join the Brilliant Team at Candentia
+                    Join the Brilliant Team at EEG
                 </h2>
                 <p className="text-center text-lg text-gray-600 mb-8 max-w-2xl mx-auto">
                     Explore our current job openings and become a part of our innovative and dynamic team.

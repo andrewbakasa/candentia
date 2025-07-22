@@ -310,7 +310,7 @@ const handleSignIn = (provider: string) => {
         />
       <div className="
       text-neutral-500 text-center mt-4 font-light">
-        <p>First time using Candentia?
+        <p>First time using EEG?
           <span 
             onClick={onToggle} 
             className="

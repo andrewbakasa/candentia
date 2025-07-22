@@ -33,7 +33,7 @@ interface ContactOption {
 }
 
 const DemoProductContactForm = () => {
-    useDocTitle('Candentia | Solutions - Send us a message');
+    useDocTitle('EEG | Solutions - Send us a message');
     const [firstName, setFirstName] = useState<string>('');
     const [lastName, setLastName] = useState<string>('');
     const [email, setEmail] = useState<string>('');
@@ -344,7 +344,7 @@ const DemoProductContactForm = () => {
 
                                     <div className="mt-5">
                                         <h2 className="text-2xl">Send Email</h2>
-                                        <p className="text-blue-900">info@candentia.com</p>
+                                        <p className="text-blue-900">info@eeg.flax.com</p>
                                     </div>
                                 </div>
                             </div>

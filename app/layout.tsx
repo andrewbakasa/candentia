@@ -16,7 +16,7 @@ import getJobOpenings from './actions/getJobOpenings';
 import NavBar from './components/navbar/Navigation/NavBar';
 //import { saveInitialJobs } from './vacancy/[jobId]/_components/initialDB';
 export const metadata = {
-  title: 'Candentia: Illuminating Engineering Solutions',
+  title: 'EEG: Illuminating Engineering Solutions',
   description: 'Intergrated Design, Engineering Assembly, Manufacture, Maintenance Modelling,Operations',
 }
 

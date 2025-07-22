@@ -20,7 +20,7 @@ you&apos;ll be instrumental in ventures that offer both transformative potential
             href="/financing"
             className="inline-flex items-center px-6 py-3 bg-yellow-300 hover:bg-yellow-600 text-blue-700 rounded-md font-medium shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
           >
-            Invest in the Brilliance of Candentia
+            Invest in the Brilliance of EEG
             <svg
               className="w-5 h-5 ml-2"
               fill="none"

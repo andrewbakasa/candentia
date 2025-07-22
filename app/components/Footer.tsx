@@ -21,7 +21,7 @@ const Footer: React.FC<FooterProps> = () => {
             {/* 1st block */}
             <div className="col-span-12 lg:col-span-4">
               <div className="box-border border-b-4 border-yellow-900 p-8 bg-yellow-200 text-gray-600 text-center rounded-lg xl:w-80 mx-auto">
-                <h3 className="font-bold text-4xl mb-4">Candentia</h3>
+                <h3 className="font-bold text-4xl mb-4">EEG</h3>
                 <div className="text-md font-medium text-gray-600">
                   <h5>Integrated Solutions</h5>
                   <p>Harare,</p>
@@ -146,7 +146,7 @@ const Footer: React.FC<FooterProps> = () => {
               <div className="text-sm text-gray-300 font-semibold py-1">
                 Copyright &copy; {new Date().getFullYear()} {" "}
                 <Link href="#" className=" hover:text-gray-900">
-                Candentia
+                EEG
                 </Link>
                 . All rights reserved.
               </div>

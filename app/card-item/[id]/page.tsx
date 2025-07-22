@@ -49,7 +49,7 @@ export async function generateMetadata({ params }: ItemComponentPageProps) {
 
   if (!card) {
     return {
-      title: "Card Not Found | Luminous 3D",
+      title: "Card Not Found | EEG",
       description: "The requested card could not be found.",
       alternates: {
         canonical: `${process.env.NEXT_PUBLIC_APP_URL}/item-component-page/${params.id}`,
@@ -74,11 +74,11 @@ export async function generateMetadata({ params }: ItemComponentPageProps) {
     boardTitle,
     ...(card.tags?.map(tag => tag.name) || []),
     "card details",
-    "Luminous 3D",
+    "EEG",
   ].filter(Boolean).join(', '); // Filter out any undefined/null entries and join
 
   return {
-    title: `${cardTitle} | ${listTitle} ${boardTitle ? `(${boardTitle})` : ''} | Luminous 3D`,
+    title: `${cardTitle} | ${listTitle} ${boardTitle ? `(${boardTitle})` : ''} | EEG`,
     description: boardTitle
       ? `${cardDescription} Located in the '${listTitle}' list, part of the '${boardTitle}' board.`
       : `${cardDescription} Located in the '${listTitle}' list.`,
@@ -93,7 +93,7 @@ export async function generateMetadata({ params }: ItemComponentPageProps) {
         : `${cardDescription} Located in the '${listTitle}' list.`,
       type: 'article',
       url: `${process.env.NEXT_PUBLIC_APP_URL}/item-component-page/${params.id}`,
-      siteName: 'Luminous 3D',
+      siteName: 'EEG',
       // images: card.cardImages && card.cardImages.length > 0
       //   ? [{ url: card.cardImages[0].url }]
       //   : [],

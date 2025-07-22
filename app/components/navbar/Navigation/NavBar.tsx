@@ -84,8 +84,9 @@ const NavBar: React.FC<NavbarProps> = ({ currentUser  }) => {
           >
             {/* Replaced h1 with img tag for logo */}
             <Image
-              src="/luminous3d-high-resolution-logo2.svg"
+              src="/peeg.jpg"
               alt="Company Logo"
+              
               height={35} // Increased height for better visibility
               width={55}  // Increased width for better visibility
               className="cursor-pointer opacity-100 shadow-lg  h-10 w-13 md:h-11 md:w-16 lg:h-12 lg:w-20" // Responsive sizing
@@ -139,7 +140,7 @@ const NavBar: React.FC<NavbarProps> = ({ currentUser  }) => {
               className="focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-1 rounded-md"
               aria-label="Navigate to home section"
             >
-              <h1 className="font-extrabold text-2xl text-yellow-900">Luminous</h1>
+              <h1 className="font-extrabold text-2xl text-yellow-900">EEG</h1>
             </a>
             <button
               className="p-2 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-1 text-gray-600 hover:text-gray-800 transition duration-200"
