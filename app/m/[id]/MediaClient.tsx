@@ -19,8 +19,8 @@ import { Button } from "@/components/ui/button";
 import { AiFillPicture } from "react-icons/ai";
 import { useMediaModal } from "@/hooks/use-media-modal";
 import Link from "next/link";
-import CreatedAtUpdatedAt from "@/app/myprojects/updatedCreated";
-import CardTags from "@/app/myprojects/_components/card-tags";
+import CreatedAtUpdatedAt from "@/app/mycontents/updatedCreated";
+import CardTags from "@/app/mycontents/_components/card-tags";
 // import Heading from "@/app/components/Heading";
 //import Container from "../components/Container";
 

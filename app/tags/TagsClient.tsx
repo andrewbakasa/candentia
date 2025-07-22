@@ -17,7 +17,7 @@ import { createColumnHelper } from "@tanstack/react-table";
 import ReactPaginate from "react-paginate";
 import moment from "moment";
 import TanStackTable from "../components/TanstackTable";
-import CreatedAtUpdatedAt from "../myprojects/_components/updatedCreated";
+import CreatedAtUpdatedAt from "../mycontents/_components/updatedCreated";
 import { updatePagSize } from "@/actions/update-user-pagesize";
 import { useAction } from "@/hooks/use-action";
 import { toast } from "sonner";

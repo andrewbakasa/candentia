@@ -3,7 +3,7 @@ import EmptyState from "../../app/components/EmptyState";
 import ClientOnly from "../../app/components/ClientOnly";
 import getCurrentUser from "../../app/actions/getCurrentUser";
 import getBoards from "../actions/getBoards";
-import ProjectsClient from "../myprojects/ProjectsClient";
+import ProjectsClient from "../mycontents/ProjectsClient";
 import getTagNames from "../actions/getTagNames";
 import getUserNames from "../actions/getUserNames";
 

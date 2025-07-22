@@ -15,7 +15,7 @@ const denied = () => {
     //   try {
     //     const currentUser = await getCurrentUser();
     //     if (currentUser) {
-    //       redirect(`/myprojects`);
+    //       redirect(`/mycontents`);
     //     }
     //   //  setData(data);
     //   } catch (error) {

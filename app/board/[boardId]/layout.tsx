@@ -96,7 +96,7 @@ const BoardIdLayout = async ({
   // }
  
   if (!currentUser) {
-   //redirect(`/projects`);
+   //redirect(`/procontentsjects`);
 
    return (
      <ClientOnly>

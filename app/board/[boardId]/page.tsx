@@ -103,7 +103,7 @@ const BoardIdPage = async ({
       });
 
       if (!board) {
-        //redirect(`/projects`);
+        //redirect(`/contents`);
     
         return (
           <ClientOnly>

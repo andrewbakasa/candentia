@@ -56,8 +56,8 @@ export default withAuth(
 export const config = { 
   matcher: [
     "/archived-projects",
-    "/projects",
-    "/myprojects",
+    "/contents",
+    "/mycontents",
     "/users",
     //"/financing",
     //"/contact",

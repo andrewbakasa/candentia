@@ -5,7 +5,7 @@ import getPinnedProjects from "../actions/getMyPreferrence";
 import getTagNames from "../actions/getTagNames";
 import getUserNames from "../actions/getUserNames";
 import EmptyState from "../components/EmptyState";
-import ProjectsClient from "../myprojects/ProjectsClient";
+import ProjectsClient from "../mycontents/ProjectsClient";
 
 
 const ProjectsPage = async () => {

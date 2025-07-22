@@ -61,8 +61,8 @@ const handler = async (data: InputType): Promise<ReturnType> => {
     }
   }
 
-  revalidatePath(`/projects`);
-  redirect(`/projects`);
+  revalidatePath(`/contents`);
+  redirect(`/contents`);
 };
 
 export const deleteBoard = createSafeAction(DeleteBoard, handler);

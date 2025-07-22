@@ -18,8 +18,8 @@ import moment from "moment";
 import { useCardReadModeStore } from "@/hooks/use-cardReadMode";
 import { CardWithList2 } from "@/types";
 import { useCommentModal } from "@/hooks/use-comment-modal";
-import { CommentShow } from "@/app/myprojects/_components/display-comment";
-import { CommentList } from "@/app/myprojects/_components/display-all-comments";
+import { CommentShow } from "@/app/mycontents/_components/display-comment";
+import { CommentList } from "@/app/mycontents/_components/display-all-comments";
 
 interface CardItemProps {
   data: CardWithList2;

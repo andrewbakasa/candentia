@@ -26,10 +26,10 @@ import { AiFillPicture, AiOutlineLink } from 'react-icons/ai'; // Added AiOutlin
 import { CardImage } from '@prisma/client';
 import { Skeleton } from '@/components/ui/skeleton';
 import CardImageReorderList from './_components/cardImage-reorder-list';
-import CreatedAtUpdatedAt from '@/app/myprojects/updatedCreated';
-import CardTags from '@/app/myprojects/_components/card-tags';
-import { CommentShow } from '@/app/myprojects/_components/display-comment';
-import { CommentList } from '@/app/myprojects/_components/display-all-comments';
+import CreatedAtUpdatedAt from '@/app/mycontents/updatedCreated';
+import CardTags from '@/app/mycontents/_components/card-tags';
+import { CommentShow } from '@/app/mycontents/_components/display-comment';
+import { CommentList } from '@/app/mycontents/_components/display-all-comments';
 
 // Define the necessary related types for CardWithDetails (as provided in the latest immersive artifact)
 interface Board {

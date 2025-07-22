@@ -136,11 +136,11 @@ const UserMenu: React.FC<UserMenuProps> = ({ currentUser, handleNavigate }) => {
               
                 <MenuItem
                   label="All Content"
-                  onClick={() => handleMenuItemClickWithNav(`/projects`)}
+                  onClick={() => handleMenuItemClickWithNav(`/contents`)}
                 />
                 
                 {currentUser?.isAdmin && (
-                  <MenuItem label="My Content" onClick={() => handleMenuItemClickWithNav("/myprojects")} />
+                  <MenuItem label="My Content" onClick={() => handleMenuItemClickWithNav("/mycontents")} />
                 )}
                 {currentUser?.isAdmin && (
                   <MenuItem label="Broadcast Content" onClick={() => handleMenuItemClickWithNav("/boards-list")} />
