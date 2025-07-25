@@ -187,8 +187,8 @@ const UserMenu: React.FC<UserMenuProps> = ({ currentUser, handleNavigate }) => {
                 {currentUser?.isAdmin && (
                   <MenuItem label="Product Enquiries" onClick={() => handleMenuItemClickWithNav("/productenquiries")} />
                 )}
-              
-               
+             
+                <MenuItem label="General Media" onClick={() => handleMenuItemClickWithNav("/media")} />
                 <hr className="my-1" />
                 <MenuItem label="Logout" onClick={() => signOut()} />
               </>
