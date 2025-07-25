@@ -7,12 +7,12 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 
 // Import the separated components and schema
-import MemberDataForm, { formSchema, MemberFormValues } from './MemberDataForm'; // Adjust path as needed
+import MemberDataForm, { formSchema, MemberFormValues, subcommittees } from './MemberDataForm'; // Adjust path as needed
 import MemberDataActions from './MemberDataActions'; // Adjust path as needed
 import { SafeUser } from '@/app/types';
 
 // Define available subcommittees (MUST be the same as in MemberDataForm)
-const subcommittees = ["Innovation", "Finance", "Marketing", "Technical", "Business"] as const;
+//const subcommittees = ["Innovation", "Finance", "Marketing", "Technical", "Business"] as const;
 
 // Define the type for the Membership data, matching your Prisma model
 // Corrected: Use typeof subcommittees[number] for strict typing of array elements

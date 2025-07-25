@@ -44,7 +44,7 @@ const Sex = {
 };
 
 // Define available subcommittees
-const subcommittees = ["Innovation, ICT, AI", "Finance, Investments", "Business Development, Marketing, Strategic", "Technical, Civils, Mechanical", "Manufacturing, Logistics"] as const;
+export const subcommittees = ["Innovation, ICT, AI", "Finance, Investments", "Business Development, Marketing, Strategic", "Technical, Civils, Mechanical", "Manufacturing, Logistics"] as const;
 
 // Define the Zod schema for validation
 export const formSchema = z.object({
