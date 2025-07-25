@@ -16,8 +16,25 @@ import getJobOpenings from './actions/getJobOpenings';
 import NavBar from './components/navbar/Navigation/NavBar';
 //import { saveInitialJobs } from './vacancy/[jobId]/_components/initialDB';
 export const metadata = {
-  title: 'EEG: Illuminating Engineering Solutions',
-  description: 'Intergrated Design, Engineering Assembly, Manufacture, Maintenance Modelling,Operations',
+  title: 'EEG: Illuminating Solutions',
+  description: 'Building the Future today, together',
+   icons: {
+    icon: '/peeg.jpg', // This refers to app/icon.png
+    shortcut: '/shortcut-icon.png', // If you have a different shortcut icon
+    apple: '/peeg.jpg', // This refers to app/apple-icon.png
+    other: [
+      {
+        rel: 'apple-touch-icon-precomposed',
+        url: '/peeg.jpg',
+      },
+      {
+        rel: 'mask-icon',
+        url: '/peeg.jpg',
+        color: '#000000',
+      },
+    ],
+  },
+
 }
 
 const font = Nunito({ 
