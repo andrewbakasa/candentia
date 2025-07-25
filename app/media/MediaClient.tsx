@@ -213,7 +213,10 @@ const MediaClient: React.FC<MediaClientProps> = ({ currentUser, tagNames, userNa
                       throw new Error("Function not implemented.");
                     } } onFileNameChange={function (mediaId: string, newFileName: string | null): void {
                       throw new Error("Function not implemented.");
-                    } } canEdit={false}                />
+                    } } canEdit={false} 
+                    sliderIndex={sliderIndex} 
+                    filteredMediaCount={filteredMediaCount}                
+          />
         )}
               <Separator />
               <p className="text-sm text-blue-300 mr-auto">media {sliderIndex+1} of  [{filteredMediaCount}] </p>
