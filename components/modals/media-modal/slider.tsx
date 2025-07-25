@@ -323,7 +323,7 @@ const Slider: React.FC<SliderProps> = ({ mediaList, fullView, onCardIdChange, on
   };
 
   return (
-    <div className="flex flex-col items-center justify-center p-4 min-h-[50vh] bg-gray-50 rounded-lg shadow-xl">
+    <div className="w-full flex flex-col items-center justify-center p-4 min-h-[50vh] bg-gray-50 rounded-lg shadow-xl">
       {mediaList && mediaList?.length > 0 ? (
         <div className={cn(
           "relative border border-gray-200 rounded-xl overflow-hidden bg-white shadow-lg flex flex-col",
