@@ -1,6 +1,7 @@
 'use client';
 
 import { IconType } from "react-icons";
+import { Loader2 } from "lucide-react"; // Import Loader2 if you're using it directly in Button component for some reason, otherwise it's only needed in RegisterModal
 
 interface ButtonProps {
   label: string;
@@ -8,18 +9,20 @@ interface ButtonProps {
   disabled?: boolean;
   outline?: boolean;
   small?: boolean;
-  icon?: IconType;
+  icon?: IconType | React.ElementType; // Updated to accept IconType or any React component
+  iconClassName?: string; // Added for applying classes to the icon, e.g., for spin animation
 }
 
-const Button: React.FC<ButtonProps> = ({ 
-  label, 
-  onClick, 
-  disabled, 
+const Button: React.FC<ButtonProps> = ({
+  label,
+  onClick,
+  disabled,
   outline,
   small,
-  icon: Icon,
+  icon: Icon, // Destructure icon as Icon to render it as a component
+  iconClassName
 }) => {
-  return ( 
+  return (
     <button
       disabled={disabled}
       onClick={onClick}
@@ -43,16 +46,75 @@ const Button: React.FC<ButtonProps> = ({
       {Icon && (
         <Icon
           size={24}
-          className="
+          className={`
             absolute
             left-4
             top-3
-          "
+            ${iconClassName || ''} {/* Apply iconClassName here */}
+          `}
         />
       )}
       {label}
     </button>
-   );
+  );
 }
- 
+
 export default Button;
+// 'use client';
+
+// import { IconType } from "react-icons";
+
+// interface ButtonProps {
+//   label: string;
+//   onClick: (e: React.MouseEvent<HTMLButtonElement>) => void;
+//   disabled?: boolean;
+//   outline?: boolean;
+//   small?: boolean;
+//   icon?: IconType;
+// }
+
+// const Button: React.FC<ButtonProps> = ({ 
+//   label, 
+//   onClick, 
+//   disabled, 
+//   outline,
+//   small,
+//   icon: Icon,
+// }) => {
+//   return ( 
+//     <button
+//       disabled={disabled}
+//       onClick={onClick}
+//       className={`
+//         relative
+//         disabled:opacity-70
+//         disabled:cursor-not-allowed
+//         rounded-lg
+//         hover:opacity-80
+//         transition
+//         w-full
+//         ${outline ? 'bg-white' : 'bg-rose-500'}
+//         ${outline ? 'border-black' : 'border-rose-500'}
+//         ${outline ? 'text-black' : 'text-white'}
+//         ${small ? 'text-sm' : 'text-md'}
+//         ${small ? 'py-1' : 'py-3'}
+//         ${small ? 'font-light' : 'font-semibold'}
+//         ${small ? 'border-[1px]' : 'border-2'}
+//       `}
+//     >
+//       {Icon && (
+//         <Icon
+//           size={24}
+//           className="
+//             absolute
+//             left-4
+//             top-3
+//           "
+//         />
+//       )}
+//       {label}
+//     </button>
+//    );
+// }
+ 
+// export default Button;
