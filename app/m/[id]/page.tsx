@@ -28,7 +28,7 @@ const MediaPage = async ({
       where: {
             cardId: params.id,
        },
-    //  orderBy:{ order: "asc" },
+      orderBy:{ order: "asc" },
      
       include: {
         card: {

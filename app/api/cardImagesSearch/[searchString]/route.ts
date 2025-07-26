@@ -4,108 +4,131 @@ import getCurrentUser from "@/app/actions/getCurrentUser";
 import { NO_FILTER_SEARCH_CODE } from "@/lib/constants";
 
 export async function GET(
-  req: Request,
-  { params }: { params: { searchString: string } }
+    req: Request,
+    { params }: { params: { searchString: string } }
 ) {
-  try {
-    const decodedSearchTerm = decodeURIComponent(params.searchString);
-    const currentUser = await getCurrentUser();
+    try {
+        const { searchParams } = new URL(req.url);
+        const decodedSearchTerm = decodeURIComponent(params.searchString);
+        const categoryQuery = searchParams.get("category");
+        const currentUser = await getCurrentUser();
 
-    const cards = await prisma.card.findMany({
-      include: {
-        cardImages: {
-          orderBy: { createdAt: "desc" },
-        },
-        list: {
-          include: {
-            board: {
-              select: {
-                id: true, // Include the id to check if the board is public
-                title: true,
-                createdAt: true,
-                updatedAt: true,
-                public: true, // Select the public property
-                user: {
-                  select: {
-                    email: true,
-                    id: true,
-                  },
+        const cards = await prisma.card.findMany({
+            include: {
+                cardImages: {
+                    orderBy: { createdAt: "desc" },
                 },
-              },
+                list: {
+                    include: {
+                        board: {
+                            select: {
+                                id: true,
+                                title: true,
+                                createdAt: true,
+                                updatedAt: true,
+                                public: true,
+                                user: {
+                                    select: {
+                                        email: true,
+                                        id: true,
+                                    },
+                                },
+                            },
+                        },
+                    },
+                },
             },
-          },
-        },
-      },
-    });
-
-    const filteredCards = cards.filter(card => {
-      const isBoardPublic = card?.list?.board?.public === true;
-      return isBoardPublic && card.active;
-    });
-
-    const safeMedia = filteredCards.flatMap((card) => // Use filteredCards here
-      card.cardImages.map((image) => ({
-        ...image,
-        createdAt: image.createdAt?.toString(),
-        card: {
-          ...card,
-          createdAt: card.createdAt?.toString(),
-          updatedAt: card.updatedAt?.toString(),
-          title: card?.title,
-          listTitle: card.list.title,
-          boardTitle: card.list?.board.title,
-          list: card.list ? {
-            ...card.list,
-            createdAt: card.list.createdAt?.toString(),
-            updatedAt: card.list.updatedAt?.toString(),
-            board: card.list.board ? {
-              ...card.list.board,
-              createdAt: card.list.board.createdAt?.toString(),
-              updatedAt: card.list.board.updatedAt?.toString(),
-            } : null,
-          } : null,
-        },
-        title: card.title,
-        listTitle: card.list?.title,
-        boardTitle: card.list?.board?.title,
-        boardCreatedAt: card.list?.board?.createdAt?.toString(),
-        boardUpdatedAt: card.list?.board?.updatedAt?.toString(),
-      }))
-    );
-
-    let finalFilteredMedia = safeMedia; // Initialize with all media after card filtering
-
-    if (decodedSearchTerm && decodedSearchTerm !== NO_FILTER_SEARCH_CODE) {
-      const searchTerms = decodedSearchTerm.split(';').map(term => term.trim().toLowerCase());
-      //console.log(`Search Splits:::${searchTerms}`);
-
-      //filter search string....
-      finalFilteredMedia = safeMedia.filter((mediaItem) => {
-        return searchTerms.some(term => {
-          const descriptionMatch = mediaItem?.card?.description?.toLowerCase().includes(term);
-          const cardTitleMatch = mediaItem?.card?.title?.toLowerCase().includes(term);
-          const listTitleMatch = mediaItem?.listTitle?.toLowerCase().includes(term);
-          const boardTitleMatch = mediaItem?.boardTitle?.toLowerCase().includes(term);
-
-          return descriptionMatch || cardTitleMatch || listTitleMatch || boardTitleMatch;
         });
-      });
+
+        let filteredCards = cards.filter(card => {
+            const isBoardPublic = card?.list?.board?.public === true;
+            // Ensure card.active is true if it's a field you want to filter by
+            return isBoardPublic && card.active;
+        });
+
+        // Apply category filtering
+        if (categoryQuery && categoryQuery !== '') {
+            const categoryIds = categoryQuery.split(',').map(tag => tag.trim());
+            filteredCards = filteredCards.filter(card => {
+                // Ensure ALL categoryIds are present on the card
+                return categoryIds.every(catId => card.tagIDs?.includes(catId));
+            });
+        }
+
+        const safeMedia = filteredCards.flatMap((card) =>
+            card.cardImages.map((image) => ({
+                ...image,
+                createdAt: image.createdAt?.toString(),
+                card: {
+                    ...card,
+                    createdAt: card.createdAt?.toString(),
+                    updatedAt: card.updatedAt?.toString(),
+                    title: card?.title,
+                    listTitle: card.list.title,
+                    boardTitle: card.list?.board.title,
+                    list: card.list ? {
+                        ...card.list,
+                        createdAt: card.list.createdAt?.toString(),
+                        updatedAt: card.list.updatedAt?.toString(),
+                        board: card.list.board ? {
+                            ...card.list.board,
+                            createdAt: card.list.board.createdAt?.toString(),
+                            updatedAt: card.list.board.updatedAt?.toString(),
+                        } : null,
+                    } : null,
+                },
+                title: card.title, // This might be redundant if card.title is already in card object
+                listTitle: card.list?.title, // This might be redundant if card.list.title is already in card object
+                boardTitle: card.list?.board?.title, // This might be redundant if card.list.board.title is already in card object
+                boardCreatedAt: card.list?.board?.createdAt?.toString(),
+                boardUpdatedAt: card.list?.board?.updatedAt?.toString(),
+            }))
+        );
+
+        let finalFilteredMedia = safeMedia;
+
+        if (decodedSearchTerm && decodedSearchTerm !== NO_FILTER_SEARCH_CODE) {
+            // Split by semicolon (;) for "OR" groups
+            const orSearchGroups = decodedSearchTerm.split(';').map(group => group.trim().toLowerCase());
+
+            finalFilteredMedia = safeMedia.filter((mediaItem) => {
+                // For each mediaItem, check if it matches ANY of the OR groups
+                return orSearchGroups.some(orGroup => {
+                    // Inside each OR group, split by comma (,) for "AND" terms
+                    const andSearchTerms = orGroup.split(',').map(term => term.trim()).filter(Boolean); // Filter out empty strings
+
+                    if (andSearchTerms.length === 0) {
+                        return true; // If an OR group is empty, consider it a match to not break the 'some' logic
+                    }
+
+                    // Check if the mediaItem matches ALL "AND" terms within this OR group
+                    return andSearchTerms.every(andTerm => {
+                        const targets = [
+                            mediaItem?.card?.description,
+                            mediaItem?.card?.title,
+                            mediaItem?.listTitle,
+                            mediaItem?.boardTitle,
+                            mediaItem?.description, // CardImage description
+                        ].filter(Boolean) as string[]; // Filter out null/undefined and assert type
+
+                        return targets.some(target => target.toLowerCase().includes(andTerm));
+                    });
+                });
+            });
+        }
+
+        const response = {
+            data: finalFilteredMedia || null,
+            hasMedia: finalFilteredMedia.length > 0,
+        };
+
+        return NextResponse.json(response);
+
+    } catch (error) {
+        console.error("Error in /api/cardImagesSearch:", error);
+        return NextResponse.json([], { status: 500 });
     }
-
-    // Add the hasMedia property to the response
-    const response = {
-      data: finalFilteredMedia || null,
-      hasMedia: true//hasMedia, // Include the boolean property
-    };
-
-    return NextResponse.json(response);
-
-  } catch (error) {
-    console.error("Error in /api/cardImagesSearch:", error);
-    return NextResponse.json([], { status: 500 });
-  }
 }
-
 // import { NextResponse } from "next/server";
 // import prisma from "@/app/libs/prismadb";
 // import getCurrentUser from "@/app/actions/getCurrentUser";
@@ -116,14 +139,11 @@ export async function GET(
 //   { params }: { params: { searchString: string } }
 // ) {
 //   try {
-//     const decodedSearchTerm = decodeURIComponent(params.searchString);    
-//     const currentUser = await getCurrentUser(); 
-   
-//     // if (!currentUser) {
-//     //   return NextResponse.json([], { status:500 }); // Return a NextResponse with appropriate status
-     
-//     // }
-   
+//     const { searchParams } = new URL(req.url);
+//     const decodedSearchTerm = decodeURIComponent(params.searchString);
+//     const categoryQuery = searchParams.get("category");
+//     const currentUser = await getCurrentUser();
+
 //     const cards = await prisma.card.findMany({
 //       include: {
 //         cardImages: {
@@ -133,13 +153,15 @@ export async function GET(
 //           include: {
 //             board: {
 //               select: {
+//                 id: true,
 //                 title: true,
 //                 createdAt: true,
 //                 updatedAt: true,
+//                 public: true,
 //                 user: {
 //                   select: {
 //                     email: true,
-//                     id:true
+//                     id: true,
 //                   },
 //                 },
 //               },
@@ -149,15 +171,20 @@ export async function GET(
 //       },
 //     });
 
-//     const filteredCards = cards.filter(card => {
-//       const isOwner = card?.list.board.user?.id === currentUser?.id;// pass the owner of board
-//       const isAdminOrOwner = isOwner || currentUser?.isAdmin;// pass admin
-//       const cardCreator = card.userId === currentUser?.id;// pass who created this card
-//       return (card.visible || isAdminOrOwner || cardCreator) && card.active;
+//     let filteredCards = cards.filter(card => {
+//       const isBoardPublic = card?.list?.board?.public === true;
+//       return isBoardPublic && card.active;
 //     });
 
+//     // Apply category filtering
+//     if (categoryQuery && categoryQuery !== '') {
+//       const categoryIds = categoryQuery.split(',').map(tag => tag.trim());
+//       filteredCards = filteredCards.filter(card => {
+//         return categoryIds.every(catId => card.tagIDs?.includes(catId));
+//       });
+//     }
 
-//     const safeMedia = filteredCards.flatMap((card) => // Use filteredCards here
+//     const safeMedia = filteredCards.flatMap((card) =>
 //       card.cardImages.map((image) => ({
 //         ...image,
 //         createdAt: image.createdAt?.toString(),
@@ -187,35 +214,35 @@ export async function GET(
 //       }))
 //     );
 
-//     let finalFilteredMedia = safeMedia; // Initialize with all media after card filtering
+//     let finalFilteredMedia = safeMedia;
 
-//     if (decodedSearchTerm && decodedSearchTerm !==NO_FILTER_SEARCH_CODE) {
+//     if (decodedSearchTerm && decodedSearchTerm !== NO_FILTER_SEARCH_CODE) {
+//       //";" some "," every
 //       const searchTerms = decodedSearchTerm.split(';').map(term => term.trim().toLowerCase());
-//       //console.log(`Search Splits:::${searchTerms}`);
-   
-//      //filter search string....
+
 //       finalFilteredMedia = safeMedia.filter((mediaItem) => {
 //         return searchTerms.some(term => {
-//           const descriptionMatch = mediaItem?.card?.description?.toLowerCase().includes(term);
+//           const cardDescriptionMatch = mediaItem?.card?.description?.toLowerCase().includes(term);
 //           const cardTitleMatch = mediaItem?.card?.title?.toLowerCase().includes(term);
 //           const listTitleMatch = mediaItem?.listTitle?.toLowerCase().includes(term);
 //           const boardTitleMatch = mediaItem?.boardTitle?.toLowerCase().includes(term);
+//           // Add CardImage description to the search
+//           const cardImageDescriptionMatch = mediaItem?.description?.toLowerCase().includes(term); 
 
-//           return descriptionMatch || cardTitleMatch || listTitleMatch || boardTitleMatch;
+//           return cardDescriptionMatch || cardTitleMatch || listTitleMatch || boardTitleMatch || cardImageDescriptionMatch;
 //         });
 //       });
 //     }
 
-//      // Add the hasMedia property to the response
-//      const response = {
+//     const response = {
 //       data: finalFilteredMedia || null,
-//       hasMedia: true//hasMedia, // Include the boolean property
+//       hasMedia: finalFilteredMedia.length > 0,
 //     };
 
-//     return NextResponse.json(response);  
- 
+//     return NextResponse.json(response);
+
 //   } catch (error) {
 //     console.error("Error in /api/cardImagesSearch:", error);
-//     return NextResponse.json([],{ status: 500 });
+//     return NextResponse.json([], { status: 500 });
 //   }
 // }

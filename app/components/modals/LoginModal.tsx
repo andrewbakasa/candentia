@@ -301,7 +301,7 @@ const LoginModal: React.FC<NavbarProps> = ({
     <div className="flex flex-col gap-4 mt-3">
       <div className="
       text-neutral-500 text-center mt-4 font-light">
-        <p>First time using Luminous?
+        <p>First time using EEG?
           <span
             onClick={onToggle}
             className="
