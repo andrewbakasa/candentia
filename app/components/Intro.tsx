@@ -35,8 +35,8 @@ const Intro: React.FC<IntroProps> = () => {
               <li>
                 <h3 className="text-lg font-semibold text-slate-700">Powerful Networking & Collaboration</h3>
                 <p className="text-sm text-slate-600 mt-2">
-                  The group fosters a strong collaborative environment, connecting members with a network of highly skilled engineers, industry leaders, and strategic stakeholders, opening doors to new ideas and opportunities.
-                 The environement creates an portal for members to expand their professional skills, knowledge, and experience.
+                 The group fosters a strong collaborative environment, connecting members with a network of highly skilled engineers, industry leaders, and strategic stakeholders, opening doors to new ideas and opportunities.
+                 Our environement creates an portal for members to expand their professional skills, knowledge, and experience.
                </p>
               </li>
             
