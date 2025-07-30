@@ -400,7 +400,7 @@ const Slider: React.FC<SliderProps> = ({
                                     key={item.id}
                                     className={cn(
                                         "flex flex-col",
-                                        fullView ? "basis-full max-h-[60vh]" : "basis-full max-h-[40vh]"
+                                        fullView ? "basis-full max-h-[60vh]" : "basis-full max-h-[50vh]"
                                     )}
                                 >
                                     <div className="relative w-full h-full rounded-t-md overflow-hidden bg-gray-100 flex items-center justify-center flex-grow">
