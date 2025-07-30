@@ -15,14 +15,14 @@ const Intro: React.FC<IntroProps> = () => {
             data-aos="zoom-in"
             data-aos-delay="500"
           >
-            <h2 className="mb-3 text-4xl font-bold text-slate-900">
+            <h2 className="mb-3 text-3xl font-bold text-slate-900">
               Joining Our Collective Offers Unique Advantages
             </h2>
             <ul className="space-y-6 list-none p-0">
               <li>
                 <h3 className="text-lg font-semibold text-slate-700">Accelerated Wealth Creation</h3>
                 <p className="text-sm text-slate-600 mt-2">
-                  Our strategic investment model, combined with the collective’s ability to quickly raise funds and capitalize on high-potential ventures, is designed to generate substantial and sustainable wealth for all members.
+                  Our strategic investment model is designed to generate substantial and sustainable wealth for all members.
                 </p>
               </li>
               <li>
@@ -31,24 +31,15 @@ const Intro: React.FC<IntroProps> = () => {
                   Members will have the unique opportunity to independently lead and grow companies that are strategically supported by the parent group, benefiting from initial investment and ongoing guidance.
                 </p>
               </li>
-              <li>
-                <h3 className="text-lg font-semibold text-slate-700">Professional Growth & Skill Diversification</h3>
-                <p className="text-sm text-slate-600 mt-2">
-                  By working across diverse sectors and engaging with cutting-edge technologies like AI and drone systems, members will continuously expand their professional skills, knowledge, and experience.
-                </p>
-              </li>
+              
               <li>
                 <h3 className="text-lg font-semibold text-slate-700">Powerful Networking & Collaboration</h3>
                 <p className="text-sm text-slate-600 mt-2">
                   The group fosters a strong collaborative environment, connecting members with a network of highly skilled engineers, industry leaders, and strategic stakeholders, opening doors to new ideas and opportunities.
-                </p>
+                 The environement creates an portal for members to expand their professional skills, knowledge, and experience.
+               </p>
               </li>
-              <li>
-                <h3 className="text-lg font-semibold text-slate-700">Direct Impact on National Development</h3>
-                <p className="text-sm text-slate-600 mt-2">
-                  Members will play a direct and tangible role in the industrial and technological advancement of Zimbabwe, contributing to the nation’s prosperity and achieving a shared vision of elevating the country.
-                </p>
-              </li>
+            
               <li>
                 <h3 className="text-lg font-semibold text-slate-700">Special Privileges for Founding Members</h3>
                 <p className="text-sm text-slate-600 mt-2">

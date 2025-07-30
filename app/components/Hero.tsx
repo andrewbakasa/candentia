@@ -10,24 +10,21 @@ const Hero = () => {
         <div className="m-auto overflow-hidden mx-4 mt-4 lg:mt-3 p-2 md:p-12 h-5/6" data-aos="zoom-in">
           <div id='hero' className="flex flex-col lg:flex-row py-8 justify-between text-center lg:text-left">
             <div className="lg:w-1/2 flex flex-col justify-center" data-aos="zoom-in" data-aos-delay="200">
-              <h2 className="mb-3 md:text-3xl text-3xl font-bold text-yellow-900">
-              Synergistic Strength
+              <h2 className="mb-3 md:text-2xl text-3xl font-bold text-yellow-900">
+            Collaboration, Foresight, Transparency, Accountability
               </h2>
   <section className="mt-8">
-                <h2 className="mb-4 text-2xl font-bold text-slate-700">Our Foundation: Collaboration and Foresight</h2>
+              
                 <ul className="list-none p-0">
                   <li className="mb-4">
                     <h3 className="text-lg font-semibold text-slate-800 mb-2">Synergy of Ideas</h3>
-                    <p className="text-sm text-slate-600">By bringing together diverse perspectives and specialized knowledge, we innovate more effectively, solve complex challenges, and identify opportunities that individuals might miss.</p>
+                    <p className="text-sm text-slate-600">By bringing together diverse perspectives and specialized knowledge  leveraging our critical skills, technical insights, and practical experienc, we innovate more effectively, solve complex challenges, and identify opportunities that individuals might miss.</p>
                   </li>
                   <li className="mb-4">
                     <h3 className="text-lg font-semibold text-slate-800 mb-2">Efficiency Through Teamwork</h3>
                     <p className="text-sm text-slate-600">A unified team works more efficiently and achieves greater outcomes. Our collective strength and shared purpose are our ultimate competitive advantage.</p>
                   </li>
-                  <li className="mb-4">
-                    <h3 className="text-lg font-semibold text-slate-800 mb-2">Engineers&apos; Pivotal Role</h3>
-                    <p className="text-sm text-slate-600">We leverage our critical skills, technical insights, and practical experience to address the nation&apos;s most pressing needs and help build its future.</p>
-                  </li>
+                 
                   <li className="mb-4">
                     <h3 className="text-lg font-semibold text-slate-800 mb-2">Accelerated Growth & Impact</h3>
                     <p className="text-sm text-slate-600">Collective effort and shared resources enable us to raise funds and start operations quickly, delivering tangible results and making a significant economic impact without unnecessary delay.</p>
