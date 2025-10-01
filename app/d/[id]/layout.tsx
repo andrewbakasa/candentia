@@ -5,14 +5,14 @@ export async function generateMetadata({
   params: { id: string; };
  }) {
   console.log(`id: ${params.id}`)
-  const card = await prisma.card.findUnique({
+  const card = await prisma.cardImage.findUnique({
     where: {
       id: params.id,
     }
   });
 
   return {
-    title: card?.title || "Card",
+    title: card?.description || "Card",
   };
 }
 const MediaLayout = async ({

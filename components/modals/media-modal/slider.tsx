@@ -538,11 +538,11 @@ const Slider: React.FC<SliderProps> = ({
                                                         onClick={async () => {
                                                             try {
                                                                 if (urlsourceDrawing){                                                         
-                                                                  await navigator.clipboard.writeText(`${urlsourceDrawing}/${item.id}`);
+                                                                  await navigator.clipboard.writeText(`${urlsourceDrawing}${item.id}`);
                                                                 }
                                                                
                                                                 setCopySuccess(true);
-                                                                toast.success(`${urlsourceDrawing}/${item.id} copied to clipboard!`);
+                                                                toast.success(`${urlsourceDrawing}${item.id} copied to clipboard!`);
                                                                 setTimeout(() => setCopySuccess(false), 2000);
                                                             } catch (error) {
                                                                 toast.error("Failed to copy link.");
