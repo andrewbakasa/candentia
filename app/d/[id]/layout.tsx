@@ -11,9 +11,7 @@ export async function generateMetadata({
     }
   });
 
-  return {
-    title: card?.description || "Card",
-  };
+ return { title: card?.fileName?.substring(0, 15) || card?.description?.substring(0, 15) || "Card" }
 }
 const MediaLayout = async ({
   children,
