@@ -470,34 +470,10 @@ const Slider: React.FC<SliderProps> = ({
                                         {canEdit && editingMediaId === item.id ? (
                                             <div className="flex flex-col h-full">
                                                  <div className='flex flex-row'>
-                                                   {urlsourceBoqItem &&  <Hint
-                                                    sideOffset={10}
-                                                    description={copySuccess ? "Link copied!" : "Click to copy BOQItem link"}
-                                                >
-                                                    <Copy
-                                                        className={cn(
-                                                            "h-5 w-5 text-red-500 hover:text-green-600 dark:text-gray-400 dark:hover:text-green-300 cursor-pointer transition",
-                                                            copySuccess && "text-green-600 dark:text-green-300"
-                                                        )}
-                                                        onClick={async () => {
-                                                            try {
-                                                                if (urlsourceBoqItem){                                                         
-                                                                  await navigator.clipboard.writeText(`${urlsourceDrawing}${item.id}`);
-                                                                }
-                                                               
-                                                                setCopySuccess(true);
-                                                                toast.success(`${urlsourceDrawing}${item.id} copied to clipboard!`);
-                                                                setTimeout(() => setCopySuccess(false), 2000);
-                                                            } catch (error) {
-                                                                toast.error("Failed to copy link.");
-                                                                console.error("Failed to copy:", error);
-                                                            }
-                                                        }}
-                                                    />
-                                                  </Hint>}
+                                              
                                                   {urlsourceDrawing && <Hint
                                                     sideOffset={10}
-                                                    description={copySuccess ? "Link copied!" : "Click to copy Drawing link"}
+                                                    description={copySuccess ? "Link copied!" : "Click to copy link"}
                                                 >
                                                     <Copy
                                                         className={cn(
@@ -549,34 +525,10 @@ const Slider: React.FC<SliderProps> = ({
                                         ) : (
                                             <div className="flex flex-col h-full">
                                                 <div className='flex flex-row'>
-                                                   {urlsourceBoqItem &&  <Hint
-                                                    sideOffset={10}
-                                                    description={copySuccess ? "Link copied!" : "Click to copy BOQItem link"}
-                                                >
-                                                    <Copy
-                                                        className={cn(
-                                                            "h-5 w-5 text-red-500 hover:text-green-600 dark:text-gray-400 dark:hover:text-green-300 cursor-pointer transition",
-                                                            copySuccess && "text-green-600 dark:text-green-300"
-                                                        )}
-                                                        onClick={async () => {
-                                                            try {
-                                                                if (urlsourceBoqItem){                                                         
-                                                                  await navigator.clipboard.writeText(`${urlsourceBoqItem}`);
-                                                                }
-                                                               
-                                                                setCopySuccess(true);
-                                                                toast.success(`${urlsourceBoqItem} copied to clipboard!`);
-                                                                setTimeout(() => setCopySuccess(false), 2000);
-                                                            } catch (error) {
-                                                                toast.error("Failed to copy link.");
-                                                                console.error("Failed to copy:", error);
-                                                            }
-                                                        }}
-                                                    />
-                                                  </Hint>}
+                                                 
                                                   {urlsourceDrawing && <Hint
-                                                    sideOffset={10}
-                                                    description={copySuccess ? "Link copied!" : "Click to copy Drawing link"}
+                                                    sideOffset={2}
+                                                    description={copySuccess ? "Link copied!" : "Click to copy link"}
                                                 >
                                                     <Copy
                                                         className={cn(
