@@ -139,9 +139,9 @@ const UserMenu: React.FC<UserMenuProps> = ({ currentUser, handleNavigate }) => {
                   onClick={() => handleMenuItemClickWithNav(`/contents`)}
                 />
                 
-                {currentUser?.isAdmin && (
+                {/* {currentUser?.isAdmin && (
                   <MenuItem label="My Content" onClick={() => handleMenuItemClickWithNav("/mycontents")} />
-                )}
+                )} */}
                 {currentUser?.isAdmin && (
                   <MenuItem label="Broadcast Content" onClick={() => handleMenuItemClickWithNav("/boards-list")} />
                 )}
@@ -184,8 +184,11 @@ const UserMenu: React.FC<UserMenuProps> = ({ currentUser, handleNavigate }) => {
                 {currentUser?.isAdmin && (
                   <MenuItem label="General Enquiries" onClick={() => handleMenuItemClickWithNav("/enquiries")} />
                 )}
-                {currentUser?.isAdmin && (
+                {/* {currentUser?.isAdmin && (
                   <MenuItem label="Product Enquiries" onClick={() => handleMenuItemClickWithNav("/productenquiries")} />
+                )} */}
+                 {currentUser?.isAdmin && (
+                  <MenuItem label="Tags" onClick={() => handleMenuItemClickWithNav("/tags")} />
                 )}
              
                 <MenuItem label="General Media" onClick={() => handleMenuItemClickWithNav("/media")} />
