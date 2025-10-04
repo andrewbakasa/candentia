@@ -16,7 +16,7 @@ export async function GET(
         const cards = await prisma.card.findMany({
             include: {
                 cardImages: {
-                    orderBy: { createdAt: "desc" },
+                    orderBy: { createdAt: "asc" },//start on top with recent addition
                 },
                 list: {
                     include: {
