@@ -1,5 +1,4 @@
 'use client';
-
 import React, { useEffect, useState, useRef } from 'react';
 import Image from 'next/image';
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from '@/components/ui/carousel';
@@ -390,12 +389,15 @@ const Slider: React.FC<SliderProps> = ({
     return (
         <div className="w-full flex flex-col items-center justify-center p-4 min-h-[50vh] bg-gray-50 rounded-lg shadow-xl">
             {mediaList && mediaList?.length > 0 ? (
+             
                 <div className={cn(
-                    "relative border border-gray-200 rounded-xl overflow-hidden bg-white shadow-lg flex flex-col",
-                    fullView ? "w-full max-w-4xl h-[calc(100vh-100px)] md:h-[calc(100vh-120px)]" : "w-full max-w-2xl h-[calc(100vh-200px)] md:h-[calc(100vh-250px)]"
-                )}>
+                        "relative", // Make this div the positioning context for the arrows
+                        fullView ? "w-full max-w-4xl h-[calc(100vh-100px)] md:h-[calc(100vh-120px)]" : "w-full max-w-2xl h-[calc(100vh-200px)] md:h-[calc(100vh-250px)]",
+                        "flex flex-col items-center justify-center" // Center the Carousel component
+                    )}>    
                     <Carousel
-                        className="w-full h-full"
+                        // className="w-full h-full"
+                         className="w-full h-full border border-gray-200 rounded-xl overflow-hidden bg-white shadow-lg" // Add the styling here
                         ref={carouselRef}
                         setApi={onEmblaInit}
                         opts={{ loop: true }}
@@ -575,9 +577,11 @@ const Slider: React.FC<SliderProps> = ({
                                 </CarouselItem>
                             ))}
                         </CarouselContent>
-                        <CarouselPrevious className="absolute top-1/2 left-4 -translate-y-1/2 p-1 bg-gray-800 rounded-full opacity-70 hover:opacity-100 z-10" />
-                        <CarouselNext className="absolute top-1/2 right-4 -translate-y-1/2 p-1 bg-gray-800 rounded-full opacity-70 hover:opacity-100 z-10" />
+                        <CarouselPrevious className="absolute top-1/3 left-4 -translate-y-1/2 p-1 bg-gray-800 rounded-full opacity-70 hover:opacity-100 z-10" />
+                        <CarouselNext className="absolute top-1/3 right-4 -translate-y-1/2 p-1 bg-gray-800 rounded-full opacity-70 hover:opacity-100 z-10" /> 
                     </Carousel>
+                     {/* NEW position for CarouselPrevious/Next - outside the main content area */}
+                   
                 </div>
             ) : mediaList && mediaList?.length === 0 ? (
                 <div className={cn("flex items-center justify-center w-[50vw] rounded-lg bg-gray-400", fullView ? "h-[50vh]" : "h-[200px]")}>
