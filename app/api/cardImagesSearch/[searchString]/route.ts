@@ -13,10 +13,13 @@ export async function GET(
         const categoryQuery = searchParams.get("category");
         const currentUser = await getCurrentUser();
 
+        // 1. Fetch all cards with their images and necessary relations.
         const cards = await prisma.card.findMany({
+            // NOTE: We rely on JavaScript sorting later, so no top-level 'orderBy' is needed here.
             include: {
                 cardImages: {
-                    orderBy: { createdAt: "asc" },//start on top with recent addition
+                    // Ensure nested cardImages are still sorted descending (latest first)
+                    orderBy: { createdAt: "desc" }, 
                 },
                 list: {
                     include: {
@@ -40,76 +43,84 @@ export async function GET(
             },
         });
 
+        // 2. Access and Public/Active Filtering
         let filteredCards = cards.filter(card => {
-            const isBoardPublic = card?.list?.board?.public === true;
-            // Ensure card.active is true if it's a field you want to filter by
-            return isBoardPublic && card.active;
+            const isBoardPublic = card.list?.board?.public === true;
+            const isUserOwner = card.list?.board?.user?.id === currentUser?.id;
+            const isAccessible = isBoardPublic || isUserOwner;
+            
+            // Fix: Use optional chaining on card.list for safer property access
+            return isAccessible && card.active;
         });
 
-        // Apply category filtering
+        // 3. Category Filtering
         if (categoryQuery && categoryQuery !== '') {
             const categoryIds = categoryQuery.split(',').map(tag => tag.trim());
             filteredCards = filteredCards.filter(card => {
-                // Ensure ALL categoryIds are present on the card
                 return categoryIds.every(catId => card.tagIDs?.includes(catId));
             });
         }
 
+        // 4. Flatten and Shape Data (safeMedia)
+        // Convert dates to ISO strings immediately for safety
         const safeMedia = filteredCards.flatMap((card) =>
             card.cardImages.map((image) => ({
                 ...image,
-                createdAt: image.createdAt?.toString(),
+                // Use ISOString for safe JSON date serialization
+                createdAt: image.createdAt?.toISOString(), 
                 card: {
                     ...card,
-                    createdAt: card.createdAt?.toString(),
-                    updatedAt: card.updatedAt?.toString(),
-                    title: card?.title,
+                    createdAt: card.createdAt.toISOString(),
+                    updatedAt: card.updatedAt.toISOString(),
                     listTitle: card.list.title,
-                    boardTitle: card.list?.board.title,
-                    list: card.list ? {
+                    boardTitle: card.list.board.title,
+                    list: {
                         ...card.list,
-                        createdAt: card.list.createdAt?.toString(),
-                        updatedAt: card.list.updatedAt?.toString(),
-                        board: card.list.board ? {
+                        createdAt: card.list.createdAt.toISOString(),
+                        updatedAt: card.list.updatedAt.toISOString(),
+                        board: {
                             ...card.list.board,
-                            createdAt: card.list.board.createdAt?.toString(),
-                            updatedAt: card.list.board.updatedAt?.toString(),
-                        } : null,
-                    } : null,
+                            createdAt: card.list.board.createdAt.toISOString(),
+                            updatedAt: card.list.board.updatedAt.toISOString(),
+                        },
+                    },
                 },
-                title: card.title, // This might be redundant if card.title is already in card object
-                listTitle: card.list?.title, // This might be redundant if card.list.title is already in card object
-                boardTitle: card.list?.board?.title, // This might be redundant if card.list.board.title is already in card object
-                boardCreatedAt: card.list?.board?.createdAt?.toString(),
-                boardUpdatedAt: card.list?.board?.updatedAt?.toString(),
+                // Cleaned up redundant flattened properties for consistency
             }))
         );
 
+        // 5. NEW SORTING METHOD: Sort the flattened safeMedia array by image createdAt
+        safeMedia.sort((a, b) => {
+            // Parse the ISO date strings back into Date objects for comparison
+            const dateA = a.createdAt ? new Date(a.createdAt) : new Date(0);
+            const dateB = b.createdAt ? new Date(b.createdAt) : new Date(0);
+            
+            // Sort descending (b - a) to put the LATEST date first
+            return dateB.getTime() - dateA.getTime();
+        });
+
+        // 6. Apply Text Search Filtering
         let finalFilteredMedia = safeMedia;
 
         if (decodedSearchTerm && decodedSearchTerm !== NO_FILTER_SEARCH_CODE) {
-            // Split by semicolon (;) for "OR" groups
             const orSearchGroups = decodedSearchTerm.split(';').map(group => group.trim().toLowerCase());
 
             finalFilteredMedia = safeMedia.filter((mediaItem) => {
-                // For each mediaItem, check if it matches ANY of the OR groups
                 return orSearchGroups.some(orGroup => {
-                    // Inside each OR group, split by comma (,) for "AND" terms
-                    const andSearchTerms = orGroup.split(',').map(term => term.trim()).filter(Boolean); // Filter out empty strings
+                    const andSearchTerms = orGroup.split(',').map(term => term.trim()).filter(Boolean);
 
                     if (andSearchTerms.length === 0) {
-                        return true; // If an OR group is empty, consider it a match to not break the 'some' logic
+                        return true;
                     }
 
-                    // Check if the mediaItem matches ALL "AND" terms within this OR group
                     return andSearchTerms.every(andTerm => {
                         const targets = [
-                            mediaItem?.card?.description,
-                            mediaItem?.card?.title,
-                            mediaItem?.listTitle,
-                            mediaItem?.boardTitle,
-                            mediaItem?.description, // CardImage description
-                        ].filter(Boolean) as string[]; // Filter out null/undefined and assert type
+                            mediaItem.card.description,
+                            mediaItem.card.title,
+                            mediaItem.card.list.title,
+                            mediaItem.card.list.board.title,
+                            mediaItem.description,
+                        ].filter(Boolean) as string[];
 
                         return targets.some(target => target.toLowerCase().includes(andTerm));
                     });
@@ -126,6 +137,138 @@ export async function GET(
 
     } catch (error) {
         console.error("Error in /api/cardImagesSearch:", error);
-        return NextResponse.json([], { status: 500 });
+        // Ensure a proper error response is returned
+        return NextResponse.json({ message: "Internal Server Error" }, { status: 500 });
     }
 }
+// import { NextResponse } from "next/server";
+// import prisma from "@/app/libs/prismadb";
+// import getCurrentUser from "@/app/actions/getCurrentUser";
+// import { NO_FILTER_SEARCH_CODE } from "@/lib/constants";
+
+// export async function GET(
+//     req: Request,
+//     { params }: { params: { searchString: string } }
+// ) {
+//     try {
+//         const { searchParams } = new URL(req.url);
+//         const decodedSearchTerm = decodeURIComponent(params.searchString);
+//         const categoryQuery = searchParams.get("category");
+//         const currentUser = await getCurrentUser();
+
+//         const cards = await prisma.card.findMany({
+//             include: {
+//                 cardImages: {
+//                     orderBy: { createdAt: "asc" },//start on top with recent addition
+//                 },
+//                 list: {
+//                     include: {
+//                         board: {
+//                             select: {
+//                                 id: true,
+//                                 title: true,
+//                                 createdAt: true,
+//                                 updatedAt: true,
+//                                 public: true,
+//                                 user: {
+//                                     select: {
+//                                         email: true,
+//                                         id: true,
+//                                     },
+//                                 },
+//                             },
+//                         },
+//                     },
+//                 },
+//             },
+//         });
+
+//         let filteredCards = cards.filter(card => {
+//             const isBoardPublic = card?.list?.board?.public === true;
+//             // Ensure card.active is true if it's a field you want to filter by
+//             return isBoardPublic && card.active;
+//         });
+
+//         // Apply category filtering
+//         if (categoryQuery && categoryQuery !== '') {
+//             const categoryIds = categoryQuery.split(',').map(tag => tag.trim());
+//             filteredCards = filteredCards.filter(card => {
+//                 // Ensure ALL categoryIds are present on the card
+//                 return categoryIds.every(catId => card.tagIDs?.includes(catId));
+//             });
+//         }
+
+//         const safeMedia = filteredCards.flatMap((card) =>
+//             card.cardImages.map((image) => ({
+//                 ...image,
+//                 createdAt: image.createdAt?.toString(),
+//                 card: {
+//                     ...card,
+//                     createdAt: card.createdAt?.toString(),
+//                     updatedAt: card.updatedAt?.toString(),
+//                     title: card?.title,
+//                     listTitle: card.list.title,
+//                     boardTitle: card.list?.board.title,
+//                     list: card.list ? {
+//                         ...card.list,
+//                         createdAt: card.list.createdAt?.toString(),
+//                         updatedAt: card.list.updatedAt?.toString(),
+//                         board: card.list.board ? {
+//                             ...card.list.board,
+//                             createdAt: card.list.board.createdAt?.toString(),
+//                             updatedAt: card.list.board.updatedAt?.toString(),
+//                         } : null,
+//                     } : null,
+//                 },
+//                 title: card.title, // This might be redundant if card.title is already in card object
+//                 listTitle: card.list?.title, // This might be redundant if card.list.title is already in card object
+//                 boardTitle: card.list?.board?.title, // This might be redundant if card.list.board.title is already in card object
+//                 boardCreatedAt: card.list?.board?.createdAt?.toString(),
+//                 boardUpdatedAt: card.list?.board?.updatedAt?.toString(),
+//             }))
+//         );
+
+//         let finalFilteredMedia = safeMedia;
+
+//         if (decodedSearchTerm && decodedSearchTerm !== NO_FILTER_SEARCH_CODE) {
+//             // Split by semicolon (;) for "OR" groups
+//             const orSearchGroups = decodedSearchTerm.split(';').map(group => group.trim().toLowerCase());
+
+//             finalFilteredMedia = safeMedia.filter((mediaItem) => {
+//                 // For each mediaItem, check if it matches ANY of the OR groups
+//                 return orSearchGroups.some(orGroup => {
+//                     // Inside each OR group, split by comma (,) for "AND" terms
+//                     const andSearchTerms = orGroup.split(',').map(term => term.trim()).filter(Boolean); // Filter out empty strings
+
+//                     if (andSearchTerms.length === 0) {
+//                         return true; // If an OR group is empty, consider it a match to not break the 'some' logic
+//                     }
+
+//                     // Check if the mediaItem matches ALL "AND" terms within this OR group
+//                     return andSearchTerms.every(andTerm => {
+//                         const targets = [
+//                             mediaItem?.card?.description,
+//                             mediaItem?.card?.title,
+//                             mediaItem?.listTitle,
+//                             mediaItem?.boardTitle,
+//                             mediaItem?.description, // CardImage description
+//                         ].filter(Boolean) as string[]; // Filter out null/undefined and assert type
+
+//                         return targets.some(target => target.toLowerCase().includes(andTerm));
+//                     });
+//                 });
+//             });
+//         }
+
+//         const response = {
+//             data: finalFilteredMedia || null,
+//             hasMedia: finalFilteredMedia.length > 0,
+//         };
+
+//         return NextResponse.json(response);
+
+//     } catch (error) {
+//         console.error("Error in /api/cardImagesSearch:", error);
+//         return NextResponse.json([], { status: 500 });
+//     }
+// }
