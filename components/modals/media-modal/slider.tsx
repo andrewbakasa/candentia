@@ -553,23 +553,23 @@ const Slider: React.FC<SliderProps> = ({
                                                   </Hint>}
                                                 </div>
                                                 <div className="flex justify-between items-center h-full">
-                                                <span
-                                                    ref={descriptionDisplayRef}
-                                                    className="text-left flex-grow overflow-y-auto max-h-[100px] pr-2 text-base"
-                                                >
-                                                    {highlightText(item.description, searchTerm) || 'No description provided.'} {/* **MODIFIED** */}
-                                                </span>
-                                                {canEdit && (
-                                                    <button
-                                                        onClick={(e) => handleEditClick(e, item.id, item?.description)}
-                                                        className="ml-2 p-1 rounded-full bg-gray-200 hover:bg-gray-300 text-gray-600 flex-shrink-0"
-                                                        title="Edit Description"
+                                                    <span
+                                                        ref={descriptionDisplayRef}
+                                                        className="text-left flex-grow overflow-y-auto  pr-2 text-base"
                                                     >
-                                                        <PencilIcon className="h-4 w-4" />
-                                                    </button>
-                                                )}
-                                            </div>
-                                            </div>
+                                                        {highlightText(item.description, searchTerm) || 'No description provided.'} {/* **MODIFIED** */}
+                                                    </span>
+                                                    {canEdit && (
+                                                        <button
+                                                            onClick={(e) => handleEditClick(e, item.id, item?.description)}
+                                                            className="ml-2 p-1 rounded-full bg-gray-200 hover:bg-gray-300 text-gray-600 flex-shrink-0"
+                                                            title="Edit Description"
+                                                        >
+                                                            <PencilIcon className="h-4 w-4" />
+                                                        </button>
+                                                    )}
+                                                </div>
+                                                </div>
                                         )}
                                     </div>
                                 </CarouselItem>
