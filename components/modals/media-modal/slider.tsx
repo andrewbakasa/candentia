@@ -385,19 +385,18 @@ const Slider: React.FC<SliderProps> = ({
             }
         }
     };
-
+   // The component return structure:
     return (
         <div className="w-full flex flex-col items-center justify-center p-4 min-h-[50vh] bg-gray-50 rounded-lg shadow-xl">
             {mediaList && mediaList?.length > 0 ? (
-             
+
                 <div className={cn(
-                        "relative", // Make this div the positioning context for the arrows
-                        fullView ? "w-full max-w-4xl h-[calc(100vh-100px)] md:h-[calc(100vh-120px)]" : "w-full max-w-2xl h-[calc(100vh-200px)] md:h-[calc(100vh-250px)]",
-                        "flex flex-col items-center justify-center" // Center the Carousel component
-                    )}>    
+                    "relative", // Make this div the positioning context for the arrows
+                    fullView ? "w-full max-w-4xl h-[calc(100vh-100px)] md:h-[calc(100vh-120px)]" : "w-full max-w-2xl h-[calc(100vh-200px)] md:h-[calc(100vh-250px)]",
+                    "flex flex-col items-center justify-center" // Center the Carousel component
+                )}>
                     <Carousel
-                        // className="w-full h-full"
-                         className="w-full h-full border border-gray-200 rounded-xl overflow-hidden bg-white shadow-lg" // Add the styling here
+                        className="w-full h-full border border-gray-200 rounded-xl overflow-hidden bg-white shadow-lg"
                         ref={carouselRef}
                         setApi={onEmblaInit}
                         opts={{ loop: true }}
@@ -408,15 +407,31 @@ const Slider: React.FC<SliderProps> = ({
                                     key={item.id}
                                     className={cn(
                                         "flex flex-col",
-                                        fullView ? "basis-full max-h-[60vh]" : "basis-full max-h-[50vh]"
+                                        // Set a predictable max height for the carousel item itself
+                                        fullView ? "basis-full max-h-[calc(100vh-120px)]" : "basis-full max-h-[calc(100vh-270px)]" 
                                     )}
                                 >
-                                    <div className="relative w-full h-full rounded-t-md overflow-hidden bg-gray-100 flex items-center justify-center flex-grow">
-                                        {renderMediaContent(item)}
+                                    {/* Container for Media + Filename/Count.
+                                        flex-grow ensures it takes all vertical space not used by the description.
+                                    */}
+                                    <div className="relative w-full rounded-t-xl overflow-hidden bg-gray-100 flex items-center justify-center flex-grow">
+                                        
+                                        {/* *** THE FIX ***
+                                            This div enforces a fixed 16:9 aspect ratio (aspect-video) 
+                                            regardless of the media inside, stopping height jumps.
+                                        */}
+                                        <div className="w-full aspect-video"> 
+                                            <div className="absolute inset-0 w-full h-full flex items-center justify-center">
+                                                {/* CRITICAL: The element returned by renderMediaContent MUST 
+                                                    be styled with w-full h-full object-contain or object-cover. 
+                                                */}
+                                                {renderMediaContent(item)}
+                                            </div>
+                                        </div>
 
-                                        {/* Filename editing/display */}
+                                        {/* Filename editing/display (fixed to the bottom of the media area) */}
                                         {canEdit && (
-                                            <div ref={fileNameContainerRef} className={cn("absolute bottom-0 left-0 right-0 text-white text-sm p-2 rounded-b-lg overflow-hidden flex items-center justify-between", editingFileNameId === item.id ? "bg-black bg-opacity-70" : "bg-black bg-opacity-50")}>
+                                            <div ref={fileNameContainerRef} className={cn("absolute bottom-0 left-0 right-0 text-white text-sm p-2 overflow-hidden flex items-center justify-between", editingFileNameId === item.id ? "bg-black bg-opacity-70" : "bg-black bg-opacity-50")}>
                                                 {editingFileNameId === item.id ? (
                                                     <>
                                                         <input
@@ -447,7 +462,7 @@ const Slider: React.FC<SliderProps> = ({
                                                 ) : (
                                                     <>
                                                         <span className="flex-grow text-left truncate">
-                                                            {highlightText(item.fileName, searchTerm)} {/* **MODIFIED** */}
+                                                            {highlightText(item.fileName, searchTerm)}
                                                         </span>
                                                         <button
                                                             onClick={(e) => handleEditFileNameClick(e, item.id, item.fileName)}
@@ -460,7 +475,7 @@ const Slider: React.FC<SliderProps> = ({
                                                 )}
                                             </div>
                                         )}
-
+                                        
                                         {/* Improved Media Count Display */}
                                         <div className="absolute top-2 right-2 px-3 py-1 bg-black bg-opacity-60 text-white text-xs font-semibold rounded-full z-20">
                                             <span className="font-bold">{sliderIndex + 1}</span> / {filteredMediaCount}
@@ -468,40 +483,44 @@ const Slider: React.FC<SliderProps> = ({
                                     </div>
 
                                     {/* Description editing/display */}
-                                    <div className="relative p-2 text-sm text-gray-700 bg-white rounded-b-md flex flex-col flex-grow overflow-auto">
+                                    {/* *** IMPROVEMENT ***
+                                        Added **min-h** and **max-h** with **overflow-y-auto** to constrain the height of the description area,
+                                        preventing it from expanding the CarouselItem and causing layout shift.
+                                    */}
+                                    <div className="relative p-2 text-sm text-gray-700 bg-white rounded-b-xl flex flex-col **min-h-[100px] max-h-[150px] overflow-y-auto**">
                                         {canEdit && editingMediaId === item.id ? (
-                                            <div className="flex flex-col h-full">
-                                                 <div className='flex flex-row'>
-                                              
-                                                  {urlsourceDrawing && <Hint
-                                                    sideOffset={10}
-                                                    description={copySuccess ? "Link copied!" : "Click to copy link"}
-                                                >
-                                                    <Copy
-                                                        className={cn(
-                                                            "h-5 w-5 text-gray-500 hover:text-green-600 dark:text-gray-400 dark:hover:text-green-300 cursor-pointer transition",
-                                                            copySuccess && "text-green-600 dark:text-green-300"
-                                                        )}
-                                                        onClick={async () => {
-                                                            try {
-                                                                if (urlsourceDrawing){                                                         
-                                                                  await navigator.clipboard.writeText(`${urlsourceDrawing}${item.id}`);
+                                            <div className="flex flex-col gap-1">
+                                                <div className='flex flex-row'>
+                                                    {urlsourceDrawing && <Hint
+                                                        sideOffset={10}
+                                                        description={copySuccess ? "Link copied!" : "Click to copy link"}
+                                                    >
+                                                        <Copy
+                                                            className={cn(
+                                                                "h-5 w-5 text-gray-500 hover:text-green-600 dark:text-gray-400 dark:hover:text-green-300 cursor-pointer transition",
+                                                                copySuccess && "text-green-600 dark:text-green-300"
+                                                            )}
+                                                            onClick={async () => {
+                                                                try {
+                                                                    if (urlsourceDrawing) {
+                                                                        await navigator.clipboard.writeText(`${urlsourceDrawing}${item.id}`);
+                                                                    }
+
+                                                                    setCopySuccess(true);
+                                                                    // Use actual toast implementation if available
+                                                                    toast.success(`${urlsourceDrawing}${item.id} copied to clipboard!`); 
+                                                                    setTimeout(() => setCopySuccess(false), 2000);
+                                                                } catch (error) {
+                                                                    // toast.error("Failed to copy link.");
+                                                                    console.error("Failed to copy:", error);
                                                                 }
-                                                               
-                                                                setCopySuccess(true);
-                                                                toast.success(`${urlsourceDrawing}${item.id} copied to clipboard!`);
-                                                                setTimeout(() => setCopySuccess(false), 2000);
-                                                            } catch (error) {
-                                                                toast.error("Failed to copy link.");
-                                                                console.error("Failed to copy:", error);
-                                                            }
-                                                        }}
-                                                    />
-                                                  </Hint>}
+                                                            }}
+                                                        />
+                                                    </Hint>}
                                                 </div>
                                                 <textarea
                                                     ref={descriptionTextareaRef}
-                                                    className="w-full flex-grow border border-gray-300 rounded p-2 focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none overflow-auto"
+                                                    className="mt-3 w-full flex-grow border border-gray-300 rounded p-2 focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none overflow-auto"
                                                     value={tempDescription}
                                                     onChange={handleDescriptionInputChange}
                                                     onKeyDown={(e) => handleKeyDown(e, item.id)}
@@ -525,41 +544,41 @@ const Slider: React.FC<SliderProps> = ({
                                                 </div>
                                             </div>
                                         ) : (
-                                            <div className="flex flex-col h-full">
+                                            <div className="flex flex-col gap-1">
                                                 <div className='flex flex-row'>
-                                                 
-                                                  {urlsourceDrawing && <Hint
-                                                    sideOffset={2}
-                                                    description={copySuccess ? "Link copied!" : "Click to copy link"}
-                                                >
-                                                    <Copy
-                                                        className={cn(
-                                                            "h-5 w-5 text-gray-500 hover:text-green-600 dark:text-gray-400 dark:hover:text-green-300 cursor-pointer transition",
-                                                            copySuccess && "text-green-600 dark:text-green-300"
-                                                        )}
-                                                        onClick={async () => {
-                                                            try {
-                                                                if (urlsourceDrawing){                                                         
-                                                                  await navigator.clipboard.writeText(`${urlsourceDrawing}${item.id}`);
+                                                    {urlsourceDrawing && <Hint
+                                                        sideOffset={2}
+                                                        description={copySuccess ? "Link copied!" : "Click to copy link"}
+                                                    >
+                                                        <Copy
+                                                            className={cn(
+                                                                "h-5 w-5 text-gray-500 hover:text-green-600 dark:text-gray-400 dark:hover:text-green-300 cursor-pointer transition",
+                                                                copySuccess && "text-green-600 dark:text-green-300"
+                                                            )}
+                                                            onClick={async () => {
+                                                                try {
+                                                                    if (urlsourceDrawing) {
+                                                                        await navigator.clipboard.writeText(`${urlsourceDrawing}${item.id}`);
+                                                                    }
+
+                                                                    setCopySuccess(true);
+                                                                    // Use actual toast implementation if available
+                                                                    toast.success(`${urlsourceDrawing}${item.id} copied to clipboard!`); 
+                                                                    setTimeout(() => setCopySuccess(false), 2000);
+                                                                } catch (error) {
+                                                                    // toast.error("Failed to copy link.");
+                                                                    console.error("Failed to copy:", error);
                                                                 }
-                                                               
-                                                                setCopySuccess(true);
-                                                                toast.success(`${urlsourceDrawing}${item.id} copied to clipboard!`);
-                                                                setTimeout(() => setCopySuccess(false), 2000);
-                                                            } catch (error) {
-                                                                toast.error("Failed to copy link.");
-                                                                console.error("Failed to copy:", error);
-                                                            }
-                                                        }}
-                                                    />
-                                                  </Hint>}
+                                                            }}
+                                                        />
+                                                    </Hint>}
                                                 </div>
-                                                <div className="flex justify-between items-center h-full">
+                                                <div className="mt-3 flex justify-between items-start h-full"> {/* Changed items-center to items-start for better text alignment */}
                                                     <span
                                                         ref={descriptionDisplayRef}
-                                                        className="text-left flex-grow overflow-y-auto  pr-2 text-base"
+                                                        className="text-left flex-grow overflow-y-auto pr-2 text-base"
                                                     >
-                                                        {highlightText(item.description, searchTerm) || 'No description provided.'} {/* **MODIFIED** */}
+                                                        {highlightText(item.description, searchTerm) || 'No description provided.'}
                                                     </span>
                                                     {canEdit && (
                                                         <button
@@ -571,17 +590,15 @@ const Slider: React.FC<SliderProps> = ({
                                                         </button>
                                                     )}
                                                 </div>
-                                                </div>
+                                            </div>
                                         )}
                                     </div>
                                 </CarouselItem>
                             ))}
                         </CarouselContent>
                         <CarouselPrevious className="absolute top-1/3 left-4 -translate-y-1/2 p-1 bg-gray-800 rounded-full opacity-70 hover:opacity-100 z-10" />
-                        <CarouselNext className="absolute top-1/3 right-4 -translate-y-1/2 p-1 bg-gray-800 rounded-full opacity-70 hover:opacity-100 z-10" /> 
+                        <CarouselNext className="absolute top-1/3 right-4 -translate-y-1/2 p-1 bg-gray-800 rounded-full opacity-70 hover:opacity-100 z-10" />
                     </Carousel>
-                     {/* NEW position for CarouselPrevious/Next - outside the main content area */}
-                   
                 </div>
             ) : mediaList && mediaList?.length === 0 ? (
                 <div className={cn("flex items-center justify-center w-[50vw] rounded-lg bg-gray-400", fullView ? "h-[50vh]" : "h-[200px]")}>
@@ -602,6 +619,7 @@ const Slider: React.FC<SliderProps> = ({
             )}
         </div>
     );
+   
 };
 
 export default Slider;
