@@ -10,8 +10,7 @@ import { CompositeDecorator, DraftDecorator, Editor, EditorState } from "draft-j
 import { getTextFromEditor3_2 } from "@/components/modals/card-modal/description";
 import moment from "moment";
 import useFavorite from "../hooks/useFavorite";
-import { useQuery } from "@tanstack/react-query";
-import { fetcher } from "@/lib/fetcher";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import Head from "next/head";
 import { Skeleton } from "@/components/ui/skeleton";
 import CardTags from "../mycontents/_components/card-tags";
@@ -24,6 +23,14 @@ import { Hint } from "@/components/hint";
 
 import FilterSection, { LabelValueType } from "@/app/components/FilterSection";
 import useIsMobile from "../hooks/isMobile";
+import { useAction } from "@/hooks/use-action";
+import { toast } from "sonner";
+
+import { fetcher } from "@/lib/fetcher";
+
+import { updateCardMediaDescription } from '@/app/actions/update-cardMedia-descriptions';
+import { updateCardMediaFileName } from '@/app/actions/update-cardMedia-filename';
+import { CardImage } from "@prisma/client";
 
 interface MediaClientProps {
     currentUser?: SafeUser | null,
@@ -48,7 +55,14 @@ const MediaClient: React.FC<MediaClientProps> = ({ currentUser, tagNames, userNa
     const [compositeDecorator, setCompositeDecorator] = useState(new CompositeDecorator([]));
     const [currentCardId, setCurrentCardId] = useState<string | null>(null);
     const [sliderIndex, setSliderIndex] = useState(0); // Track slider index
+ // Define allowed roles for editing permissions
+    const allowedRoles: string[] = ['admin', 'manager']; // Customize as per your application's roles
+   const queryClient = useQueryClient();
 
+    // Determine if the current user has editing permissions
+    const canEdit = currentUser?.isAdmin || currentUser?.roles?.some(role =>
+        allowedRoles.includes(role.toLowerCase())
+    ) || false; // Ensure roles array exists before calling .some()
     const { hasFavorited } = useFavorite({
         listingId: currentCardData?.card?.id || "",
         currentUser
@@ -132,6 +146,55 @@ const MediaClient: React.FC<MediaClientProps> = ({ currentUser, tagNames, userNa
         setSliderIndex(index);
     };
 
+     // useAction hook for updating card image description
+       const { execute: updateCardImageDescriptionMutation } = useAction(updateCardMediaDescription, {
+           onSuccess: (data) => {
+               // Invalidate the specific card image query to refetch updated data
+               queryClient.invalidateQueries({ queryKey: ["cardImage", data.cardId] });
+               toast.success("Description updated successfully!");
+           },
+           onError: (error) => {
+               toast.error(error);
+           },
+       });
+   
+       // useAction hook for updating card image filename
+       const { execute: updateCardImageFilenameMutation } = useAction(updateCardMediaFileName, {
+           onSuccess: (data) => {
+               // Invalidate the specific card image query to refetch updated data
+               queryClient.invalidateQueries({ queryKey: ["cardImage", data.cardId] });
+               toast.success("Filename updated successfully!");
+           },
+           onError: (error) => {
+               toast.error(error);
+           },
+       });
+   
+       // Handler for description change
+       const handleDescriptionChange = (mediaId: string, newDescription: string | null) => {
+           if (!mediaId) {
+               toast.error("Media ID is missing for description update.");
+               return;
+           }
+           updateCardImageDescriptionMutation({ id: mediaId, description: newDescription });
+       };
+   
+       // Handler for filename change
+       const handleFileNameChange = (mediaId: string, newFileName: string | null) => {
+           if (!mediaId) {
+               toast.error("Media ID is missing for filename update.");
+               return;
+           }
+           updateCardImageFilenameMutation({ id: mediaId, fileName: newFileName });
+       };
+    // Fetch card images data
+        // const { data: cardImages, status, error } = useQuery<CardImage[] | null>({
+        //     queryKey: ["cardImage", id],
+        //     queryFn: () => (id ? fetcher(`/api/cardImages/${id}`) : Promise.resolve(null)),
+        //     enabled: !!id,
+        //     // Ensure initial data is sorted by the 'order' field
+        //     select: (data) => data ? [...data].sort((a, b) => a.order - b.order) : null,
+        // });   
     useEffect(() => {
         if (searchStatus === "success" && searchCardWithImageList?.data) {
             if (!currentCardId && searchFromUrl) {
@@ -219,13 +282,15 @@ const MediaClient: React.FC<MediaClientProps> = ({ currentUser, tagNames, userNa
                                     mediaList={cardMedia || []}
                                     fullView={true}
                                     onCardIdChange={handleCardIdChange}
-                                    onDescriptionChange={function (mediaId: string, newDescription: string | null): void {
-                                        throw new Error("Function not implemented.");
-                                    }}
-                                    onFileNameChange={function (mediaId: string, newFileName: string | null): void {
-                                        throw new Error("Function not implemented.");
-                                    }}
-                                    canEdit={false}
+                                    // onDescriptionChange={function (mediaId: string, newDescription: string | null): void {
+                                    //     throw new Error("Function not implemented.");
+                                    // }}
+                                    // onFileNameChange={function (mediaId: string, newFileName: string | null): void {
+                                    //     throw new Error("Function not implemented.");
+                                    // }}
+                                    onDescriptionChange={handleDescriptionChange} // Pass the new handler
+                                    onFileNameChange={handleFileNameChange} // Pass the new handler
+                                    canEdit={canEdit}
                                     sliderIndex={sliderIndex}
                                     filteredMediaCount={filteredMediaCount}
                                     searchTerm={searchTerm}

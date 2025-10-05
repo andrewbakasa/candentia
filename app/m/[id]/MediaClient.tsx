@@ -21,9 +21,15 @@ import { useMediaModal } from "@/hooks/use-media-modal";
 import Link from "next/link";
 import CreatedAtUpdatedAt from "@/app/mycontents/updatedCreated";
 import CardTags from "@/app/mycontents/_components/card-tags";
-// import Heading from "@/app/components/Heading";
-//import Container from "../components/Container";
+import { toast } from "sonner";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 
+import { useAction } from "@/hooks/use-action";
+import { updateCardMediaDescription } from '@/app/actions/update-cardMedia-descriptions';
+import { updateCardMediaFileName } from '@/app/actions/update-cardMedia-filename';
+import { CardImage } from "@prisma/client";
+
+import { fetcher } from "@/lib/fetcher";
 interface MediaClientProps {
   currentUser?: SafeUser | null,
   media: any[]|undefined,
@@ -42,8 +48,15 @@ const MediaClient: React.FC<MediaClientProps> = ({ currentUser, tagNames, userNa
   const [hasAnyMedia, setHasAnyMedia] = useState(false);
   const [compositeDecorator, setCompositeDecorator] = useState(new CompositeDecorator([]));
   const [sliderIndex, setSliderIndex] = useState(0); // Track slider index
+ const queryClient = useQueryClient();
 
+ // Define allowed roles for editing permissions
+    const allowedRoles: string[] = ['admin', 'manager']; // Customize as per your application's roles
 
+    // Determine if the current user has editing permissions
+    const canEdit = currentUser?.isAdmin || currentUser?.roles?.some(role =>
+        allowedRoles.includes(role.toLowerCase())
+    ) || false; // Ensure roles array exists before calling .some()
    const mediaModal = useMediaModal();
    
   const { hasFavorited } = useFavorite({
@@ -51,7 +64,55 @@ const MediaClient: React.FC<MediaClientProps> = ({ currentUser, tagNames, userNa
     currentUser
   });
 
-
+   // useAction hook for updating card image description
+       const { execute: updateCardImageDescriptionMutation } = useAction(updateCardMediaDescription, {
+           onSuccess: (data) => {
+               // Invalidate the specific card image query to refetch updated data
+               queryClient.invalidateQueries({ queryKey: ["cardImage", data.cardId] });
+               toast.success("Description updated successfully!");
+           },
+           onError: (error) => {
+               toast.error(error);
+           },
+       });
+   
+       // useAction hook for updating card image filename
+       const { execute: updateCardImageFilenameMutation } = useAction(updateCardMediaFileName, {
+           onSuccess: (data) => {
+               // Invalidate the specific card image query to refetch updated data
+               queryClient.invalidateQueries({ queryKey: ["cardImage", data.cardId] });
+               toast.success("Filename updated successfully!");
+           },
+           onError: (error) => {
+               toast.error(error);
+           },
+       });
+   
+       // Handler for description change
+       const handleDescriptionChange = (mediaId: string, newDescription: string | null) => {
+           if (!mediaId) {
+               toast.error("Media ID is missing for description update.");
+               return;
+           }
+           updateCardImageDescriptionMutation({ id: mediaId, description: newDescription });
+       };
+   
+       // Handler for filename change
+       const handleFileNameChange = (mediaId: string, newFileName: string | null) => {
+           if (!mediaId) {
+               toast.error("Media ID is missing for filename update.");
+               return;
+           }
+           updateCardImageFilenameMutation({ id: mediaId, fileName: newFileName });
+       };
+      // Fetch card images data
+          // const { data: cardImages, status, error } = useQuery<CardImage[] | null>({
+          //     queryKey: ["cardImage", id],
+          //     queryFn: () => (id ? fetcher(`/api/cardImages/${id}`) : Promise.resolve(null)),
+          //     enabled: !!id,
+          //     // Ensure initial data is sorted by the 'order' field
+          //     select: (data) => data ? [...data].sort((a, b) => a.order - b.order) : null,
+          // }); 
  
   const handleCardIdChange = (cardId: string | null, index: number) => {
   
@@ -114,13 +175,15 @@ const MediaClient: React.FC<MediaClientProps> = ({ currentUser, tagNames, userNa
                     mediaList={cardMedia || []}
                     fullView={true}
                     onCardIdChange={handleCardIdChange} 
-                    onDescriptionChange={function (mediaId: string, newDescription: string | null): void {
-                      throw new Error("Function not implemented.");
-                    } }
-                     onFileNameChange={function (mediaId: string, newFileName: string | null): void {
-                      throw new Error("Function not implemented.");
-                    } } 
-                    canEdit={false}   
+                    // onDescriptionChange={function (mediaId: string, newDescription: string | null): void {
+                    //   throw new Error("Function not implemented.");
+                    // } }
+                    //  onFileNameChange={function (mediaId: string, newFileName: string | null): void {
+                    //   throw new Error("Function not implemented.");
+                    // } } 
+                     onDescriptionChange={handleDescriptionChange} // Pass the new handler
+                     onFileNameChange={handleFileNameChange} // Pass the new handler
+                    canEdit={canEdit}   
                     sliderIndex={sliderIndex} // Pass sliderIndex
                     filteredMediaCount={filteredMediaCount} // Pass the actual count
                     
