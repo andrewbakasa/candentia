@@ -32,7 +32,7 @@ import { fetcher } from "@/lib/fetcher";
 import { updateCardMediaDescription } from '@/app/actions/update-cardMedia-descriptions';
 import { updateCardMediaFileName } from '@/app/actions/update-cardMedia-filename';
 import { CardImage } from "@prisma/client";
-import { AiFillBehanceSquare } from "react-icons/ai";
+import { AiFillBehanceSquare, AiFillDashboard } from "react-icons/ai";
 
 // Define the structure of the list item for better type safety
 interface MediaListItem {
@@ -472,26 +472,25 @@ const MediaClient: React.FC<MediaClientProps> = ({ currentUser, tagNames, userNa
                         
                                       <div className="text-[11px]">                      
                                        
-                                        <Link  
-                                                              key={currentCardData?.card?.list?.board?.id} 
-                                                              href={`/board/${currentCardData?.boardId}`} 
-                                                              className= {cn('cursor-pointer ',   
-                                                              'group hover:underline' // Use group:hover for underline on hover
-                                                              )} 
-                                                          > 
-                                                           <Hint
-                                            sideOffset={20}
-                                            description={`Update Data`}
-                                          >
-                                            <div className="flex flex-row gap-1">
-                                            
-                                                <AiFillBehanceSquare
-                                                size={10}
-                                                className="cursor-pointer h-4 w-4 hover:h-[18px] hover:w-[18px] hover:text-blue-600"
-                                                />
-                                            </div>
-                                          </Hint> 
-                                                                
+                                            <Link  
+                                                key={currentCardData?.card?.list?.boardId} 
+                                                href={`/board/${currentCardData?.card?.list?.boardId}`} 
+                                                className= {cn('cursor-pointer ',   
+                                                'group hover:underline' // Use group:hover for underline on hover
+                                                )} 
+                                            > 
+                                                    <Hint
+                                                        sideOffset={20}
+                                                        description={`Update Data`}
+                                                    >
+                                                        <div className="flex flex-row gap-1">
+                                                        
+                                                            <AiFillDashboard
+                                                            size={10}
+                                                            className="cursor-pointer h-4 w-4 hover:h-[18px] hover:w-[18px] hover:text-blue-600"
+                                                            />
+                                                        </div>
+                                                    </Hint>                                                                 
                                           </Link>
                                       </div>
                         

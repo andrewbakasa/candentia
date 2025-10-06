@@ -14,7 +14,7 @@ import Container from "@/app/components/Container";
 import { Hint } from "@/components/hint";
 import Heading from "@/app/components/Heading";
 import { Button } from "@/components/ui/button";
-import { AiFillBook, AiFillPicture } from "react-icons/ai";
+import { AiFillBook, AiFillDashboard, AiFillPicture } from "react-icons/ai";
 import { useMediaModal } from "@/hooks/use-media-modal";
 import Link from "next/link";
 import CreatedAtUpdatedAt from "@/app/mycontents/updatedCreated";
@@ -283,25 +283,23 @@ const MediaClient: React.FC<MediaClientProps> = ({
               <div className="text-[11px]">                      
                
                 <Link  
-                                      key={currentCardData?.boardId} 
-                                      href={`/board/${currentCardData?.boardId}`} 
-                                      className= {cn('cursor-pointer ',   
-                                      'group hover:underline' // Use group:hover for underline on hover
-                                      )} 
-                                  > 
-                                   <Hint
-                    sideOffset={20}
-                    description={`Update Data`}
-                  >
-                    <div className="flex flex-row gap-1">
-                    
-                        <AiFillBook
-                        size={10}
-                        className="cursor-pointer h-4 w-4 hover:h-[18px] hover:w-[18px] hover:text-blue-600"
-                        />
-                    </div>
-                  </Hint> 
-                                        
+                    key={currentCardData?.boardId} 
+                    href={`/board/${currentCardData?.boardId}`} 
+                    className= {cn('cursor-pointer ',   
+                    'group hover:underline' // Use group:hover for underline on hover
+                    )} 
+                > 
+                      <Hint
+                        sideOffset={20}
+                        description={`Update Data`}
+                      >
+                        <div className="flex flex-row gap-1">                        
+                            <AiFillDashboard
+                            size={10}
+                            className="cursor-pointer h-4 w-4 hover:h-[18px] hover:w-[18px] hover:text-blue-600"
+                            />
+                        </div>
+                      </Hint>           
                   </Link>
               </div>
 
