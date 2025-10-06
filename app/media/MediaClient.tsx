@@ -32,7 +32,8 @@ import { fetcher } from "@/lib/fetcher";
 import { updateCardMediaDescription } from '@/app/actions/update-cardMedia-descriptions';
 import { updateCardMediaFileName } from '@/app/actions/update-cardMedia-filename';
 import { CardImage } from "@prisma/client";
-import { AiFillBehanceSquare, AiFillDashboard } from "react-icons/ai";
+import { AiFillBehanceSquare, AiFillDashboard, AiFillPicture } from "react-icons/ai";
+import { useMediaModal } from "@/hooks/use-media-modal";
 
 // Define the structure of the list item for better type safety
 interface MediaListItem {
@@ -90,7 +91,7 @@ const MediaClient: React.FC<MediaClientProps> = ({ currentUser, tagNames, userNa
         listingId: currentCardData?.card?.id || "",
         currentUser
     });
-
+   const mediaModal = useMediaModal();
     // --- QUERY FOR MEDIA LIST (This is the list we will update the cache for) ---
     const mediaListQueryKey = ["cardImageSearch", searchFromUrl, category];
 
@@ -468,6 +469,31 @@ const MediaClient: React.FC<MediaClientProps> = ({ currentUser, tagNames, userNa
                         />
 
                          <div className="flex gap-1 shadow-md justify-end">
+
+                             <div className="text-[11px]">                      
+                                                            <Button
+                                                                onClick={ () => mediaModal.onOpen(currentCardData.id, currentCardData?.card?.list?.boardId, currentUser, true)}
+                                                                className="h-auto w-10 justify-end text-muted-foreground text-[11px] hover:text-sm" // No need for relative here unless you have other absolute elements
+                                                                size="sm"
+                                                                variant="ghost"
+                                                            >
+                                                                {/* Button text wrapped in hint */}
+                                                                <Hint
+                                                                    sideOffset={20} // Adjust as needed
+                                                                    description={currentCardData?.cardImages?.length>0?`Show Media(Videos, Picture etc) ${currentCardData?.cardImages?.length}`:`No media found. Click to create new media: videos and still pictures`}
+                                                                    
+                                                                >
+                                                                    {/* Display text */}
+                                                                    <div className="flex flex-row gap-1">
+                                                                    {currentCardData?.cardImages?.length>0 && <span>{`${currentCardData?.cardImages?.length} `}</span>}
+                                                                        <AiFillPicture
+                                                                        size={10}
+                                                                        className="cursor-pointer h-4 w-4 hover:h-[18px] hover:w-[18px] hover:text-blue-600"
+                                                                        />
+                                                                    </div>
+                                                                </Hint>
+                                                            </Button>
+                                                        </div> 
                                      
                         
                                       <div className="text-[11px]">                      
@@ -495,7 +521,7 @@ const MediaClient: React.FC<MediaClientProps> = ({ currentUser, tagNames, userNa
                                       </div>
                         
                                      
-                                    </div>
+                        </div>
 
                         <Editor
                             editorState={EditorState.createWithContent(getTextFromEditor3_2(currentCardData?.card), compositeDecorator)}

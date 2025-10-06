@@ -77,7 +77,7 @@ const MediaClient: React.FC<MediaClientProps> = ({
     listingId: currentCardData?.card?.id || "",
     currentUser
   });
-
+ 
   // 1. ACTIVATE TanStack Query for data fetching
   // This query will be automatically refetched when invalidated
   const { data: cardImages, status, error } = useQuery<CardImage[] | null>({
