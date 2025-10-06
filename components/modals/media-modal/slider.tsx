@@ -25,10 +25,11 @@ interface SliderProps {
     sliderIndex: number;
     filteredMediaCount: number;
     searchTerm?: string; // **NEW:** Add searchTerm prop
+    mediaUrl?: string; // **NEW:** Add searchTerm prop
 }
 
 const Slider: React.FC<SliderProps> = ({
-    mediaList,    fullView,
+    mediaList,    fullView,mediaUrl,
     onCardIdChange,    onDescriptionChange,    onFileNameChange,    canEdit,    sliderIndex,    filteredMediaCount,    searchTerm, // **NEW:** Destructure searchTerm
 }) => {
     const [currentImage, setCurrentImage] = useState(0);
@@ -515,6 +516,32 @@ const Slider: React.FC<SliderProps> = ({
                                                             }}
                                                         />
                                                     </Hint>}
+                                                    {mediaUrl && <Hint
+                                                        sideOffset={10}
+                                                        description={copySuccess ? "Link copied!" : "Click to copy link"}
+                                                    >
+                                                        <Copy
+                                                            className={cn(
+                                                                "h-5 w-5 text-gray-500 hover:text-blue-600 dark:text-gray-400 dark:hover:text-green-300 cursor-pointer transition",
+                                                                copySuccess && "text-green-600 dark:text-green-300"
+                                                            )}
+                                                            onClick={async () => {
+                                                                try {
+                                                                    if (mediaUrl) {
+                                                                        await navigator.clipboard.writeText(`${mediaUrl}`);
+                                                                    }
+
+                                                                    setCopySuccess(true);
+                                                                    // Use actual toast implementation if available
+                                                                    toast.success(`${mediaUrl} copied to clipboard!`); 
+                                                                    setTimeout(() => setCopySuccess(false), 2000);
+                                                                } catch (error) {
+                                                                    // toast.error("Failed to copy link.");
+                                                                    console.error("Failed to copy:", error);
+                                                                }
+                                                            }}
+                                                        />
+                                                    </Hint>}
                                                 </div>
                                                 <textarea
                                                     ref={descriptionTextareaRef}
@@ -547,7 +574,7 @@ const Slider: React.FC<SliderProps> = ({
                                                 <div className='flex flex-row items-center'>
                                                     {urlsourceDrawing && <Hint
                                                         sideOffset={2}
-                                                        description={copySuccess ? "Link copied!" : "Click to copy link"}
+                                                        description={copySuccess ? "Link copied!" : `Click to copy link to current-item`}
                                                     >
                                                         <Copy
                                                             className={cn(
@@ -563,6 +590,33 @@ const Slider: React.FC<SliderProps> = ({
                                                                     setCopySuccess(true);
                                                                     // Use actual toast implementation if available
                                                                     toast.success(`${urlsourceDrawing}${item.id} copied to clipboard!`); 
+                                                                    setTimeout(() => setCopySuccess(false), 2000);
+                                                                } catch (error) {
+                                                                    // toast.error("Failed to copy link.");
+                                                                    console.error("Failed to copy:", error);
+                                                                }
+                                                            }}
+                                                        />
+                                                    </Hint>}
+
+                                                     {mediaUrl && <Hint
+                                                        sideOffset={10}
+                                                        description={copySuccess ? "Link copied!" : `Click to copy current url `}
+                                                    >
+                                                        <Copy
+                                                            className={cn(
+                                                                "h-5 w-5 text-gray-500 hover:text-blue-600 dark:text-gray-400 dark:hover:text-green-300 cursor-pointer transition",
+                                                                copySuccess && "text-green-600 dark:text-green-300"
+                                                            )}
+                                                            onClick={async () => {
+                                                                try {
+                                                                    if (mediaUrl) {
+                                                                        await navigator.clipboard.writeText(`${mediaUrl}`);
+                                                                    }
+
+                                                                    setCopySuccess(true);
+                                                                    // Use actual toast implementation if available
+                                                                    toast.success(`${mediaUrl} copied to clipboard!`); 
                                                                     setTimeout(() => setCopySuccess(false), 2000);
                                                                 } catch (error) {
                                                                     // toast.error("Failed to copy link.");

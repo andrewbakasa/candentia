@@ -188,6 +188,7 @@ const MediaClient: React.FC<MediaClientProps> = ({
                     canEdit={canEdit}   
                     sliderIndex={sliderIndex}
                     filteredMediaCount={filteredMediaCount}
+                    mediaUrl={`${window.location.origin}/m/${cardId}`}
                 />
               )}
               <Separator />
