@@ -461,7 +461,11 @@ const Slider: React.FC<SliderProps> = ({
                                                     </>
                                                 ) : (
                                                     <>
-                                                        <span className="flex-grow text-left truncate">
+                                                        <span 
+                                                        // className="flex-grow text-left truncate"
+                                                            className="text-left flex-grow **block** overflow-y-auto pr-2 text-base " // <--- Added 'block' here
+
+                                                        >
                                                             {highlightText(item.fileName, searchTerm)}
                                                         </span>
                                                         <button
@@ -575,8 +579,10 @@ const Slider: React.FC<SliderProps> = ({
                                                 </div>
                                                 <div className="mt-3 flex justify-between items-start h-full"> {/* Changed items-center to items-start for better text alignment */}
                                                     <span
-                                                        ref={descriptionDisplayRef}
-                                                        className="text-left flex-grow overflow-y-auto pr-2 text-base"
+                                                       // ref={descriptionDisplayRef}
+                                                        // className="text-left flex-grow overflow-y-auto pr-2 text-base"
+                                                            className="text-left flex-grow **block** overflow-y-auto pr-2 text-base text-blgrayue-800" // <--- Added 'block' here
+
                                                     >
                                                         {highlightText(item.description, searchTerm) || 'No description provided.'}
                                                     </span>

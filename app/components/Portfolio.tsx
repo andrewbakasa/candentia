@@ -69,7 +69,7 @@ const Portfolio: React.FC<PortfolioProps> = ({ portfolioItems }) => {
                 className="bg-white transition-all ease-in-out duration-400 overflow-hidden text-gray-700 hover:scale-105 rounded-lg shadow-2xl p-3 flex flex-col justify-between"
               >
                 <div className="m-2 text-justify text-sm flex-grow flex flex-col">
-                  <h4 className="font-semibold my-4 text-lg md:text-2xl text-center mb-4 h-12">
+                  <h4 className="font-semibold my-4 text-lg md:text-xl text-center mb-4 h-12">
                     {item.title}
                   </h4>
                   {/* Container for the Editor with fixed height and overflow hidden to limit content */}

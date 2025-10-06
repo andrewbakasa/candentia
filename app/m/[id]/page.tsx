@@ -155,12 +155,13 @@ const MediaPage = async ({
     return (
       <div className="p-0  h-full overflow-x-auto">
          <MediaClient
-           currentUser={currentUser}
-           media={safeMedia}
-           tagNames={tagNames}           
-           userNames={userNames}
-           hasMedia={hasMedia}
-         />
+          currentUser={currentUser}
+          media={safeMedia}
+          tagNames={tagNames}
+          userNames={userNames}
+          hasMedia={hasMedia} 
+          cardId={params.id}  //to refresh...       
+          />
        </div>
    );
   

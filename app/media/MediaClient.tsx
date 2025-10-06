@@ -5,7 +5,7 @@ import { SafeUser } from "../types";
 import Container from "../components/Container";
 import Slider from "@/components/modals/media-modal/slider";
 import { Separator } from "@radix-ui/react-separator";
-import { cn, isWithinOneDay, truncateString } from "@/lib/utils";
+import { cn, isWithinOneDay } from "@/lib/utils"; // Removed truncateString as it wasn't used
 import { CompositeDecorator, DraftDecorator, Editor, EditorState } from "draft-js";
 import { getTextFromEditor3_2 } from "@/components/modals/card-modal/description";
 import moment from "moment";
@@ -18,7 +18,6 @@ import CreatedAtUpdatedAt from "../mycontents/_components/updatedCreated";
 import { NO_FILTER_SEARCH_CODE } from "@/lib/constants";
 import { Button } from "@/components/ui/button";
 import Search from "../components/Search";
-import { BsViewStacked } from "react-icons/bs";
 import { Hint } from "@/components/hint";
 
 import FilterSection, { LabelValueType } from "@/app/components/FilterSection";
@@ -28,9 +27,30 @@ import { toast } from "sonner";
 
 import { fetcher } from "@/lib/fetcher";
 
+// NOTE: These action functions must return { id: mediaId, cardId: string, description?: string, fileName?: string }
 import { updateCardMediaDescription } from '@/app/actions/update-cardMedia-descriptions';
 import { updateCardMediaFileName } from '@/app/actions/update-cardMedia-filename';
 import { CardImage } from "@prisma/client";
+
+// Define the structure of the list item for better type safety
+interface MediaListItem {
+    id: string; // The ID of the specific media item (CardImage)
+    cardId: string; // The ID of the card this media belongs to
+    boardTitle: string;
+    title: string;
+    description: string | null; // The media's description field
+    fileName: string | null; // The media's file name field
+    // ... other CardImage fields and associated Card/Board data
+    card: {
+        id: string;
+        description: string;
+        updatedAt: string;
+        visible: boolean;
+        createdAt: string;
+        // ... other Card fields
+    };
+    // ...
+}
 
 interface MediaClientProps {
     currentUser?: SafeUser | null,
@@ -46,29 +66,155 @@ const MediaClient: React.FC<MediaClientProps> = ({ currentUser, tagNames, userNa
     const searchFromUrl = searchParams?.get("search");
 
     const isMobile = useIsMobile();
+    // cardMedia state is derived from searchCardWithImageList.data
     const [currentCardData, setCurrentCardData] = useState<any | null>(null);
     const [cardMedia, setCardMedia] = useState<any[]>([]);
     const [filteredMediaCount, setFilteredMediaCount] = useState(0);
     const [hasAnyMedia, setHasAnyMedia] = useState(false);
 
-    const [searchTerm, setSearchTerm] = useState(searchFromUrl || ""); // Initialize searchTerm from URL
+    const [searchTerm, setSearchTerm] = useState(searchFromUrl || "");
     const [compositeDecorator, setCompositeDecorator] = useState(new CompositeDecorator([]));
     const [currentCardId, setCurrentCardId] = useState<string | null>(null);
-    const [sliderIndex, setSliderIndex] = useState(0); // Track slider index
- // Define allowed roles for editing permissions
-    const allowedRoles: string[] = ['admin', 'manager']; // Customize as per your application's roles
-   const queryClient = useQueryClient();
+    const [sliderIndex, setSliderIndex] = useState(0);
+    
+    const allowedRoles: string[] = ['admin', 'manager'];
+    const queryClient = useQueryClient();
 
-    // Determine if the current user has editing permissions
     const canEdit = currentUser?.isAdmin || currentUser?.roles?.some(role =>
         allowedRoles.includes(role.toLowerCase())
-    ) || false; // Ensure roles array exists before calling .some()
+    ) || false;
+
     const { hasFavorited } = useFavorite({
         listingId: currentCardData?.card?.id || "",
         currentUser
     });
 
-    // Effect for highlighting search terms
+    // --- QUERY FOR MEDIA LIST (This is the list we will update the cache for) ---
+    const mediaListQueryKey = ["cardImageSearch", searchFromUrl, category];
+
+    const { data: searchCardWithImageList, status: searchStatus, error: searchError, isFetching: isSearchFetching } = useQuery({
+        queryKey: mediaListQueryKey,
+        queryFn: async () => {
+            const encodedSearchTerm = searchFromUrl ? encodeURIComponent(searchFromUrl) : encodeURIComponent(NO_FILTER_SEARCH_CODE);
+            const encodedCategory = category ? encodeURIComponent(category) : '';
+
+            let url = `/api/cardImagesSearch/${encodedSearchTerm}`;
+            if (encodedCategory) {
+                url += `?category=${encodedCategory}`;
+            }
+
+            // NOTE: Assuming the API returns a structure like { data: MediaListItem[], hasMedia: boolean }
+            const data = await fetcher(url);
+            return data || null;
+        },
+        enabled: true,
+    });
+
+    // --- MUTATION HANDLERS (UPDATED TO USE setQueryData) ---
+
+    // useAction hook for updating card image description
+    const { execute: updateCardImageDescriptionMutation } = useAction(updateCardMediaDescription, {
+        onSuccess: (data) => {
+            const { id: mediaId, description: newDescription } = data; // Assuming server returns the updated value
+            
+            // 💡 STRATEGY: Update the main list query cache directly
+            queryClient.setQueryData(mediaListQueryKey, (oldData: any) => {
+                if (!oldData || !oldData.data) return oldData;
+                
+                // Map over the list and replace the item with the updated description
+                const newMediaList = oldData.data.map((item: MediaListItem) => {
+                    // Assuming item.id is the mediaId
+                    if (item.id === mediaId) { 
+                        return { ...item, description: newDescription }; 
+                    }
+                    return item;
+                });
+
+                // Return the new data object with the updated list
+                return { ...oldData, data: newMediaList };
+            });
+
+            // Update the currently displayed card data immediately (optional, but prevents flicker)
+            setCurrentCardData((prevData: { id: string; }) => {
+                if (prevData?.id === mediaId) {
+                    return { ...prevData, description: newDescription };
+                }
+                return prevData;
+            });
+            
+            toast.success("Description updated successfully!");
+        },
+        onError: (error) => {
+            toast.error(error);
+        },
+    });
+    
+    // useAction hook for updating card image filename
+    const { execute: updateCardImageFilenameMutation } = useAction(updateCardMediaFileName, {
+        onSuccess: (data) => {
+            const { id: mediaId, fileName: newFileName } = data; // Assuming server returns the updated value
+            
+            // 💡 STRATEGY: Update the main list query cache directly
+            queryClient.setQueryData(mediaListQueryKey, (oldData: any) => {
+                if (!oldData || !oldData.data) return oldData;
+
+                const newMediaList = oldData.data.map((item: MediaListItem) => {
+                    if (item.id === mediaId) {
+                        return { ...item, fileName: newFileName };
+                    }
+                    return item;
+                });
+
+                return { ...oldData, data: newMediaList };
+            });
+            
+            // Update the currently displayed card data immediately (optional, but prevents flicker)
+            setCurrentCardData((prevData: { id: string; }) => {
+                if (prevData?.id === mediaId) {
+                    return { ...prevData, fileName: newFileName };
+                }
+                return prevData;
+            });
+
+            toast.success("Filename updated successfully!");
+        },
+        onError: (error) => {
+            toast.error(error);
+        },
+    });
+    
+    // Handler for description change (needs to pass cardId if action requires it)
+    const handleDescriptionChange = (mediaId: string, newDescription: string | null, cardId: string) => {
+        if (!mediaId) {
+            toast.error("Media ID is missing for description update.");
+            return;
+        }
+        // NOTE: The updateCardMediaDescription action needs to return { id: mediaId, description: newDescription } 
+        // for the setQueryData logic above to work cleanly.
+        updateCardImageDescriptionMutation({ id: mediaId, description: newDescription });
+    };
+    
+    // Handler for filename change
+    const handleFileNameChange = (mediaId: string, newFileName: string | null, cardId: string) => {
+        if (!mediaId) {
+            toast.error("Media ID is missing for filename update.");
+            return;
+        }
+        // NOTE: The updateCardMediaFileName action needs to return { id: mediaId, fileName: newFileName } 
+        // for the setQueryData logic above to work cleanly.
+        updateCardImageFilenameMutation({ id: mediaId, fileName: newFileName });
+    };
+
+    // Card/Slider index change handler
+    const handleCardIdChange = (cardId: string | null, index: number) => {
+        // cardId here refers to the media item ID (CardImage ID)
+        setCurrentCardId(cardId);
+        setSliderIndex(index);
+    };
+
+    // --- EFFECTS ---
+    
+    // Effect for highlighting search terms (unchanged)
     useEffect(() => {
         let arrFirst = searchTerm.split(';');
         const subLists = arrFirst.filter(element => element);
@@ -83,8 +229,6 @@ const MediaClient: React.FC<MediaClientProps> = ({ currentUser, tagNames, userNa
                     const startIndex = text.toLocaleLowerCase().indexOf(word.toLocaleLowerCase());
                     if (startIndex !== -1) {
                         const endIndex = startIndex + word.length;
-                        const style = currentSelection.getStartOffset() <= startIndex &&
-                            currentSelection.getEndOffset() >= endIndex ? 'HIGHLIGHTED_SELECTED' : 'HIGHLIGHTED';
                         callback(startIndex, endIndex);
                     }
                 }
@@ -96,7 +240,7 @@ const MediaClient: React.FC<MediaClientProps> = ({ currentUser, tagNames, userNa
         setCompositeDecorator(new CompositeDecorator([customHighlightDecorator]));
     }, [searchTerm]);
 
-    // Effect for setting document title
+    // Effect for setting document title (unchanged)
     useEffect(() => {
         let title = "View Media";
         let description = "View and manage media";
@@ -109,7 +253,7 @@ const MediaClient: React.FC<MediaClientProps> = ({ currentUser, tagNames, userNa
         document.title = title;
     }, [currentCardData, searchFromUrl]);
 
-    // Handle URL updates when searchTerm changes
+    // Handle URL updates when searchTerm changes (unchanged)
     useEffect(() => {
         const currentPath = window.location.pathname;
         const currentQuery = new URLSearchParams(searchParams?.toString());
@@ -122,91 +266,39 @@ const MediaClient: React.FC<MediaClientProps> = ({ currentUser, tagNames, userNa
 
         const newUrl = `${currentPath}?${currentQuery.toString()}`;
         router.push(newUrl);
-    }, [searchTerm, router, searchParams]); // Depend on searchTerm and router
+    }, [searchTerm, router, searchParams]);
 
-    const { data: searchCardWithImageList, status: searchStatus, error: searchError, isFetching: isSearchFetching } = useQuery({
-        queryKey: ["cardImageSearch", searchFromUrl, category],
-        queryFn: async () => {
-            const encodedSearchTerm = searchFromUrl ? encodeURIComponent(searchFromUrl) : encodeURIComponent(NO_FILTER_SEARCH_CODE);
-            const encodedCategory = category ? encodeURIComponent(category) : '';
-
-            let url = `/api/cardImagesSearch/${encodedSearchTerm}`;
-            if (encodedCategory) {
-                url += `?category=${encodedCategory}`;
-            }
-
-            const data = await fetcher(url);
-            return data || null;
-        },
-        enabled: true,
-    });
-
-    const handleCardIdChange = (cardId: string | null, index: number) => {
-        setCurrentCardId(cardId);
-        setSliderIndex(index);
-    };
-
-     // useAction hook for updating card image description
-       const { execute: updateCardImageDescriptionMutation } = useAction(updateCardMediaDescription, {
-           onSuccess: (data) => {
-               // Invalidate the specific card image query to refetch updated data
-               queryClient.invalidateQueries({ queryKey: ["cardImage", data.cardId] });
-               toast.success("Description updated successfully!");
-           },
-           onError: (error) => {
-               toast.error(error);
-           },
-       });
-   
-       // useAction hook for updating card image filename
-       const { execute: updateCardImageFilenameMutation } = useAction(updateCardMediaFileName, {
-           onSuccess: (data) => {
-               // Invalidate the specific card image query to refetch updated data
-               queryClient.invalidateQueries({ queryKey: ["cardImage", data.cardId] });
-               toast.success("Filename updated successfully!");
-           },
-           onError: (error) => {
-               toast.error(error);
-           },
-       });
-   
-       // Handler for description change
-       const handleDescriptionChange = (mediaId: string, newDescription: string | null) => {
-           if (!mediaId) {
-               toast.error("Media ID is missing for description update.");
-               return;
-           }
-           updateCardImageDescriptionMutation({ id: mediaId, description: newDescription });
-       };
-   
-       // Handler for filename change
-       const handleFileNameChange = (mediaId: string, newFileName: string | null) => {
-           if (!mediaId) {
-               toast.error("Media ID is missing for filename update.");
-               return;
-           }
-           updateCardImageFilenameMutation({ id: mediaId, fileName: newFileName });
-       };
-    // Fetch card images data
-        // const { data: cardImages, status, error } = useQuery<CardImage[] | null>({
-        //     queryKey: ["cardImage", id],
-        //     queryFn: () => (id ? fetcher(`/api/cardImages/${id}`) : Promise.resolve(null)),
-        //     enabled: !!id,
-        //     // Ensure initial data is sorted by the 'order' field
-        //     select: (data) => data ? [...data].sort((a, b) => a.order - b.order) : null,
-        // });   
+    // Effect to synchronize component state with fetched data
+    // This runs when the query cache is updated (either by fetch or setQueryData)
     useEffect(() => {
         if (searchStatus === "success" && searchCardWithImageList?.data) {
-            if (!currentCardId && searchFromUrl) {
-                setCurrentCardId(searchCardWithImageList.data[0]?.cardId || null);
-                setCurrentCardData(searchCardWithImageList.data[0] || null);
-            } else if (currentCardId && searchCardWithImageList.data) {
-                const foundMedia = searchCardWithImageList.data.find((item: { cardId: string; }) => item.cardId === currentCardId);
-                setCurrentCardData(foundMedia || null);
+            const mediaData = searchCardWithImageList.data as MediaListItem[];
+
+            setFilteredMediaCount(mediaData.length || 0);
+            setCardMedia(mediaData || []);
+            setHasAnyMedia(mediaData.length > 0 || false);
+            
+            // Logic to determine the currently visible media item:
+            let selectedItem = null;
+            
+            if (currentCardId) {
+                // 1. Try to find the currently selected item by ID
+                selectedItem = mediaData.find(item => item.id === currentCardId);
+            } 
+            
+            if (!selectedItem && mediaData.length > 0) {
+                // 2. If no ID or item was found, default to the one at the current slider index
+                selectedItem = mediaData[sliderIndex] || mediaData[0];
             }
-            setFilteredMediaCount(searchCardWithImageList.data.length || 0);
-            setCardMedia(searchCardWithImageList.data || []);
-            setHasAnyMedia(searchCardWithImageList?.hasMedia || false);
+
+            setCurrentCardData(selectedItem);
+            
+            // If the selected item changed, update currentCardId (important for deep linking)
+            if (selectedItem && selectedItem.id !== currentCardId) {
+                 setCurrentCardId(selectedItem.id);
+            }
+
+
         } else if (searchStatus === "error") {
             setCurrentCardData(null);
             setCardMedia([]);
@@ -214,7 +306,7 @@ const MediaClient: React.FC<MediaClientProps> = ({ currentUser, tagNames, userNa
             setHasAnyMedia(false);
             setCurrentCardId(null);
         }
-    }, [searchStatus, searchFromUrl, searchCardWithImageList?.data, currentCardId, sliderIndex]);
+    }, [searchStatus, searchCardWithImageList?.data, currentCardId, sliderIndex]);
 
 
     const isLoading = isSearchFetching;
@@ -250,12 +342,9 @@ const MediaClient: React.FC<MediaClientProps> = ({ currentUser, tagNames, userNa
                     <div className={cn("flex w-full mt-1 z-51 sm:mt-10 rounded-lg mr-auto", isMobile ? 'py-2' : '')}>
                         <FilterSection
                             setCategory={(selectedCategory) => {
-                                // Ensure it's explicitly an empty string if null/undefined
                                 setCategory(selectedCategory ? selectedCategory : '');
                             }}
                             productCategories_options={tagNames}
-                            // Pass null if category is an empty string, otherwise pass the category.
-                            // This signals the FilterSection to display its placeholder.
                             category={category === '' ? null : category}
                             isFullwidth={isMobile ? true : false}
                             placeholder="Filter by tags"
@@ -277,26 +366,22 @@ const MediaClient: React.FC<MediaClientProps> = ({ currentUser, tagNames, userNa
                         </>
                     ) : (
                         <>
-                            {hasAnyMedia ? ( // Only render Slider if there's media
+                            {hasAnyMedia ? (
                                 <Slider
-                                    mediaList={cardMedia || []}
+                                    mediaList={cardMedia}
                                     fullView={true}
-                                    onCardIdChange={handleCardIdChange}
-                                    // onDescriptionChange={function (mediaId: string, newDescription: string | null): void {
-                                    //     throw new Error("Function not implemented.");
-                                    // }}
-                                    // onFileNameChange={function (mediaId: string, newFileName: string | null): void {
-                                    //     throw new Error("Function not implemented.");
-                                    // }}
-                                    onDescriptionChange={handleDescriptionChange} // Pass the new handler
-                                    onFileNameChange={handleFileNameChange} // Pass the new handler
+                                    onCardIdChange={handleCardIdChange} // This updates sliderIndex
+                                    // IMPORTANT: We pass the cardId of the parent card here, 
+                                    // as the mutations need it.
+                                    onDescriptionChange={(mediaId, desc) => handleDescriptionChange(mediaId, desc, currentCardData!.cardId)}
+                                    onFileNameChange={(mediaId, name) => handleFileNameChange(mediaId, name, currentCardData!.cardId)}
                                     canEdit={canEdit}
                                     sliderIndex={sliderIndex}
                                     filteredMediaCount={filteredMediaCount}
                                     searchTerm={searchTerm}
                                 />
                             ) : (
-                                showNoResultsMessage && ( // Show no results message if no media AND a search/category is active
+                                showNoResultsMessage && (
                                     <div className="flex flex-col items-center justify-center p-8 bg-gray-100 rounded-lg shadow-inner text-gray-600 text-center min-h-[300px]">
                                         <p className="text-2xl font-semibold mb-4">No media found for your search.</p>
                                         <p className="text-lg mb-6">Try one of these options to find what you&apos;re looking for:</p>
@@ -317,7 +402,7 @@ const MediaClient: React.FC<MediaClientProps> = ({ currentUser, tagNames, userNa
                                                     Clear Category Filter
                                                 </Button>
                                             )}
-                                            {(!searchTerm && !category) && ( // If somehow this state is reached without search/category
+                                            {(!searchTerm && !category) && (
                                                 <p className="text-md">There&apos;s no media to display. Please add some.</p>
                                             )}
                                         </div>
@@ -328,7 +413,7 @@ const MediaClient: React.FC<MediaClientProps> = ({ currentUser, tagNames, userNa
                                 )
                             )}
                             <Separator />
-                            {filteredMediaCount > 0 && ( // Only show media count if there's actual media
+                            {filteredMediaCount > 0 && (
                                 <p className="text-sm text-blue-300 mr-auto">media {sliderIndex + 1} of [{filteredMediaCount}] </p>
                             )}
                             {currentCardData && (
@@ -390,3 +475,396 @@ const MediaClient: React.FC<MediaClientProps> = ({ currentUser, tagNames, userNa
 };
 
 export default MediaClient;
+
+// 'use client';
+// import { useState, useEffect, useCallback } from "react";
+// import { useRouter, useSearchParams } from "next/navigation";
+// import { SafeUser } from "../types";
+// import Container from "../components/Container";
+// import Slider from "@/components/modals/media-modal/slider";
+// import { Separator } from "@radix-ui/react-separator";
+// import { cn, isWithinOneDay, truncateString } from "@/lib/utils";
+// import { CompositeDecorator, DraftDecorator, Editor, EditorState } from "draft-js";
+// import { getTextFromEditor3_2 } from "@/components/modals/card-modal/description";
+// import moment from "moment";
+// import useFavorite from "../hooks/useFavorite";
+// import { useQuery, useQueryClient } from "@tanstack/react-query";
+// import Head from "next/head";
+// import { Skeleton } from "@/components/ui/skeleton";
+// import CardTags from "../mycontents/_components/card-tags";
+// import CreatedAtUpdatedAt from "../mycontents/_components/updatedCreated";
+// import { NO_FILTER_SEARCH_CODE } from "@/lib/constants";
+// import { Button } from "@/components/ui/button";
+// import Search from "../components/Search";
+// import { BsViewStacked } from "react-icons/bs";
+// import { Hint } from "@/components/hint";
+
+// import FilterSection, { LabelValueType } from "@/app/components/FilterSection";
+// import useIsMobile from "../hooks/isMobile";
+// import { useAction } from "@/hooks/use-action";
+// import { toast } from "sonner";
+
+// import { fetcher } from "@/lib/fetcher";
+
+// import { updateCardMediaDescription } from '@/app/actions/update-cardMedia-descriptions';
+// import { updateCardMediaFileName } from '@/app/actions/update-cardMedia-filename';
+// import { CardImage } from "@prisma/client";
+
+// interface MediaClientProps {
+//     currentUser?: SafeUser | null,
+//     origin: string,
+//     tagNames: any;
+//     userNames: any;
+// }
+
+// const MediaClient: React.FC<MediaClientProps> = ({ currentUser, tagNames, userNames, origin }) => {
+//     const [category, setCategory] = useState<string>('');
+//     const router = useRouter();
+//     const searchParams = useSearchParams();
+//     const searchFromUrl = searchParams?.get("search");
+
+//     const isMobile = useIsMobile();
+//     const [currentCardData, setCurrentCardData] = useState<any | null>(null);
+//     const [cardMedia, setCardMedia] = useState<any[]>([]);
+//     const [filteredMediaCount, setFilteredMediaCount] = useState(0);
+//     const [hasAnyMedia, setHasAnyMedia] = useState(false);
+
+//     const [searchTerm, setSearchTerm] = useState(searchFromUrl || ""); // Initialize searchTerm from URL
+//     const [compositeDecorator, setCompositeDecorator] = useState(new CompositeDecorator([]));
+//     const [currentCardId, setCurrentCardId] = useState<string | null>(null);
+//     const [sliderIndex, setSliderIndex] = useState(0); // Track slider index
+//  // Define allowed roles for editing permissions
+//     const allowedRoles: string[] = ['admin', 'manager']; // Customize as per your application's roles
+//    const queryClient = useQueryClient();
+
+//     // Determine if the current user has editing permissions
+//     const canEdit = currentUser?.isAdmin || currentUser?.roles?.some(role =>
+//         allowedRoles.includes(role.toLowerCase())
+//     ) || false; // Ensure roles array exists before calling .some()
+//     const { hasFavorited } = useFavorite({
+//         listingId: currentCardData?.card?.id || "",
+//         currentUser
+//     });
+
+//     // Effect for highlighting search terms
+//     useEffect(() => {
+//         let arrFirst = searchTerm.split(';');
+//         const subLists = arrFirst.filter(element => element);
+//         const highlightText = subLists.flatMap(subList => subList.split(','));
+
+//         const customHighlightDecorator: DraftDecorator = {
+//             strategy: (block, callback, contentState) => {
+//                 const text = block.getText();
+//                 const currentSelection = contentState.getSelectionBefore();
+//                 for (let i = 0; i < highlightText.length; i++) {
+//                     const word = highlightText[i];
+//                     const startIndex = text.toLocaleLowerCase().indexOf(word.toLocaleLowerCase());
+//                     if (startIndex !== -1) {
+//                         const endIndex = startIndex + word.length;
+//                         const style = currentSelection.getStartOffset() <= startIndex &&
+//                             currentSelection.getEndOffset() >= endIndex ? 'HIGHLIGHTED_SELECTED' : 'HIGHLIGHTED';
+//                         callback(startIndex, endIndex);
+//                     }
+//                 }
+//             },
+//             component: ({ children, style }) => {
+//                 return <span style={style} className="bg-yellow-400 ">{children}</span>;
+//             },
+//         };
+//         setCompositeDecorator(new CompositeDecorator([customHighlightDecorator]));
+//     }, [searchTerm]);
+
+//     // Effect for setting document title
+//     useEffect(() => {
+//         let title = "View Media";
+//         let description = "View and manage media";
+
+//         if (searchFromUrl) {
+//             title = `Search Results for "${searchFromUrl}"`;
+//             description = `Search results for "${searchFromUrl}"`;
+//         }
+
+//         document.title = title;
+//     }, [currentCardData, searchFromUrl]);
+
+//     // Handle URL updates when searchTerm changes
+//     useEffect(() => {
+//         const currentPath = window.location.pathname;
+//         const currentQuery = new URLSearchParams(searchParams?.toString());
+
+//         if (searchTerm === "") {
+//             currentQuery.delete("search");
+//         } else {
+//             currentQuery.set("search", searchTerm);
+//         }
+
+//         const newUrl = `${currentPath}?${currentQuery.toString()}`;
+//         router.push(newUrl);
+//     }, [searchTerm, router, searchParams]); // Depend on searchTerm and router
+
+//     const { data: searchCardWithImageList, status: searchStatus, error: searchError, isFetching: isSearchFetching } = useQuery({
+//         queryKey: ["cardImageSearch", searchFromUrl, category],
+//         queryFn: async () => {
+//             const encodedSearchTerm = searchFromUrl ? encodeURIComponent(searchFromUrl) : encodeURIComponent(NO_FILTER_SEARCH_CODE);
+//             const encodedCategory = category ? encodeURIComponent(category) : '';
+
+//             let url = `/api/cardImagesSearch/${encodedSearchTerm}`;
+//             if (encodedCategory) {
+//                 url += `?category=${encodedCategory}`;
+//             }
+
+//             const data = await fetcher(url);
+//             return data || null;
+//         },
+//         enabled: true,
+//     });
+
+//     const handleCardIdChange = (cardId: string | null, index: number) => {
+//         setCurrentCardId(cardId);
+//         setSliderIndex(index);
+//     };
+
+//      // useAction hook for updating card image description
+//        const { execute: updateCardImageDescriptionMutation } = useAction(updateCardMediaDescription, {
+//            onSuccess: (data) => {
+//                // Invalidate the specific card image query to refetch updated data
+//                queryClient.invalidateQueries({ queryKey: ["cardImage", data.cardId] });
+//                toast.success("Description updated successfully!");
+//            },
+//            onError: (error) => {
+//                toast.error(error);
+//            },
+//        });
+   
+//        // useAction hook for updating card image filename
+//        const { execute: updateCardImageFilenameMutation } = useAction(updateCardMediaFileName, {
+//            onSuccess: (data) => {
+//                // Invalidate the specific card image query to refetch updated data
+//                queryClient.invalidateQueries({ queryKey: ["cardImage", data.cardId] });
+//                toast.success("Filename updated successfully!");
+//            },
+//            onError: (error) => {
+//                toast.error(error);
+//            },
+//        });
+   
+//        // Handler for description change
+//        const handleDescriptionChange = (mediaId: string, newDescription: string | null) => {
+//            if (!mediaId) {
+//                toast.error("Media ID is missing for description update.");
+//                return;
+//            }
+//            updateCardImageDescriptionMutation({ id: mediaId, description: newDescription });
+//        };
+   
+//        // Handler for filename change
+//        const handleFileNameChange = (mediaId: string, newFileName: string | null) => {
+//            if (!mediaId) {
+//                toast.error("Media ID is missing for filename update.");
+//                return;
+//            }
+//            updateCardImageFilenameMutation({ id: mediaId, fileName: newFileName });
+//        };
+//     // Fetch card images data
+//         // const { data: cardImages, status, error } = useQuery<CardImage[] | null>({
+//         //     queryKey: ["cardImage", id],
+//         //     queryFn: () => (id ? fetcher(`/api/cardImages/${id}`) : Promise.resolve(null)),
+//         //     enabled: !!id,
+//         //     // Ensure initial data is sorted by the 'order' field
+//         //     select: (data) => data ? [...data].sort((a, b) => a.order - b.order) : null,
+//         // });   
+//     useEffect(() => {
+//         if (searchStatus === "success" && searchCardWithImageList?.data) {
+//             if (!currentCardId && searchFromUrl) {
+//                 setCurrentCardId(searchCardWithImageList.data[0]?.cardId || null);
+//                 setCurrentCardData(searchCardWithImageList.data[0] || null);
+//             } else if (currentCardId && searchCardWithImageList.data) {
+//                 const foundMedia = searchCardWithImageList.data.find((item: { cardId: string; }) => item.cardId === currentCardId);
+//                 setCurrentCardData(foundMedia || null);
+//             }
+//             setFilteredMediaCount(searchCardWithImageList.data.length || 0);
+//             setCardMedia(searchCardWithImageList.data || []);
+//             setHasAnyMedia(searchCardWithImageList?.hasMedia || false);
+//         } else if (searchStatus === "error") {
+//             setCurrentCardData(null);
+//             setCardMedia([]);
+//             setFilteredMediaCount(0);
+//             setHasAnyMedia(false);
+//             setCurrentCardId(null);
+//         }
+//     }, [searchStatus, searchFromUrl, searchCardWithImageList?.data, currentCardId, sliderIndex]);
+
+
+//     const isLoading = isSearchFetching;
+
+//     const showNoResultsMessage = !isLoading && filteredMediaCount === 0 && (searchTerm || category);
+
+//     return (
+//         <Container>
+//             <Head>
+//                 <title>{document.title}</title>
+//                 <meta name="description" content={currentCardData?.card?.description || "A description of the Media"} />
+//                 <meta property="og:title" content={document.title} />
+//                 <meta property="og:description" content={currentCardData?.card?.description || "A description of the Media"} />
+//                 <link rel="icon" href="/logo.svg" />
+//             </Head>
+//             <div className="z-51 mt-[-50px] sm:mt-[-80px] flex flex-col sm:flex-col justify-between sm:px-1 xs:px-2">
+//                 <div className={cn("flex gap-1 z-51", true ? 'flex-col' : 'flex-row justify-between')}>
+//                     <div
+//                         className={cn("flex w-full mt-1 z-51 sm:mt-10 rounded-lg", true ? 'py-1' : '')}
+//                     >
+//                     </div>
+//                 </div>
+
+//                 <div className={cn("flex gap-1 z-51", isMobile ? 'flex-col' : 'flex-row justify-between items-start')}>
+//                     <div className="flex flex-row">
+//                         <Search
+//                             setSearchTerm={setSearchTerm}
+//                             searchTerm={searchTerm}
+//                             debounce={1500}
+//                             placeholderText="filter records..."
+//                         />
+//                     </div>
+//                     <div className={cn("flex w-full mt-1 z-51 sm:mt-10 rounded-lg mr-auto", isMobile ? 'py-2' : '')}>
+//                         <FilterSection
+//                             setCategory={(selectedCategory) => {
+//                                 // Ensure it's explicitly an empty string if null/undefined
+//                                 setCategory(selectedCategory ? selectedCategory : '');
+//                             }}
+//                             productCategories_options={tagNames}
+//                             // Pass null if category is an empty string, otherwise pass the category.
+//                             // This signals the FilterSection to display its placeholder.
+//                             category={category === '' ? null : category}
+//                             isFullwidth={isMobile ? true : false}
+//                             placeholder="Filter by tags"
+//                             isDisabled={false}
+//                         />
+//                     </div>
+//                 </div>
+//             </div>
+
+//             <div className={cn("mt-0 pb-1 ", 0 == 0 ? "" : "shadow-xl rounded-md p-1 border-yellow-400 border-2")}>
+//                 <div>
+//                     {isLoading ? (
+//                         <>
+//                             <Skeleton className="h-[250px] w-full mb-2" />
+//                             <Skeleton className="h-4 w-1/4 mb-2" />
+//                             <Skeleton className="h-4 w-1/2 mb-2" />
+//                             <Skeleton className="h-4 w-3/4 mb-2" />
+//                             <Skeleton className="h-4 w-full mb-2" />
+//                         </>
+//                     ) : (
+//                         <>
+//                             {hasAnyMedia ? ( // Only render Slider if there's media
+//                                 <Slider
+//                                     mediaList={cardMedia || []}
+//                                     fullView={true}
+//                                     onCardIdChange={handleCardIdChange}
+//                                     // onDescriptionChange={function (mediaId: string, newDescription: string | null): void {
+//                                     //     throw new Error("Function not implemented.");
+//                                     // }}
+//                                     // onFileNameChange={function (mediaId: string, newFileName: string | null): void {
+//                                     //     throw new Error("Function not implemented.");
+//                                     // }}
+//                                     onDescriptionChange={handleDescriptionChange} // Pass the new handler
+//                                     onFileNameChange={handleFileNameChange} // Pass the new handler
+//                                     canEdit={canEdit}
+//                                     sliderIndex={sliderIndex}
+//                                     filteredMediaCount={filteredMediaCount}
+//                                     searchTerm={searchTerm}
+//                                 />
+//                             ) : (
+//                                 showNoResultsMessage && ( // Show no results message if no media AND a search/category is active
+//                                     <div className="flex flex-col items-center justify-center p-8 bg-gray-100 rounded-lg shadow-inner text-gray-600 text-center min-h-[300px]">
+//                                         <p className="text-2xl font-semibold mb-4">No media found for your search.</p>
+//                                         <p className="text-lg mb-6">Try one of these options to find what you&apos;re looking for:</p>
+//                                         <div className="flex flex-col sm:flex-row gap-4">
+//                                             {searchTerm && (
+//                                                 <Button
+//                                                     onClick={() => setSearchTerm("")}
+//                                                     className="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded"
+//                                                 >
+//                                                     Clear Search Term
+//                                                 </Button>
+//                                             )}
+//                                             {category && (
+//                                                 <Button
+//                                                     onClick={() => setCategory("")}
+//                                                     className="bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-4 rounded"
+//                                                 >
+//                                                     Clear Category Filter
+//                                                 </Button>
+//                                             )}
+//                                             {(!searchTerm && !category) && ( // If somehow this state is reached without search/category
+//                                                 <p className="text-md">There&apos;s no media to display. Please add some.</p>
+//                                             )}
+//                                         </div>
+//                                         <p className="mt-6 text-sm text-gray-500">
+//                                             You can also try a different search term or select a different category.
+//                                         </p>
+//                                     </div>
+//                                 )
+//                             )}
+//                             <Separator />
+//                             {filteredMediaCount > 0 && ( // Only show media count if there's actual media
+//                                 <p className="text-sm text-blue-300 mr-auto">media {sliderIndex + 1} of [{filteredMediaCount}] </p>
+//                             )}
+//                             {currentCardData && (
+//                                 <div className="shadow-sm">
+//                                     <h2 className="text-red-300">{currentCardData?.boardTitle}</h2>
+//                                 </div>
+//                             )}
+//                         </>
+//                     )}
+//                 </div>
+//             </div>
+
+//             {isLoading ? (
+//                 <Skeleton className="h-12 w-full mt-3" />
+//             ) : (
+//                 currentCardData && (
+//                     <div className={cn(
+//                         "p-2 rounded-sm transition-colors duration-300",
+//                         currentCardData.card?.visible
+//                             ? isWithinOneDay(currentCardData?.card?.updatedAt || "", moment())
+//                                 ? "bg-yellow-50 hover:bg-yellow-200"
+//                                 : "bg-white hover:bg-gray-200"
+//                             : "bg-rose-200 hover:bg-rose-300",
+//                         hasFavorited ? "text-red-400 hover:text-red-600" : ""
+//                     )}>
+//                         <Hint
+//                             sideOffset={20}
+//                             description="Go to view page"
+//                         >
+//                             <h5
+//                                 className='text-sm font-bold text-green-500 hover:cursor-pointer '
+//                                 onClick={() => router.push(`/m/${currentCardData?.card?.id}`)}
+//                             >
+//                                 {currentCardData?.title}
+//                             </h5>
+//                         </Hint>
+//                         <CreatedAtUpdatedAt
+//                             createdAt={currentCardData?.card?.createdAt}
+//                             updatedAt={currentCardData?.card?.updatedAt} />
+
+//                         <CardTags
+//                             index2={String('1')}
+//                             card={currentCardData?.card}
+//                             setCategory={setCategory}
+//                             category={category}
+//                             tagNames={tagNames}
+//                         />
+
+//                         <Editor
+//                             editorState={EditorState.createWithContent(getTextFromEditor3_2(currentCardData?.card), compositeDecorator)}
+//                             readOnly
+//                             onChange={() => { }}
+//                         />
+//                     </div>
+//                 )
+//             )}
+//         </Container>
+//     );
+// };
+
+// export default MediaClient;
