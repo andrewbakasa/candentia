@@ -258,8 +258,8 @@ const MediaClient: React.FC<MediaClientProps> = ({
               category={category}
               tagNames={tagNames}
             />
-            <div className="flex gap-1 shadow-md justify-end">
-              <div className="text-[11px]">                      
+            <div className="flex flex-row gap-0 shadow-md justify-end">
+              
                 <Button
                   onClick={ () => mediaModal.onOpen(currentCardData?.card.id, currentCardData?.boardId, currentUser, true)}
                   className="h-auto w-10 justify-end text-muted-foreground text-[11px] hover:text-sm"
@@ -278,10 +278,7 @@ const MediaClient: React.FC<MediaClientProps> = ({
                         />
                     </div>
                   </Hint>
-                </Button>
-              </div>
-
-              <div className="text-[11px]">                      
+                </Button>            
                
                 <Link  
                     key={currentCardData?.boardId} 
@@ -302,8 +299,6 @@ const MediaClient: React.FC<MediaClientProps> = ({
                         </div>
                       </Hint>           
                   </Link>
-              </div>
-
              
             </div>
             <Editor

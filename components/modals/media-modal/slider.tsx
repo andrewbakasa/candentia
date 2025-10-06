@@ -10,11 +10,9 @@ import { PencilIcon, CheckIcon, XIcon } from 'lucide-react';
 import { Hint } from '@/components/hint';
 import { toast } from 'sonner';
 import useIsMobile from '@/app/hooks/isMobile';
-
 interface MediaProps {
     id: string;    url: string;    cardId: string;    type: string;    fileName: string | null;    description: string | null;
 }
-
 interface SliderProps {
     mediaList?: MediaProps[];
     fullView: boolean;
@@ -36,7 +34,6 @@ const Slider: React.FC<SliderProps> = ({
     const carouselRef = useRef<HTMLDivElement>(null);
     const [emblaApi, setEmblaApi] = useState<any | null>(null);
     const [error, setError] = useState<string | null>(null);
-    // Store refs for video elements to control playback
     const videoRefs = useRef<Map<string, HTMLVideoElement | null>>(new Map());
     const [editingMediaId, setEditingMediaId] = useState<string | null>(null);
     const [tempDescription, setTempDescription] = useState<string>('');
@@ -100,8 +97,6 @@ const Slider: React.FC<SliderProps> = ({
         if (editingMediaId && descriptionTextareaRef.current) {
             const textarea = descriptionTextareaRef.current;
             textarea.style.height = 'auto';
-            // textarea.style.minHeight = `${textarea.scrollHeight}px`; // Auto-grow on edit
-            // Apply a maximum height on the textarea on edit to prevent it from growing too large
             if (textarea.scrollHeight > 180) { // Example max-height: 180px
                 textarea.style.height = '180px';
                 textarea.style.overflowY = 'auto';
@@ -264,7 +259,6 @@ const Slider: React.FC<SliderProps> = ({
             }
         }
     };
-
     const handleSaveDescription = (e: React.MouseEvent, mediaId: string) => {
         e.stopPropagation();
         if (canEdit) {
@@ -377,13 +371,10 @@ const Slider: React.FC<SliderProps> = ({
     };
    // The component return structure:
     return (
-        <div className="w-full flex flex-col items-center justify-center p-4 min-h-[50vh] bg-gray-50 rounded-lg shadow-xl">
+        <div className="w-full flex flex-col items-center justify-center p-4 min-h-[60vh] bg-gray-50 rounded-lg shadow-xl">
             {mediaList && mediaList?.length > 0 ? (
                 <div className={cn(
-                    "relative", // Make this div the positioning context for the arrows
-                    // Using max-h on mobile window. This might be where the excessive space comes from.
-                    // Let's rely on max-w-4xl for width and flex-grow on the inner elements.
-                   // 👇 Modified Code:
+                    "relative", // 
                 !isMobile 
                     ? "w-full max-w-[100vw] h-[calc(100vh-10px)] md:h-[calc(100vh-20px)]" // Preserve fullView logic
                     : "w-full max-w-[100vw] h-auto md:h-[calc(100vh-50px)]", // 👈 Key Change: Use h-auto (or just remove the h-[...] part)
@@ -406,16 +397,7 @@ const Slider: React.FC<SliderProps> = ({
                                         "basis-full h-full" 
                                     )}
                                 >
-                                    {/* Container for Media + Filename/Count.
-                                        flex-grow ensures it takes all vertical space not used by the description.
-                                    */}
-                                    <div className="relative w-full rounded-t-xl overflow-hidden bg-gray-100 flex flex-col items-center justify-center flex-grow">
-                                        
-                                        {/* *** THE FIX: Aspect Ratio Container for Media Area ***
-                                            This div enforces a fixed 16:9 aspect ratio (aspect-video) 
-                                            or a square (aspect-square) when space is tight, 
-                                            and uses max-h-full to prevent it from forcing the parent div to exceed its height.
-                                        */}
+                                  <div className="relative w-full rounded-t-xl overflow-hidden bg-gray-100 flex flex-col items-center justify-center flex-grow">                                      
                                         <div className="w-full h-full max-h-full flex items-center justify-center">
                                             {/* Inner container to apply the aspect ratio *only* to the media content */}
                                             <div className="w-full aspect-video sm:aspect-square md:aspect-video lg:aspect-video relative"> 
@@ -423,10 +405,7 @@ const Slider: React.FC<SliderProps> = ({
                                                     {renderMediaContent(item)}
                                                 </div>
                                             </div>
-                                        </div>
-
-                                        
-
+                                        </div> 
                                         {/* Filename editing/display (fixed to the bottom of the media area) */}
                                         {canEdit && (
                                             <div ref={fileNameContainerRef} className={cn("absolute bottom-0 left-0 right-0 text-white text-sm p-2 overflow-hidden flex items-center justify-between", editingFileNameId === item.id ? "bg-black bg-opacity-70" : "bg-black bg-opacity-50")}>
@@ -475,20 +454,11 @@ const Slider: React.FC<SliderProps> = ({
                                                 )}
                                             </div>
                                         )}
-                                        
-                                        {/* Improved Media Count Display */}
                                         <div className="absolute top-2 right-2 px-3 py-1 bg-black bg-opacity-60 text-white text-xs font-semibold rounded-full z-20">
                                             <span className="font-bold">{sliderIndex + 1}</span> / {filteredMediaCount}
                                         </div>
-                                    </div>
-
-                                    {/* Description editing/display */}
-                                    {/* *** CRITICAL IMPROVEMENT ***
-                                        The min-h-[50px] and max-h-[150px] classes are key to constraining the height 
-                                        of the description block, ensuring it doesn't take up too much vertical space.
-                                        The overflow-y-auto makes it scrollable if the text exceeds max-height.
-                                    */}
-                                    <div className="relative p-2 text-sm text-gray-700 bg-white rounded-b-xl flex flex-col min-h-[100px] max-h-[150px] overflow-y-auto">
+                                    </div>                                   
+                                    <div className="relative p-2 text-sm text-gray-700 bg-white rounded-b-xl flex flex-col mix-h-[50px] max-h-[150px] overflow-y-auto">
                                         {canEdit && editingMediaId === item.id ? (
                                             <div className="flex flex-col gap-1">
                                                 <div className='flex flex-row'>
@@ -655,8 +625,9 @@ const Slider: React.FC<SliderProps> = ({
                                 </CarouselItem>
                             ))}
                         </CarouselContent>
-                        <CarouselPrevious className="left-2" />
-                        <CarouselNext className="right-2" />
+                        <CarouselPrevious className="left-2 top-1/3 md:top-1/2" />
+                        <CarouselNext className="right-2 top-1/3 md:top-1/2" />
+                        
                     </Carousel>
                 </div>
             ) : (
@@ -668,5 +639,4 @@ const Slider: React.FC<SliderProps> = ({
         </div>
     );
 };
-
 export default Slider;
