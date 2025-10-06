@@ -11,12 +11,7 @@ import { Hint } from '@/components/hint';
 import { toast } from 'sonner';
 
 interface MediaProps {
-    id: string;
-    url: string;
-    cardId: string;
-    type: string;
-    fileName: string | null;
-    description: string | null;
+    id: string;    url: string;    cardId: string;    type: string;    fileName: string | null;    description: string | null;
 }
 
 interface SliderProps {
@@ -32,56 +27,40 @@ interface SliderProps {
 }
 
 const Slider: React.FC<SliderProps> = ({
-    mediaList,
-    fullView,
-    onCardIdChange,
-    onDescriptionChange,
-    onFileNameChange,
-    canEdit,
-    sliderIndex,
-    filteredMediaCount,
-    searchTerm, // **NEW:** Destructure searchTerm
+    mediaList,    fullView,
+    onCardIdChange,    onDescriptionChange,    onFileNameChange,    canEdit,    sliderIndex,    filteredMediaCount,    searchTerm, // **NEW:** Destructure searchTerm
 }) => {
     const [currentImage, setCurrentImage] = useState(0);
     const carouselRef = useRef<HTMLDivElement>(null);
     const [emblaApi, setEmblaApi] = useState<any | null>(null);
     const [error, setError] = useState<string | null>(null);
-
     // Store refs for video elements to control playback
     const videoRefs = useRef<Map<string, HTMLVideoElement | null>>(new Map());
-
     const [editingMediaId, setEditingMediaId] = useState<string | null>(null);
     const [tempDescription, setTempDescription] = useState<string>('');
     const descriptionDisplayRef = useRef<HTMLSpanElement>(null);
     const descriptionTextareaRef = useRef<HTMLTextAreaElement>(null);
-
     const [editingFileNameId, setEditingFileNameId] = useState<string | null>(null);
     const [tempFileName, setTempFileName] = useState<string>('');
     const [originalFileExtension, setOriginalFileExtension] = useState<string | null>(null);
     const fileNameContainerRef = useRef<HTMLDivElement>(null);
     const [copySuccess, setCopySuccess] = useState(false);
-
     const urlsourceDrawing=`${window.location.origin}/d/`
-    const urlsourceBoqItem=`${window.location.origin}/d/`
 
     // **NEW:** Utility function to highlight text
     const highlightText = (text: string | null, highlightTerms: string | undefined) => {
         if (!text || !highlightTerms) {
             return text;
         }
-
         const terms = highlightTerms.split(';').flatMap(term => term.split(',')).filter(Boolean).map(term => term.trim().toLowerCase());
         if (terms.length === 0) {
             return text;
         }
-
         let lastIndex = 0;
         const result: (string | JSX.Element)[] = [];
-
         // Create a regex from all terms for efficient searching, escaping special characters
         const escapedTerms = terms.map(term => term.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'));
         const regex = new RegExp(`(${escapedTerms.join('|')})`, 'gi');
-
         text.replace(regex, (match, p1, offset) => {
             if (offset > lastIndex) {
                 result.push(text.substring(lastIndex, offset));
@@ -100,7 +79,6 @@ const Slider: React.FC<SliderProps> = ({
         }
         return <>{result}</>;
     };
-
     // Preload images to catch errors early
     useEffect(() => {
         if (mediaList) {
@@ -115,7 +93,6 @@ const Slider: React.FC<SliderProps> = ({
             });
         }
     }, [mediaList]);
-
     // Auto-resize description textarea
     useEffect(() => {
         if (editingMediaId && descriptionTextareaRef.current) {
@@ -123,7 +100,6 @@ const Slider: React.FC<SliderProps> = ({
             textarea.style.height = 'auto';
         }
     }, [editingMediaId, tempDescription]);
-
     const renderMediaContent = (item: MediaProps) => {
         try {
             switch (item.type) {
@@ -193,7 +169,6 @@ const Slider: React.FC<SliderProps> = ({
             );
         }
     };
-
     const getFileIcon = (extension: string) => {
         switch (extension.toLowerCase()) {
             case 'pdf': return <BsFilePdfFill />;
@@ -203,7 +178,6 @@ const Slider: React.FC<SliderProps> = ({
             default: return null;
         }
     };
-
     const handleCarouselChange = (index: number) => {
         setCurrentImage(index);
         // Reset editing states on slide change
@@ -227,7 +201,6 @@ const Slider: React.FC<SliderProps> = ({
             onCardIdChange(null, index);
         }
     };
-
     // Initialize carousel on component mount or mediaList change
     useEffect(() => {
         if (mediaList && mediaList.length > 0) {
@@ -252,7 +225,6 @@ const Slider: React.FC<SliderProps> = ({
             }
         });
     };
-
     // --- Description Editing Handlers ---
     const handleEditClick = (e: React.MouseEvent, mediaId: string, currentDesc: string | null) => {
         e.stopPropagation();
@@ -281,20 +253,17 @@ const Slider: React.FC<SliderProps> = ({
             setTempDescription('');
         }
     };
-
     const handleCancelEdit = (e: React.MouseEvent) => {
         e.stopPropagation();
         setEditingMediaId(null);
         setTempDescription('');
     };
-
     const handleDescriptionInputChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
         setTempDescription(e.target.value);
         const textarea = e.target;
         textarea.style.height = 'auto';
         textarea.style.height = `${textarea.scrollHeight}px`;
     };
-
     const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>, mediaId: string) => {
         if (canEdit) {
             if (e.key === 'Enter' && !e.shiftKey) {
@@ -305,7 +274,6 @@ const Slider: React.FC<SliderProps> = ({
             }
         }
     };
-
     // --- Filename Editing Handlers ---
     const handleEditFileNameClick = (e: React.MouseEvent, mediaId: string, currentFileName: string | null) => {
         e.stopPropagation();
@@ -327,7 +295,6 @@ const Slider: React.FC<SliderProps> = ({
             setTempDescription('');
         }
     };
-
     const handleSaveFileName = (e: React.MouseEvent, mediaId: string) => {
         e.stopPropagation();
         if (canEdit) {
@@ -351,14 +318,12 @@ const Slider: React.FC<SliderProps> = ({
             setOriginalFileExtension(null);
         }
     }
-
     const handleCancelFileNameEdit = (e: React.MouseEvent) => {
         e.stopPropagation();
         setEditingFileNameId(null);
         setTempFileName('');
         setOriginalFileExtension(null);
     };
-
     const handleFileNameInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         let inputValue = e.target.value;
 
@@ -374,7 +339,6 @@ const Slider: React.FC<SliderProps> = ({
         }
         setTempFileName(inputValue);
     };
-
     const handleFileNameKeyDown = (e: React.KeyboardEvent<HTMLInputElement>, mediaId: string) => {
         if (canEdit) {
             if (e.key === 'Enter') {
@@ -389,10 +353,9 @@ const Slider: React.FC<SliderProps> = ({
     return (
         <div className="w-full flex flex-col items-center justify-center p-4 min-h-[50vh] bg-gray-50 rounded-lg shadow-xl">
             {mediaList && mediaList?.length > 0 ? (
-
                 <div className={cn(
                     "relative", // Make this div the positioning context for the arrows
-                    fullView ? "w-full max-w-4xl h-[calc(100vh-100px)] md:h-[calc(100vh-120px)]" : "w-full max-w-2xl h-[calc(100vh-200px)] md:h-[calc(100vh-250px)]",
+                    fullView ? "w-full max-w-4xl h-[calc(100vh-10px)] md:h-[calc(100vh-20px)]" : "w-full max-w-2xl h-[calc(100vh-20px)] md:h-[calc(100vh-50px)]",
                     "flex flex-col items-center justify-center" // Center the Carousel component
                 )}>
                     <Carousel
@@ -408,7 +371,7 @@ const Slider: React.FC<SliderProps> = ({
                                     className={cn(
                                         "flex flex-col",
                                         // Set a predictable max height for the carousel item itself
-                                        fullView ? "basis-full max-h-[calc(100vh-120px)]" : "basis-full max-h-[calc(100vh-270px)]" 
+                                        fullView ? "basis-full max-h-[calc(100vh-20px)]" : "basis-full max-h-[calc(100vh-70px)]" 
                                     )}
                                 >
                                     {/* Container for Media + Filename/Count.
@@ -491,7 +454,7 @@ const Slider: React.FC<SliderProps> = ({
                                         Added **min-h** and **max-h** with **overflow-y-auto** to constrain the height of the description area,
                                         preventing it from expanding the CarouselItem and causing layout shift.
                                     */}
-                                    <div className="relative p-2 text-sm text-gray-700 bg-white rounded-b-xl flex flex-col **min-h-[100px] max-h-[150px] overflow-y-auto**">
+                                    <div className="relative p-2 text-sm text-gray-700 bg-white rounded-b-xl flex flex-col min-h-[250px] max-h-[400px]  overflow-y-auto">
                                         {canEdit && editingMediaId === item.id ? (
                                             <div className="flex flex-col gap-1">
                                                 <div className='flex flex-row'>
@@ -624,8 +587,6 @@ const Slider: React.FC<SliderProps> = ({
                 </div>
             )}
         </div>
-    );
-   
+    );   
 };
-
 export default Slider;
