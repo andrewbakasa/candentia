@@ -454,7 +454,7 @@ const Slider: React.FC<SliderProps> = ({
                                         Added **min-h** and **max-h** with **overflow-y-auto** to constrain the height of the description area,
                                         preventing it from expanding the CarouselItem and causing layout shift.
                                     */}
-                                    <div className="relative p-2 text-sm text-gray-700 bg-white rounded-b-xl flex flex-col min-h-[250px] max-h-[400px]  overflow-y-auto">
+                                    <div className="relative p-2 text-sm text-gray-700 bg-white rounded-b-xl flex flex-col min-h-[350px] max-h-[600px]  overflow-y-auto">
                                         {canEdit && editingMediaId === item.id ? (
                                             <div className="flex flex-col gap-1">
                                                 <div className='flex flex-row'>
