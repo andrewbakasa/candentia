@@ -151,6 +151,7 @@ const MediaPage = async ({
         }
 
     }
+   
   
     return (
       <div className="p-0  h-full overflow-x-auto">
@@ -159,9 +160,10 @@ const MediaPage = async ({
           media={safeMedia}
           tagNames={tagNames}
           userNames={userNames}
-          hasMedia={hasMedia} 
-          cardId={params.id}  //to refresh...       
-          />
+          hasMedia={hasMedia}
+          cardId={params.id} //to refresh...       
+                 
+           />
        </div>
    );
   

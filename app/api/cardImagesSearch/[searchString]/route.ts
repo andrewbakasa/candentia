@@ -30,6 +30,7 @@ export async function GET(
                                 createdAt: true,
                                 updatedAt: true,
                                 public: true,
+                                
                                 user: {
                                     select: {
                                         email: true,
