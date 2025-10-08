@@ -44,9 +44,10 @@ const Slider: React.FC<SliderProps> = ({
     const [originalFileExtension, setOriginalFileExtension] = useState<string | null>(null);
     const fileNameContainerRef = useRef<HTMLDivElement>(null);
     const [copySuccess, setCopySuccess] = useState(false);
-    //const urlsourceDrawing=`${window.location.origin}/d/`
+    const urlsourceDrawing=`${window.location.origin}/d/`
     
-    const urlsourceDrawing=`${window.location.origin}/m/`
+    
+   // const urlsourceDrawing=`${window.location.origin}/m/`
     const isMobile =  useIsMobile();
     // **NEW:** Utility function to highlight text
     const highlightText = (text: string | null, highlightTerms: string | undefined) => {
