@@ -177,7 +177,7 @@ const MediaClient: React.FC<MediaClientProps> = ({ currentUser, tagNames, userNa
                         <h5
                           onClick={async () => {
                             try {
-                              await navigator.clipboard.writeText(currentURL);
+                              await navigator.clipboard.writeText(`${window.location.origin}/m/${currentCardData?.card?.id}`);
                               setCopySuccess(true);
                               setTimeout(() => setCopySuccess(false), 2000);
                             } catch (error) {
