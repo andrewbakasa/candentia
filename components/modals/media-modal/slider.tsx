@@ -45,7 +45,7 @@ const Slider: React.FC<SliderProps> = ({
     const fileNameContainerRef = useRef<HTMLDivElement>(null);
     const [copySuccess, setCopySuccess] = useState(false);
     const urlsourceDrawing=`${window.location.origin}/d/`
-    
+
     
    // const urlsourceDrawing=`${window.location.origin}/m/`
     const isMobile =  useIsMobile();
@@ -377,12 +377,13 @@ const Slider: React.FC<SliderProps> = ({
         <div className="w-full flex flex-col items-center justify-center p-4 min-h-[60vh] bg-gray-50 rounded-lg shadow-xl">
             {mediaList && mediaList?.length > 0 ? (
                 <div className={cn(
-                    "relative", // 
-                !isMobile 
-                    ? "w-full max-w-[100vw] h-[calc(100vh-10px)] md:h-[calc(100vh-20px)]" // Preserve fullView logic
-                    : "w-full max-w-[100vw] h-auto md:h-[calc(100vh-50px)]", // 👈 Key Change: Use h-auto (or just remove the h-[...] part)
-                    "flex flex-col items-center justify-center"
+                    "relative w-full max-w-[100vw] h-auto flex flex-col items-center justify-center"
                 )}>
+                    {/* <div className={cn(
+                                    "relative w-full max-w-[100vw] flex flex-col items-center justify-center",
+                                    // Setting height based on `fullView` prop (assuming `fullView` handles large screens)
+                                    fullView ? "h-[calc(100vh-50px)]" : "h-[600px] lg:h-[70vh]" // Example fixed/responsive height
+                                )}>                  */}
                     <Carousel
                         className="w-full h-full border border-gray-200 rounded-xl overflow-hidden bg-white shadow-lg"
                         ref={carouselRef}
