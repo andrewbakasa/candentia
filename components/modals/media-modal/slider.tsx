@@ -651,8 +651,8 @@ const Slider: React.FC<SliderProps> = ({
                             ))}
                         </CarouselContent>
                         {/* Carousel Navigation buttons (optional, based on your full Carousel component setup) */}
-                        <CarouselPrevious className="absolute left-4 top-1/2 -translate-y-1/2 z-30" />
-                        <CarouselNext className="absolute right-4 top-1/2 -translate-y-1/2 z-30" />
+                        <CarouselPrevious className="absolute left-4 top-1/3  md:top 1/2 -translate-y-1/2 z-30" />
+                        <CarouselNext className="absolute right-4 top-1/3  md:top 1/2 -translate-y-1/2 z-30" />
                     </Carousel>
 
                     <div className="flex w-full justify-center items-center mt-2 text-xs text-gray-500">
