@@ -10,8 +10,14 @@ import { PencilIcon, CheckIcon, XIcon } from 'lucide-react';
 import { Hint } from '@/components/hint';
 import { toast } from 'sonner';
 import useIsMobile from '@/app/hooks/isMobile';
+
 interface MediaProps {
-    id: string;    url: string;    cardId: string;    type: string;    fileName: string | null;    description: string | null;
+    id: string;
+    url: string;
+    cardId: string;
+    type: string;
+    fileName: string | null;
+    description: string | null;
 }
 interface SliderProps {
     mediaList?: MediaProps[];
@@ -22,34 +28,47 @@ interface SliderProps {
     canEdit: boolean;
     sliderIndex: number;
     filteredMediaCount: number;
-    searchTerm?: string; // **NEW:** Add searchTerm prop
-    mediaUrl?: string; // **NEW:** Add searchTerm prop
+    searchTerm?: string;
+    mediaUrl?: string;
 }
 
 const Slider: React.FC<SliderProps> = ({
-    mediaList,    fullView,mediaUrl,
-    onCardIdChange,    onDescriptionChange,    onFileNameChange,    canEdit,    sliderIndex,    filteredMediaCount,    searchTerm, // **NEW:** Destructure searchTerm
+    mediaList,
+    fullView,
+    mediaUrl,
+    onCardIdChange,
+    onDescriptionChange,
+    onFileNameChange,
+    canEdit,
+    sliderIndex,
+    filteredMediaCount,
+    searchTerm,
 }) => {
     const [currentImage, setCurrentImage] = useState(0);
     const carouselRef = useRef<HTMLDivElement>(null);
     const [emblaApi, setEmblaApi] = useState<any | null>(null);
     const [error, setError] = useState<string | null>(null);
     const videoRefs = useRef<Map<string, HTMLVideoElement | null>>(new Map());
+    
+    // --- Description Editing State ---
     const [editingMediaId, setEditingMediaId] = useState<string | null>(null);
     const [tempDescription, setTempDescription] = useState<string>('');
     const descriptionDisplayRef = useRef<HTMLSpanElement>(null);
     const descriptionTextareaRef = useRef<HTMLTextAreaElement>(null);
+
+    // --- Filename Editing State ---
     const [editingFileNameId, setEditingFileNameId] = useState<string | null>(null);
     const [tempFileName, setTempFileName] = useState<string>('');
     const [originalFileExtension, setOriginalFileExtension] = useState<string | null>(null);
     const fileNameContainerRef = useRef<HTMLDivElement>(null);
-    const [copySuccess, setCopySuccess] = useState(false);
-    const urlsourceDrawing=`${window.location.origin}/d/`
 
+    // --- New State for Hover Visibility ---
+    const [isFileNameVisible, setIsFileNameVisible] = useState(false);
     
-   // const urlsourceDrawing=`${window.location.origin}/m/`
-    const isMobile =  useIsMobile();
-    // **NEW:** Utility function to highlight text
+    const [copySuccess, setCopySuccess] = useState(false);
+    const urlsourceDrawing = `${typeof window !== 'undefined' ? window.location.origin : ''}/d/`;
+    const isMobile = useIsMobile();
+
     const highlightText = (text: string | null, highlightTerms: string | undefined) => {
         if (!text || !highlightTerms) {
             return text;
@@ -60,7 +79,6 @@ const Slider: React.FC<SliderProps> = ({
         }
         let lastIndex = 0;
         const result: (string | JSX.Element)[] = [];
-        // Create a regex from all terms for efficient searching, escaping special characters
         const escapedTerms = terms.map(term => term.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'));
         const regex = new RegExp(`(${escapedTerms.join('|')})`, 'gi');
         text.replace(regex, (match, p1, offset) => {
@@ -75,13 +93,12 @@ const Slider: React.FC<SliderProps> = ({
             lastIndex = offset + match.length;
             return match; // Return match to `replace` for correct string replacement
         });
-
         if (lastIndex < text.length) {
             result.push(text.substring(lastIndex));
         }
         return <>{result}</>;
     };
-    // Preload images to catch errors early
+
     useEffect(() => {
         if (mediaList) {
             mediaList.forEach((item) => {
@@ -95,7 +112,7 @@ const Slider: React.FC<SliderProps> = ({
             });
         }
     }, [mediaList]);
-    // Auto-resize description textarea
+
     useEffect(() => {
         if (editingMediaId && descriptionTextareaRef.current) {
             const textarea = descriptionTextareaRef.current;
@@ -109,6 +126,7 @@ const Slider: React.FC<SliderProps> = ({
             }
         }
     }, [editingMediaId, tempDescription]);
+
     const renderMediaContent = (item: MediaProps) => {
         try {
             switch (item.type) {
@@ -178,6 +196,7 @@ const Slider: React.FC<SliderProps> = ({
             );
         }
     };
+
     const getFileIcon = (extension: string) => {
         switch (extension.toLowerCase()) {
             case 'pdf': return <BsFilePdfFill />;
@@ -187,19 +206,20 @@ const Slider: React.FC<SliderProps> = ({
             default: return null;
         }
     };
+
     const handleCarouselChange = (index: number) => {
         setCurrentImage(index);
-        // Reset editing states on slide change
         setEditingMediaId(null);
         setTempDescription('');
         setEditingFileNameId(null);
         setTempFileName('');
         setOriginalFileExtension(null);
-
+        // Reset visibility when moving slides
+        setIsFileNameVisible(false); 
+        
         if (mediaList && mediaList.length > 0) {
             const currentItem = mediaList[index];
             onCardIdChange(currentItem?.cardId || null, index);
-
             // Pause all videos except the current one
             videoRefs.current.forEach((videoElement, mediaId) => {
                 if (videoElement && mediaId !== currentItem.id && !videoElement.paused) {
@@ -210,6 +230,7 @@ const Slider: React.FC<SliderProps> = ({
             onCardIdChange(null, index);
         }
     };
+
     // Initialize carousel on component mount or mediaList change
     useEffect(() => {
         if (mediaList && mediaList.length > 0) {
@@ -234,7 +255,7 @@ const Slider: React.FC<SliderProps> = ({
             }
         });
     };
-    // --- Description Editing Handlers ---
+
     const handleEditClick = (e: React.MouseEvent, mediaId: string, currentDesc: string | null) => {
         e.stopPropagation();
         if (canEdit) {
@@ -242,14 +263,14 @@ const Slider: React.FC<SliderProps> = ({
             setTempDescription(currentDesc || '');
             setEditingFileNameId(null); // Ensure filename editing is off
             setOriginalFileExtension(null);
+            // Filename visibility remains true while editing
+            setIsFileNameVisible(true);
 
             if (descriptionDisplayRef.current && descriptionTextareaRef.current) {
                 setTimeout(() => {
                     const textarea = descriptionTextareaRef.current!;
-                    // Set min-height based on the displayed text height
                     textarea.style.minHeight = `${descriptionDisplayRef.current?.offsetHeight || 24}px`;
                     textarea.style.height = 'auto'; // Reset height
-                    // Set initial height to scrollHeight or max-height
                     if (textarea.scrollHeight > 180) { 
                         textarea.style.height = '180px';
                         textarea.style.overflowY = 'auto';
@@ -262,19 +283,24 @@ const Slider: React.FC<SliderProps> = ({
             }
         }
     };
+
     const handleSaveDescription = (e: React.MouseEvent, mediaId: string) => {
         e.stopPropagation();
         if (canEdit) {
             onDescriptionChange(mediaId, tempDescription);
             setEditingMediaId(null);
             setTempDescription('');
+            // Filename visibility will be handled by onMouseLeave now
         }
     };
+
     const handleCancelEdit = (e: React.MouseEvent) => {
         e.stopPropagation();
         setEditingMediaId(null);
         setTempDescription('');
+        // Filename visibility will be handled by onMouseLeave now
     };
+
     const handleDescriptionInputChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
         setTempDescription(e.target.value);
         const textarea = e.target;
@@ -287,6 +313,7 @@ const Slider: React.FC<SliderProps> = ({
             textarea.style.overflowY = 'hidden';
         }
     };
+
     const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>, mediaId: string) => {
         if (canEdit) {
             if (e.key === 'Enter' && !e.shiftKey) {
@@ -297,7 +324,7 @@ const Slider: React.FC<SliderProps> = ({
             }
         }
     };
-    // --- Filename Editing Handlers ---
+
     const handleEditFileNameClick = (e: React.MouseEvent, mediaId: string, currentFileName: string | null) => {
         e.stopPropagation();
         if (canEdit) {
@@ -316,8 +343,11 @@ const Slider: React.FC<SliderProps> = ({
             }
             setEditingMediaId(null); // Ensure description editing is off
             setTempDescription('');
+            // Filename visibility is automatically true while editing
+            setIsFileNameVisible(true); 
         }
     };
+
     const handleSaveFileName = (e: React.MouseEvent, mediaId: string) => {
         e.stopPropagation();
         if (canEdit) {
@@ -334,26 +364,27 @@ const Slider: React.FC<SliderProps> = ({
             if (newFileName === originalFileExtension && newFileName.startsWith('.')) {
                 newFileName = '';
             }
-
             onFileNameChange(mediaId, newFileName);
             setEditingFileNameId(null);
             setTempFileName('');
             setOriginalFileExtension(null);
+            // Filename visibility will be handled by onMouseLeave now
         }
     }
+
     const handleCancelFileNameEdit = (e: React.MouseEvent) => {
         e.stopPropagation();
         setEditingFileNameId(null);
         setTempFileName('');
         setOriginalFileExtension(null);
+        // Filename visibility will be handled by onMouseLeave now
     };
+
     const handleFileNameInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         let inputValue = e.target.value;
-
         if (originalFileExtension !== null && originalFileExtension.length > 0) {
             const lastDotIndex = inputValue.lastIndexOf('.');
             const currentExtension = lastDotIndex > -1 ? inputValue.substring(lastDotIndex) : '';
-
             if (lastDotIndex > -1 && currentExtension.toLowerCase() !== originalFileExtension.toLowerCase()) {
                 inputValue = inputValue.substring(0, lastDotIndex) + originalFileExtension;
             } else if (lastDotIndex === -1 && inputValue.length > 0 && originalFileExtension.startsWith('.')) {
@@ -362,6 +393,7 @@ const Slider: React.FC<SliderProps> = ({
         }
         setTempFileName(inputValue);
     };
+
     const handleFileNameKeyDown = (e: React.KeyboardEvent<HTMLInputElement>, mediaId: string) => {
         if (canEdit) {
             if (e.key === 'Enter') {
@@ -372,18 +404,25 @@ const Slider: React.FC<SliderProps> = ({
             }
         }
     };
-   // The component return structure:
+    
+    // --- New Handlers for Hover/Focus Control ---
+    const handleMediaAreaMouseEnter = () => {
+        if (canEdit && !editingFileNameId) {
+            setIsFileNameVisible(true);
+        }
+    };
+
+    const handleMediaAreaMouseLeave = () => {
+        if (!editingFileNameId) {
+            setIsFileNameVisible(false);
+        }
+    };
+    // --- End New Handlers ---
+
     return (
         <div className="w-full flex flex-col items-center justify-center p-4 min-h-[60vh] bg-gray-50 rounded-lg shadow-xl">
             {mediaList && mediaList?.length > 0 ? (
-                <div className={cn(
-                    "relative w-full max-w-[100vw] h-auto flex flex-col items-center justify-center"
-                )}>
-                    {/* <div className={cn(
-                                    "relative w-full max-w-[100vw] flex flex-col items-center justify-center",
-                                    // Setting height based on `fullView` prop (assuming `fullView` handles large screens)
-                                    fullView ? "h-[calc(100vh-50px)]" : "h-[600px] lg:h-[70vh]" // Example fixed/responsive height
-                                )}>                  */}
+                <div className={cn("relative w-full max-w-[100vw] h-auto flex flex-col items-center justify-center")}>
                     <Carousel
                         className="w-full h-full border border-gray-200 rounded-xl overflow-hidden bg-white shadow-lg"
                         ref={carouselRef}
@@ -395,24 +434,41 @@ const Slider: React.FC<SliderProps> = ({
                                 <CarouselItem
                                     key={item.id}
                                     className={cn(
-                                        "flex flex-col",
-                                        // Set a predictable max height for the carousel item itself
-                                        // We'll use h-full to take all vertical space of the parent flex container
-                                        "basis-full h-full" 
+                                        "flex flex-col basis-full h-full"
                                     )}
                                 >
-                                  <div className="relative w-full rounded-t-xl overflow-hidden bg-gray-100 flex flex-col items-center justify-center flex-grow">                                      
+                                    {/* * KEY CHANGE: 
+                                        * The div below now manages hover state (group) and triggers visibility.
+                                        * isFileNameVisible or editingFileNameId forces visibility.
+                                    */}
+                                    <div 
+                                        className="relative w-full rounded-t-xl overflow-hidden bg-gray-100 flex flex-col items-center justify-center flex-grow group"
+                                        onMouseEnter={handleMediaAreaMouseEnter}
+                                        onMouseLeave={handleMediaAreaMouseLeave}
+                                    >
                                         <div className="w-full h-full max-h-full flex items-center justify-center">
                                             {/* Inner container to apply the aspect ratio *only* to the media content */}
-                                            <div className="w-full aspect-video sm:aspect-square md:aspect-video lg:aspect-video relative"> 
+                                            <div className="w-full aspect-video sm:aspect-square md:aspect-video lg:aspect-video relative">
                                                 <div className="absolute inset-0 w-full h-full flex items-center justify-center">
                                                     {renderMediaContent(item)}
                                                 </div>
                                             </div>
-                                        </div> 
+                                        </div>
+
                                         {/* Filename editing/display (fixed to the bottom of the media area) */}
                                         {canEdit && (
-                                            <div ref={fileNameContainerRef} className={cn("absolute bottom-0 left-0 right-0 text-white text-sm p-2 overflow-hidden flex items-center justify-between", editingFileNameId === item.id ? "bg-black bg-opacity-70" : "bg-black bg-opacity-50")}>
+                                            <div 
+                                                ref={fileNameContainerRef} 
+                                                className={cn(
+                                                    "absolute bottom-0 left-0 right-0 text-white text-sm p-2 overflow-hidden flex items-center justify-between transition-opacity duration-300",
+                                                    // Base state: Hidden
+                                                    "opacity-0",
+                                                    // Hover/Focus state: Visible
+                                                    (isFileNameVisible || editingFileNameId === item.id) ? "opacity-100" : "",
+                                                    // Styling based on editing state
+                                                    editingFileNameId === item.id ? "bg-black bg-opacity-70" : "bg-black bg-opacity-50"
+                                                )}
+                                            >
                                                 {editingFileNameId === item.id ? (
                                                     <>
                                                         <input
@@ -442,8 +498,8 @@ const Slider: React.FC<SliderProps> = ({
                                                     </>
                                                 ) : (
                                                     <>
-                                                        <span 
-                                                            className="text-left flex-grow block overflow-y-auto pr-2 text-base " // <--- Added 'block' here
+                                                        <span
+                                                            className="text-left flex-grow block overflow-y-auto pr-2 text-base "
                                                         >
                                                             {highlightText(item.fileName, searchTerm)}
                                                         </span>
@@ -461,7 +517,8 @@ const Slider: React.FC<SliderProps> = ({
                                         <div className="absolute top-2 right-2 px-3 py-1 bg-black bg-opacity-60 text-white text-xs font-semibold rounded-full z-20">
                                             <span className="font-bold">{sliderIndex + 1}</span> / {filteredMediaCount}
                                         </div>
-                                    </div>                                   
+                                    </div>
+
                                     <div className="relative p-2 text-sm text-gray-700 bg-white rounded-b-xl flex flex-col mix-h-[50px] max-h-[150px] overflow-y-auto">
                                         {canEdit && editingMediaId === item.id ? (
                                             <div className="flex flex-col gap-1">
@@ -480,13 +537,10 @@ const Slider: React.FC<SliderProps> = ({
                                                                     if (urlsourceDrawing) {
                                                                         await navigator.clipboard.writeText(`${urlsourceDrawing}${item.id}`);
                                                                     }
-
                                                                     setCopySuccess(true);
-                                                                    // Use actual toast implementation if available
-                                                                    toast.success(`${urlsourceDrawing}${item.id} copied to clipboard!`); 
+                                                                    toast.success(`${urlsourceDrawing}${item.id} copied to clipboard!`);
                                                                     setTimeout(() => setCopySuccess(false), 2000);
                                                                 } catch (error) {
-                                                                    // toast.error("Failed to copy link.");
                                                                     console.error("Failed to copy:", error);
                                                                 }
                                                             }}
@@ -506,13 +560,10 @@ const Slider: React.FC<SliderProps> = ({
                                                                     if (mediaUrl) {
                                                                         await navigator.clipboard.writeText(`${mediaUrl}`);
                                                                     }
-
                                                                     setCopySuccess(true);
-                                                                    // Use actual toast implementation if available
-                                                                    toast.success(`${mediaUrl} copied to clipboard!`); 
+                                                                    toast.success(`${mediaUrl} copied to clipboard!`);
                                                                     setTimeout(() => setCopySuccess(false), 2000);
                                                                 } catch (error) {
-                                                                    // toast.error("Failed to copy link.");
                                                                     console.error("Failed to copy:", error);
                                                                 }
                                                             }}
@@ -562,85 +613,64 @@ const Slider: React.FC<SliderProps> = ({
                                                                     if (urlsourceDrawing) {
                                                                         await navigator.clipboard.writeText(`${urlsourceDrawing}${item.id}`);
                                                                     }
-
                                                                     setCopySuccess(true);
-                                                                    // Use actual toast implementation if available
-                                                                    toast.success(`${urlsourceDrawing}${item.id} copied to clipboard!`); 
+                                                                    toast.success(`${urlsourceDrawing}${item.id} copied to clipboard!`);
                                                                     setTimeout(() => setCopySuccess(false), 2000);
                                                                 } catch (error) {
-                                                                    // toast.error("Failed to copy link.");
-                                                                    console.error("Failed to copy:", error);
-                                                                }
-                                                            }}
-                                                        />
-                                                    </Hint>}
-
-                                                     {mediaUrl && <Hint
-                                                        sideOffset={10}
-                                                        description={copySuccess ? "Link copied!" : `Click to copy current url `}
-                                                    >
-                                                        <Copy
-                                                            className={cn(
-                                                                "h-5 w-5 text-gray-500 hover:text-blue-600 dark:text-gray-400 dark:hover:text-green-300 cursor-pointer transition",
-                                                                copySuccess && "text-green-600 dark:text-green-300"
-                                                            )}
-                                                            onClick={async () => {
-                                                                try {
-                                                                    if (mediaUrl) {
-                                                                        await navigator.clipboard.writeText(`${mediaUrl}`);
-                                                                    }
-
-                                                                    setCopySuccess(true);
-                                                                    // Use actual toast implementation if available
-                                                                    toast.success(`${mediaUrl} copied to clipboard!`); 
-                                                                    setTimeout(() => setCopySuccess(false), 2000);
-                                                                } catch (error) {
-                                                                    // toast.error("Failed to copy link.");
                                                                     console.error("Failed to copy:", error);
                                                                 }
                                                             }}
                                                         />
                                                     </Hint>}
                                                 </div>
-                                                <div className="flex justify-between items-start h-full"> {/* Changed items-center to items-start for better text alignment */}
-                                                    <span
-                                                        ref={descriptionDisplayRef} // Keep the ref here for height calculation
-                                                        className="text-left flex-grow block overflow-y-auto pr-2 text-base text-black"
-                                                        // Removed the line break and added overflow-y-auto here
-                                                    >
-                                                        {highlightText(item.description, searchTerm)}
-                                                        {item.description === null || item.description === "" ? (
-                                                            <span className="italic text-gray-500">No description...</span>
-                                                        ) : null}
-                                                    </span>
-                                                    {canEdit && (
-                                                        <button
-                                                            onClick={(e) => handleEditClick(e, item.id, item.description)}
-                                                            className="ml-2 p-1 rounded-full bg-gray-200 hover:bg-gray-300 text-gray-600 flex-shrink-0"
-                                                            title="Edit Description"
-                                                        >
-                                                            <PencilIcon className="h-4 w-4" />
-                                                        </button>
-                                                    )}
-                                                </div>
+                                                {/* Display area for description */}                                              
+                                                 <div className="flex justify-between items-start h-full"> {/* Changed items-center to items-start for better text alignment */}
+                                                     <span
+                                                       
+                                                         className="text-left flex-grow block overflow-y-auto pr-2 text-base text-black"
+                                                     >
+                                                         {highlightText(item.description, searchTerm)}
+                                                         {item.description === null || item.description === "" ? (
+                                                             <span className="italic text-gray-500">No description...</span>
+                                                         ) : null}
+                                                     </span>
+                                                     {canEdit && (
+                                                         <button
+                                                             onClick={(e) => handleEditClick(e, item.id, item.description)}
+                                                             className="ml-2 p-1 rounded-full bg-gray-200 hover:bg-gray-300 text-gray-600 flex-shrink-0"
+                                                             title="Edit Description"
+                                                         >
+                                                             <PencilIcon className="h-4 w-4" />
+                                                         </button>
+                                                     )}
+                                                 </div>                                             
                                             </div>
                                         )}
                                     </div>
                                 </CarouselItem>
                             ))}
                         </CarouselContent>
-                        <CarouselPrevious className="left-2 top-1/3 md:top-1/2" />
-                        <CarouselNext className="right-2 top-1/3 md:top-1/2" />
-                        
+                        {/* Carousel Navigation buttons (optional, based on your full Carousel component setup) */}
+                        <CarouselPrevious className="absolute left-4 top-1/2 -translate-y-1/2 z-30" />
+                        <CarouselNext className="absolute right-4 top-1/2 -translate-y-1/2 z-30" />
                     </Carousel>
+
+                    <div className="flex w-full justify-center items-center mt-2 text-xs text-gray-500">
+                        Media: <span className="font-semibold mx-1">{currentImage + 1}</span> of <span className="font-semibold mx-1">{mediaList.length}</span> (Filtered: <span className="font-semibold mx-1">{filteredMediaCount}</span>)
+                    </div>
                 </div>
             ) : (
-                <div className="text-center text-gray-500 h-full flex flex-col items-center justify-center">
-                    <AlertCircle className="h-8 w-8 mb-2" />
-                    No media available.
+                <div className="flex items-center justify-center w-full h-full min-h-[50vh] text-gray-500">
+                    No media found.
+                </div>
+            )}
+            {error && (
+                <div className="mt-4 p-3 bg-red-100 border border-red-400 text-red-700 rounded w-full">
+                    {error}
                 </div>
             )}
         </div>
     );
 };
+
 export default Slider;
