@@ -3,21 +3,62 @@
 import React, { useState, useCallback, useEffect, useRef } from 'react';
 import { DragDropContext, Droppable, Draggable, DropResult } from '@hello-pangea/dnd';
 import { toast } from 'sonner';
-import { cn } from '@/lib/utils'; // Assuming cn utility is available
-// import { CardImage } from '@prisma/client'; // Assuming CardImage is a valid type
+
+// NOTE: Assuming this utility is correctly configured for your Tailwind setup
+import { cn } from '@/lib/utils'; 
 
 
+// --- Dummy Imports and Types for context (REPLACE WITH YOUR ACTUAL IMPORTS) ---
 interface CardImage { id: string; fileName: string | null; type: string; order: number; cardId: string; }
 
 interface CardImageReorderListProps {
     initialCardImages: CardImage[];
     cardId: string;
-    onReorderSuccess: () => void; // Callback to refresh parent data
+    onReorderSuccess: () => void;
 }
 
-// --- Helper Functions (unchanged) ---
+// --- Icons and Constants ---
+
+const AUTO_SAVE_DELAY = 15000; 
+const HIGHLIGHT_DURATION = 5000; 
+
+// Helper component to render a contextual icon based on type
+const TypeIcon: React.FC<{ type: string }> = ({ type }) => {
+    const iconClass = "w-5 h-5 text-gray-700 dark:text-gray-300 flex-shrink-0";
+    
+    // Check type (assuming 'IMAGE', 'VIDEO', or defaulting to 'FILE')
+    const normalizedType = type.toUpperCase();
+
+    if (normalizedType.includes('VIDEO')) {
+        // Video Icon (Play/Film reel)
+        return (
+            <svg className={iconClass} fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18V6a2 2 0 012-2h8a2 2 0 012 2v12a2 2 0 01-2 2H7a2 2 0 01-2-2z"></path>
+            </svg>
+        );
+    } 
+    
+    if (normalizedType.includes('IMAGE') || normalizedType.includes('PICTURE')) {
+        // Image Icon (Picture/Mountain)
+        return (
+            <svg className={iconClass} fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+            </svg>
+        );
+    }
+
+    // Default to File Icon
+    return (
+        <svg className={iconClass} fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+        </svg>
+    );
+}
+
+// --- Helper Functions (unchanged logic) ---
 
 const updateCardImageOrderInDB = async (cardId: string, reorderedCardImages: { id: string; newOrder: number }[]) => {
+    // Placeholder for your actual API call
     console.log(`[API CALL] Updating order for card ${cardId}:`, reorderedCardImages);
     return new Promise((resolve, reject) => {
         setTimeout(() => {
@@ -40,11 +81,8 @@ const calculateNewSequentialOrderValues = (
     return reorderedDataForDB;
 };
 
-// --- Component Definition ---
 
-const AUTO_SAVE_DELAY = 15000; // 15 seconds
-// ✨ UPDATED: Highlight duration changed to 5 seconds
-const HIGHLIGHT_DURATION = 5000; 
+// --- Component Definition ---
 
 const CardImageReorderList: React.FC<CardImageReorderListProps> = ({ initialCardImages, cardId, onReorderSuccess }) => {
     const [localCardImages, setLocalCardImages] = useState<CardImage[]>([]);
@@ -82,7 +120,6 @@ const CardImageReorderList: React.FC<CardImageReorderListProps> = ({ initialCard
         clearTimersAndResetStates();
     }, [initialCardImages, clearTimersAndResetStates]);
 
-
     useEffect(() => {
         return () => {
             clearTimersAndResetStates();
@@ -118,18 +155,23 @@ const CardImageReorderList: React.FC<CardImageReorderListProps> = ({ initialCard
         }
 
         const draggedItem = localCardImages[result.source.index];
-        const movedItem = draggedItem; // Item is moved or returned to its original spot
+        const movedItem = draggedItem;
+
+        // Function to apply temporary highlight
+        const applyHighlight = (itemId: string) => {
+            setHighlightedItemId(itemId);
+            if (highlightTimeoutRef.current) {
+                clearTimeout(highlightTimeoutRef.current);
+            }
+            highlightTimeoutRef.current = setTimeout(() => {
+                setHighlightedItemId(null);
+            }, HIGHLIGHT_DURATION);
+        };
+
 
         if (result.source.index === result.destination.index) {
             if (movedItem) {
-                setHighlightedItemId(movedItem.id);
-                // Clear any existing highlight timeout
-                if (highlightTimeoutRef.current) {
-                    clearTimeout(highlightTimeoutRef.current);
-                }
-                highlightTimeoutRef.current = setTimeout(() => {
-                    setHighlightedItemId(null);
-                }, HIGHLIGHT_DURATION);
+                applyHighlight(movedItem.id);
             }
             return;
         }
@@ -144,10 +186,7 @@ const CardImageReorderList: React.FC<CardImageReorderListProps> = ({ initialCard
 
         // Highlight the dropped item for 5 seconds
         if (movedCardImage) {
-            setHighlightedItemId(movedCardImage.id);
-            highlightTimeoutRef.current = setTimeout(() => {
-                setHighlightedItemId(null);
-            }, HIGHLIGHT_DURATION);
+            applyHighlight(movedCardImage.id);
         }
 
         // Restart countdown for auto-save
@@ -213,7 +252,7 @@ const CardImageReorderList: React.FC<CardImageReorderListProps> = ({ initialCard
                 </span>
             </h3>
 
-            {/* Save Changes Indicator and Buttons (unchanged) */}
+            {/* Save Changes Indicator and Buttons */}
             {hasChanges && (
                 <div className="mb-4 flex flex-col sm:flex-row items-center justify-between p-2 rounded-md bg-blue-100 dark:bg-blue-900 border border-blue-200 dark:border-blue-700">
                     <p className="text-sm font-medium text-blue-800 dark:text-blue-200 mb-2 sm:mb-0">
@@ -266,10 +305,9 @@ const CardImageReorderList: React.FC<CardImageReorderListProps> = ({ initialCard
                                         {(provided, snapshot) => (
                                             <li
                                                 ref={provided.innerRef}
-                                                // Only spread draggableProps here (not dragHandleProps)
                                                 {...provided.draggableProps} 
                                                 className={cn(
-                                                    "p-3 sm:p-4 border rounded-lg bg-white dark:bg-gray-700 shadow-sm flex items-center justify-start gap-4", // Added gap-4
+                                                    "p-3 sm:p-4 border rounded-lg bg-white dark:bg-gray-700 shadow-sm flex items-center justify-start gap-4",
                                                     "transition-all duration-200 ease-in-out",
                                                     "hover:bg-gray-50 dark:hover:bg-gray-600",
                                                     
@@ -288,29 +326,30 @@ const CardImageReorderList: React.FC<CardImageReorderListProps> = ({ initialCard
                                                 )}
                                                 style={provided.draggableProps.style}
                                             >
-                                                {/* ✨ NEW: Dedicated Drag Handle */}
+                                                {/* Drag Handle now includes the Type Icon */}
                                                 <div 
-                                                    // Spread the dragHandleProps onto a specific element
                                                     {...provided.dragHandleProps} 
                                                     className={cn(
-                                                        "p-2 rounded-md transition-colors",
+                                                        "p-2 rounded-md transition-colors flex items-center gap-2", 
                                                         "bg-gray-200 dark:bg-gray-600 hover:bg-gray-300 dark:hover:bg-gray-500",
                                                         "cursor-grab flex-shrink-0"
                                                     )}
+                                                    title={`Drag to reorder - ${cardImage.type}`}
                                                 >
-                                                    {/* Hamburger/Three-dot icon for drag handle */}
-                                                    <svg className="w-5 h-5 text-gray-700 dark:text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                                    {/* Contextual Icon based on Type */}
+                                                    <TypeIcon type={cardImage.type} />
+                                                    
+                                                    {/* Small Drag Handle Icon (Kept for clarity) */}
+                                                    <svg className="w-4 h-4 text-gray-700 dark:text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6h16M4 12h16m-7 6h7"></path>
                                                     </svg>
                                                 </div>
 
-                                                {/* Card Image Content */}
-                                                <div className="flex items-center justify-between w-full">
-                                                    <span className="font-medium text-sm sm:text-base text-gray-800 dark:text-gray-200 truncate pr-2">
+                                                {/* Card Image Content Container (Ensures truncation works) */}
+                                                <div className="flex items-center justify-start **min-w-0 w-full**">
+                                                    {/* Filename: uses flex-grow and truncate to handle long names correctly on mobile */}
+                                                    <span className="font-medium text-sm sm:text-base text-gray-800 dark:text-gray-200 **truncate flex-grow**">
                                                         {cardImage.fileName || `Card Image ${index + 1}`}
-                                                    </span>
-                                                    <span className="text-xs sm:text-sm text-gray-500 dark:text-gray-400 flex-shrink-0">
-                                                        Type: {cardImage.type}
                                                     </span>
                                                 </div>
                                             </li>
