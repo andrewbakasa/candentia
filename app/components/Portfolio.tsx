@@ -5,6 +5,7 @@ import React, { useState } from 'react';
 import Link from 'next/link';
 // Assuming getPortifolios is used elsewhere to fetch data, but not directly in this client component
 // import getPortifolios from '../actions/getPortFolios'; 
+import useIsMobile from '../hooks/isMobile';
 
 // Import Draft.js components
 import { CompositeDecorator, Editor, EditorState, ContentState, convertFromRaw } from "draft-js";
@@ -49,7 +50,11 @@ const Portfolio: React.FC<PortfolioProps> = ({ portfolioItems }) => {
   // For a read-only display without specific custom decorators, it might not be strictly necessary,
   // but we keep it for consistency with the original code structure.
   const [compositeDecorator] = useState(new CompositeDecorator([]));
-
+  const isMobile = useIsMobile();
+   // Limit to only two jobs on mobile and four on desktop for the initial display
+    const max_ = isMobile ? 2 : 4;
+    const visiblePortifolios= portfolioItems.slice(0, max_);
+    const hasMorPortifios = portfolioItems.length > max_; 
   return (
     <>
       <div className="my-4 py-4" id="portfolio">
@@ -63,7 +68,7 @@ const Portfolio: React.FC<PortfolioProps> = ({ portfolioItems }) => {
         <div className="px-4" data-aos="fade-down" data-aos-delay="600">
           <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-5">
             {/* Iterate over portfolioItems and render each item */}
-            {portfolioItems.map((item) => (
+            {visiblePortifolios.map((item) => (
               <div
                 key={item.id} // Use a unique key for each item, essential for React lists
                 className="bg-white transition-all ease-in-out duration-400 overflow-hidden text-gray-700 hover:scale-105 rounded-lg shadow-2xl p-3 flex flex-col justify-between"
@@ -109,6 +114,31 @@ const Portfolio: React.FC<PortfolioProps> = ({ portfolioItems }) => {
             ))}
           </div>
         </div>
+
+         {hasMorPortifios && (
+                            <div className="mt-12 text-center">
+                                <Link
+                                    href="/projectslist"
+                                    className="text-blue-600 hover:text-blue-800 font-semibold text-lg inline-flex items-center group"
+                                >
+                                    View All Portifolios
+                                    <svg
+                                        className="w-5 h-5 ml-2 transition-transform duration-200 group-hover:translate-x-1"
+                                        fill="none"
+                                        stroke="currentColor"
+                                        viewBox="0 0 24 24"
+                                        xmlns="http://www.w3.org/2000/svg"
+                                    >
+                                        <path
+                                            strokeLinecap="round"
+                                            strokeLinejoin="round"
+                                            strokeWidth={2}
+                                            d="M9 5l7 7-7 7"
+                                        />
+                                    </svg>
+                                </Link>
+                            </div>
+                        )}
       </div>
     </>
   );

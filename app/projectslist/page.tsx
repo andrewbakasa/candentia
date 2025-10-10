@@ -1,23 +1,21 @@
 
-import EmptyState from "../../app/components/EmptyState";
 import ClientOnly from "../../app/components/ClientOnly";
-
 import getCurrentUser from "../../app/actions/getCurrentUser";
-import ProjectsClient from "./JobsClient";
-import getJobOpenings from "../actions/getJobOpenings";
+import getPortifolios from "../actions/getPortFolios";
+import PortifolioClient from "./portifolioClient";
 
 
 const ProjectsPage = async () => {
   const currentUser = await getCurrentUser();
-  let jobs:any
-   jobs = await getJobOpenings();
+  let portifolios:any
+  portifolios = await getPortifolios();
    //console.log('From DB',jobs)
 
   
   return (
     <ClientOnly>
-      <ProjectsClient
-        jobs={jobs}
+      <PortifolioClient
+        portifolios={portifolios}
         currentUser={currentUser}
       />
     </ClientOnly>

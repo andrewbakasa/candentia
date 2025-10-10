@@ -86,9 +86,10 @@ export default async function getPortifolios() {
         include: {
           lists: {
             include: {
-              cards:{
-                include: { tags: true ,
-                   
+               cards:{
+                include: { 
+                  tags: true ,                  
+                  cardImages:true,
                   taggedUsers: {
                           include: {
                           user: {
@@ -101,22 +102,22 @@ export default async function getPortifolios() {
                               },
                           },
                           },
-                      },
-                  comments:{
-                        include: {
-                          user: {
-                              select: {
-                              //  Include fields you want from the User model
-                              id: true,
-                              name: true,
-                              email: true,
-                              //  ... other fields
-                              },
-                          },
-                        }
-                    }
-              
-                  },
+                   },
+                 comments:{
+                          include: {
+                            user: {
+                                select: {
+                                //  Include fields you want from the User model
+                                id: true,
+                                name: true,
+                                email: true,
+                                //  ... other fields
+                                },
+                            },
+                          }
+                  }
+          
+                },
               }
             },
           },
@@ -172,7 +173,7 @@ export default async function getPortifolios() {
   );
    
    // console.log("safeBoards", safeBoards)
-
+   //get the first board off
     let cardListLocal = getCardsFromSafeBoardT(safeBoards[0])
     return cardListLocal
   } catch (error: any) {

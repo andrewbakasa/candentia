@@ -2,7 +2,7 @@
 'use client';
 import { useCallback, useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { SafeUser } from "../types";
+import { SafeBoard, SafeUser } from "../types";
 import Heading from "../components/Heading";
 import Search from "../components/Search";
 import Container from "../components/Container";
@@ -15,21 +15,61 @@ import { toast } from "sonner";
 import { useAction } from "@/hooks/use-action";
 import { updatePagSize } from "@/actions/update-user-pagesize";
 import { createTag } from "@/actions/create-tag";
-import { PageView } from "./_components/page-view";
 import { Career, JobApplication } from "@prisma/client";
-import { JobContainer } from "../job/[jobId]/_components/job-container";
+// Import Draft.js components
+import { CompositeDecorator, Editor, EditorState, ContentState, convertFromRaw } from "draft-js";
+import Link from 'next/link';
+//import { SafeBoard } from "@/types";
+
+import { Prisma } from '@prisma/client';
+
+
+const getTextFromEditor3 = (item: any): ContentState => {
+  if (item && item.description) {
+    try {
+      // Attempt to parse as Draft.js raw content
+      const rawContent = JSON.parse(item.description);
+      // Check if it looks like Draft.js raw content (has blocks and entityMap)
+      if (rawContent.blocks && Array.isArray(rawContent.blocks)) {
+        return convertFromRaw(rawContent);
+      }
+    } catch (e) {
+      // If parsing fails or it's not raw content, treat as plain text
+      // console.warn("Description is not valid Draft.js raw content, treating as plain text:", e);
+    }
+    // Fallback: treat as plain text
+    return ContentState.createFromText(item.description);
+  }
+  return ContentState.createFromText(''); // Return empty content if no description
+};
+
+ // Utility to extract plain text from Draft.js content or treat as string
+    const getPlainText = (description: string | null | undefined): string => {
+        if (!description) {
+            return '';
+        }
+        try {
+            // Check if it's Draft.js raw JSON
+            const rawContent = JSON.parse(description);
+            if (rawContent.blocks && Array.isArray(rawContent.blocks)) {
+                // Join block text to get the plain text content
+                return rawContent.blocks.map((block: any) => block.text).join(' ');
+            }
+        } catch (e) {
+            // Not valid JSON or not Draft.js content, treat as plain text
+        }
+        return description;
+    };
 
 // Corrected interface to include jobApplication array on Career
 interface JobsClientProps {
-    jobs: (Career & { jobApplication: JobApplication[] })[];
+    portifolios: any[];
     currentUser?: SafeUser | null;
 }
 
-type CareerWithApplication = Career & { jobApplication: JobApplication[] };
 
-
-const JobsClient: React.FC<JobsClientProps> = ({
-    jobs,
+const PortifolioClient: React.FC<JobsClientProps> = ({
+    portifolios,
     currentUser,
 }) => {
     const router = useRouter();
@@ -42,22 +82,13 @@ const JobsClient: React.FC<JobsClientProps> = ({
     const [itemOffset, setItemOffset] = useState(0);
 
     const isMobile = useIsMobile();
-    const [fList, setFList] = useState(jobs); // fList now holds the filtered/searched jobs
-    const [fListPage, setFListPage] = useState<CareerWithApplication[]>([]); // Current page's jobs
+    const [fList, setFList] = useState(portifolios); // fList now holds the filtered/searched jobs
+    const [fListPage, setFListPage] = useState<any[]>([]); // Current page's jobs
 
     const [uniqueJobId, setUniqueJobId] = useState('');
 
-    // Handle toggling a unique job view
-    const handleToggleSelectUniqueJob = (id: string) => {
-        if (uniqueJobId === id) { // If clicking the same job, deselect it
-            setUniqueJobId('');
-        } else { // Select a new unique job
-            setUniqueJobId(id);
-            setSearchTerm(''); // Clear search term when a unique job is selected
-        }
-    };
-
     const [category, setCategory] = useState<string>(''); // This state is declared but not used in the filter logic below
+    const [compositeDecorator] = useState(new CompositeDecorator([]));
 
     const { execute, fieldErrors } = useAction(updatePagSize, {
         onSuccess: (data) => {
@@ -83,40 +114,50 @@ const JobsClient: React.FC<JobsClientProps> = ({
 
     // Effect to filter and search jobs
     useEffect(() => {
-        let currentJobs = jobs;
+        let currentPortifolios = portifolios;
 
         if (uniqueJobId.length > 0) {
-            currentJobs = currentJobs.filter(x => x.id === uniqueJobId.trim());
+            currentPortifolios = currentPortifolios.filter(x => x.id === uniqueJobId.trim());
         }
 
-        if (searchTerm !== "") {
-            const searchTermsArray = searchTerm.split(';').filter(Boolean).map(s => s.trim().toLowerCase());
+       if (searchTerm !== "") {
+            // Split search terms by ';' for OR logic (any term must match)
+            const searchPhrases = searchTerm.split(';').filter(Boolean).map(s => s.trim().toLowerCase());
 
-            currentJobs = currentJobs.filter((job) => {
-                return searchTermsArray.some(phrase => {
-                    const individualTerms = phrase.split(',').map(t => t.trim());
-                    return individualTerms.every(term =>
-                        (job.title || '').toLowerCase().includes(term) ||
-                        (job.listingTitle || '').toLowerCase().includes(term) ||
-                        (job.shortDescription || '').toLowerCase().includes(term) ||
-                        job.fullDescription.toLowerCase().includes(term) ||
-                        job.slug.toLowerCase().includes(term) ||
-                        job.location.toLowerCase().includes(term) || // Added location to search
-                        job.type.toLowerCase().includes(term) || // Added type to search
-                        job.department.toLowerCase().includes(term) // Added department to search
-                    );
+            currentPortifolios = currentPortifolios.filter((list) => {
+                // Check if ANY search phrase matches ANY part of the board data structure
+                return searchPhrases.some((phrase) => {
+                    // Split the phrase by ',' for AND logic (all sub-terms must match)
+                    const subTerms = phrase.split(',').filter(Boolean).map(t => t.trim());
+
+                    // Function to check if ALL sub-terms are included in a given text
+                    const matchesAllSubTerms = (text: string | null | undefined): boolean => {
+                        if (!text) return false;
+                        const lowerText = text.toLowerCase();
+                        return subTerms.every(term => lowerText.includes(term));
+                    };
+
+                    // A board matches if:
+                    // 1. Board Title matches ALL sub-terms
+                    if (matchesAllSubTerms(list.title)) {
+                        return true;
+                    }
+
+                     if (matchesAllSubTerms(list.description)) {
+                        return true;
+                    }
+
+                   
+
+                    return false; // No match for this search phrase
                 });
             });
         }
-        // The 'category' state is not used in the filtering logic here.
-        // If category filtering is intended, you would add logic like:
-        // if (category !== '') {
-        //   currentJobs = currentJobs.filter(job => job.category === category);
-        // }
+        console.log("currentPortifolios", currentPortifolios)
 
-        setFList(currentJobs);
+        setFList(currentPortifolios);
         setItemOffset(0); // Reset pagination to the first page after filtering/searching
-    }, [jobs, uniqueJobId, searchTerm]); // Removed `category` from dependencies as it's not used in the filter logic.
+    }, [portifolios, uniqueJobId, searchTerm]); // Removed `category` from dependencies as it's not used in the filter logic.
 
     const handleSearch = (value: string) => { // Changed event to value directly, assuming Search component passes value
         setSearchTerm(value);
@@ -157,7 +198,7 @@ const JobsClient: React.FC<JobsClientProps> = ({
         const newOffset = (event.selected * pageSize) % fList.length;
         setItemOffset(newOffset);
     };
-    const calculatePageSlice = (list: CareerWithApplication[], offset: number, size: number): CareerWithApplication[] => {
+    const calculatePageSlice = (list: any[], offset: number, size: number): any[] => {
         if (!list || !size || offset === undefined) { // Ensure all necessary parameters are defined
             return []; // Return empty array if data is missing
         }
@@ -225,8 +266,8 @@ const JobsClient: React.FC<JobsClientProps> = ({
         return <div className="flex justify-center gap-3">{buttons}</div>;
     };
 
-    let title_ = `Jobs ${fList.length} of ${jobs.length}`
-    let subtitle_ = "Career you might follow" //"Manage your projects and teams online"
+    let title_ = `Project ${fList.length} of ${portifolios.length}`
+    let subtitle_ = "Portifolio you might follow" //"Manage your projects and teams online"
 
     return (
         <Container >
@@ -248,7 +289,7 @@ const JobsClient: React.FC<JobsClientProps> = ({
                             setSearchTerm={handleSearch}
                             searchTerm={searchTerm}
                             debounce={1500}
-                            placeholderText="Search jobs..."
+                            placeholderText="Search projects..."
                         />
                     </div>
                 </div>
@@ -268,28 +309,54 @@ const JobsClient: React.FC<JobsClientProps> = ({
                                     isMobile ? 'grid-cols-1' : 'grid-cols-1' // Still single column
                                 )}
                             >
-                                {fListPage.map((job, index) => (
-                                    <div
-                                        className={cn(
-                                            "mb-4", // Add some margin bottom for spacing between cards
-                                            "h-full flex flex-col", // Ensure consistent height for each job item
-                                            uniqueJobId.length > 0 ? "cursor-default" : "cursor-pointer", // Cursor based on view mode
-                                            "rounded-lg overflow-hidden shadow-md hover:shadow-xl transition-shadow duration-300" // Card-like styling for each job item
-                                        )}
-                                        key={job.id}
-                                        onClick={uniqueJobId.length === 0 ? () => handleToggleSelectUniqueJob(job.id) : undefined} // Only clickable if not in unique view
-                                    >
-                                        <JobContainer
-                                            job={job}
-                                            jobId={job.id}
-                                            numberOfApplicants={job.jobApplication.length} // Correctly access jobApplication.length
-                                        />
-                                    </div>
+                                {fListPage.map((item, index) => (
+                                   <div
+                                                   key={item.id} // Use a unique key for each item, essential for React lists
+                                                   className="bg-white transition-all ease-in-out duration-400 overflow-hidden text-gray-700 hover:scale-105 rounded-lg shadow-2xl p-3 flex flex-col justify-between"
+                                                 >
+                                                   <div className="m-2 text-justify text-sm flex-grow flex flex-col">
+                                                     <h4 className="font-semibold my-4 text-lg md:text-xl text-center mb-4 h-12">
+                                                       {item.title}
+                                                     </h4>
+                                                     {/* Container for the Editor with fixed height and overflow hidden to limit content */}
+                                                     <div className="relative h-32 overflow-hidden mb-4">
+                                                      <Editor
+                                                         // Create EditorState from the content generated by getTextFromEditor3
+                                                         editorState={EditorState.createWithContent(getTextFromEditor3(item), compositeDecorator)}
+                                                         readOnly // Ensure the editor is not editable
+                                                         onChange={() => {}} // Dummy function for onChange, required by Draft.js Editor
+                                                       />
+                                                       {/* Gradient overlay to visually indicate truncated content */}
+                                                       <div className="absolute bottom-0 left-0 right-0 h-10 bg-gradient-to-t from-white to-transparent"></div>
+                                                     </div>
+                                   
+                                                     <div className="flex justify-center mt-auto"> {/* mt-auto pushes the button to the bottom */}
+                                                       <Link
+                                                         href={`/m/${item.id}`} // Link to a detail page for the full content
+                                                         className="w-full inline-flex items-center justify-center px-6 py-3 bg-yellow-300 hover:bg-yellow-600 text-blue-700 rounded-md font-medium shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+                                                       >
+                                                         Learn More {/* Generic call to action for more details */}
+                                                         <svg
+                                                           className="w-4 h-4 ml-2" // Increased left margin for better spacing
+                                                           xmlns="http://www.w3.org/2000/svg"
+                                                           viewBox="0 0 20 20"
+                                                           fill="currentColor"
+                                                         >
+                                                           <path
+                                                             fillRule="evenodd"
+                                                             d="M10.293 3.293a1 1 0 011.414 0l6 6a1 1 0 010 1.414l-6 6a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-4.293-4.293a1 1 0 010-1.414z"
+                                                             clipRule="evenodd"
+                                                           ></path>
+                                                         </svg>
+                                                       </Link>
+                                                     </div>
+                                                   </div>
+                                                 </div>
                                 ))}
                             </div>
                         ) : (
                             <div className="col-span-full text-center py-16 min-h-[calc(100vh-200px)] flex items-center justify-center bg-gray-50 rounded-lg shadow-inner border border-gray-200"> {/* Improved styling for no jobs message */}
-                                <p className='text-red-500 text-3xl font-semibold'>No jobs found matching your criteria.</p>
+                                <p className='text-red-500 text-3xl font-semibold'>No projects found matching your criteria.</p>
                             </div>
                         )
                     }
@@ -311,4 +378,4 @@ const JobsClient: React.FC<JobsClientProps> = ({
     );
 }
 
-export default JobsClient;
+export default PortifolioClient;
