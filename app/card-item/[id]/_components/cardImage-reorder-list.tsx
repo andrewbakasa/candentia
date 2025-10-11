@@ -118,14 +118,14 @@ const CardImageReorderList: React.FC<CardImageReorderListProps> = ({ initialCard
     width < 100 ? 4 : 
     width < 200 ? 6 : 
     width < 300 ? 8 : 
-    width < 400 ? 12 : 
-    width < 450 ? 15 : 
-    width < 500 ? 20 : 
-    width < 600 ? 25 : 
-    width < 700 ? 30 : 
-    width < 800 ? 35 : 
-    width < 900 ? 40 : 
-    width < 1200 ? 50 : 
+    width < 400 ? 15 : 
+    width < 450 ? 20 : 
+    width < 500 ? 25 : 
+    width < 600 ? 30 : 
+    width < 700 ? 35 : 
+    width < 800 ? 40 : 
+    width < 900 ? 45 : 
+    width < 1200 ? 60 : 
     70;
     // let maxLength;
     // if (width < 100) {
