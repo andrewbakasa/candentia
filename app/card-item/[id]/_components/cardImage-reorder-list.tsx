@@ -5,7 +5,8 @@ import { DragDropContext, Droppable, Draggable, DropResult } from '@hello-pangea
 import { toast } from 'sonner';
 
 // NOTE: Assuming this utility is correctly configured for your Tailwind setup
-import { cn } from '@/lib/utils'; 
+import { cn, truncateString } from '@/lib/utils'; 
+import { useWindowSize } from 'usehooks-ts';
 
 
 // --- Dummy Imports and Types for context (REPLACE WITH YOUR ACTUAL IMPORTS) ---
@@ -57,18 +58,35 @@ const TypeIcon: React.FC<{ type: string }> = ({ type }) => {
 
 // --- Helper Functions (unchanged logic) ---
 
+// const updateCardImageOrderInDB = async (cardId: string, reorderedCardImages: { id: string; newOrder: number }[]) => {
+//     // Placeholder for your actual API call
+//     console.log(`[API CALL] Updating order for card ${cardId}:`, reorderedCardImages);
+//     return new Promise((resolve, reject) => {
+//         setTimeout(() => {
+//             if (Math.random() > 0.1) { 
+//                 resolve({ success: true });
+//             } else {
+//                 reject({ message: 'Simulated Network Error' });
+//             }
+//         }, 1000);
+//     });
+// };
 const updateCardImageOrderInDB = async (cardId: string, reorderedCardImages: { id: string; newOrder: number }[]) => {
-    // Placeholder for your actual API call
-    console.log(`[API CALL] Updating order for card ${cardId}:`, reorderedCardImages);
-    return new Promise((resolve, reject) => {
-        setTimeout(() => {
-            if (Math.random() > 0.1) { 
-                resolve({ success: true });
-            } else {
-                reject({ message: 'Simulated Network Error' });
-            }
-        }, 1000);
+    // This URL should point to your actual backend API route for reordering
+    // Example: /api/cardImages/[cardId]/reorder-cardImages
+    const response = await fetch(`/api/cardImages/${cardId}/reorder-cardImages`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ reorderedCardImages }),
     });
+
+    if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || 'Failed to update card image order in database.');
+    }
+    return response.json();
 };
 
 const calculateNewSequentialOrderValues = (
@@ -94,6 +112,48 @@ const CardImageReorderList: React.FC<CardImageReorderListProps> = ({ initialCard
     const saveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
     const countdownIntervalRef = useRef<NodeJS.Timeout | null>(null);
     const highlightTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+    const { width } = useWindowSize();
+   // console.log("width", width)
+    const maxLength = 
+    width < 100 ? 4 : 
+    width < 200 ? 6 : 
+    width < 300 ? 8 : 
+    width < 400 ? 12 : 
+    width < 450 ? 15 : 
+    width < 500 ? 20 : 
+    width < 600 ? 25 : 
+    width < 700 ? 30 : 
+    width < 800 ? 35 : 
+    width < 900 ? 40 : 
+    width < 1200 ? 50 : 
+    70;
+    // let maxLength;
+    // if (width < 100) {
+    //     maxLength = 4
+    //  } else if (width <  200) {
+    //     maxLength =6; 
+    //  } else if (width <  300) {  
+    //      maxLength = 8  
+    // } else if (width <  400) {
+    //     maxLength = 12; 
+    //  } else if (width <  450) {
+    //     maxLength = 15;  
+    //    } else if (width <  500) {
+    //     maxLength = 20;     
+    // } else if (width <  600) {
+    //     maxLength = 25;   
+    // } else if (width <  700) {
+    //     maxLength = 30;    
+    // } else if (width <  800) {
+    //     maxLength = 35; 
+    // } else if (width <  900) {
+    //     maxLength = 40; 
+    // } else if (width <  1200) {
+    //     maxLength = 50;
+    // } else {
+    //     // Default for small screens (sm) and smaller
+    //     maxLength = 70;
+    // }
 
     const clearTimersAndResetStates = useCallback(() => {
         if (saveTimeoutRef.current) {
@@ -348,8 +408,8 @@ const CardImageReorderList: React.FC<CardImageReorderListProps> = ({ initialCard
                                                 {/* Card Image Content Container (Ensures truncation works) */}
                                                 <div className="flex items-center justify-start **min-w-0 w-full**">
                                                     {/* Filename: uses flex-grow and truncate to handle long names correctly on mobile */}
-                                                    <span className="font-medium text-sm sm:text-base text-gray-800 dark:text-gray-200 **truncate flex-grow**">
-                                                        {cardImage.fileName || `Card Image ${index + 1}`}
+                                                  <span className="font-medium text-sm sm:text-base text-gray-800 dark:text-gray-200 truncate flex-grow">
+                                                        {cardImage.fileName ? truncateString(cardImage.fileName, maxLength) : `Card Image ${index + 1}`}
                                                     </span>
                                                 </div>
                                             </li>
