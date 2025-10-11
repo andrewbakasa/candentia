@@ -113,20 +113,24 @@ const CardImageReorderList: React.FC<CardImageReorderListProps> = ({ initialCard
     const countdownIntervalRef = useRef<NodeJS.Timeout | null>(null);
     const highlightTimeoutRef = useRef<NodeJS.Timeout | null>(null);
     const { width } = useWindowSize();
-   // console.log("width", width)
+   console.log("width", width)
     const maxLength = 
     width < 100 ? 4 : 
-    width < 200 ? 6 : 
+    width < 200 ? 8 : 
     width < 300 ? 8 : 
+    width < 350 ? 10 : 
     width < 400 ? 15 : 
-    width < 450 ? 20 : 
-    width < 500 ? 25 : 
-    width < 600 ? 30 : 
-    width < 700 ? 35 : 
-    width < 800 ? 40 : 
-    width < 900 ? 45 : 
-    width < 1200 ? 60 : 
-    70;
+    width < 450 ? 23 : 
+    width < 500 ? 28 : 
+    width < 550 ? 32 : 
+    width < 600 ? 34 : 
+    width < 650 ? 37 : 
+    width < 700 ? 38 : 
+    width < 750 ? 45 : 
+    width < 800 ? 50 : 
+    width < 900 ? 60 : 
+    width < 1200 ? 70 : 
+    100;
     // let maxLength;
     // if (width < 100) {
     //     maxLength = 4
