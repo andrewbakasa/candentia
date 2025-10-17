@@ -19,9 +19,6 @@ import { Career, JobApplication } from "@prisma/client";
 // Import Draft.js components
 import { CompositeDecorator, Editor, EditorState, ContentState, convertFromRaw } from "draft-js";
 import Link from 'next/link';
-//import { SafeBoard } from "@/types";
-
-import { Prisma } from '@prisma/client';
 
 
 const getTextFromEditor3 = (item: any): ContentState => {
@@ -330,40 +327,41 @@ const PortifolioClient: React.FC<JobsClientProps> = ({
                                                        <div className="absolute bottom-0 left-0 right-0 h-10 bg-gradient-to-t from-white to-transparent"></div>
                                                      </div>
                                    
-                                                     <div className="flex justify-center mt-auto"> {/* mt-auto pushes the button to the bottom */}
-                                                       <Link
-                                                         href={`/m/${item.id}`} // Link to a detail page for the full content
-                                                         className="w-full inline-flex items-center justify-between px-6 py-3 bg-yellow-300 hover:bg-yellow-600 text-blue-700 rounded-md font-medium shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
-                                                       > <span className="flex items-center gap-1">
-                                                         Learn More {/* Generic call to action for more details */}
-                                        </span>
-                                        {/* Display view count with a subtle eye icon, pushing it to the right */}
-                                        {item.viewCount && item.viewCount > 0 && (
-                                            <span className="flex items-center text-sm font-normal text-gray-700">
-                                                {/* Eye icon for views (from Heroicons/Lucide equivalent) */}
-                                                <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                                                    <path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                                                    <path strokeLinecap="round" strokeLinejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.477 0 8.268 2.943 9.542 7-1.274 4.057-5.065 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-                                                </svg>
-                                                {item.viewCount} views
-                                            </span>
-                                        )}
-                                        {/* Display view count with a subtle eye icon, pushing it to the right */}
-                                      
-                                                         <svg
-                                                           className="w-4 h-4 ml-2" // Increased left margin for better spacing
-                                                           xmlns="http://www.w3.org/2000/svg"
-                                                           viewBox="0 0 20 20"
-                                                           fill="currentColor"
-                                                         >
-                                                           <path
-                                                             fillRule="evenodd"
-                                                             d="M10.293 3.293a1 1 0 011.414 0l6 6a1 1 0 010 1.414l-6 6a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-4.293-4.293a1 1 0 010-1.414z"
-                                                             clipRule="evenodd"
-                                                           ></path>
-                                                         </svg>
-                                                       </Link>
-                                                     </div>
+                                                    
+                                                    <div className="flex flex-col mt-auto"> {/* Use flex-col to stack button and view count */}
+                                                        {/* NEW: View Count Display */}
+                                                        {(item.viewCount > 0) && (
+                                                        <div className="flex justify-end items-center text-xs text-gray-500 mb-2">
+                                                            {/* Eye icon (View Icon) */}
+                                                            <svg className="w-4 h-4 mr-1 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                                                            </svg>
+                                                            {item.viewCount} views
+                                                        </div>
+                                                        )}
+                                                        
+                                                        <Link
+                                                        href={`/m/${item.id}`} // Link to a detail page for the full content
+                                                        className="w-full inline-flex items-center justify-center px-6 py-3 bg-yellow-300 hover:bg-yellow-600 text-blue-700 rounded-md font-medium shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+                                                        >
+                                                        Learn More 
+                                                        <svg
+                                                            className="w-4 h-4 ml-2" // Increased left margin for better spacing
+                                                            xmlns="http://www.w3.org/2000/svg"
+                                                            viewBox="0 0 20 20"
+                                                            fill="currentColor"
+                                                        >
+                                                            <path
+                                                            fillRule="evenodd"
+                                                            d="M10.293 3.293a1 1 0 011.414 0l6 6a1 1 0 010 1.414l-6 6a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-4.293-4.293a1 1 0 010-1.414z"
+                                                            clipRule="evenodd"
+                                                            ></path>
+                                                        </svg>
+                                                        </Link>
+                                                    </div>
+
+
                                                    </div>
                                                  </div>
                                 ))}
