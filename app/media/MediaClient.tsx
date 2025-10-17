@@ -33,6 +33,7 @@ import { updateCardMediaDescription } from '@/app/actions/update-cardMedia-descr
 import { updateCardMediaFileName } from '@/app/actions/update-cardMedia-filename';
 import { AiFillDashboard, AiFillPicture } from "react-icons/ai";
 import { useMediaModal } from "@/hooks/use-media-modal";
+import { updateCardMediaViewCount } from "@/app/actions/update-cardMedia-ViewCount";
 
 // Define the structure of the list item for better type safety
 interface MediaListItem {
@@ -93,12 +94,26 @@ const MediaClient: React.FC<MediaClientProps> = ({ currentUser, tagNames, userNa
    const mediaModal = useMediaModal();
     // --- QUERY FOR MEDIA LIST (This is the list we will update the cache for) ---
     const mediaListQueryKey = ["cardImageSearch", searchFromUrl, category];
-  const handleViewCountUpdateChange = (mediaId: string) => {
+
+
+       // useAction hook for updating card image description
+    const { execute: updateCardImageViewCountMutation } = useAction(updateCardMediaViewCount, {
+        onSuccess: (data) => {
+          // 2. CORRECT REFRESH: Invalidate the specific query key
+          queryClient.invalidateQueries({ queryKey: ["cardImage", data.cardId] }); 
+          //toast.success("Description updated successfully!");
+        },
+        onError: (error) => {
+          toast.error(error);
+        },
+      });
+    
+    const handleViewCountUpdateChange = (mediaId: string) => {
       if (!mediaId) {
        // toast.error("Media ID is missing for viewCount update.");
         return;
       }
-     // updateCardImageViewCountMutation({ id: mediaId});
+      updateCardImageViewCountMutation({ id: mediaId});
     };
     const { data: searchCardWithImageList, status: searchStatus, error: searchError, isFetching: isSearchFetching } = useQuery({
         queryKey: mediaListQueryKey,
