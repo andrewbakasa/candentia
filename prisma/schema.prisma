@@ -167,6 +167,7 @@ model CardImage {
   order       Float    @default(0.0) // Using Float for flexible reordering (LexoRank/Fractional Indexing)
 
   viewCount  Int? @default(0)
+  shareCount  Int? @default(0)
   @@index([cardId])
 }
 model CardToUser {

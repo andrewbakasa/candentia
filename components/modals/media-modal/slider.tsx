@@ -10,6 +10,7 @@ import { PencilIcon, CheckIcon, XIcon } from 'lucide-react';
 import { Hint } from '@/components/hint';
 import { toast } from 'sonner';
 import useIsMobile from '@/app/hooks/isMobile';
+import { AiFillEye, AiOutlineShareAlt } from 'react-icons/ai';
 
 interface MediaProps {
     id: string;
@@ -18,6 +19,8 @@ interface MediaProps {
     type: string;
     fileName: string | null;
     description: string | null;
+    viewCount:number;
+    shareCount: number;
 }
 interface SliderProps {
     mediaList?: MediaProps[];
@@ -569,6 +572,8 @@ const Slider: React.FC<SliderProps> = ({
                                                             }}
                                                         />
                                                     </Hint>}
+                                                    {(item.viewCount > 0) && (<span> <AiFillEye  size={24} /> {item.viewCount}</span>)}
+                                                    {(item.shareCount > 0) && (<span><AiOutlineShareAlt  size={24} />{item.shareCount}</span>)}
                                                 </div>
                                                 <textarea
                                                     ref={descriptionTextareaRef}
@@ -622,6 +627,8 @@ const Slider: React.FC<SliderProps> = ({
                                                             }}
                                                         />
                                                     </Hint>}
+                                                    {(item.viewCount > 0) && (<span> <AiFillEye  size={24} /> {item.viewCount}</span>)}
+                                                    {(item.shareCount > 0) && (<span><AiOutlineShareAlt  size={24} />{item.shareCount}</span>)}
                                                 </div>
                                                 {/* Display area for description */}                                              
                                                  <div className="flex justify-between items-start h-full"> {/* Changed items-center to items-start for better text alignment */}

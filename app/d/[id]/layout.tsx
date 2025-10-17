@@ -85,7 +85,7 @@ export async function generateMetadata({
 
    if (card?.viewCount) {
       // Update existing BoardView with increment of 1
-      const updatedBoardView = await prisma.cardImage.update({
+      const updateView = await prisma.cardImage.update({
         where: {
           id: card.id,
         },
@@ -103,6 +103,28 @@ export async function generateMetadata({
         },
       });
     }
+
+  if (card?.shareCount) {
+      // Update existing BoardView with increment of 1
+      const updateView = await prisma.cardImage.update({
+        where: {
+          id: card.id,
+        },
+        data: {
+          shareCount: { increment: 1 }, // Increment by 1
+        },
+      });
+    }else{
+        const updatedView = await prisma.cardImage.update({
+        where: {
+          id: params.id,
+        },
+        data: {
+          shareCount:  1 
+        },
+      });
+    }
+  
 
  return { title: card?.fileName?.substring(0, 30) || card?.description?.substring(0, 30) || "Card" }
 }
