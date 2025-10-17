@@ -258,8 +258,26 @@ const MediaClient: React.FC<MediaClientProps> = ({
               category={category}
               tagNames={tagNames}
             />
-            <div className="flex flex-row gap-0 shadow-md justify-end">
-              
+            <div className="flex flex-row gap-2 shadow-md justify-end">
+                {/* View */}
+                  {(currentCardData?.card.viewCount != null && Number(currentCardData?.card.viewCount) > 0) && (
+                       <Hint
+                        sideOffset={20}
+                        description={`Number of views is ${currentCardData?.card.viewCount}`}
+                      >
+                          <span className="relative inline-flex items-center justify-center p-1 cursor-pointer hover:text-blue-600 transition">
+                              {/* Count (Badge) - Adjusted positioning to be more "on top" */}
+                              <span className="absolute top-[-10px] right-[-5px] bg-red-500 text-white text-[10px] font-semibold h-5 w-auto min-w-[20px] flex items-center justify-center rounded-full p-0.5 z-10">
+                                  {currentCardData?.card.viewCount}
+                              </span>
+                              {/* Eye Icon for Views */}
+                              <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
+                                  <path d="M10 12a2 2 0 100-4 2 2 0 000 4z" />
+                                  <path fillRule="evenodd" d="M.458 10C1.732 5.943 5.522 3 10 3s8.268 2.943 9.542 7c-1.274 4.057-5.064 7-9.542 7S1.732 14.057.458 10zM14 10a4 4 0 11-8 0 4 4 0 018 0z" clipRule="evenodd" />
+                              </svg>
+                          </span>
+                        </Hint>
+                      )}
                 <Button
                   onClick={ () => mediaModal.onOpen(currentCardData?.card.id, currentCardData?.boardId, currentUser, true)}
                   className="h-auto w-10 justify-end text-muted-foreground text-[11px] hover:text-sm"

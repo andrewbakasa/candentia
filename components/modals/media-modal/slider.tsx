@@ -584,7 +584,7 @@ const Slider: React.FC<SliderProps> = ({
                                                                     {item.viewCount}
                                                                 </span>
                                                                 {/* Eye Icon for Views */}
-                                                                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                                                                <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
                                                                     <path d="M10 12a2 2 0 100-4 2 2 0 000 4z" />
                                                                     <path fillRule="evenodd" d="M.458 10C1.732 5.943 5.522 3 10 3s8.268 2.943 9.542 7c-1.274 4.057-5.064 7-9.542 7S1.732 14.057.458 10zM14 10a4 4 0 11-8 0 4 4 0 018 0z" clipRule="evenodd" />
                                                                 </svg>
@@ -602,7 +602,7 @@ const Slider: React.FC<SliderProps> = ({
                                                                     {item.shareCount}
                                                                 </span>
                                                                 {/* Share Icon */}
-                                                                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                                                                <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
                                                                     <path d="M15 8a3 3 0 10-2.977-2.63l-4.94 2.47a3 3 0 100 4.314l4.94 2.47a3 3 0 10.835-1.668L10.825 11h9.175v-2h-9.175l.182-.091z" />
                                                                 </svg>
                                                             </span>
@@ -638,7 +638,7 @@ const Slider: React.FC<SliderProps> = ({
                                             </div>
                                         ) : (
                                             <div className="flex flex-col gap-1 h-full"> {/* Added h-full here */}
-                                                <div className='flex flex-row items-center'>
+                                                <div className='flex flex-row gap-2 items-center'>
                                                     {urlsourceDrawing && <Hint
                                                         sideOffset={2}
                                                         description={copySuccess ? "Link copied!" : `Click to copy link to current-item`}
@@ -674,7 +674,7 @@ const Slider: React.FC<SliderProps> = ({
                                                                     {item.viewCount}
                                                                 </span>
                                                                 {/* Eye Icon for Views */}
-                                                                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                                                                <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
                                                                     <path d="M10 12a2 2 0 100-4 2 2 0 000 4z" />
                                                                     <path fillRule="evenodd" d="M.458 10C1.732 5.943 5.522 3 10 3s8.268 2.943 9.542 7c-1.274 4.057-5.064 7-9.542 7S1.732 14.057.458 10zM14 10a4 4 0 11-8 0 4 4 0 018 0z" clipRule="evenodd" />
                                                                 </svg>
@@ -692,7 +692,7 @@ const Slider: React.FC<SliderProps> = ({
                                                                     {item.shareCount}
                                                                 </span>
                                                                 {/* Share Icon */}
-                                                                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                                                                <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
                                                                     <path d="M15 8a3 3 0 10-2.977-2.63l-4.94 2.47a3 3 0 100 4.314l4.94 2.47a3 3 0 10.835-1.668L10.825 11h9.175v-2h-9.175l.182-.091z" />
                                                                 </svg>
                                                             </span>
