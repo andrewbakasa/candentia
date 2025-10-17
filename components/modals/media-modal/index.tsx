@@ -19,6 +19,8 @@ import CardImageReorderList from '@/app/card-item/[id]/_components/cardImage-reo
 import { updateCardMediaDescription } from '@/app/actions/update-cardMedia-descriptions';
 import { updateCardMediaFileName } from '@/app/actions/update-cardMedia-filename';
 
+import { updateCardMediaViewCount } from "@/app/actions/update-cardMedia-ViewCount";
+
 export const MediaModal = () => {
     // Hooks to get modal state and data
     const id = useMediaModal((state) => state.id || null);
@@ -57,6 +59,26 @@ export const MediaModal = () => {
             toast.error(error);
         },
     });
+
+      // useAction hook for updating card image description
+      const { execute: updateCardImageViewCountMutation } = useAction(updateCardMediaViewCount, {
+        onSuccess: (data) => {
+          // 2. CORRECT REFRESH: Invalidate the specific query key
+          queryClient.invalidateQueries({ queryKey: ["cardImage", data.cardId] }); 
+          //toast.success("Description updated successfully!");
+        },
+        onError: (error) => {
+          toast.error(error);
+        },
+      });
+
+     const handleViewCountUpdateChange = (mediaId: string) => {
+        if (!mediaId) {
+          toast.error("Media ID is missing for viewCount update.");
+          return;
+        }
+        updateCardImageViewCountMutation({ id: mediaId});
+      };
 
     // useAction hook for updating card image filename
     const { execute: updateCardImageFilenameMutation } = useAction(updateCardMediaFileName, {
@@ -213,6 +235,7 @@ export const MediaModal = () => {
                                     canEdit={canEdit} // Pass canEdit prop
                                     sliderIndex={sliderIndex} // Pass sliderIndex
                                     filteredMediaCount={filteredMediaCount} // Pass the actual count
+                                    onViewCountUpdate={handleViewCountUpdateChange }                                
                                 />
                                 {/* REMOVED THE REDUNDANT MEDIA COUNT DISPLAY HERE as it's now handled inside Slider */}
                             </>
