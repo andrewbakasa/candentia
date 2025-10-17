@@ -31,16 +31,16 @@ const handler = async (data: InputType): Promise<ReturnType> => {
     });
 
     if (existingBoardView) {
-      // Update existing BoardView with increment of 1
-      const updatedBoardView = await prisma.boardView.update({
-        where: {
-          id: existingBoardView.id,
-        },
-        data: {
-          viewCount: { increment: 1 }, // Increment by 1
-          updatedAt: new Date(),
-        },
-      });
+    // Update existing BoardView with increment of 1
+    const updatedBoardView = await prisma.boardView.update({
+      where: {
+        id: existingBoardView.id,
+      },
+      data: {
+        viewCount: { increment: 1 }, // Increment by 1
+        updatedAt: new Date(),
+      },
+    });
       return { data: updatedBoardView };
     } else {
       // Create new BoardView with initial viewCount of 1

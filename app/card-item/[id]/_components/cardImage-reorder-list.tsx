@@ -113,7 +113,7 @@ const CardImageReorderList: React.FC<CardImageReorderListProps> = ({ initialCard
     const countdownIntervalRef = useRef<NodeJS.Timeout | null>(null);
     const highlightTimeoutRef = useRef<NodeJS.Timeout | null>(null);
     const { width } = useWindowSize();
-   console.log("width", width)
+//    console.log("width", width)
     const maxLength = 
     width < 100 ? 4 : 
     width < 200 ? 8 : 

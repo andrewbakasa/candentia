@@ -144,7 +144,7 @@ model Card {
   comments   Comment[]
   cardImages   CardImage[] // Store URLs or IDs of the images
 
-  
+  viewCount  Int? @default(0)
   @@index([listId])
   @@index([userId])
   @@index([tagIDs])
@@ -166,6 +166,7 @@ model CardImage {
   createdAt   DateTime? @default(now())
   order       Float    @default(0.0) // Using Float for flexible reordering (LexoRank/Fractional Indexing)
 
+  viewCount  Int? @default(0)
   @@index([cardId])
 }
 model CardToUser {
