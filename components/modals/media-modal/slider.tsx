@@ -19,8 +19,8 @@ interface MediaProps {
     type: string;
     fileName: string | null;
     description: string | null;
-    viewCount:number;
-    shareCount: number;
+    viewCount:number| null;
+    shareCount: number| null;
 }
 interface SliderProps {
     mediaList?: MediaProps[];
