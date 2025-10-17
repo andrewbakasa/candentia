@@ -9,11 +9,11 @@ interface UpdateCardMediaaViewCount {
 }
 
 export const updateCardMediaViewCount = async (data: UpdateCardMediaaViewCount) => {
-     const currentUser = await getCurrentUser();
+    //  const currentUser = await getCurrentUser();
 
-    if (!currentUser) {
-        return { error: "Unauthorized" };
-    }
+    // if (!currentUser) {
+    //     return { error: "Unauthorized" };
+    // }
 
     const { id } = data;
 
