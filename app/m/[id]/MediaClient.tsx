@@ -26,6 +26,7 @@ import { updateCardMediaDescription } from '@/app/actions/update-cardMedia-descr
 import { updateCardMediaFileName } from '@/app/actions/update-cardMedia-filename';
 import { CardImage } from "@prisma/client";
 import { fetcher } from "@/lib/fetcher";
+import { updateCardMediaViewCount } from "@/app/actions/update-cardMedia-ViewCount";
 
 // Assuming 'any' structure for media is consistent with CardImage extended with card/board info
 interface MediaItem {
@@ -100,6 +101,19 @@ const MediaClient: React.FC<MediaClientProps> = ({
     },
   });
 
+    // useAction hook for updating card image description
+  const { execute: updateCardImageViewCountMutation } = useAction(updateCardMediaViewCount, {
+    onSuccess: (data) => {
+      // 2. CORRECT REFRESH: Invalidate the specific query key
+      queryClient.invalidateQueries({ queryKey: ["cardImage", data.cardId] }); 
+      //toast.success("Description updated successfully!");
+    },
+    onError: (error) => {
+      toast.error(error);
+    },
+  });
+
+
   // useAction hook for updating card image filename
   const { execute: updateCardImageFilenameMutation } = useAction(updateCardMediaFileName, {
     onSuccess: (data) => {
@@ -119,6 +133,14 @@ const MediaClient: React.FC<MediaClientProps> = ({
       return;
     }
     updateCardImageDescriptionMutation({ id: mediaId, description: newDescription });
+  };
+
+  const handleViewCountUpdateChange = (mediaId: string) => {
+    if (!mediaId) {
+      toast.error("Media ID is missing for viewCount update.");
+      return;
+    }
+    updateCardImageViewCountMutation({ id: mediaId});
   };
 
   // Handler for filename change
@@ -184,6 +206,7 @@ const MediaClient: React.FC<MediaClientProps> = ({
                     fullView={true}
                     onCardIdChange={handleCardIdChange} 
                     onDescriptionChange={handleDescriptionChange}
+                    onViewCountUpdate={handleViewCountUpdateChange}
                     onFileNameChange={handleFileNameChange}
                     canEdit={canEdit}   
                     sliderIndex={sliderIndex}

@@ -58,6 +58,14 @@ const MediaClient: React.FC<MediaClientProps> = ({ currentUser, tagNames, userNa
     setSliderIndex(index);
   };
 
+    const handleViewCountUpdateChange = (mediaId: string) => {
+      if (!mediaId) {
+       // toast.error("Media ID is missing for viewCount update.");
+        return;
+      }
+     // updateCardImageViewCountMutation({ id: mediaId});
+    };
+
   useEffect(() => {
    
     //console.log("useEffect 1 ran",  sliderIndex); // Debugging log
@@ -113,18 +121,18 @@ const MediaClient: React.FC<MediaClientProps> = ({ currentUser, tagNames, userNa
                 <Slider
                     mediaList={cardMedia || []}
                     fullView={true}
-                    onCardIdChange={handleCardIdChange} 
+                    onCardIdChange={handleCardIdChange}
                     onDescriptionChange={function (mediaId: string, newDescription: string | null): void {
                       throw new Error("Function not implemented.");
                     } }
-                     onFileNameChange={function (mediaId: string, newFileName: string | null): void {
+                    onFileNameChange={function (mediaId: string, newFileName: string | null): void {
                       throw new Error("Function not implemented.");
-                    } } 
-                    canEdit={false}   
+                    } }
+                    canEdit={false}
                     sliderIndex={sliderIndex} // Pass sliderIndex
                     filteredMediaCount={filteredMediaCount} // Pass the actual count
-                    
-                    />
+                    onViewCountUpdate={handleViewCountUpdateChange}  
+                />
         )}
               <Separator />
               {/* <p className="text-sm text-blue-300 mr-auto">media {sliderIndex+1} of  [{filteredMediaCount}] </p> */}

@@ -10,7 +10,6 @@ import { PencilIcon, CheckIcon, XIcon } from 'lucide-react';
 import { Hint } from '@/components/hint';
 import { toast } from 'sonner';
 import useIsMobile from '@/app/hooks/isMobile';
-import { AiFillEye, AiOutlineShareAlt } from 'react-icons/ai';
 
 interface MediaProps {
     id: string;
@@ -28,6 +27,7 @@ interface SliderProps {
     onCardIdChange: (cardId: string | null, index: number) => void;
     onDescriptionChange: (mediaId: string, newDescription: string | null) => void;
     onFileNameChange: (mediaId: string, newFileName: string | null) => void;
+    onViewCountUpdate: (mediaId: string) => void;
     canEdit: boolean;
     sliderIndex: number;
     filteredMediaCount: number;
@@ -41,6 +41,7 @@ const Slider: React.FC<SliderProps> = ({
     mediaUrl,
     onCardIdChange,
     onDescriptionChange,
+    onViewCountUpdate,
     onFileNameChange,
     canEdit,
     sliderIndex,
@@ -64,6 +65,10 @@ const Slider: React.FC<SliderProps> = ({
     const [tempFileName, setTempFileName] = useState<string>('');
     const [originalFileExtension, setOriginalFileExtension] = useState<string | null>(null);
     const fileNameContainerRef = useRef<HTMLDivElement>(null);
+    
+    // --- NEW STATE for View Count Control ---
+    // Tracks the ID of the media item for which the view count has already been triggered.
+    const [viewUpdatedMediaId, setViewUpdatedMediaId] = useState<string | null>(null);
 
     // --- New State for Hover Visibility ---
     const [isFileNameVisible, setIsFileNameVisible] = useState(false);
@@ -223,6 +228,17 @@ const Slider: React.FC<SliderProps> = ({
         if (mediaList && mediaList.length > 0) {
             const currentItem = mediaList[index];
             onCardIdChange(currentItem?.cardId || null, index);
+
+            // Trigger view count update logic on slide change
+            // This sets the ID, which will be picked up by the dedicated view update effect
+            if (currentItem?.id) {
+                // IMPORTANT: Resetting the viewUpdatedMediaId here allows the dedicated effect 
+                // to run for the new slide ID. We set it to null or a temporary value.
+                // However, the check in the *new* effect is more robust.
+                // For now, let the new effect handle the ID check.
+                //const currentMedia = mediaList?.[currentImage];
+                //const mediaId = currentMedia?.id;
+            }
             // Pause all videos except the current one
             videoRefs.current.forEach((videoElement, mediaId) => {
                 if (videoElement && mediaId !== currentItem.id && !videoElement.paused) {
@@ -245,7 +261,25 @@ const Slider: React.FC<SliderProps> = ({
                 handleCarouselChange(0);
             }
         }
+       
     }, [mediaList, emblaApi, sliderIndex]); // Added emblaApi and sliderIndex to dependencies
+
+    // 2. NEW useEffect to Handle View Count Update
+    useEffect(() => {
+        // Check for current media item based on the index set by handleCarouselChange
+        const currentMedia = mediaList?.[currentImage];
+        const mediaId = currentMedia?.id;
+
+        // Corrected Logic: Only call onViewCountUpdate if:
+        // 1. We have a valid media ID.
+        // 2. The media ID is different from the one for which the view has already been updated.
+        if (mediaId && mediaId !== viewUpdatedMediaId) {
+            // get current media id... **CORRECTED HERE**
+            onViewCountUpdate(mediaId); 
+            setViewUpdatedMediaId(mediaId); // Mark this ID as updated
+        }
+
+    }, [currentImage, mediaList, onViewCountUpdate, viewUpdatedMediaId]); // Dependencies: Current index, list, update function, and tracking state
 
     const onEmblaInit = (api: any) => {
         setEmblaApi(api);
@@ -296,6 +330,14 @@ const Slider: React.FC<SliderProps> = ({
             // Filename visibility will be handled by onMouseLeave now
         }
     };
+
+    // const handleUpdateViewCount = (e: React.MouseEvent, mediaId: string) => {
+    //     e.stopPropagation();
+    //     onViewCountUpdate(mediaId);
+        
+    // };
+
+    
 
     const handleCancelEdit = (e: React.MouseEvent) => {
         e.stopPropagation();
