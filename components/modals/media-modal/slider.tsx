@@ -572,8 +572,43 @@ const Slider: React.FC<SliderProps> = ({
                                                             }}
                                                         />
                                                     </Hint>}
-                                                    {(item.viewCount > 0) && (<span> <AiFillEye  size={24} /> {item.viewCount}</span>)}
-                                                    {(item.shareCount > 0) && (<span><AiOutlineShareAlt  size={24} />{item.shareCount}</span>)}
+                                                    <div className="flex items-center space-x-4 text-gray-500 text-sm mt-3">
+                                                        {/* CONDITIONS CHECKED:
+                                                            1. item.viewCount must exist (not null/undefined)
+                                                            2. Number(item.viewCount) must be > 0
+                                                        */}
+                                                        {(item.viewCount != null && Number(item.viewCount) > 0) && (
+                                                            <span className="relative inline-flex items-center justify-center p-1 cursor-pointer hover:text-blue-600 transition">
+                                                                {/* Count (Badge) - Adjusted positioning to be more "on top" */}
+                                                                <span className="absolute top-[-10px] right-[-5px] bg-red-500 text-white text-xs font-semibold h-5 w-auto min-w-[20px] flex items-center justify-center rounded-full p-0.5 z-10">
+                                                                    {item.viewCount}
+                                                                </span>
+                                                                {/* Eye Icon for Views */}
+                                                                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                                                                    <path d="M10 12a2 2 0 100-4 2 2 0 000 4z" />
+                                                                    <path fillRule="evenodd" d="M.458 10C1.732 5.943 5.522 3 10 3s8.268 2.943 9.542 7c-1.274 4.057-5.064 7-9.542 7S1.732 14.057.458 10zM14 10a4 4 0 11-8 0 4 4 0 018 0z" clipRule="evenodd" />
+                                                                </svg>
+                                                            </span>
+                                                        )}
+
+                                                        {/* CONDITIONS CHECKED:
+                                                            1. item.shareCount must exist (not null/undefined)
+                                                            2. Number(item.shareCount) must be > 0
+                                                        */}
+                                                        {(item.shareCount != null && Number(item.shareCount) > 0) && (
+                                                            <span className="relative inline-flex items-center justify-center p-1 cursor-pointer hover:text-blue-600 transition">
+                                                                {/* Count (Badge) - Adjusted positioning to be more "on top" */}
+                                                                <span className="absolute top-[-10px] right-[-5px] bg-green-500 text-white text-xs font-semibold h-5 w-auto min-w-[20px] flex items-center justify-center rounded-full p-0.5 z-10">
+                                                                    {item.shareCount}
+                                                                </span>
+                                                                {/* Share Icon */}
+                                                                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                                                                    <path d="M15 8a3 3 0 10-2.977-2.63l-4.94 2.47a3 3 0 100 4.314l4.94 2.47a3 3 0 10.835-1.668L10.825 11h9.175v-2h-9.175l.182-.091z" />
+                                                                </svg>
+                                                            </span>
+                                                        )}
+                                                    </div>
+                                                  
                                                 </div>
                                                 <textarea
                                                     ref={descriptionTextareaRef}
@@ -627,8 +662,43 @@ const Slider: React.FC<SliderProps> = ({
                                                             }}
                                                         />
                                                     </Hint>}
-                                                    {(item.viewCount > 0) && (<span> <AiFillEye  size={24} /> {item.viewCount}</span>)}
-                                                    {(item.shareCount > 0) && (<span><AiOutlineShareAlt  size={24} />{item.shareCount}</span>)}
+                                                    <div className="flex items-center space-x-4 text-gray-500 text-sm mt-3">
+                                                        {/* CONDITIONS CHECKED:
+                                                            1. item.viewCount must exist (not null/undefined)
+                                                            2. Number(item.viewCount) must be > 0
+                                                        */}
+                                                        {(item.viewCount != null && Number(item.viewCount) > 0) && (
+                                                            <span className="relative inline-flex items-center justify-center p-1 cursor-pointer hover:text-blue-600 transition">
+                                                                {/* Count (Badge) - Adjusted positioning to be more "on top" */}
+                                                                <span className="absolute top-[-10px] right-[-5px] bg-red-500 text-white text-xs font-semibold h-5 w-auto min-w-[20px] flex items-center justify-center rounded-full p-0.5 z-10">
+                                                                    {item.viewCount}
+                                                                </span>
+                                                                {/* Eye Icon for Views */}
+                                                                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                                                                    <path d="M10 12a2 2 0 100-4 2 2 0 000 4z" />
+                                                                    <path fillRule="evenodd" d="M.458 10C1.732 5.943 5.522 3 10 3s8.268 2.943 9.542 7c-1.274 4.057-5.064 7-9.542 7S1.732 14.057.458 10zM14 10a4 4 0 11-8 0 4 4 0 018 0z" clipRule="evenodd" />
+                                                                </svg>
+                                                            </span>
+                                                        )}
+
+                                                        {/* CONDITIONS CHECKED:
+                                                            1. item.shareCount must exist (not null/undefined)
+                                                            2. Number(item.shareCount) must be > 0
+                                                        */}
+                                                        {(item.shareCount != null && Number(item.shareCount) > 0) && (
+                                                            <span className="relative inline-flex items-center justify-center p-1 cursor-pointer hover:text-blue-600 transition">
+                                                                {/* Count (Badge) - Adjusted positioning to be more "on top" */}
+                                                                <span className="absolute top-[-10px] right-[-5px] bg-green-500 text-white text-xs font-semibold h-5 w-auto min-w-[20px] flex items-center justify-center rounded-full p-0.5 z-10">
+                                                                    {item.shareCount}
+                                                                </span>
+                                                                {/* Share Icon */}
+                                                                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                                                                    <path d="M15 8a3 3 0 10-2.977-2.63l-4.94 2.47a3 3 0 100 4.314l4.94 2.47a3 3 0 10.835-1.668L10.825 11h9.175v-2h-9.175l.182-.091z" />
+                                                                </svg>
+                                                            </span>
+                                                        )}
+                                                    </div>
+                                                  
                                                 </div>
                                                 {/* Display area for description */}                                              
                                                  <div className="flex justify-between items-start h-full"> {/* Changed items-center to items-start for better text alignment */}
