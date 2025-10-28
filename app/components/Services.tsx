@@ -51,7 +51,7 @@ const Services: React.FC<ServicesProps> = () => {
                 />
                 <h2 className="font-semibold my-4 text-2xl text-center">Businees Data Analytics</h2>
                 <p className="text-md font-medium">
-                Ignite your future with EEG. We don&apos;t just analyze data; we architect intelligent solutions that illuminate pathways to unprecedented growth and optimization. Transform raw information into strategic foresight and empower your business with analytics that are not just robust and scalable, but a catalyst for continuous innovation.
+                Ignite your future with Horizon We don&apos;t just analyze data; we architect intelligent solutions that illuminate pathways to unprecedented growth and optimization. Transform raw information into strategic foresight and empower your business with analytics that are not just robust and scalable, but a catalyst for continuous innovation.
                 </p>
               </div>
             </div>
