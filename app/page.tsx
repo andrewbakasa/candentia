@@ -39,33 +39,29 @@ const aboutData = {
   return (
     <>
       {/* <Hero /> */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-      {/* Assuming Hero is rendered via a dedicated component as shown in your target layout */}
-
-      <section id="about-us" className="pt-16 pb-20">
-       <About
-            headingH1={"Horizon21: Excellence in "}
-            span="Innovation"
-            subHeading="Building the Future Today"
-            para="Horizon21 is a premier firm providing seamless, end-to-end industrial and technological solutions across the country, the SADC region, and the world. We engineer solutions to improve quality of life while simultaneously enhancing the performance and longevity of critical assets across key sectors: mining, manufacturing, logistics, engineering, construction, power generation, and agro industry."
-            para2="Our core mission is to integrate expert engineering, business, and technology to drive operational excellence, fostering sustainable growth and positive societal impact."
-            para3="Key Values: Trust, Collaboration, Ethical Conduct, Value Creation, Sustainable Development."
-            imgPosition='right'
-            // src='/images/Web-developer.svg' // Placeholder from previous examples
-            src={'/welcome-to-constructions.webp'} 
-            btnTitle='View Our Solutions'
-            btnUrl='/solutions'
-          />
-      </section>
-
-      {/* Other sections like WhyChoose would go here */}
-    </div>
+      {/* <div className="max-w-7xl mx-auto px-2 sm:px-3 lg:px-4 py-6">
+        <section id="about-us" className="pt-16 pb-20">
+        <About
+              headingH1={"Horizon21: Excellence in "}
+              span="Innovation"
+              subHeading="Building the Future Today"
+              para="Horizon21 is a premier firm providing seamless, end-to-end industrial and technological solutions across the country, the SADC region, and the world. We engineer solutions to improve quality of life while simultaneously enhancing the performance and longevity of critical assets across key sectors: mining, manufacturing, logistics, engineering, construction, power generation, and agro industry."
+              para2="Our core mission is to integrate expert engineering, business, and technology to drive operational excellence, fostering sustainable growth and positive societal impact."
+              para3="Key Values: Trust, Collaboration, Ethical Conduct, Value Creation, Sustainable Development."
+              imgPosition='right'
+        
+              src={'/welcome-to-constructions.webp'} 
+              btnTitle='View Our Solutions'
+              btnUrl='/solutions'
+            />
+        </section>     
+     </div> */}
       <Intro />
       {/* <Services /> */}
-      <Portfolio portfolioItems={portfolioItems}/>
+      {/* <Portfolio portfolioItems={portfolioItems}/>
       <Career jobOpenings={jobs}/>
-      <Investments />
-      <Clients />
+      <Investments /> */}
+      {/* <Clients /> */}
       <Cta />
       <Footer />
     </>

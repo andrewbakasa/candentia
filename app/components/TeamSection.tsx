@@ -1,0 +1,249 @@
+import React from 'react';
+import Image from 'next/image';
+
+interface TeamMember {
+  id: number;
+  name: string;
+  role: string;
+  description: string;
+  image: string; // Path to the team member's image
+}
+
+const teamMembers: TeamMember[] = [
+  {
+    id: 1,
+    name: "Rodreck Tavaziva",
+    role: "Chairman",
+    description: `Seasoned solutions Architect
+          (ERP Specialist) with over 20yrs+. Lead by bridging high-level strategy and technical execution. 
+         Data Analytics and AI,  expertise in Manufacturing, Financial, and Logistics.`,
+    image: "/images/team/rodreck-tavaziva.jpg", // Placeholder image path
+  },
+  {
+    id: 2,
+    name: "Loice Gudukeya",
+    role: "Executive Director Finance",
+    description: "BEng, MEng | PhD Environmental Sustainability | Prof Eng. MZwe.IE, M.ECZ | board member ECZ and ZIE | Leader in Renewable Energy, drives innovative, sustainable, and equitable solutions in engineering.",
+    image: "/images/team/loice-gudukeya.jpg", // New Placeholder image path
+  },
+  {
+    id: 3,
+    name: "Blessed Mketo",
+    role: "Executive Director Operations ",
+    description: `B.Eng.| MEng |  Prof Eng. MZwe.IE, M.ECZ, M.ECN, M.SAIIE, M.ERB, 20yrs+  experience in
+Engineering, Operations, Construction & Transport across South Africa, Namibia, Botswana and Zimbabwe
+`,
+    image: "/images/team/blessed-mketo.jpg", // Placeholder image path
+  },
+  {
+    id: 4,
+    name: "Sipiwe Nyadongo",
+    role: "Executive Director Logistics & Supply Chain Solutions. ",
+    description: `B.Eng.| MEng | PhD IME| Prof Eng. MZwe.IE, M.ECZ |ERB | AUDA-NEPAD 3D Printing Expert | Expert in Metal Additive Manufacturing, Circular Economy 
+`,
+    image: "/images/team/sipiwe-nyadongo.jpg", // Placeholder image path
+  },
+  {
+    id: 5,
+    name: "Wellington Chingwere",
+    role: "Executive Director Infrastructure Development & Mining",
+    description: `BEng, 20yrs+ gold mining, project management, new plant installation, plant upgrading, handling equipment design & maintenance 
+`,
+    image: "/images/team/wellington-chengwere.jpg", // Placeholder image path
+  },
+  
+  {
+    id: 6,
+    name: "Graham Tongai Ndanga",
+    role: "Executive Director Smart Systems & Data Analytics",
+    description: `BEng MSC Fin Eng | 17 yrs. experience in  Fin Eng, ICT, Industrial Eng, Project Finance | South Africa`,
+    image: "/images/team/graham-ndanga.jpg", // New Placeholder image path
+  },
+
+  
+  {
+    id: 7,
+    name: "Bhekimpilo Nkonjela",
+    role: "Executive Director Asset Maintenance & Optimization ",
+    description: `BEng 15yrs mining and infrastructural development
+`,
+    image: "/images/team/bhekimplio-nkonjela.jpg", // New Placeholder image path
+  },
+
+   {
+    id: 8,
+    name: "Phillip Makaniwa",
+    role: "Non-Executive Director ",
+    description: `BEng| MEng| 12yrs Cost & Risk Engineering Consultant in the Oil & Gas as well as Nuclear Industry | South Africa, Saudi Arabia, UAE
+`,
+    image: "/images/team/phillip-makaniwa.jpg", // New Placeholder image path
+  },
+   {
+    id: 9,
+    name: "Kupakwashe Chamakavinga",
+    role: "Non-Executive Director",
+    description: `B.Eng.(NUST). MPhil Cambridge, 20-Year Manufacturing Executive & M&A Analyst Expert in driving Sub-Saharan African export growth, operational efficiency (Plant Utilization), and strategic M&A integration | UK, Zimbabwe
+`,
+    image: "/images/team/kupakwashe-chamakavinga.jpg", // New Placeholder image path
+  },
+
+   {
+    id: 10,
+    name: "Andrew Bakasa",
+    role: "Non-Executive Director",
+    description: `B.Eng, MSc Investment, Prof Eng. MZwe.IE, M.ECZ 
+ 10ys Machine Learning | ERP | Data Analytics | Business Intelligence | Clould Computing | Computer Vision | 20yrs Rail Technology, Engine Rebult/Upgrades, Plant Maintenance 
+`,
+    image: "/images/team/andrew-bakasa.jpg", // New Placeholder image path
+  },
+  {
+    id: 11,
+    name: "Happison Tshuma",
+    role: "Non-Executive Director",
+    description: `MBL| MSc | BEng Industrial (CHEP | Isuzu | Volvo | Cummins | Marcopolo| CBI Electric), 18yrs+ experience | EU | South Africa| Zimbabwe
+`,
+    image: "/images/team/happison-tshuma.jpg", // New Placeholder image path
+  },
+   {
+    id: 12,
+    name: "Lamuel Mudzamiri",
+    role: "Non-Executive Director",
+    description: `B.Eng. Industrial Eng | Engineer Asset Leader I MBA - GSB UCT | PGDip Management, 17yrs+ experience| Zimbabwe |South Africa
+`,
+    image: "/images/team/lamuel-mudzamiri.jpg", // New Placeholder image path
+  },
+   {
+    id: 13,
+    name: "Takawira Chikowore",
+    role: "Non-Executive Director ",
+    description: `BEng | MEng |  Prof Eng. MZwe.IE, M.ECZ , 15yrs+ Lean and Six Sigma | Continuous Improvement | Quality | Supply Chain and Logistics
+`,
+    image: "/images/team/takawira-chikowore.jpg", // New Placeholder image path
+  },
+   {
+    id: 14,
+    name: "Maina Nyoni",
+    role: "Non-Executive Director",
+    description: `B.Eng|MSc specializing in Engineering Project Management and Quality Monitoring & Control. Proven expertise in providing cross-functional oversight for building and construction initiatives | South Africa| Zimbabwe
+`,
+    image: "/images/team/maina-nyoni.jpg", // New Placeholder image path
+  },
+   {
+    id: 15,
+    name: "Ishmael Mavhenge",
+    role: "Non-Executive Director ",
+    description: `BEng |Ms Eng. Mgt|GCC|PMP|15years expr, South Africa| Swaziland| Zimbabwe
+`,
+    image: "/images/team/ishmael-mavhenge.jpg", // New Placeholder image path
+  },
+];
+
+const TeamSection: React.FC = () => {
+  return (
+    <div className="pt-16 mt-16 border-t border-gray-200" id="team">
+      <h3 className="text-3xl font-extrabold text-blue-800 text-center mb-12 uppercase tracking-wider">
+        Meet Our Dynamic Team
+      </h3>
+      {/* Updated grid layout to handle 5 or more members gracefully */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-8">
+        {teamMembers.map((member) => (
+          <div 
+            key={member.id} 
+            className="flex flex-col items-center text-center p-6 bg-gray-50 rounded-xl shadow-lg hover:shadow-xl transition duration-500 border-b-4 border-yellow-600 group"
+          >
+            <div className="relative w-32 h-32 mb-4 rounded-full overflow-hidden border-4 border-blue-600 group-hover:border-yellow-600 transition-colors duration-300">
+              <Image 
+                src={member.image} 
+                alt={member.name} 
+                layout="fill" 
+                objectFit="cover" 
+                className="group-hover:scale-105 transition-transform duration-300"
+              />
+            </div>
+            <h4 className="text-xl font-bold text-gray-900 mb-1">{member.name}</h4>
+            <p className="text-blue-700 font-semibold mb-3 text-sm uppercase tracking-wide">{member.role}</p>
+            <p className="text-gray-600 text-sm">{member.description}</p>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+};
+
+export default TeamSection;
+
+
+// import React from 'react';
+// import Image from 'next/image';
+
+// interface TeamMember {
+//   id: number;
+//   name: string;
+//   role: string;
+//   description: string;
+//   image: string; // Path to the team member's image
+// }
+
+// const teamMembers: TeamMember[] = [
+//   {
+//     id: 1,
+//     name: "John Doe",
+//     role: "CEO & Founder",
+//     description: "John is a visionary leader with over 20 years of experience in industrial engineering and technology. He drives Horizon21's strategic direction and innovation.",
+//     image: "/images/team/john-doe.webp", // Placeholder image path
+//   },
+//   {
+//     id: 2,
+//     name: "Jane Smith",
+//     role: "Chief Operations Officer",
+//     description: "Jane oversees all operational aspects, ensuring efficiency and excellence in project delivery. Her expertise in supply chain management is unparalleled.",
+//     image: "/images/team/jane-smith.webp", // Placeholder image path
+//   },
+//   {
+//     id: 3,
+//     name: "Michael Brown",
+//     role: "Head of R&D",
+//     description: "Michael leads our research and development initiatives, exploring new technologies and solutions to keep Horizon21 at the forefront of innovation.",
+//     image: "/images/team/michael-brown.webp", // Placeholder image path
+//   },
+//   {
+//     id: 4,
+//     name: "Emily White",
+//     role: "Lead Systems Architect",
+//     description: "Emily is responsible for designing and implementing robust smart systems and data analytics solutions for our diverse client base.",
+//     image: "/images/team/emily-white.webp", // Placeholder image path
+//   },
+// ];
+
+// const TeamSection: React.FC = () => {
+//   return (
+//     <div className="pt-16 mt-16 border-t border-gray-200" id="team">
+//       <h3 className="text-3xl font-extrabold text-blue-800 text-center mb-12 uppercase tracking-wider">
+//         Meet Our Dynamic Team
+//       </h3>
+//       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
+//         {teamMembers.map((member) => (
+//           <div 
+//             key={member.id} 
+//             className="flex flex-col items-center text-center p-6 bg-gray-50 rounded-xl shadow-lg hover:shadow-xl transition duration-500 border-b-4 border-yellow-600 group"
+//           >
+//             <div className="relative w-32 h-32 mb-4 rounded-full overflow-hidden border-4 border-blue-600 group-hover:border-yellow-600 transition-colors duration-300">
+//               <Image 
+//                 src={member.image} 
+//                 alt={member.name} 
+//                 layout="fill" 
+//                 objectFit="cover" 
+//                 className="group-hover:scale-105 transition-transform duration-300"
+//               />
+//             </div>
+//             <h4 className="text-xl font-bold text-gray-900 mb-1">{member.name}</h4>
+//             <p className="text-blue-700 font-semibold mb-3 text-sm uppercase tracking-wide">{member.role}</p>
+//             <p className="text-gray-600 text-sm">{member.description}</p>
+//           </div>
+//         ))}
+//       </div>
+//     </div>
+//   );
+// };
+
+// export default TeamSection;
