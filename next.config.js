@@ -3,6 +3,7 @@ const nextConfig = {
     // experimental: {
     //   appDir: true,
     // },
+    // 1. Add the following line to the top level of your configuration
     webpack: (config, { isServer }) => {
       if (!isServer) {
         config.module.rules.push({
