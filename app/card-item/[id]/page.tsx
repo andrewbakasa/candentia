@@ -49,7 +49,7 @@ export async function generateMetadata({ params }: ItemComponentPageProps) {
 
   if (!card) {
     return {
-      title: "Card Not Found | EEG",
+      title: "Card Not Found | Horizon",
       description: "The requested card could not be found.",
       alternates: {
         canonical: `${process.env.NEXT_PUBLIC_APP_URL}/item-component-page/${params.id}`,
@@ -74,11 +74,11 @@ export async function generateMetadata({ params }: ItemComponentPageProps) {
     boardTitle,
     ...(card.tags?.map(tag => tag.name) || []),
     "card details",
-    "EEG",
+    "Horizon21",
   ].filter(Boolean).join(', '); // Filter out any undefined/null entries and join
 
   return {
-    title: `${cardTitle} | ${listTitle} ${boardTitle ? `(${boardTitle})` : ''} | EEG`,
+    title: `${cardTitle} | ${listTitle} ${boardTitle ? `(${boardTitle})` : ''} | Horizon21`,
     description: boardTitle
       ? `${cardDescription} Located in the '${listTitle}' list, part of the '${boardTitle}' board.`
       : `${cardDescription} Located in the '${listTitle}' list.`,

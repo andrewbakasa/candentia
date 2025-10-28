@@ -16,20 +16,20 @@ import getJobOpenings from './actions/getJobOpenings';
 import NavBar from './components/navbar/Navigation/NavBar';
 //import { saveInitialJobs } from './vacancy/[jobId]/_components/initialDB';
 export const metadata = {
-  title: 'EEG: Illuminating Solutions',
+  title: 'Horizon21: Illuminating Solutions',
   description: 'Building the Future today, together',
    icons: {
-    icon: '/peeg.jpg', // This refers to app/icon.png
+    icon: '/horizon.png', // This refers to app/icon.png
     shortcut: '/shortcut-icon.png', // If you have a different shortcut icon
-    apple: '/peeg.jpg', // This refers to app/apple-icon.png
+    apple: '/horizon.png', // This refers to app/apple-icon.png
     other: [
       {
         rel: 'apple-touch-icon-precomposed',
-        url: '/peeg.jpg',
+        url: '/horizon.png',
       },
       {
         rel: 'mask-icon',
-        url: '/peeg.jpg',
+        url: '/horizon.png',
         color: '#000000',
       },
     ],

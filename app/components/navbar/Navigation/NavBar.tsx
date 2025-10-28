@@ -84,7 +84,7 @@ const NavBar: React.FC<NavbarProps> = ({ currentUser  }) => {
           >
             {/* Replaced h1 with img tag for logo */}
             <Image
-              src="/peeg.jpg"
+              src="/horizon.png"
               alt="Company Logo"
               
               height={35} // Increased height for better visibility
@@ -140,7 +140,7 @@ const NavBar: React.FC<NavbarProps> = ({ currentUser  }) => {
               className="focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-1 rounded-md"
               aria-label="Navigate to home section"
             >
-              <h1 className="font-extrabold text-2xl text-yellow-900">EEG</h1>
+              <h1 className="font-extrabold text-2xl text-yellow-900">Horizon21</h1>
             </a>
             <button
               className="p-2 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-1 text-gray-600 hover:text-gray-800 transition duration-200"

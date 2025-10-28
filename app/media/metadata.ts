@@ -2,20 +2,20 @@
 import { Metadata } from 'next';
 
 export const defaultMetadata: Metadata = { // Good practice to have default metadata
-  title: 'EEG Media',
+  title: 'Horizon21 Media',
   description: 'Projects View',
      icons: {
-    icon: '/peeg.jpg', // This refers to app/icon.png
+    icon: '/horizon.png', // This refers to app/icon.png
     shortcut: '/shortcut-icon.png', // If you have a different shortcut icon
-    apple: '/peeg.jpg', // This refers to app/apple-icon.png
+    apple: '/horizon.png', // This refers to app/apple-icon.png
     other: [
       {
         rel: 'apple-touch-icon-precomposed',
-        url: '/peeg.jpg',
+        url: '/horizon.png',
       },
       {
         rel: 'mask-icon',
-        url: '/peeg.jpg',
+        url: '/horizon.png',
         color: '#000000',
       },
     ],

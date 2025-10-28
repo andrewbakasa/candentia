@@ -78,7 +78,7 @@ const Services: React.FC<ServicesProps> = () => {
                 />
                 <h2 className="font-semibold my-4 text-2xl text-center ">General AI & Machine Learning</h2>
                 <p className="text-md font-medium">
-                EEG: Illuminating the path to intelligent growth. Our expert consultation and development in General AI and Machine Learning provide the vision and tools to transcend current limitations. We empower businesses and individuals to forge new frontiers in innovation, automation, and strategic decision-making.   </p>
+                Horizon: Illuminating the path to intelligent growth. Our expert consultation and development in General AI and Machine Learning provide the vision and tools to transcend current limitations. We empower businesses and individuals to forge new frontiers in innovation, automation, and strategic decision-making.   </p>
               </div>
             </div>
           </div>

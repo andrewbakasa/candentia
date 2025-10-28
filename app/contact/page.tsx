@@ -32,7 +32,7 @@ interface ContactOption {
 }
 
 const ContactFormComp = () => {
-    useDocTitle('EEG | Solutions - Send us a message');
+    useDocTitle('Horizon21 | Solutions - Send us a message');
     const [firstName, setFirstName] = useState<string>('');
     const [lastName, setLastName] = useState<string>('');
     const [email, setEmail] = useState<string>('');
@@ -299,7 +299,7 @@ const ContactFormComp = () => {
 
                                     <div className="mt-5">
                                         <h2 className="text-2xl">Send Email</h2>
-                                        <p className="text-blue-900">info@eeg.flax.com</p>
+                                        <p className="text-blue-900">info@horizontwentyone.com</p>
                                     </div>
                                 </div>
                             </div>
