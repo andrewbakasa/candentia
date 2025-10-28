@@ -1,7 +1,7 @@
 
 import React from 'react';
 import Image from 'next/image'; // Import the Image component
-import heroImg from '/public/images/web-dev.svg'; // Use your actual image path
+const heroImg = '/welcome-to-constructions.webp'
 
 const Hero = () => {
   // Utility classes for full-width, full-height image cover:
@@ -11,7 +11,7 @@ const Hero = () => {
     <>
       <div className="relative w-full h-[60vh] lg:h-[80vh] overflow-hidden" id="hero">
         <Image
-          src={heroImg} // Use your imported image path
+          src={'/welcome-to-constructions.webp'} // Use your imported image path
           alt="Full-width hero banner representing collaboration and synergy"
           layout="fill" // Ensures the image fills the parent container
           objectFit="cover" // Crops the image to cover the container while maintaining aspect ratio
