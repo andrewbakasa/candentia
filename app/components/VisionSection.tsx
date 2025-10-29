@@ -171,7 +171,8 @@ const VisionSection = () => {
                     <div className="mt-10 flex justify-center lg:justify-start">
                         <a
                             href="/contact" 
-                            className="inline-flex items-center justify-center sm:w-auto px-12 py-4 font-semibold text-lg rounded-full 
+                            // MODIFIED: Reduced padding and font size for mobile, then set back to original large size for 'sm' and up.
+                            className="inline-flex items-center justify-center sm:w-auto px-8 py-3 text-base sm:px-12 sm:py-4 sm:text-lg font-semibold rounded-full 
                                         shadow-xl transition-all duration-300 transform 
                                         bg-blue-800 text-white 
                                         hover:bg-yellow-600 hover:text-blue-900 hover:scale-[1.03] 
