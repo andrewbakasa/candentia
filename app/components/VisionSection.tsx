@@ -15,7 +15,30 @@ import dynamicImage1 from '/public/images/media/bg-1.svg';
 import dynamicImage2 from '/public/images/media/engine.png'; 
 import dynamicImage3 from '/public/images/media/bg-3.svg'; 
 import dynamicImage4 from '/public/images/media/engine_2.jpeg'; 
-const imagePaths = [dynamicImage1,dynamicImage2,dynamicImage3,dynamicImage4];
+
+import dynamicImage5 from '/public/images/media/feedlot_1.jpeg'; 
+import dynamicImage6 from '/public/images/media/logistics_4.jpg'; 
+import dynamicImage7 from '/public/images/media/feedlot_2.jpg'; 
+import dynamicImage8 from '/public/images/media/logistics_5.jpg'; 
+
+import dynamicImage9 from '/public/images/media/logistics_1.jpg'; 
+import dynamicImage10 from '/public/images/media/logistics_2.jpg'; 
+
+import dynamicImage11 from '/public/images/media/loco_1.jpeg'; 
+
+import dynamicImage12 from '/public/images/media/loco_2.jpg'; 
+import dynamicImage13 from '/public/images/media/loco_3.jpg'; 
+const imagePaths = [
+    dynamicImage1,dynamicImage2,dynamicImage3,dynamicImage4,
+    dynamicImage5,dynamicImage6,dynamicImage7,dynamicImage8,
+    dynamicImage9,dynamicImage10,
+    dynamicImage11,dynamicImage12,
+    dynamicImage13,
+];
+
+
+
+
 
 // --- Helper Icons (Standard SVG for no extra dependencies) ---
 // FIX: Added explicit typing for SVG props
@@ -38,18 +61,7 @@ interface ContentBlockProps {
 
 // --- Helper Component for Modern Content Blocks ---
 // FIX: Applied ContentBlockProps interface to explicitly type the destructured props
-const ContentBlock = ({ title, content, icon }: ContentBlockProps) => (
-    <div className="p-5 bg-white rounded-xl shadow-md border border-gray-100 flex flex-col justify-start items-start text-left 
-                transform transition duration-300 hover:shadow-xl hover:translate-y-[-4px]"> 
-        <h3 className="text-xl font-bold text-blue-700 mb-3 flex items-center">
-            {icon && <span className="mr-3">{icon}</span>}
-            {title}
-        </h3>
-        <p className="text-base text-gray-600 leading-relaxed">
-            {content}
-        </p>
-    </div>
-);
+
 
 
 // --- 2. VISION SECTION COMPONENT (WITH SLIDESHOW LOGIC) ---

@@ -1,4 +1,5 @@
 /* eslint-disable @next/next/no-img-element */
+'use client'
 import React from 'react';
 // import Image from 'next/image'; // Removed: Replaced with standard <img> for self-contained file
 
@@ -9,7 +10,8 @@ interface TeamMember {
   description: string;
   image: string; // Path to the team member's image
 }
-
+// 1. Define the path for the fallback image
+const DEFAULT_AVATAR_SRC = '/public/images/placeholder.jpg'; // Make sure this file exists in your public/images folder
 const teamMembers: TeamMember[] = [
   {
     id: 1,
@@ -161,6 +163,10 @@ const TeamSection: React.FC = () => {
                 alt={member.name} 
                 className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                 loading="lazy"
+                // onError={({ currentTarget }) => {
+                //   currentTarget.onerror = null; // Prevents infinite loop if fallback image also fails
+                //   currentTarget.src = DEFAULT_AVATAR_SRC; // Set the fallback image source
+                // }}
               />
             </div>
             <h4 className="text-xl font-bold text-gray-900 mb-1">{member.name}</h4>
