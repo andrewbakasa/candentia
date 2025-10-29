@@ -329,7 +329,7 @@ const DemoProductContactForm = () => {
                                 </div>
                                 <div className="flex flex-col">
                                     <h2 className="text-2xl">Office Address</h2>
-                                    <p className="text-blue-900">10 Jameson St Borrowdale Harare</p>
+                                    <p className="text-blue-900">Flat 8 Madokero Manor Madokero Estate, Tynwald Harare Zimbabwe.</p>
                                 </div>
                             </div>
 
