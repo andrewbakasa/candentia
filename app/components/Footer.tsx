@@ -23,8 +23,7 @@ const Footer: React.FC<FooterProps> = () => {
               <div className="box-border border-b-4 border-yellow-900 p-8 bg-yellow-200 text-gray-600 text-center rounded-lg xl:w-80 mx-auto">
                 <h3 className="font-bold text-4xl mb-4">Horizon21</h3>
                 <div className="text-md font-medium text-gray-600">
-                  <h5>Integrated Solutions</h5>
-                  <p>Harare,</p>
+                  <p>Flat 8 Madokero Manor Madokero Estate, Tynwald Harare</p>
                   <p>Zimbabwe.</p>
                   {/*  <p>Manicaland State.</p>*/}
                 </div>
@@ -116,7 +115,7 @@ const Footer: React.FC<FooterProps> = () => {
                 <ul className="flex justify-center mb-4 md:mb-0">
                   <li>
                     <Link
-                      href="#"
+                      href="https://x.com/andy_etn"
                       className="flex justify-center items-center text-blue-900 hover:text-gray-500 bg-white hover:bg-white-100 rounded-full shadow transition duration-150 ease-in-out"
                       aria-label="Twitter"
                     >
@@ -127,7 +126,7 @@ const Footer: React.FC<FooterProps> = () => {
                   </li>
                   <li className="ml-4">
                     <Link
-                      href="#"
+                      href="https://www.linkedin.com/in/andrew-bakasa-a56a7011/"
                       className="flex justify-center items-center text-blue-900 hover:text-gray-500 bg-white hover:bg-white-100 rounded-full shadow transition duration-150 ease-in-out"
                       aria-label="Facebook"
                     >
