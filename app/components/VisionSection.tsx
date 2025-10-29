@@ -150,23 +150,26 @@ const VisionSection = () => {
                         </p>
                     </div>
 
-                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 mt-4"> {/* Changed to 3 columns for better use of space */}
-                         <ContentBlock 
-                            title="Our Mission" 
-                            content={mission} 
-                            icon={<HomeIcon className="w-5 h-5 text-blue-600"/>}
-                        />
-                        <ContentBlock 
-                            title="Our Vision" 
-                            content={vision} 
-                            icon={<EyeIcon className="w-5 h-5 text-yellow-600"/>}
-                        />
-                        <ContentBlock 
-                             title="Key Values" 
-                             content={keyValues} 
-                             icon={<CheckCircleIcon className="w-5 h-5 text-blue-600"/>}
-                        />
-                    </div>
+ <div className="mb-8">
+                        <h3 className="text-2xl font-bold text-blue-800 mb-3">Our Mission</h3>
+                        <p className="text-lg text-gray-700 leading-relaxed pl-4 border-l-4 border-yellow-500">
+                            {mission}
+                        </p>
+                    </div>
+ <div className="mb-8">
+                        <h3 className="text-2xl font-bold text-blue-800 mb-3">Our Vision</h3>
+                        <p className="text-lg text-gray-700 leading-relaxed pl-4 border-l-4 border-yellow-500">
+                            {vision}
+                        </p>
+                    </div>
+ <div className="mb-8">
+                        <h3 className="text-2xl font-bold text-blue-800 mb-3">Key Values</h3>
+                        <p className="text-lg text-gray-700 leading-relaxed pl-4 border-l-4 border-yellow-500">
+                            {keyValues}
+                        </p>
+                    </div>
+
+                
                     {/* Contact Button */}
                     <div className="mt-10 flex justify-center lg:justify-start">
                         <a

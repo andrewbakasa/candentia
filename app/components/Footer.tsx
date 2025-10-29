@@ -86,6 +86,7 @@ const Footer: React.FC<FooterProps> = () => {
                 <ul className="flex justify-center mb-4 md:mb-0">
                   <li>
                     <Link
+                      target='_blank'
                       href="https://x.com/andy_etn"
                       className="flex justify-center items-center text-blue-900 hover:text-gray-500 bg-white hover:bg-white-100 rounded-full shadow transition duration-150 ease-in-out"
                       aria-label="Twitter"
@@ -97,6 +98,7 @@ const Footer: React.FC<FooterProps> = () => {
                   </li>
                   <li className="ml-4">
                     <Link
+                      target='_blank'
                       href="https://www.linkedin.com/in/andrew-bakasa-a56a7011/"
                       className="flex justify-center items-center text-blue-900 hover:text-gray-500 bg-white hover:bg-white-100 rounded-full shadow transition duration-150 ease-in-out"
                       aria-label="Facebook"
