@@ -39,11 +39,7 @@ const Footer: React.FC<FooterProps> = () => {
                     About
                   </Link>
                 </li>
-                {/* <li className="mb-2">
-                  <Link href="#" className="text-[#013289] hover:text-gray-900 hover:tracking-wider transition duration-250 ease-in-out">
-                    Services
-                  </Link>
-                </li> */}
+                
                 <li className="mb-2">
                   <Link href="#" className="text-[#013289] hover:text-gray-900 hover:tracking-wider transition duration-250 ease-in-out">
                     Contact
@@ -52,32 +48,7 @@ const Footer: React.FC<FooterProps> = () => {
               </ul>
             </div>
 
-            {/* 3rd block */}
-            {/* <div className="col-span-6 md:col-span-6 lg:col-span-4 mx-auto">
-              <h6 className="text-yellow-900 text-xl font-bold mb-4">OUR SERVICES</h6>
-              <ul className="text-md">
-                <li className="mb-2">
-                  <Link href="#" className="text-[#013289] hover:text-gray-900 hover:tracking-wider transition duration-250 ease-in-out">
-                    Creating Weather for Our Investor
-                  </Link>
-                </li>
-                <li className="mb-2">
-                  <Link href="#" className="text-[#013289] hover:text-gray-900 hover:tracking-wider transition duration-250 ease-in-out">
-                    Build strong teams
-                  </Link>
-                </li>
-                <li className="mb-2">
-                  <Link href="#" className="text-[#013289] hover:text-gray-900 hover:tracking-wider transition duration-250 ease-in-out">
-                    GBuild and guarntee the future
-                  </Link>
-                </li>
-                <li className="mb-2">
-                  <Link href="#" className="text-[#013289] hover:text-gray-900 hover:tracking-wider transition duration-250 ease-in-out">
-                    Build Resilient Infrastucture
-                  </Link>
-                </li>
-              </ul>
-            </div> */}
+            
             <div className="col-span-6 md:col-span-6 lg:col-span-4 mx-auto">
     <h6 className="text-yellow-900 text-xl font-bold mb-4">OUR SERVICES</h6>
     <ul className="text-md">
