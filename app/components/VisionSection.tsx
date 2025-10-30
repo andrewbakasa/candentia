@@ -166,7 +166,7 @@ const VisionSection: React.FC = () => {
                 - mb-12 REMOVED to allow it to move to the top.
                 */}
                 <div 
-                    className="absolute top-0 left-0 right-0  h-[400px] md:h-[90vh] overflow-hidden  rounded-3xl shadow-2xl 
+                    className="absolute top-0 left-0 right-0  h-[400px] md:h-[70vh] overflow-hidden  rounded-3xl shadow-2xl 
                         -mt-8 -mx-8 lg:-mt-16 lg:-mx-16 z-50" 
                     // --- APPLYING TOUCH HANDLERS FOR SWIPE NAVIGATION ---
                     onTouchStart={handleTouchStart}
@@ -227,7 +227,7 @@ const VisionSection: React.FC = () => {
                 A top padding or margin is needed here to move the content below the newly positioned image.
                 I will add an empty div to create vertical space.
                 */}
-                <div className="h-[300px] md:h-[70vh] w-full mb-3 lg:mb-4">
+                <div className="h-[300px] md:h-[50vh] w-full mb-3 lg:mb-4">
                     {/* Placeholder to push the content down */}
                 </div>
 
