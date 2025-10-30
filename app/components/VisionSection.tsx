@@ -166,7 +166,7 @@ const VisionSection: React.FC = () => {
                 - mb-12 REMOVED to allow it to move to the top.
                 */}
                 <div 
-                    className="absolute top-0 left-0 right-0 h-[400px] md:h-[90vh] overflow-hidden shadow-2xl 
+                    className="absolute top-0 left-0 right-0 h-[400px] md:h-[90vh] overflow-hidden  rounded-3xl shadow-2xl 
                         -mt-8 -mx-8 lg:-mt-16 lg:-mx-16 z-50" 
                     // --- APPLYING TOUCH HANDLERS FOR SWIPE NAVIGATION ---
                     onTouchStart={handleTouchStart}
