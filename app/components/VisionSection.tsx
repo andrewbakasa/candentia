@@ -211,7 +211,7 @@ const VisionSection: React.FC = () => {
 
                     {/* --- SLIDE COUNTER (Item num of totals) --- */}
                     <div className="absolute bottom-5 right-5 z-20">
-                       <span className="bg-black-400 bg-opacity-30 hover:bg-opacity-100 text-white text-[10px]  px-4 py-2 rounded-full shadow-xl">
+                       <span className="bg-black bg-opacity-30 hover:bg-opacity-100 text-white text-[10px]  px-4 py-2 rounded-full shadow-xl">
                          {descripName[currentIndex]}
                         </span>
                         <span className="bg-yellow-600 bg-opacity-50 hover:bg-opacity-100 text-white text-sm  px-4 py-2 rounded-full shadow-xl">
