@@ -60,11 +60,11 @@ const imagePaths = [
 console.log("imagePaths",imagePaths[0].src)
 
 const descripName =[
-    "Manufacturing,  Plant & Equipment upgrades",
-    "Civils Works , construction of amenities",
+    "Manufacturing, P & Equipment upgrades",
+    "Civils Works, construction of amenities",
     'Home refurbishment',
      "Equipment Hire & Sales",
-     "Engine Rebuilts, Heavy Trucks, Locomotives",
+     "Engine Rebuilt, Heavy Trucks, Locomotives",
      'Rail Freight Logistics & Consultancy', 
      "Logistiscs, GPS, Warehousing, Travel",
      "PLCs",
@@ -77,7 +77,7 @@ const descripName =[
      "Dams, irrigation, hydro-power",
      "Power generation, Nuclear, Oil & Gas",
      "Recreation Facilites",
-     "Education Amenities, Human Capital Development",
+     "Amenities, Human Capital Development",
      "Hotel, Resort and Travelling",
      "Travel, Tourism, Safari, Hunting",     
      "Holiday & Travel"
