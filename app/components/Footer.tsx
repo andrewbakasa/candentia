@@ -74,6 +74,7 @@ const Footer: React.FC<FooterProps> = () => {
                 <div className="mx-auto text-center mt-2">
                   <ul className="flex justify-center mb-4 md:mb-0">
                     <li>
+                      {/* Twitter */}
                       <Link
                         target='_blank'
                         href="https://x.com/andy_etn"
@@ -86,6 +87,7 @@ const Footer: React.FC<FooterProps> = () => {
                       </Link>
                     </li>
                     <li className="ml-4">
+                      {/* Facebook */}
                       <Link
                         target='_blank'
                         href="https://www.linkedin.com/in/andrew-bakasa-a56a7011/"

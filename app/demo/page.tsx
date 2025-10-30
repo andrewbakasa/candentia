@@ -351,7 +351,7 @@ const DemoProductContactForm = () => {
 
                             <div className="flex my-4 w-2/3 lg:w-1/2">
                                 <a
-                                     href="https://www.linkedin.com/in/andrew-bakasa-a56a7011/"
+                                    href="https://www.facebook.com/bakasa.andrew"
                                     target="_blank"
                                     rel="noreferrer"
                                     className="rounded-full flex justify-center bg-white h-8 text-blue-900  w-8  mx-1 text-center pt-1"
