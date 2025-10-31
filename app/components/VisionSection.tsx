@@ -289,7 +289,7 @@ const VisionSection: React.FC = () => {
                 A top padding or margin is needed here to move the content below the newly positioned image.
                 I will add an empty div to create vertical space.
                 */}
-                <div className="h-[300px] md:h-[50vh] w-full mb-3 lg:mb-4">
+                <div className="h-[35vh] xs:h-[35vh] md:h-[44vh]  w-full mb-3 lg:mb-4 sm:mb-1">
                     {/* Placeholder to push the content down */}
                 </div>
 
@@ -298,20 +298,20 @@ const VisionSection: React.FC = () => {
                     className="relative z-10 flex flex-col text-center lg:text-left w-full lg:w-3/4 mx-auto" 
                 >
                     {/* Main Heading */}
-                    <h2 className="mb-2 text-4xl sm:text-5xl lg:text-6xl font-extrabold text-blue-900 leading-tight">
+                    <h2 className="mb-2 sm:mb-0 text-4xl sm:text-5xl lg:text-6xl font-extrabold text-blue-900 leading-tight">
                         Excellence in <span className="text-yellow-600 shadow-sm">Engineering</span> and Technology
                     </h2>
 
                     {/* About Horizon21 Section - Styled as a Callout */}
-                    <div className="mb-2">
-                        <h3 className="text-3xl font-bold text-blue-800 mb-3 border-b border-yellow-500 pb-2">About Us</h3>
+                    <div className="mb-2 sm:mb-0">
+                        <h3 className="text-3xl font-bold text-blue-800 mb-3 border-b border-yellow-500 pb-1">About Us</h3>
                         <p className="text-lg text-gray-700 leading-relaxed pl-4 border-l-4 border-yellow-500 bg-white p-4 rounded-lg shadow-inner">
                             {about}
                         </p>
                     </div>
 
                    
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4 sm:mb-2">
                         
                          <div className="p-4 bg-white rounded-xl shadow-lg border-t-4 border-blue-600">
                              <h4 className="text-xl font-bold text-blue-800 mb-2">Our Mission</h4>
