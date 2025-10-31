@@ -183,7 +183,7 @@ const VisionSection: React.FC = () => {
 //                                     hover:scale-[1.03] border-4 border-white object-cover object-center" // Removed rounded-3xl from here
 //                             
                              className="relative w-full h-full shadow-2xl transition-all duration-700 
-                                scale-[1.03] hover:scale-[1.07] object-cover object-center 
+                                scale-[1.02] hover:scale-[1.05] object-cover object-center 
                                 mt-[-8px] mb-[-8px] ml-[-8px] mr-[-8px]" 
                            src={currentImage} 
                             priority 
