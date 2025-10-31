@@ -179,9 +179,13 @@ const VisionSection: React.FC = () => {
                  
                         <Image 
                             alt={`Dynamic slide ${currentIndex + 1}`}
-                            className="relative w-full h-full shadow-2xl transition-all duration-700 
-                                    hover:scale-[1.03] border-4 border-white object-cover object-center" // Removed rounded-3xl from here
-                            src={currentImage} 
+//                             className="relative w-full h-full shadow-2xl transition-all duration-700 
+//                                     hover:scale-[1.03] border-4 border-white object-cover object-center" // Removed rounded-3xl from here
+//                             
+                             className="relative w-full h-full shadow-2xl transition-all duration-700 
+                                scale-[1.03] hover:scale-[1.07] object-cover object-center 
+                                mt-[-8px] mb-[-8px] ml-[-8px] mr-[-8px]" 
+                           src={currentImage} 
                             priority 
                             sizes="100vw" 
                             fill 
@@ -216,10 +220,22 @@ const VisionSection: React.FC = () => {
 
                         {/* --- SLIDE COUNTER (z-index adjusted) --- */}
                         {/* --- SLIDE COUNTER (MODIFIED) --- */}
-                        <div className="absolute bottom-5 right-5 z-50"> 
+{/*                         <div className="absolute bottom-5 right-5 z-50"> 
                             <span className="bg-black bg-opacity-30 hover:bg-opacity-100 text-white text-[10px] px-2 py-1 rounded-full shadow-xl">  {descripName[currentIndex]}</span>
                             <span className="bg-yellow-600 bg-opacity-50 hover:bg-opacity-100 text-white text-sm px-2 py-1 rounded-full shadow-xl"> {currentIndex + 1} / {totalImages}</span>
-                        </div>
+                        </div> */}
+
+                    {/* --- CORRECTED SLIDE COUNTER BLOCK --- */}
+                    {/* Added flex, items-center, and space-x-2 to make the spans act as a stable, single block. 
+                        Added whitespace-nowrap to prevent text wrapping. */}
+                    <div className="absolute top-1 right-1 z-50 flex items-center space-x-2"> 
+                        <span className="bg-black/30 hover:bg-black/80 text-white text-xs px-3 py-1.5 rounded-full shadow-xl transition-colors whitespace-nowrap"> 
+                            {descripName[currentIndex]}
+                        </span>
+                        <span className="bg-yellow-600/70 hover:bg-yellow-600 text-white text-base px-3 py-1.5 rounded-full shadow-xl transition-colors font-bold whitespace-nowrap"> 
+                            {currentIndex + 1} / {totalImages}
+                        </span>
+                    </div>
 
                 </div>
 
