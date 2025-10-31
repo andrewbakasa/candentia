@@ -289,7 +289,7 @@ const VisionSection: React.FC = () => {
                 A top padding or margin is needed here to move the content below the newly positioned image.
                 I will add an empty div to create vertical space.
                 */}
-                <div className="h-[35vh] xs:h-[35vh] md:h-[44vh]  w-full mb-3 lg:mb-4 sm:mb-1">
+                <div className="h-[45vh] w-full sm:mb-0 md:mb-5">
                     {/* Placeholder to push the content down */}
                 </div>
 
