@@ -115,13 +115,13 @@ const NavLinks: React.FC<NavLinksProps> = ({ onLinkClick, currentUser, handleNav
       </a>
 
       {/* Contact Us Link (Kept as is) */}
-      <a
+      {/* <a
         href="/contact#contact"
         onClick={(e) => onNavLinkClick(e, "/contact#contact")}
         className={`group font-medium ${gold} ${darkGoldHover} ${isActive('/contact#contact') ? activeUnderline : hoverUnderline} ${subtleShadow} ${linkPadding} lg:block`}
       >
         Contact Us
-      </a>
+      </a> */}
     </div>
   );
 };
