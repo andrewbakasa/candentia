@@ -278,7 +278,7 @@ const VisionSection: React.FC = () => {
                         <span className="bg-black/30 hover:bg-black/80 text-white text-xs sm:text-sm px-3 py-1.5 rounded-full shadow-xl transition-colors whitespace-nowrap truncate max-w-sm sm:max-w-sm md:max-w-2xl"> 
                             {descripName[currentIndex]}
                         </span>
-                        <span className="bg-yellow-600/70 hover:bg-yellow-600 text-white text-xs px-3 py-1.5 rounded-full shadow-xl transition-colors font-bold whitespace-nowrap"> 
+                        <span className="bg-yellow-600/70 hover:bg-yellow-600 text-white text-xs px-3 py-1.5 rounded-full shadow-xl transition-colors whitespace-nowrap"> 
                             {currentIndex + 1} / {totalImages}
                         </span>
                     </div>
