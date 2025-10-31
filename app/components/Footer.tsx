@@ -90,7 +90,7 @@ const Footer: React.FC<FooterProps> = () => {
                       {/* Facebook */}
                       <Link
                         target='_blank'
-                        href="https://www.linkedin.com/in/andrew-bakasa-a56a7011/"
+                        href="https://www.facebook.com/bakasa.andrew"
                         className="flex justify-center items-center text-blue-900 hover:text-gray-500 bg-white hover:bg-white-100 rounded-full shadow transition duration-150 ease-in-out"
                         aria-label="Facebook"
                       >
@@ -103,7 +103,7 @@ const Footer: React.FC<FooterProps> = () => {
                     <li className="ml-4">
                       <Link
                         target='_blank'
-                        href="https://www.linkedin.com/in/andrew-bakasa-a56a7011/"
+                        href="https://www.linkedin.com/in/horizon-twentyone-23a170397/"
                         className="flex justify-center items-center text-blue-900 hover:text-gray-500 bg-white hover:bg-white-100 rounded-full shadow transition duration-150 ease-in-out"
                         aria-label="Facebook"
                       >

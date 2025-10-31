@@ -332,7 +332,7 @@ const ContactFormComp = () => {
                                     </svg>
                                 </a>
                                 <a
-                                    href="https://www.linkedin.com/in/andrew-bakasa-a56a7011/"
+                                    href="https://www.linkedin.com/in/horizon-twentyone-23a170397/"
                                     target="_blank"
                                     rel="noreferrer"
                                     className="rounded-full flex justify-center bg-white h-8 text-blue-900  w-8  mx-1 text-center pt-1"
