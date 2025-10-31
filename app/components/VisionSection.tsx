@@ -274,7 +274,7 @@ const VisionSection: React.FC = () => {
                     
                    
                      {/* --- CORRECTED SLIDE COUNTER BLOCK --- */}
-                    <div className="absolute bottom-5 right-5 z-50 flex items-center space-x-2"> 
+                    <div className="absolute bottom-5 left-5 right-5 lg:left-auto z-50 flex items-center space-x-8"> 
                         <span className="bg-black/30 hover:bg-black/80 text-white text-xs sm:text-sm px-3 py-1.5 rounded-full shadow-xl transition-colors whitespace-nowrap truncate max-w-sm sm:max-w-sm md:max-w-2xl"> 
                             {descripName[currentIndex]}
                         </span>
