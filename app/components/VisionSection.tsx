@@ -58,19 +58,19 @@ const imagePaths = [
 
 //console.log("imagePaths",imagePaths[0].src)
 
-const descripName =[
+const descripName2 =[
     "Manufacturing, P & Equipment upgrades",
     "Civils Works, construction of amenities",
     'Home refurbishment',
      "Equipment Hire & Sales",
-     "Engine Rebuilt, Heavy Trucks, Locomotives",
+     "Engine Rebuilt, Heavy Trucks, Locomotives, PE Maintenance",
      'Rail Freight Logistics & Consultancy', 
      "Logistiscs, GPS, Warehousing, Travel",
      "PLCs",
-     'AI, IoT', 
+     'AI, IoT, Data Analytics, Business Intelligence, Data Warehousing', 
      "Manufacturing, Iron & Steel",
      "Farming, Mechanisation, Hire",
-     'Cattle Feedlots',
+     'Cattle Feedlots, GreenHouses',
      "Infrastructure, roads, bridges, viaducts",
      "Infrastructure, roads, bridges, viaducts",
      "Dams, irrigation, hydro-power",
@@ -81,6 +81,52 @@ const descripName =[
      "Travel, Tourism, Safari, Hunting",     
      "Holiday & Travel"
 
+]
+
+// --- ENHANCED DESCRIPTION ARRAY ---
+const descripName =[
+    // 1. Manufacturing & Procurement
+    "Industrial Manufacturing & Procurement: Plant, Equipment Upgrades & Supply Chain.", 
+    // 2. Civil Works
+    "Civil Engineering & Construction: Infrastructure, Commercial & Residential Amenities.",
+    // 3. Property Maintenance
+    'Residential & Commercial Property Refurbishment, Renovations & Maintenance.',
+    // 4. Equipment Hire
+    "Heavy Equipment & Plant Hire, Leasing, and Sales (Mining & Construction Focus).",
+    // 5. Heavy Vehicle Maintenance
+    "Heavy Vehicle Engineering & Maintenance: Engine Rebuilds, Locomotives, Trucks, and Plant Equipment.",
+    // 6. Rail
+    'Rail Logistics & Fleet Management: Freight Handling, Network Optimization, and Strategic Consulting.', 
+    // 7. General Logistics
+    "Integrated Logistics Solutions: Warehousing, Supply Chain Management, and Advanced GPS Tracking.",
+    // 8. Automation
+    "Industrial Automation & Control Systems (PLCs, SCADA, Robotics).",
+    // 9. Technology
+    'Advanced Technology Solutions: AI, IoT, Data Analytics, BI, & Data Warehousing.', 
+    // 10. Metals
+    "Metals & Fabrication: Iron, Steel, and Specialized Structural Manufacturing.",
+    // 11. Agriculture Tech
+    "Agro Industry Mechanization: Farm Equipment Sales, Hire, and Technical Support.",
+    // 12. Agro Production
+    'Agro Production & Management: Cattle Feedlots, Commercial Greenhouses, and Crop Optimization.',
+    // 13. Public Infrastructure
+    "Public Infrastructure Development: Roads, Bridges, Viaducts, and Urban Planning.",
+    // 14. Mining (New Sector)
+    "Mining Operations: Exploration, Processing Plant Maintenance, and Mineral Extraction.",
+    // 15. Water
+    "Water Infrastructure Development: Dams, Large-Scale Irrigation Systems, and Hydro-Power Generation.",
+    // 16. Energy
+    "Energy Sector Operations: Thermal, Nuclear, Oil & Gas, and Renewable Power Generation.",
+    // 17. Leisure
+    "Leisure & Recreation Facility Development, Management, and Operations.",
+    // 18. Social & HR
+    "Social Infrastructure & HR: Public Amenities, Skills Transfer, and Human Capital Development.",
+    // 19. Hospitality
+    "Hospitality Management: Luxury Hotels, Resorts, and Conference Facilities.",
+    // 20. Tourism
+    "Specialized Tourism & Travel: Safari, Eco-Tourism, and High-End Vacation Planning.", 
+    // 21. Environmental (New Sector)
+    "Environmental & Waste Management: Remediation, Recycling, and Sustainable Resource Handling."
 ]
 
 // --- VISION SECTION COMPONENT (WITH ENHANCED SLIDESHOW LOGIC) ---
@@ -214,25 +260,25 @@ const VisionSection: React.FC = () => {
                                 <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M9 5l7 7-7 7" /></svg>
                             </button>
                         </div>
-
-
-                        
-
-                        {/* --- SLIDE COUNTER (z-index adjusted) --- */}
-                        {/* --- SLIDE COUNTER (MODIFIED) --- */}
-{/*                         <div className="absolute bottom-5 right-5 z-50"> 
-                            <span className="bg-black bg-opacity-30 hover:bg-opacity-100 text-white text-[10px] px-2 py-1 rounded-full shadow-xl">  {descripName[currentIndex]}</span>
-                            <span className="bg-yellow-600 bg-opacity-50 hover:bg-opacity-100 text-white text-sm px-2 py-1 rounded-full shadow-xl"> {currentIndex + 1} / {totalImages}</span>
-                        </div> */}
-
                     {/* --- CORRECTED SLIDE COUNTER BLOCK --- */}
                     {/* Added flex, items-center, and space-x-2 to make the spans act as a stable, single block. 
                         Added whitespace-nowrap to prevent text wrapping. */}
-                    <div className="absolute top-1 right-1 z-50 flex items-center space-x-2"> 
-                        <span className="bg-black/30 hover:bg-black/80 text-white text-xs px-3 py-1.5 rounded-full shadow-xl transition-colors whitespace-nowrap"> 
+                    {/* <div className="absolute top-1 right-1 z-50 flex items-center space-x-2"> 
+                        <span className="bg-black/30 hover:bg-black/80 text-white text-xs px-3 py-1.5 rounded-full shadow-xl transition-colors whitespace-nowrap trunc"> 
                             {descripName[currentIndex]}
                         </span>
                         <span className="bg-yellow-600/70 hover:bg-yellow-600 text-white text-xs px-3 py-1.5 rounded-full shadow-xl transition-colors whitespace-nowrap"> 
+                            {currentIndex + 1} / {totalImages}
+                        </span>
+                    </div> */}
+                    
+                   
+                     {/* --- CORRECTED SLIDE COUNTER BLOCK --- */}
+                    <div className="absolute bottom-5 right-5 z-50 flex items-center space-x-2"> 
+                        <span className="bg-black/30 hover:bg-black/80 text-white text-xs sm:text-sm px-3 py-1.5 rounded-full shadow-xl transition-colors whitespace-nowrap truncate max-w-sm sm:max-w-sm md:max-w-2xl"> 
+                            {descripName[currentIndex]}
+                        </span>
+                        <span className="bg-yellow-600/70 hover:bg-yellow-600 text-white text-xs px-3 py-1.5 rounded-full shadow-xl transition-colors font-bold whitespace-nowrap"> 
                             {currentIndex + 1} / {totalImages}
                         </span>
                     </div>

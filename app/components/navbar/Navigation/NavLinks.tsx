@@ -97,13 +97,13 @@ const NavLinks: React.FC<NavLinksProps> = ({ onLinkClick, currentUser, handleNav
       </a>
 
       {/* Careers Link (Kept as is) */}
-      <a
+      {/* <a
         href="#careers"
         onClick={(e) => onNavLinkClick(e, "#careers")}
         className={`group font-medium ${gold} ${darkGoldHover} ${isActive('#careers') ? activeUnderline : hoverUnderline} ${subtleShadow} ${linkPadding} lg:block`}
       >
         Careers
-      </a>
+      </a> */}
     
       {/* Join as Member Link (Kept as is) */}
       <a
