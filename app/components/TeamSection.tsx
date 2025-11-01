@@ -23,7 +23,7 @@ const teamMembers: TeamMember[] = [
     id: 2,
     name: "Loice Gudukeya",
     role: "Executive Director Finance",
-    description: "BEng, MEng | PhD Environmental Sustainability | Prof Eng. MZwe.IE, M.ECZ | Board member ECZ and ZIE | Leader in Renewable Energy, drives innovative, sustainable, and equitable solutions in engineering.",
+    description: "B.Eng, MEng | PhD Environmental Sustainability | Prof Eng. MZwe.IE, M.ECZ | Board member ECZ and ZIE | Leader in Renewable Energy, drives innovative, sustainable, and equitable solutions in engineering.",
     image: "/images/team/loice-gudukeya.jpg", // New Placeholder image path
   },
   {
@@ -46,7 +46,7 @@ const teamMembers: TeamMember[] = [
     id: 5,
     name: "Wellington Chingwere",
     role: "Executive Director Infrastructure Development & Mining",
-    description: `BEng, 20yrs+ gold mining, project management, new plant installation, plant upgrading, handling equipment design & maintenance. 
+    description: `B.Eng, 20yrs+ gold mining, project management, new plant installation, plant upgrading, handling equipment design & maintenance. 
 `,
     image:DEFAULT_AVATAR_SRC// "/images/team/wellington-chengwere.jpg", // Placeholder image path
   },
