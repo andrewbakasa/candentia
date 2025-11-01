@@ -99,7 +99,7 @@ const teamMembers: TeamMember[] = [
     id: 11,
     name: "Happson Tshuma",
     role: "Non-Executive Director",
-    description: `B.Eng Industrial | MBL| MSc   (CHEP | Isuzu | Volvo | Cummins | Marcopolo| CBI Electric), 18yrs+ experience | EU | South Africa| Zimbabwe
+    description: `B.Eng Industrial | MBL | MSc (CHEP | Isuzu | Volvo | Cummins | Marcopolo| CBI Electric), 18yrs+ experience | EU | South Africa| Zimbabwe
 `,
     image: "/images/team/happison-tshuma.jpg", // New Placeholder image path
   },
