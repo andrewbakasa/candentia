@@ -4,6 +4,7 @@ import TeamSection from './TeamSection';
 import FutureOutlookSection from './FutureOutlookSection';
 import VisionSection from './VisionSection';
 import ScrollProgressIndicator from './ScrollProgressIndicator';
+import WhyPartnerWithUs from './WhyPartnerWithUs';
 
 interface IntroProps {}
 
@@ -28,6 +29,7 @@ const Intro: React.FC<IntroProps> = () => {
         {/* 3. TEAM SECTION COMPONENT (Imported) */}
         <TeamSection />
         <FutureOutlookSection />        
+        <WhyPartnerWithUs/>
       </div>
     </>
   );
