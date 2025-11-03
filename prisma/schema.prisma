@@ -442,3 +442,40 @@ model Membership {
   createdAt   DateTime @default(now())
   updatedAt   DateTime  @updatedAt
 }
+
+// --- Location Model ---
+// Represents a physical place that can be visited
+// model Location {
+//   id        String   @id @default(auto()) @map("_id") @db.ObjectId
+//   name      String
+//   latitude  Float    // Store the location's latitude
+//   longitude Float    // Store the location's longitude
+//   address   String?
+//   visits    Visit[]  // One-to-many relationship: One Location can have many Visits
+// }
+
+// --- Visit Model ---
+// Represents a specific instance of a user visiting a location
+// model Visit {
+//   id         String    @id @default(auto()) @map("_id") @db.ObjectId
+//   visitorId  String    // Assuming you have a User model or external system for users
+//   locationId String    @db.ObjectId // Foreign key to the Location model
+//   location   Location  @relation(fields: [locationId], references: [id])
+//   timestamp  DateTime  @default(now())
+//   notes      String?
+// }
+
+model Visit {
+  id         String    @id @default(auto()) @map("_id") @db.ObjectId
+  visitorId  String?   // Now optional. Use String? to allow null in MongoDB.
+  locationId String?   //@db.ObjectId
+ // location   Location  @relation(fields: [locationId], references: [id])
+  timestamp  DateTime  @default(now())
+  ipAddress  String    // New field to store the visitor's IP address
+  notes      String?
+
+  // You might consider a unique constraint for authenticated users, 
+  // but for the daily IP check, the query check is better.
+
+  @@index([ipAddress, timestamp]) // Index for fast daily lookups
+}

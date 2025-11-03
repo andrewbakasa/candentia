@@ -105,6 +105,7 @@ const descripName =[
     "Environmental & Waste Management: Remediation, Recycling, and Sustainable Resource Handling."
 ]
 
+
 // --- VISION SECTION COMPONENT (WITH ENHANCED SLIDESHOW LOGIC) ---
 const VisionSection: React.FC = () => {
     const [currentIndex, setCurrentIndex] = useState(0);
