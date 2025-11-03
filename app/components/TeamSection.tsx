@@ -91,7 +91,7 @@ const teamMembers: TeamMember[] = [
     name: "Andrew Bakasa",
     role: "Non-Executive Director",
     description: `B.Eng, MSc Investment, Prof Eng. MZwe.IE, M.ECZ 
-  10yrs+ Machine Learning | ERP | Data Analytics | Business Intelligence | Clould Computing | Computer Vision |Projects Finance | 20yrs Rail Technology, Engine Rebuilts/Upgrades, Plant Maintenance 
+  10yrs+ Machine Learning | ERP | Data Analytics | Business Intelligence | Clould Computing | Computer Vision |Project Finance | 20yrs Rail Technology, Engine Rebuilts/Upgrades, Plant Maintenance 
 `,
     image: "/images/team/andrew-bakasa.jpg", // New Placeholder image path
   },
@@ -131,9 +131,9 @@ const teamMembers: TeamMember[] = [
     id: 15,
     name: "Ishmael Mavhenge",
     role: "Non-Executive Director ",
-    description: `B.Eng |Ms Eng. Mgt|GCC|PMP|15years expr, South Africa| Swaziland| Zimbabwe
+    description: `B.Eng | Ms Eng. Mgt | GCC | PMP | 20yrs Asset Management, Maintenance | Consultancy | Project Management | Manufucturing | Pulp & Paper | Sugar & Ethanol | Forestry | South Africa | Swaziland | Zimbabwe
 `,
-    image: DEFAULT_AVATAR_SRC//"/images/team/ishmael-mavhenge.jpg", // New Placeholder image path
+    image:"/images/team/ishmael-mavhenge.jpg", // New Placeholder image path
   },
 ];
 
