@@ -15,7 +15,7 @@ const teamMembers: TeamMember[] = [
     id: 1,
     name: "Rodreck Tavaziva",
     role: "Chairman",
-    description: `B.Eng | MEng | MSOM (NUST) | MBA (MSU) | Experience in Distribution, Logistics, Manufacturing (Agrochemicals, Tobacco, Packaging), ICT & Finance Audit | BI, Data Analytics | Seasoned solutions Architect (ERP Specialist) with over 20yrs+. Lead by bridging high-level strategy and technical execution.`,
+    description: `B.Eng | MEng | MSOM | MBA | Experience in Distribution, Logistics, Manufacturing (Agrochemicals, Tobacco, Packaging), ICT & Finance Audit | Data Analytics (BI, Dashboards) | Seasoned solutions Architect (ERP Specialist) with over 20yrs+. Lead by bridging high-level strategy and technical execution.`,
     image: "/images/team/rodreck-tavaziva.jpg", // Placeholder image path
   },
   {
