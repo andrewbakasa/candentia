@@ -56,37 +56,12 @@ const imagePaths = [
     dynamicImage27,
 ];
 
-//console.log("imagePaths",imagePaths[0].src)
 
-const descripName2 =[
-    "Manufacturing, P & Equipment upgrades",
-    "Civils Works, construction of amenities",
-    'Home refurbishment',
-     "Equipment Hire & Sales",
-     "Engine Rebuilt, Heavy Trucks, Locomotives, PE Maintenance",
-     'Rail Freight Logistics & Consultancy', 
-     "Logistiscs, GPS, Warehousing, Travel",
-     "PLCs",
-     'AI, IoT, Data Analytics, Business Intelligence, Data Warehousing', 
-     "Manufacturing, Iron & Steel",
-     "Farming, Mechanisation, Hire",
-     'Cattle Feedlots, GreenHouses',
-     "Infrastructure, roads, bridges, viaducts",
-     "Infrastructure, roads, bridges, viaducts",
-     "Dams, irrigation, hydro-power",
-     "Power generation, Nuclear, Oil & Gas",
-     "Recreation Facilites",
-     "Amenities, Human Capital Development",
-     "Hotel, Resort and Travelling",
-     "Travel, Tourism, Safari, Hunting",     
-     "Holiday & Travel"
-
-]
 
 // --- ENHANCED DESCRIPTION ARRAY ---
 const descripName =[
-    // 1. Manufacturing & Procurement
-    "Industrial Manufacturing & Procurement: Plant, Equipment Upgrades & Supply Chain.", 
+    // 1. Manufacturing 
+    "Manufacturing:  Production Optimisation, Process Monitoring, Continuous Improvement, Lean Processing, Quality Systems", 
     // 2. Civil Works
     "Civil Engineering & Construction: Infrastructure, Commercial & Residential Amenities.",
     // 3. Property Maintenance

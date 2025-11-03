@@ -10,14 +10,14 @@ import ClientOnly from './components/ClientOnly';
 import getCurrentUser from './actions/getCurrentUser';
 import { Toaster } from "sonner";
 import { cn } from '@/lib/utils';
-import Hero from './components/Hero';
-//import NavBar from './components/navbar/NavBar2';
 import getJobOpenings from './actions/getJobOpenings';
 import NavBar from './components/navbar/Navigation/NavBar';
 //import { saveInitialJobs } from './vacancy/[jobId]/_components/initialDB';
 export const metadata = {
   title: 'Horizon21: Illuminating Solutions',
   description: 'Building the Future today, together',
+  // description: 'Your Integrated Partner for Industrial Excellence',
+ 
    icons: {
     icon: '/horizon.png', // This refers to app/icon.png
     shortcut: '/shortcut-icon.png', // If you have a different shortcut icon
@@ -48,11 +48,10 @@ export default async function RootLayout({
   children: React.ReactNode
 }) {
   
-  //saveInitialJobs();
+
   const currentUser = await getCurrentUser();
   const jobOpenings =await getJobOpenings();
-  //console.log(`jobOpenings :${jobOpenings}`)
-   let paddingState='pt-28';
+  let paddingState='pt-28';
   return (
     <html lang="en">
       <body className={font.className}>
@@ -62,10 +61,8 @@ export default async function RootLayout({
               <ToasterProvider />
               <Toaster />
               <LoginModal />
-             <RegisterModal />
+              <RegisterModal />
               <ModalProvider />
-             
-              
               <NavBar currentUser={currentUser} />
               <div className={cn("pb-5 h-full",paddingState)}>
                   {children}

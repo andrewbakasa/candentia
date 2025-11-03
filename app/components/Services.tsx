@@ -47,23 +47,25 @@ const services: ServiceItem[] = [
             </ul>`, 
         icon: HardHat 
     },
-    { 
-        name: "Smart Systems & Data Analytics", 
-        description: `<p>We <strong>harness the power of data</strong> to optimize every operation by implementing cutting-edge <strong>Intelligent Systems</strong> tailored for industrial efficiency.</p>
-            <p>Our service offers a <strong>full data lifecycle management solution</strong>:</p>
-            <ul class="list-disc space-y-2 ml-6 my-4">
-                <li><strong>Enterprise Data Collection & Cleaning:</strong> We collect raw data from all sources and rigorously <strong>clean and validate</strong> it, ensuring a single source of truth.</li>
-                <li><strong>Custom Data Layer & Integration:</strong> We build a <strong>customized data layer</strong> specific to your industrial needs, integrating disparate data streams to create a unified foundation for all analytics.</li>
-                <li><strong>Informed Business Intelligence (BI):</strong> We transform integrated data into <strong>actionable intelligence</strong>, providing robust reporting and visualization that drives informed decision-making.</li>
+   
+{
+    name: "Smart Systems & Data Analytics",
+    description: `<p>We <strong>harness the power of data</strong> to optimize every operation by implementing cutting-edge <strong>Intelligent Systems</strong> tailored for industrial efficiency and predictability.</p>
+    <p>Our service offers a <strong>full data lifecycle management solution</strong>:</p>
+    <ul class=\"list-disc space-y-2 ml-6 my-4\">
+    <li><strong>Enterprise Data Collection & Cleaning:</strong> We collect raw data from all sources and rigorously <strong>clean and validate</strong> it, ensuring a <strong>Single Source of Truth</strong>.</li>
+        <li><strong>Custom Data Layer & Integration:</strong> We build a <strong>customized data layer</strong> specific to your industrial needs, integrating disparate data streams to create a unified foundation for all analytics.</li>
+            <li><strong>Informed Business Intelligence (BI):</strong> We transform integrated data into <strong>actionable intelligence</strong>, providing robust reporting and visualization that drives informed decision-making.</li>
             </ul>
-            <p>Our technology stack includes:</p>
-            <ul class="list-disc space-y-2 ml-6 my-4">
-                <li><strong>Core Systems:</strong> AI, IoT, Computer Vision, Drone Technology, and PLCs.</li>
-                <li><strong>Predictive Solutions:</strong> AI-driven Predictive Maintenance for minimized downtime.</li>
-                <li><strong>Software:</strong> Comprehensive Software Solutions (ERP, SaaS, APIs, Cloud Services) and robust <strong>Business Intelligence</strong> reporting.</li>
-            </ul>`, 
-        icon: Brain 
-    },
+            <p>Our technology stack delivers dual value: predictive maintenance and proactive security:</p>
+            <ul class=\"list-disc space-y-2 ml-6 my-4\">
+            <li><strong>Core Systems:</strong> AI, IoT, Computer Vision, Drone Technology, and PLCs.</li>
+            <li><strong>Predictive Solutions:</strong> We provide <strong>AI-driven Predictive Maintenance</strong> for minimized downtime and maximized asset lifespan, achieved by utilizing advanced algorithms to predict component failure before it occurs.</li>
+            <li><strong>Thermal Imaging Security & Loss Prevention:</strong> We deploy an Intelligent Security System leveraging <strong>Thermal-Imaging CCTV and Computer Vision</strong>. This technology provides 24/7 <strong>autonomous monitoring</strong> of perimeters and high-value assets to directly <strong>reduce the risk of theft and asset loss</strong>.</li>
+           <li><strong>Software Integration and Ecosystem Platform:</strong> To ensure seamless execution and market expansion, we offer comprehensive <strong>Software Solutions</strong> (ERP, SaaS, and Cloud Services). Crucially, we utilize our platform to <strong>create various API services</strong> for industry and commerce. These APIs are designed to efficiently <strong>pool resources and manage risk</strong> by linking all customers directly with service providers. This removes intermediaries, reducing cost and ultimately providing service at an affordable rate.</li>
+    </ul>`,
+    icon: Brain
+},
     { 
         name: "Manufacturing & Agribusiness", 
         description: `<p>We specialize in <strong>General Manufacturing</strong> (industrial products) and <strong>high-yield Agribusiness</strong>.</p>
