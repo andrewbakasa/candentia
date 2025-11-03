@@ -15,7 +15,7 @@ const teamMembers: TeamMember[] = [
     id: 1,
     name: "Rodreck Tavaziva",
     role: "Chairman",
-    description: `Seasoned solutions Architect (ERP Specialist) with over 20yrs+. Lead by bridging high-level strategy and technical execution. 
+    description: `B.Eng | MEng | MSOM (NUST) | MBA (MSU)| Seasoned solutions Architect (ERP Specialist) with over 20yrs+. Lead by bridging high-level strategy and technical execution. 
         Data Analytics and AI, expertise in Manufacturing, Financial, and Logistics.`,
     image: "/images/team/rodreck-tavaziva.jpg", // Placeholder image path
   },
@@ -23,14 +23,14 @@ const teamMembers: TeamMember[] = [
     id: 2,
     name: "Loice Gudukeya",
     role: "Executive Director Finance",
-    description: "B.Eng, MEng | PhD Environmental Sustainability | Prof Eng. MZwe.IE, M.ECZ | Board member ECZ and ZIE | Leader in Renewable Energy, drives innovative, sustainable, and equitable solutions in engineering.",
+    description: "B.Eng | MEng | PhD Environmental Sustainability | Prof Eng. MZwe.IE, M.ECZ | Board member ECZ and ZIE | Leader in Renewable Energy, drives innovative, sustainable, and equitable solutions in engineering.",
     image: "/images/team/loice-gudukeya.jpg", // New Placeholder image path
   },
   {
     id: 3,
     name: "Blessed Mketo",
     role: "Executive Director Operations ",
-    description: `B.Eng.| MEng | Prof Eng. MZwe.IE, M.ECZ, M.ECN, M.SAIIE, M.ERB, 20yrs+ experience in Engineering, Operations, Construction & Transport across South Africa, Namibia, Botswana and Zimbabwe
+    description: `B.Eng | MEng | Prof Eng. MZwe.IE, M.ECZ, M.ECN, M.SAIIE, M.ERB, 20yrs+ experience in Engineering, Operations, Construction & Transport across South Africa, Namibia, Botswana and Zimbabwe
 `,
     image: "/images/team/blessed-mketo.jpg", // Placeholder image path
   },
@@ -38,7 +38,7 @@ const teamMembers: TeamMember[] = [
     id: 4,
     name: "Sipiwe Trinity Nyadongo",
     role: "Executive Director Logistics & Supply Chain Solutions.",
-    description: `B.Eng.| MEng | PhD IME| Prof Eng. MZwe.IE, M.ECZ | ERB | AUDA-NEPAD 3D Printing Expert | Expert in Metal Additive Manufacturing, Circular Economy. 
+    description: `B.Eng | MEng | PhD IME | Prof Eng. MZwe.IE, M.ECZ | ERB | AUDA-NEPAD 3D Printing Expert | Expert in Metal Additive Manufacturing, Circular Economy | Zimbabwe, Botswana, Nambia
 `,
     image: "/images/team/sipiwe-nyadongo.jpg", // Placeholder image path
   },
@@ -55,7 +55,7 @@ const teamMembers: TeamMember[] = [
     id: 6,
     name: "Graham Tongai Ndanga",
     role: "Executive Director Smart Systems & Data Analytics",
-    description: `B.Eng MSc Fin Eng | 17 yrs+ | Experience in Fin Eng, ICT, Industrial Engineering, Project Finance | South Africa`,
+    description: `B.Eng | MSc Fin Eng | 17 yrs+ | Experience in Fin Eng, ICT, Industrial Engineering, Project Finance | South Africa`,
     image: "/images/team/graham-ndanga.jpg", // New Placeholder image path
   },
 
@@ -73,7 +73,7 @@ const teamMembers: TeamMember[] = [
     id: 8,
     name: "Phillip Makaniwa",
     role: "Non-Executive Director ",
-    description: `B.Eng| MEng | 12yrs+ Cost & Risk Engineering Consultant in the Oil & Gas as well as Nuclear Industry | South Africa, Saudi Arabia, UAE
+    description: `B.Eng | MEng | 12yrs+ Cost & Risk Engineering Consultant in the Oil & Gas as well as Nuclear Industry | South Africa, Saudi Arabia, UAE
 `,
     image: "/images/team/phillip-makaniwa.jpg", // New Placeholder image path
   },
@@ -131,7 +131,7 @@ const teamMembers: TeamMember[] = [
     id: 15,
     name: "Ishmael Mavhenge",
     role: "Non-Executive Director ",
-    description: `B.Eng | Ms Eng. Mgt | GCC | PMP | 20yrs Asset Management, Maintenance | Consultancy | Project Management | Manufucturing | Pulp & Paper | Sugar & Ethanol | Forestry | South Africa | Swaziland | Zimbabwe
+    description: `B.Eng | Ms Eng. Mgt | GCC | PMP | 20yrs Asset Management, Maintenance | Consultancy | Project Management | Manufacturing | Pulp & Paper | Sugar & Ethanol | Forestry | South Africa | Swaziland | Zimbabwe
 `,
     image:"/images/team/ishmael-mavhenge.jpg", // New Placeholder image path
   },
