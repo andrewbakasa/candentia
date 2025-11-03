@@ -184,9 +184,9 @@ const UserMenu: React.FC<UserMenuProps> = ({ currentUser, handleNavigate }) => {
                 {currentUser?.isAdmin && (
                   <MenuItem label="General Enquiries" onClick={() => handleMenuItemClickWithNav("/enquiries")} />
                 )}
-                {/* {currentUser?.isAdmin && (
-                  <MenuItem label="Product Enquiries" onClick={() => handleMenuItemClickWithNav("/productenquiries")} />
-                )} */}
+                {currentUser?.isAdmin && (
+                  <MenuItem label="Website Traffic" onClick={() => handleMenuItemClickWithNav("/views")} />
+                )}
                  {currentUser?.isAdmin && (
                   <MenuItem label="Tags" onClick={() => handleMenuItemClickWithNav("/tags")} />
                 )}
