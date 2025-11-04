@@ -274,6 +274,7 @@ model Enquiry{
   phone_number String?
   message       String
   active         Boolean  @default(true)
+  isRead         Boolean  @default(false)
   category String[] @default([]) // Added default empty array
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
@@ -286,7 +287,8 @@ model ProductEnquiry{
   email       String
   phone_number String?
   message       String
-  active         Boolean  @default(true)
+  active         Boolean  @default(true)  
+  isRead         Boolean  @default(false)
   demoproducts String[] @default([]) // Added default empty array
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
