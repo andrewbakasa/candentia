@@ -63,25 +63,25 @@ export async function POST(request: NextRequest) {
 
   try {
     // --- 3. Check for an existing visit today from this IP ---
-    const existingVisit = await prisma.visit.findFirst({
-      where: {
-        ipAddress: ipAddress,
-        timestamp: {
-          gte: today, 
-        },
-      },
-    });
-    console.log("existingVisit",existingVisit)
+    const existingVisit = false//await prisma.visit.findFirst({
+    //   where: {
+    //     ipAddress: ipAddress,
+    //     timestamp: {
+    //       gte: today, 
+    //     },
+    //   },
+    // });
+    // console.log("existingVisit",existingVisit)
     if (existingVisit) {
       // --- 4. Deny the request if a visit is found (429 Rate Limit) ---
-      return NextResponse.json(
-        { 
-          error: 'Rate Limit Exceeded', 
-          message: 'This IP address has already recorded a visit today.',
-          existingVisitId: existingVisit.id
-        },
-        { status: 429 } 
-      );
+      // return NextResponse.json(
+      //   { 
+      //     error: 'Rate Limit Exceeded', 
+      //     message: 'This IP address has already recorded a visit today.',
+      //     existingVisitId: existingVisit.id
+      //   },
+      //   { status: 429 } 
+      // );
     }
 
     // --- 5. If no visit is found, proceed to create a new one ---
