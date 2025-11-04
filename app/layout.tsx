@@ -10,9 +10,8 @@ import ClientOnly from './components/ClientOnly';
 import getCurrentUser from './actions/getCurrentUser';
 import { Toaster } from "sonner";
 import { cn } from '@/lib/utils';
-import getJobOpenings from './actions/getJobOpenings';
 import NavBar from './components/navbar/Navigation/NavBar';
-//import { saveInitialJobs } from './vacancy/[jobId]/_components/initialDB';
+import getEnquiries from './actions/getEnquiries';
 export const metadata = {
   title: 'Horizon21: Illuminating Solutions',
   description: 'Building the Future today, together',
@@ -50,7 +49,8 @@ export default async function RootLayout({
   
 
   const currentUser = await getCurrentUser();
-  const jobOpenings =await getJobOpenings();
+  const enquiries =await getEnquiries();
+   
   let paddingState='pt-28';
   return (
     <html lang="en">
@@ -63,7 +63,7 @@ export default async function RootLayout({
               <LoginModal />
               <RegisterModal />
               <ModalProvider />
-              <NavBar currentUser={currentUser} />
+              <NavBar currentUser={currentUser} enquiries={enquiries}/>
               <div className={cn("pb-5 h-full",paddingState)}>
                   {children}
               </div>

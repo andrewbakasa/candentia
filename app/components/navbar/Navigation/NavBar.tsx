@@ -1,9 +1,10 @@
 "use client"
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import NavLinks from "./NavLinks";
 import UserMenu from "./UserMenu";
 import { SafeUser } from "@/app/types";
 import Image from "next/image";
+import { useInboxCountVarStore } from "@/hooks/use-inbox-count";
 
 
 /**
@@ -12,13 +13,22 @@ import Image from "next/image";
  */
 interface NavbarProps { // Correctly defined here, before its use in NavBar FC
   currentUser?: SafeUser | null;
+  enquiries:any[]
  //handleNavigate: (href: string) => void;
 }
 
-
-const NavBar: React.FC<NavbarProps> = ({ currentUser  }) => {
+ 
+const NavBar: React.FC<NavbarProps> = ({ currentUser, enquiries  }) => {
   const [top, setTop] = useState<boolean>(true);
   const [isNavMenuOpen, setIsNavMenuOpen] = useState<boolean>(false);
+  const {setUnreadMessages}=useInboxCountVarStore();
+    
+
+  const unreadEnquiries = useMemo(() => {
+      const x = enquiries.filter(r => !r.isRead).length;
+      setUnreadMessages(x)
+      return x
+    }, [enquiries, setUnreadMessages]);
 
   useEffect(() => {
     const scrollHandler = () => {

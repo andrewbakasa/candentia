@@ -290,7 +290,7 @@ const EnquiresClient: React.FC<EnquiriesClientProps> = ({
       {/* ------------------------------------------------------------------
         STICKY HEADER/TOOLBAR AREA 
         ------------------------------------------------------------------ */}
-      <div className="sticky top-0 z-40 w-full bg-white pt-4 pb-0 border-b border-gray-200 shadow-sm"> {/* Reduced pb-2 to pb-0 */}
+      <div className="sticky top-0 w-full bg-white pt-2 pb-0 border-b border-gray-200 shadow-sm"> {/* Reduced pb-2 to pb-0 */}
         <div className="mx-auto px-4 sm:px-6 lg:px-8 max-w-7xl">
             
             {/* Search Bar and Pagination */}
