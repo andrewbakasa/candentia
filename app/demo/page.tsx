@@ -340,7 +340,7 @@ const DemoProductContactForm = () => {
 
                                 <div className="flex flex-col">
                                     <h2 className="text-2xl">Call Us</h2>
-                                    <p className="text-blue-900">Tel: 263773416592</p>
+                                    <p className="text-blue-900">Tel: +263 773 286 349</p>
 
                                     <div className="mt-5">
                                         <h2 className="text-2xl">Send Email</h2>
