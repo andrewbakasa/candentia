@@ -15,7 +15,7 @@ export default async function getEnquiries() {
         // where: {
         //   active: true,
         // },
-        orderBy: { updatedAt: "desc" },
+        orderBy: { createdAt: "desc" },
         // Include any relevant relations for Career here
         // Example: If Career has a relation to Department
         // include: {

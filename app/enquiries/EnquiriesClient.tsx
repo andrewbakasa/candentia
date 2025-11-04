@@ -225,7 +225,7 @@ const EnquiresClient: React.FC<EnquiriesClientProps> = ({
                 value={pageSize}
                 key={'pagesize-selector'}
                 onChange={(e) => handlePageSizeChange(e.target.value as PageSizeOption)}
-            >
+            >   <option value="4">4</option>
                 <option value="8">8</option>
                 <option value="16">16</option>
                 <option value="24">24</option>

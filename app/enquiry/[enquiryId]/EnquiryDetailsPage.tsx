@@ -9,6 +9,9 @@ import { FaReply, FaArchive, FaTrashAlt } from "react-icons/fa"; // Added Archiv
 import { IoArrowBackOutline, IoMailOpenOutline, IoMailOutline } from "react-icons/io5"; // Added Mail icons
 import Container from "@/app/components/Container";
 import { cn } from "@/lib/utils"; // Assuming you have a utility for class concatenation
+import ConfirmAction from "./ConfirmAction";
+import { deleteMail } from "./service";
+import { toast } from "sonner";
 
 // Define the Enquiry type for client-side (dates are stringified)
 type SafeEnquiry = Omit<Enquiry, "createdAt" | "updatedAt"> & {
@@ -33,6 +36,18 @@ const EnquiryDetailsClient: React.FC<EnquiryDetailsClientProps> = ({
         alert(`Action: ${action} on enquiry ${enquiry.id}`);
         // In a real application, this would call a server action or API route
         // e.g., if action is 'delete', navigate away after successful deletion
+    };
+
+     const handleDelteMail = async (boqId: string) => {
+        try {
+        await deleteMail(boqId);
+        //setBoqs(currentBoqs => currentBoqs.filter(boq => boq.id !== boqId));
+        toast.success("Mail deleted successfully!");
+        router.push("/enquiries")
+        } catch (err: any) {
+        toast.error(err.message || "Failed to delete Mail.");
+        //setError(err.message);
+        }
     };
 
     const formattedDate = format(new Date(enquiry.createdAt), 'MMM dd, yyyy, h:mm a');
@@ -84,13 +99,22 @@ const EnquiryDetailsClient: React.FC<EnquiryDetailsClientProps> = ({
                         </button>
                         
                         {/* Delete */}
-                        <button
+                        {/* <button
                             onClick={() => handleAction('Delete')}
                             className="p-2 rounded-full text-red-500 hover:bg-gray-100 transition"
                             title="Delete"
                         >
                              <FaTrashAlt className="w-5 h-5" />
-                        </button>
+                        </button> */}
+
+                         {/* ConfirmAction for Deleting BOQ */}
+                        <ConfirmAction
+                            onConfirm={handleDelteMail}
+                            itemId={enquiry.id}
+                            action="Delete"
+                            heading={`Delete ${enquiry.category}`}
+                            description="Are you sure you want to delete this Mail? This action cannot be undone and will remove all associated BOQ items."
+                        />
                     </div>
                 </div>
 
