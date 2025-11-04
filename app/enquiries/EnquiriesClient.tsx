@@ -20,6 +20,7 @@ import { createTag } from "@/actions/create-tag";
 import { Enquiry } from "@prisma/client";
 import Link from "next/link";
 import EnquiryRow from "./_components/EnquiryRow";
+import { useInboxCountVarStore } from "@/hooks/use-inbox-count";
 
 interface EnquiriesClientProps {
   records: (Enquiry & { isRead: boolean })[]; // Ensure records includes isRead status
@@ -45,6 +46,8 @@ const EnquiresClient: React.FC<EnquiriesClientProps> = ({
 
   const [uniquerecordId, setUniquerecordId] = useState('');
 
+  const {setUnreadMessages}=useInboxCountVarStore();
+    
 
   const handleToggleSelectUniquerecord = (id: string) => {
     if (uniquerecordId?.length == 0) {
@@ -263,11 +266,13 @@ const EnquiresClient: React.FC<EnquiriesClientProps> = ({
     
     return <div className="flex items-center">{buttons}</div>;
   };
-    
+   
   // --- NEW LOGIC: Calculate Total and Unread Counts ---
   const totalEnquiries = records.length;
   const unreadEnquiries = useMemo(() => {
-    return records.filter(r => !r.isRead).length;
+    const x = records.filter(r => !r.isRead).length;
+    setUnreadMessages(x)
+    return x
   }, [records]);
   // --- END NEW LOGIC ---
 

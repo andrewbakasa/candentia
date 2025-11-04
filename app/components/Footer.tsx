@@ -32,7 +32,7 @@ const Footer: React.FC<FooterProps> = () => {
                   </li>
                   
                   <li className="mb-2">
-                    <Link href="#" className="text-[#013289] hover:text-gray-900 hover:tracking-wider transition duration-250 ease-in-out">
+                    <Link href="/contact" className="text-[#013289] hover:text-gray-900 hover:tracking-wider transition duration-250 ease-in-out">
                       Contact
                     </Link>
                   </li>

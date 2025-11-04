@@ -5,6 +5,7 @@ import { signOut } from 'next-auth/react';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { Avatar } from './Avatar';
 import { MenuItem } from './MenuItem';
+import { useInboxCountVarStore } from '@/hooks/use-inbox-count';
 
 /**
  * Simplified SafeUser type for demonstration purposes.
@@ -39,6 +40,10 @@ const UserMenu: React.FC<UserMenuProps> = ({ currentUser, handleNavigate }) => {
   const menuRef = useRef<HTMLDivElement>(null); // Ref for click-outside detection
   const loginModal = useLoginModal();
   const registerModal = useRegisterModal();
+
+  const {unreadMessages}=useInboxCountVarStore();
+
+ 
   // Handle click outside to close the menu
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -182,8 +187,18 @@ const UserMenu: React.FC<UserMenuProps> = ({ currentUser, handleNavigate }) => {
                   <MenuItem label="Users" onClick={() => handleMenuItemClickWithNav("/users")} />
                 )}
                 {currentUser?.isAdmin && (
-                  <MenuItem label="General Enquiries" onClick={() => handleMenuItemClickWithNav("/enquiries")} />
-                )}
+                  // <MenuItem label={`General Enquiries`} onClick={() => handleMenuItemClickWithNav("/enquiries")} />
+                       <div className="relative"> 
+                            <MenuItem label={`General Enquiries`} onClick={() => handleMenuItemClickWithNav("/enquiries")} />
+                           {unreadMessages>0 && <div 
+                             className="absolute top-[-10px] left-[110px] p-2 bg-inherit text-red-400 rounded-full">
+                                <span className='text-sm '
+                             
+                                >{unreadMessages}</span>
+                            </div>
+                         }
+                      </div>
+                    )}
                 {currentUser?.isAdmin && (
                   <MenuItem label="Website Traffic" onClick={() => handleMenuItemClickWithNav("/views")} />
                 )}
@@ -210,3 +225,4 @@ const UserMenu: React.FC<UserMenuProps> = ({ currentUser, handleNavigate }) => {
 };
 
 export default UserMenu;
+
