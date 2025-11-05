@@ -45,7 +45,7 @@ const teamMembers: TeamMember[] = [
     id: 5,
     name: "Wellington Chingwere",
     role: "Executive Director Infrastructure Development & Mining",
-    description: `B.Eng, 20yrs+ gold mining, project management, new plant installation, plant upgrading, handling equipment design & maintenance. 
+    description: `B.Eng | PMP | Prof Eng MZwe.IE, M.ECZ | 20yrs Asset Management, Maintenance | Consultancy | Project Management | Mining | Underground Ore Handling | Ore Process Plants, Upgading/Installation | Zimbabwe. 
 `,
     image:DEFAULT_AVATAR_SRC// "/images/team/wellington-chengwere.jpg", // Placeholder image path
   },
