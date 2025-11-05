@@ -119,20 +119,20 @@ export const deleteMail = async (mailId: string): Promise<void> => {
     }
 };
 
-export const archiveMail = async (id: string): Promise<void> => {
+export const restoreMail = async (id: string): Promise<void> => {
     try {
-        const response = await fetch(`/api/enquiries/${id}/archive`, {
+        const response = await fetch(`/api/enquiries/${id}/restore`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
         });
         if (!response.ok) {
             const errorData = await response.json();
-            throw new Error(errorData.message || 'Failed to archive mail');
+            throw new Error(errorData.message || 'Failed to restore mail');
         }
-        toast.success('Mail archived successfully');
+        toast.success('Mail restored successfully');
     } catch (err: any) {
-        console.error('Error archiving mail:', err);
-        toast.error(err.message || 'Failed to archive mail');
+        console.error('Error restoring mail:', err);
+        toast.error(err.message || 'Failed to restore mail');
         throw err;
     }
 };

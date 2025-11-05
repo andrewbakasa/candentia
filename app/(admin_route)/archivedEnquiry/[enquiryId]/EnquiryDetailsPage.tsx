@@ -10,7 +10,7 @@ import { IoArrowBackOutline, IoMailOpenOutline, IoMailOutline } from "react-icon
 import Container from "@/app/components/Container";
 import { cn } from "@/lib/utils"; // Assuming you have a utility for class concatenation
 import ConfirmAction from "./ConfirmAction";
-import { deleteMail, archiveMail, readMail } from "./service";
+import { deleteMail, restoreMail, readMail } from "./service";
 import { toast } from "sonner";
 
 // Define the Enquiry type for client-side (dates are stringified)
@@ -57,15 +57,15 @@ const EnquiryDetailsClient: React.FC<EnquiryDetailsClientProps> = ({
         }
     };
 
-    const handleArchiveMail = async (mailId: string) => {
+    const handleRestoreMail = async (mailId: string) => {
         try {
-        await archiveMail(mailId);
-        router.refresh();
+        await restoreMail(mailId);
+         router.refresh();
         //setBoqs(currentBoqs => currentBoqs.filter(boq => boq.id !== boqId));
-        toast.success("Mail archived successfully!");
-        router.push("/enquiries", { refresh: true } as any)
+        toast.success("Mail restored successfully!");
+        router.push("/archivedEnquiries", { refresh: true } as any)
         } catch (err: any) {
-        toast.error(err.message || "Failed to archive Mail.");
+        toast.error(err.message || "Failed to restore Mail.");
         //setError(err.message);
         }
     };
@@ -108,27 +108,14 @@ const EnquiryDetailsClient: React.FC<EnquiryDetailsClientProps> = ({
                     </button>
                     
                     {/* Action Buttons (Right Side) */}
-                    <div className="flex space-x-2">
-                        
-                        {/* Mark Read/Unread Toggle */}
-                        <button
-                            onClick={() => handleRead(enquiry.isRead ? 'Mark as Unread' : 'Mark as Read')}
-                            className="p-2 rounded-full text-gray-500 hover:bg-gray-100 transition"
-                            title={enquiry.isRead ? 'Mark as Unread' : 'Mark as Read'}
-                        >
-                            {enquiry.isRead ? (
-                                <IoMailOutline className="w-5 h-5" />
-                            ) : (
-                                <IoMailOpenOutline className="w-5 h-5 text-blue-600" />
-                            )}
-                        </button>
-
+                    <div className="flex space-x-2">                       
+                       
                       
                          <ConfirmAction
-                            onConfirm={handleArchiveMail}
+                            onConfirm={handleRestoreMail}
                             itemId={enquiry.id}
-                            action="Archive"
-                            heading={`Archive ${enquiry.category}`}
+                            action="Restore"
+                            heading={`Restore ${enquiry.category}`}
                             description="Are you sure you want to archive this Mail? This action cannot be undone and will remove all associated BOQ items."
                         />
                        
@@ -223,11 +210,11 @@ const EnquiryDetailsClient: React.FC<EnquiryDetailsClientProps> = ({
                     </button>
 
                     <button
-                        onClick={() => {router.push("/archivedEnquiries", { refresh: true } as any)}}                      
+                        onClick={() => handleAction('Archive')}
                         className="flex items-center px-4 py-2 bg-gray-200 text-gray-700 text-sm font-medium rounded-md hover:bg-gray-300 transition"
                     >
                         <FaArchive className="w-4 h-4 mr-2" />
-                        Go to Archives
+                        Archive
                     </button>
                 </div>
             </div>

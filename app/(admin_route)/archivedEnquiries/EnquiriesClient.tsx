@@ -1,16 +1,16 @@
 'use client';
 import { useCallback, useState, useEffect, useMemo } from "react"; // Added useMemo
 import { useRouter } from "next/navigation";
-import { SafeUser } from "../types";
-import Heading from "../components/Heading"; 
-import Search from "../components/Search"; 
-import Container from "../components/Container"; 
+import { SafeUser } from "../../types";
+import Heading from "../../components/Heading"; 
+import Search from "../../components/Search"; 
+import Container from "../../components/Container"; 
 import { redirect } from "next/navigation";
 import { useWindowSize } from "@/hooks/use-screenWidth";
 import Cookies from 'js-cookie';
 import { cn } from "@/lib/utils";
 import ReactPaginate from "react-paginate";
-import useIsMobile from "../hooks/isMobile";
+import useIsMobile from "../../hooks/isMobile";
 import { toast } from "sonner";
 import { useAction } from "@/hooks/use-action";
 import { updatePagSize } from "@/actions/update-user-pagesize";
@@ -19,8 +19,7 @@ import { Enquiry } from "@prisma/client";
 import Link from "next/link";
 import EnquiryRow from "./_components/EnquiryRow";
 import { useInboxCountVarStore } from "@/hooks/use-inbox-count";
-import Footer from "../components/Footer";
-import { FaArchive } from "react-icons/fa";
+import Footer from "../../components/Footer";
 
 interface EnquiriesClientProps {
   records: (Enquiry & { isRead: boolean })[]; // Ensure records includes isRead status
@@ -60,7 +59,7 @@ const EnquiresClient: React.FC<EnquiriesClientProps> = ({
   
   // Dummy row click handler
   const handleRowClick = (id: string) => {
-      router.push(`/enquiry/${id}`);
+      router.push(`/archivedEnquiry/${id}`);
   }
 
 
@@ -306,7 +305,7 @@ const EnquiresClient: React.FC<EnquiriesClientProps> = ({
                       />
                       <div className="flex justify-start text-sm pb-0 pt-0">
                           <p className="text-gray-600 font-medium">
-                              Total Enquiries: <span className="text-gray-900">{totalEnquiries}</span>
+                              Total Archived Enquiries: <span className="text-gray-900">{totalEnquiries}</span>
                           </p>
                           {unreadEnquiries > 0 && (
                               <p className="ml-6 text-red-600 font-bold">
@@ -384,20 +383,13 @@ const EnquiresClient: React.FC<EnquiriesClientProps> = ({
       </div>
       
 
-        <div className="p-4 sm:p-6  flex space-x-3  rounded-b-lg">
+        <div className="mt-6 mb-20 sm:mb-6">
           <Link href="/#" className="inline-flex items-center bg-gray-100 hover:bg-gray-200 text-gray-600 font-medium py-2 px-4 rounded-lg transition duration-150 ease-in-out focus:outline-none focus:ring-2 focus:ring-gray-400 focus:ring-offset-2">
             <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2 -ml-1" viewBox="0 0 20 20" fill="currentColor">
               <path fillRule="evenodd" d="M9.707 16.707a1 1 0 01-1.414 0l-6-6a1 1 0 010-1.414l6-6a1 1 0 011.414 1.414L5.414 9H17a1 1 0 110 2H5.414l4.293 4.293a1 1 0 010 1.414z" clipRule="evenodd" />
             </svg>
             Back to Home
           </Link>
-        <button
-            onClick={() => {router.push("/archivedEnquiries", { refresh: true } as any)}}                      
-            className="flex items-center px-4 py-2 bg-gray-200 text-gray-700 text-sm font-medium rounded-md hover:bg-gray-300 transition"
-        >
-            <FaArchive className="w-4 h-4 mr-2" />
-             Archived Mails
-        </button>
         </div>
       
       </Container>

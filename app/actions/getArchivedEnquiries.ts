@@ -2,7 +2,7 @@ import prisma from "../libs/prismadb";
 import { Enquiry } from "@prisma/client";
 import getCurrentUser from "./getCurrentUser";
 
-export default async function getEnquiries() {
+export default async function getArchivedEnquiries() {
   try {
     const currentUser = await getCurrentUser();
     // No need to check if currentUser exists if you want to show public job openings
@@ -13,7 +13,7 @@ export default async function getEnquiries() {
       // Admin can view all active job openings
       enquiry = await prisma.enquiry.findMany({
         where: {
-          active: true,
+          active: false,
         },
         orderBy: { createdAt: "desc" },
        
@@ -22,7 +22,7 @@ export default async function getEnquiries() {
       // Non-admin users can view all active job openings (assuming all are public)
       enquiry = await prisma.enquiry.findMany({
         where: {
-          active: true,
+          active: false,
         },
         orderBy: { updatedAt: "desc" },
         
