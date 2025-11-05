@@ -96,11 +96,11 @@ const NavLinks: React.FC<NavLinksProps> = ({ onLinkClick, currentUser, handleNav
         Future
       </a>
   <a
-        href="#partnership"
-        onClick={(e) => onNavLinkClick(e, "#partnership")}
-        className={`group font-medium ${gold} ${darkGoldHover} ${isActive('#partnership') ? activeUnderline : hoverUnderline} ${subtleShadow} ${linkPadding} lg:block`}
+        href="#why-partner-with-us"
+        onClick={(e) => onNavLinkClick(e, "#why-partner-with-us")}
+        className={`group font-medium ${gold} ${darkGoldHover} ${isActive('#why-partner-with-us') ? activeUnderline : hoverUnderline} ${subtleShadow} ${linkPadding} lg:block`}
       >
-        Partnership
+        Why Partner With Us
       </a>
       {/* Careers Link (Kept as is) */}
      

@@ -66,17 +66,18 @@ const services: ServiceItem[] = [
     </ul>`,
     icon: Brain
 },
-    { 
-        name: "Manufacturing & Agribusiness", 
-        description: `<p>We specialize in <strong>General Manufacturing</strong> (industrial products) and <strong>high-yield Agribusiness</strong>.</p>
-            <p>Our scope covers:</p>
-            <ul class="list-disc space-y-2 ml-6 my-4">
-                <li><strong>Agribusiness:</strong> Advanced food processing, intensive farming, controlled-environment agriculture (greenhouses), and efficient livestock management (feedlots).</li>
-                <li><strong>Industrial Production:</strong> General manufacturing of essential industrial products.</li>
-                <li><strong>Service Model:</strong> Pioneering the <strong>Integrated Service Center Model</strong> combining commercial service points with regional agricultural distribution.</li>
-            </ul>`, 
-        icon: Factory 
-    },
+   {
+    name: "Integrated Manufacturing & Agribusiness",
+    description: `<p>We specialize in <strong>General Manufacturing</strong> (industrial products) and <strong>High-Yield Agribusiness</strong>, operating as a single, vertically integrated unit.</p>
+        <p>Our scope covers the full value chain:</p>
+        <ul class="list-disc space-y-2 ml-6 my-4">
+            <li><strong>Agribusiness & Production:</strong> Includes Advanced Food Processing, Intensive Farming, Controlled-Environment Agriculture (greenhouses), and Efficient Livestock Management (feedlots).</li>
+            <li><strong>Integrated Feed Manufacturing:</strong> Large-scale, high-quality production of specialized, nutritional feeds for all key livestock, including <strong>Cattle, Fish, Goats, and Chicken</strong>.</li>
+            <li><strong>Industrial Production:</strong> General manufacturing of essential industrial products.</li>
+            <li><strong>Service & Distribution Model:</strong> Pioneering the <strong>Integrated Service Center Model</strong> combining commercial service points with regional agricultural distribution. This model is underpinned by a <strong>National Distribution Center Network</strong> established across the country for all product logistics.</li>
+        </ul>`,
+    icon: Factory 
+}
 ];
 
 // --- Utility Function to Render Raw HTML (Simplified) ---

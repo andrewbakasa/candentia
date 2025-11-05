@@ -19,6 +19,7 @@ import { Enquiry } from "@prisma/client";
 import Link from "next/link";
 import EnquiryRow from "./_components/EnquiryRow";
 import { useInboxCountVarStore } from "@/hooks/use-inbox-count";
+import Footer from "../components/Footer";
 
 interface EnquiriesClientProps {
   records: (Enquiry & { isRead: boolean })[]; // Ensure records includes isRead status
@@ -283,113 +284,117 @@ const EnquiresClient: React.FC<EnquiriesClientProps> = ({
   if (!currentUser) return redirect('/denied')
 
   return (
-    <Container>
-      
-      {/* ------------------------------------------------------------------
-        STICKY HEADER/TOOLBAR AREA 
-        ------------------------------------------------------------------ */}
-      <div className="sticky top-0 w-full bg-white pt-0 pb-0 border-b border-gray-200 shadow-sm"> {/* Reduced pb-2 to pb-0 */}
-        <div className="mx-auto px-4 sm:px-6 lg:px-8 max-w-7xl items-center">
-            
-            {/* Search Bar and Pagination */}
-            <div className={cn("flex gap-1 pb-0", isMobile ? 'flex-col' : 'flex-row items-center justify-between')}> {/* Added pb-2 here */}
-                
-                {/* Search bar */}
-              <div className="flex-grow max-w-lg w-full -mt-3"> 
-                    <Search
-                        setSearchTerm={setSearchTerm}
-                        searchTerm={searchTerm}
-                        option={false}
-                    />
-                    <div className="flex justify-start text-sm pb-0 pt-0">
-                        <p className="text-gray-600 font-medium">
-                            Total Enquiries: <span className="text-gray-900">{totalEnquiries}</span>
-                        </p>
-                        {unreadEnquiries > 0 && (
-                            <p className="ml-6 text-red-600 font-bold">
-                                Unread: {unreadEnquiries}
-                            </p>
-                        )}
-                        {unreadEnquiries === 0 && totalEnquiries > 0 && (
-                            <p className="ml-6 text-green-600 font-medium">
-                                (All read! 🎉)
-                            </p>
-                        )}
-                    </div>
-                </div> 
-                
-                {/* Pagination Controls - Visible on desktop, minimal on mobile */}
-                <div className="flex-shrink-0 hidden sm:block">
-                    {renderPaginationButtons(true)}
-                </div>
-            </div>
+    <>
+      <Container>
+        
+        {/* ------------------------------------------------------------------
+          STICKY HEADER/TOOLBAR AREA 
+          ------------------------------------------------------------------ */}
+        <div className="sticky top-0 w-full bg-white pt-0 pb-0 border-b border-gray-200 shadow-sm"> {/* Reduced pb-2 to pb-0 */}
+          <div className="mx-auto px-4 sm:px-6 lg:px-8 max-w-7xl items-center">
+              
+              {/* Search Bar and Pagination */}
+              <div className={cn("flex gap-1 pb-0", isMobile ? 'flex-col' : 'flex-row items-center justify-between')}> {/* Added pb-2 here */}
+                  
+                  {/* Search bar */}
+                <div className="flex-grow max-w-lg w-full -mt-3"> 
+                      <Search
+                          setSearchTerm={setSearchTerm}
+                          searchTerm={searchTerm}
+                          option={false}
+                      />
+                      <div className="flex justify-start text-sm pb-0 pt-0">
+                          <p className="text-gray-600 font-medium">
+                              Total Enquiries: <span className="text-gray-900">{totalEnquiries}</span>
+                          </p>
+                          {unreadEnquiries > 0 && (
+                              <p className="ml-6 text-red-600 font-bold">
+                                  Unread: {unreadEnquiries}
+                              </p>
+                          )}
+                          {unreadEnquiries === 0 && totalEnquiries > 0 && (
+                              <p className="ml-6 text-green-600 font-medium">
+                                  (All read! 🎉)
+                              </p>
+                          )}
+                      </div>
+                  </div> 
+                  
+                  {/* Pagination Controls - Visible on desktop, minimal on mobile */}
+                  <div className="flex-shrink-0 hidden sm:block">
+                      {renderPaginationButtons(true)}
+                  </div>
+              </div>
 
-          
+            
 
-        </div>
-      </div>
-      
-      {/* ------------------------------------------------------------------
-        ENQUIRIES LIST 
-        ------------------------------------------------------------------
-    */}
-      <div className={cn("mt-0 pb-5", )}>
-        <div>
-          {
-            (
-              <div
-                className={cn(
-                  "grid grid-cols-1 space-y-0 border-t border-gray-200" 
-                )}
-              >
-                {fListPage.map((record, index) => (
-                  <div
-                    className="col-span-1" 
-                    key={record.id}
-                  >
-                    <EnquiryRow
-                      record={record as Enquiry & { isRead: boolean }} 
-                      onClick={handleRowClick}
-                    />
-                  </div>
-                ))}
+          </div>
+        </div>
+        
+        {/* ------------------------------------------------------------------
+          ENQUIRIES LIST 
+          ------------------------------------------------------------------
+      */}
+        <div className={cn("mt-0 pb-5", )}>
+          <div>
+            {
+              (
+                <div
+                  className={cn(
+                    "grid grid-cols-1 space-y-0 border-t border-gray-200" 
+                  )}
+                >
+                  {fListPage.map((record, index) => (
+                    <div
+                      className="col-span-1" 
+                      key={record.id}
+                    >
+                      <EnquiryRow
+                        record={record as Enquiry & { isRead: boolean }} 
+                        onClick={handleRowClick}
+                      />
+                    </div>
+                  ))}
 
-                {/* Empty State Handling (kept concise) */}
-                {fList.length === 0 && (
-                    <div className="col-span-1 p-10 text-center bg-white border-b border-gray-100">
-                        <p className="text-xl font-bold text-gray-700 mb-2">
-                            {searchTerm === "" ? 
-                                "🎉 Inbox is empty." : 
-                                `No enquiries match search: "${searchTerm}"`
-                            }
-                        </p>
-                    </div>
-                )}
-              </div>
-            )
-          }
-        </div>
-      </div>
+                  {/* Empty State Handling (kept concise) */}
+                  {fList.length === 0 && (
+                      <div className="col-span-1 p-10 text-center bg-white border-b border-gray-100">
+                          <p className="text-xl font-bold text-gray-700 mb-2">
+                              {searchTerm === "" ? 
+                                  "🎉 Inbox is empty." : 
+                                  `No enquiries match search: "${searchTerm}"`
+                              }
+                          </p>
+                      </div>
+                  )}
+                </div>
+              )
+            }
+          </div>
+        </div>
 
-    {/* ------------------------------------------------------------------
-        MOBILE FOOTER PAGINATION (Always visible on mobile)
-        ------------------------------------------------------------------ */}
-    <div className="fixed bottom-0 left-0 w-full sm:hidden bg-white border-t border-gray-200 p-2 z-50 shadow-lg">
-        <div className="flex justify-center">
-             {renderPaginationButtons(false)} {/* Pass false to hide page size selector */}
-        </div>
-    </div>
-    
+      {/* ------------------------------------------------------------------
+          MOBILE FOOTER PAGINATION (Always visible on mobile)
+          ------------------------------------------------------------------ */}
+      <div className="fixed bottom-0 left-0 w-full sm:hidden bg-white border-t border-gray-200 p-2 z-50 shadow-lg">
+          <div className="flex justify-center">
+               {renderPaginationButtons(false)} {/* Pass false to hide page size selector */}
+          </div>
+      </div>
+      
 
-      <div className="mt-6 mb-20 sm:mb-6">
-        <Link href="/#" className="inline-flex items-center bg-gray-100 hover:bg-gray-200 text-gray-600 font-medium py-2 px-4 rounded-lg transition duration-150 ease-in-out focus:outline-none focus:ring-2 focus:ring-gray-400 focus:ring-offset-2">
-          <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2 -ml-1" viewBox="0 0 20 20" fill="currentColor">
-            <path fillRule="evenodd" d="M9.707 16.707a1 1 0 01-1.414 0l-6-6a1 1 0 010-1.414l6-6a1 1 0 011.414 1.414L5.414 9H17a1 1 0 110 2H5.414l4.293 4.293a1 1 0 010 1.414z" clipRule="evenodd" />
-          </svg>
-          Back to Home
-        </Link>
-      </div>
-    </Container>
+        <div className="mt-6 mb-20 sm:mb-6">
+          <Link href="/#" className="inline-flex items-center bg-gray-100 hover:bg-gray-200 text-gray-600 font-medium py-2 px-4 rounded-lg transition duration-150 ease-in-out focus:outline-none focus:ring-2 focus:ring-gray-400 focus:ring-offset-2">
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2 -ml-1" viewBox="0 0 20 20" fill="currentColor">
+              <path fillRule="evenodd" d="M9.707 16.707a1 1 0 01-1.414 0l-6-6a1 1 0 010-1.414l6-6a1 1 0 011.414 1.414L5.414 9H17a1 1 0 110 2H5.414l4.293 4.293a1 1 0 010 1.414z" clipRule="evenodd" />
+            </svg>
+            Back to Home
+          </Link>
+        </div>
+      
+      </Container>
+      {/* <Footer /> */}
+    </>
   );
 }
 

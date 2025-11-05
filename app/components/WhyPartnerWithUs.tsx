@@ -33,7 +33,7 @@ const partner_body_points = [
 // --- Main Component ---
 const WhyPartnerWithUs = () => {
     return (
-        <section className="py-16 sm:py-24 bg-gray-50" id="partnership">
+        <section className="py-16 sm:py-24 bg-gray-50" id="why-partner-with-us">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 {/* --- Main Partnership Section (Why Partner) --- */}
                 <div className="lg:text-center">

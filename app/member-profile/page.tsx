@@ -4,6 +4,7 @@ import ClientOnly from "@/app/components/ClientOnly";
 import { notFound, redirect } from "next/navigation"; // Import redirect
 import getCurrentUser from "../actions/getCurrentUser";
 import MemberData from "../member/[userId]/_components/MemberDataCore"
+import Footer from "../components/Footer";
 
 interface UserIdPageProps {
 
@@ -47,6 +48,7 @@ const UserIdPage = async ({
       return (
         <div className="p-4 h-full overflow-x-auto">
            <MemberData data={safeData} currentUser={currentUser}/>
+           <Footer />
         </div>
       );
 
