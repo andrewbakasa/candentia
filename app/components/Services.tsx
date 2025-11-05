@@ -9,29 +9,29 @@ interface ServiceItem {
     icon: React.ElementType; 
 }
 
-// --- Data Definition (NOW CONTAINS RAW HTML STRINGS) ---
+// --- Data Definition (NOW CONTAINS RAW HTML STRINGS WITH SPAN/TAILWIND CLASSES) ---
 const services: ServiceItem[] = [
-    { 
-        name: "Asset Maintenance & Optimization (MRO)", 
-        // HTML tags and <strong> used directly
-        description: `<p>We provide <strong>full-scope Maintenance, Repair, and Overhaul (MRO) services</strong>, designed to transition your operations from reactive to <strong>predictive</strong>. Our core function is to maximize asset uptime and operational efficiency.</p>
-            <p>We achieve this through:</p>
+    {
+        name: "Asset Maintenance & Optimization (MRO)",
+        description: `<p>We provide <span class="text-yellow-600 shadow-sm">full-scope Maintenance, Repair, and Overhaul (MRO) services</span>, designed to transition your operations from reactive to <span class="text-yellow-600 shadow-sm">predictive</span> while maximizing asset uptime and operational efficiency.</p>
+            <p>We achieve this through integrated technical expertise and precise lifecycle management:</p>
             <ul class="list-disc space-y-2 ml-6 my-4">
-                <li><strong>Predictive Analysis & Diagnostics:</strong> State-of-the-art techniques for early fault detection.</li>
-                <li><strong>Integrated Engineering:</strong> Covering Custom Design, Precision Manufacturing, Fabrication, and Expert Engineering Consultancy.</li>
-                <li><strong>Support:</strong> Reliable parts sales and structured <strong>long-term maintenance contracts</strong>.</li>
+                <li><span class="text-yellow-600 shadow-sm">Predictive Analysis & Diagnostics:</span> State-of-the-art techniques for early fault detection and condition monitoring.</li>
+                <li><span class="text-yellow-600 shadow-sm">Integrated Engineering:</span> Covering Custom Design, Precision Manufacturing, Fabrication, and Expert Engineering Consultancy.</li>
+                <li><span class="text-yellow-600 shadow-sm">Asset Lifecycle Management:</span> Implementing <span class="text-yellow-600 shadow-sm">Asset Tracking</span> for real-time status, location, and history, along with <span class="text-yellow-600 shadow-sm">BOQ Management, Planning, and Costing</span> for detailed project budget control.</li>
+                <li><span class="text-yellow-600 shadow-sm">Support:</span> Reliable parts sales and structured <span class="text-yellow-600 shadow-sm">long-term maintenance contracts</span>.</li>
             </ul>
-            <p>We also offer a dedicated fleet of <strong>assets for hire</strong> at competitive commercial terms.</p>`, 
+            <p>We also offer a dedicated fleet of <span class="text-yellow-600 shadow-sm">assets for hire</span> at competitive commercial terms.</p>`,
         icon: Wrench 
     },
     { 
         name: "Logistics & Supply Chain Solutions", 
-        description: `<p>We deliver <strong>seamless global logistics</strong>, integrating all steps from source to consumption with full transparency. Our comprehensive offerings eliminate supply chain complexity.</p>
+        description: `<p>We deliver <span class="text-yellow-600 shadow-sm">seamless global logistics</span>, integrating all steps from source to consumption with full transparency. Our comprehensive offerings eliminate supply chain complexity.</p>
             <p>Key solutions include:</p>
             <ul class="list-disc space-y-2 ml-6 my-4">
-                <li><strong>Global Freight Management:</strong> Efficient customs clearance and global transport with real-time tracking.</li>
-                <li><strong>Genuine Materials Sourcing:</strong> Sales and trading of authentic, high-quality materials.</li>
-                <li><strong>Infrastructure:</strong> Flexible warehousing, rigorous contract management, and a dedicated network of <strong>Modern Distribution Centers</strong>.</li>
+                <li><span class="text-yellow-600 shadow-sm">Global Freight Management:</span> Efficient customs clearance and global transport with real-time tracking.</li>
+                <li><span class="text-yellow-600 shadow-sm">Genuine Materials Sourcing:</span> Sales and trading of authentic, high-quality materials.</li>
+                <li><span class="text-yellow-600 shadow-sm">Infrastructure:</span> Flexible warehousing, rigorous contract management, and a dedicated network of <span class="text-yellow-600 shadow-sm">Modern Distribution Centers</span>.</li>
             </ul>
             <p>This approach ensures fully efficient and transparent supply chains.</p>`, 
         icon: Truck 
@@ -41,40 +41,46 @@ const services: ServiceItem[] = [
         description: `<p>We deliver sustainable infrastructure and resource development through an integrated model that drives urban and rural progress.</p>
             <p>Core operational areas:</p>
             <ul class="list-disc space-y-2 ml-6 my-4">
-                <li><strong>Major Infrastructure Projects:</strong> Rail/Road (BOT models) and Real Estate development.</li>
-                <li><strong>Mining & Resources:</strong> Responsible mining exploration.</li>
-                <li><strong>Power Strategy:</strong> Utilizing clean sources (solar/hydro) and stable generation (gas/oil). Future strategy incorporates <strong>nuclear power and emerging energy research</strong> (EV infrastructure).</li>
+                <li><span class="text-yellow-600 shadow-sm">Major Infrastructure Projects:</span> Rail/Road (BOT models) and Real Estate development.</li>
+                <li><span class="text-yellow-600 shadow-sm">Mining & Resources:</span> Responsible mining exploration.</li>
+                <li><span class="text-yellow-600 shadow-sm">Power Strategy:</span> Utilizing clean sources (solar/hydro) and stable generation (gas/oil). Future strategy incorporates <span class="text-yellow-600 shadow-sm">nuclear power and emerging energy research</span> (EV infrastructure).</li>
             </ul>`, 
         icon: HardHat 
     },
-   
-{
-    name: "Smart Systems & Data Analytics",
-    description: `<p>We <strong>harness the power of data</strong> to optimize every operation by implementing cutting-edge <strong>Intelligent Systems</strong> tailored for industrial efficiency and predictability.</p>
-    <p>Our service offers a <strong>full data lifecycle management solution</strong>:</p>
-    <ul class=\"list-disc space-y-2 ml-6 my-4\">
-    <li><strong>Enterprise Data Collection & Cleaning:</strong> We collect raw data from all sources and rigorously <strong>clean and validate</strong> it, ensuring a <strong>Single Source of Truth</strong>.</li>
-        <li><strong>Custom Data Layer & Integration:</strong> We build a <strong>customized data layer</strong> specific to your industrial needs, integrating disparate data streams to create a unified foundation for all analytics.</li>
-            <li><strong>Informed Business Intelligence (BI):</strong> We transform integrated data into <strong>actionable intelligence</strong>, providing robust reporting and visualization that drives informed decision-making.</li>
-            </ul>
-            <p>Our technology stack delivers dual value: predictive maintenance and proactive security:</p>
-            <ul class=\"list-disc space-y-2 ml-6 my-4\">
-            <li><strong>Core Systems:</strong> AI, IoT, Computer Vision, Drone Technology, and PLCs.</li>
-            <li><strong>Predictive Solutions:</strong> We provide <strong>AI-driven Predictive Maintenance</strong> for minimized downtime and maximized asset lifespan, achieved by utilizing advanced algorithms to predict component failure before it occurs.</li>
-            <li><strong>Thermal Imaging Security & Loss Prevention:</strong> We deploy an Intelligent Security System leveraging <strong>Thermal-Imaging CCTV and Computer Vision</strong>. This technology provides 24/7 <strong>autonomous monitoring</strong> of perimeters and high-value assets to directly <strong>reduce the risk of theft and asset loss</strong>.</li>
-           <li><strong>Software Integration and Ecosystem Platform:</strong> To ensure seamless execution and market expansion, we offer comprehensive <strong>Software Solutions</strong> (ERP, SaaS, and Cloud Services). Crucially, we utilize our platform to <strong>create various API services</strong> for industry and commerce. These APIs are designed to efficiently <strong>pool resources and manage risk</strong> by linking all customers directly with service providers. This removes intermediaries, reducing cost and ultimately providing service at an affordable rate.</li>
-    </ul>`,
-    icon: Brain
-},
-   {
+    
+    {
+        name: "Smart Systems & Data Analytics",
+        description: `<p>We <span class="text-yellow-600 shadow-sm">harness the power of data</span> to optimize every operation by implementing cutting-edge <span class="text-yellow-600 shadow-sm">Intelligent Systems</span> tailored for industrial efficiency and predictability.</p>
+        <p>Our service offers a <span class="text-yellow-600 shadow-sm">full data lifecycle management solution</span>:</p>
+        <ul class="list-disc space-y-2 ml-6 my-4">
+            <li><span class="text-yellow-600 shadow-sm">Enterprise Data Collection & Cleaning:</span> We collect raw data from all sources and rigorously <span class="text-yellow-600 shadow-sm">clean and validate</span> it, ensuring a <span class="text-yellow-600 shadow-sm">Single Source of Truth</span>.</li>
+            <li><span class="text-yellow-600 shadow-sm">Custom Data Layer & Integration:</span> We build a <span class="text-yellow-600 shadow-sm">customized data layer</span> specific to your industrial needs, integrating disparate data streams to create a unified foundation for all analytics.</li>
+            <li><span class="text-yellow-600 shadow-sm">Informed Business Intelligence (BI):</span> We transform integrated data into <span class="text-yellow-600 shadow-sm">actionable intelligence</span>, providing robust reporting and visualization that drives informed decision-making.</li>
+        </ul>
+        <p>Our technology stack delivers dual value: predictive maintenance and proactive security, enhanced by new strategic software services:</p>
+        <ul class="list-disc space-y-2 ml-6 my-4">
+            <li><span class="text-yellow-600 shadow-sm">Core Systems:</span> AI, IoT, Computer Vision, Drone Technology, and PLCs.</li>
+            <li><span class="text-yellow-600 shadow-sm">Predictive Solutions:</span> We provide <span class="text-yellow-600 shadow-sm">AI-driven Predictive Maintenance</span> for minimized downtime and maximized asset lifespan.</li>
+            <li><span class="text-yellow-600 shadow-sm">Thermal Imaging Security & Loss Prevention:</span> We deploy an Intelligent Security System leveraging <span class="text-yellow-600 shadow-sm">Thermal-Imaging CCTV and Computer Vision</span> for 24/7 <span class="text-yellow-600 shadow-sm">autonomous monitoring</span> to directly <span class="text-yellow-600 shadow-sm">reduce the risk of theft and asset loss</span>.</li>
+            <li><span class="text-yellow-600 shadow-sm">Strategic Software & API Services :</span> We offer comprehensive <span class="text-yellow-600 shadow-sm">Software Solutions</span> (ERP, SaaS, and Cloud Services). Crucially, we utilize our platform to <span class="text-yellow-600 shadow-sm">create various API services</span> for industry and commerce, including:
+                <ul>
+                    <li><span class="text-yellow-600 shadow-sm">Asset Tracking Software & API:</span> Provides real-time, digital management of assets for continuous visibility and optimized deployment.</li>
+                    <li><span class="text-yellow-600 shadow-sm">BOQ & Cost Management Software & API:</span> Tools for <span class="text-yellow-600 shadow-sm">Bill of Quantities (BOQ) management, planning, and costing</span> to ensure granular project budget control.</li>
+                    <li><span class="text-yellow-600 shadow-sm">Ecosystem Platform:</span> Links customers directly with service providers to efficiently <span class="text-yellow-600 shadow-sm">pool resources and manage risk</span>, removing intermediaries and reducing cost.</li>
+                </ul>
+            </li>
+        </ul>`,
+        icon: Brain
+    },
+    {
     name: "Integrated Manufacturing & Agribusiness",
-    description: `<p>We specialize in <strong>General Manufacturing</strong> (industrial products) and <strong>High-Yield Agribusiness</strong>, operating as a single, vertically integrated unit.</p>
+    description: `<p>We specialize in <span class="text-yellow-600 shadow-sm">General Manufacturing</span> (industrial products) and <span class="text-yellow-600 shadow-sm">High-Yield Agribusiness</span>, operating as a single, vertically integrated unit.</p>
         <p>Our scope covers the full value chain:</p>
         <ul class="list-disc space-y-2 ml-6 my-4">
-            <li><strong>Agribusiness & Production:</strong> Includes Advanced Food Processing, Intensive Farming, Controlled-Environment Agriculture (greenhouses), and Efficient Livestock Management (feedlots).</li>
-            <li><strong>Integrated Feed Manufacturing:</strong> Large-scale, high-quality production of specialized, nutritional feeds for all key livestock, including <strong>Cattle, Fish, Goats, and Chicken</strong>.</li>
-            <li><strong>Industrial Production:</strong> General manufacturing of essential industrial products.</li>
-            <li><strong>Service & Distribution Model:</strong> Pioneering the <strong>Integrated Service Center Model</strong> combining commercial service points with regional agricultural distribution. This model is underpinned by a <strong>National Distribution Center Network</strong> established across the country for all product logistics.</li>
+            <li><span class="text-yellow-600 shadow-sm">Agribusiness & Production:</span> Includes Advanced Food Processing, Intensive Farming, Controlled-Environment Agriculture (greenhouses), and Efficient Livestock Management (feedlots).</li>
+            <li><span class="text-yellow-600 shadow-sm">Integrated Feed Manufacturing:</span> Large-scale, high-quality production of specialized, nutritional feeds for all key livestock, including <span class="text-yellow-600 shadow-sm">Cattle, Fish, Goats, and Chicken</span>.</li>
+            <li><span class="text-yellow-600 shadow-sm">Industrial Production:</span> General manufacturing of essential industrial products.</li>
+            <li><span class="text-yellow-600 shadow-sm">Service & Distribution Model:</span> Pioneering the <span class="text-yellow-600 shadow-sm">Integrated Service Center Model</span> combining commercial service points with regional agricultural distribution. This model is underpinned by a <span class="text-yellow-600 shadow-sm">National Distribution Center Network</span> established across the country for all product logistics.</li>
         </ul>`,
     icon: Factory 
 }
@@ -125,21 +131,21 @@ const Services: React.FC = () => {
                                 <button
                                     onClick={() => toggleService(service.name)}
                                     className={`w-full p-6 flex items-center justify-between text-left 
-                                            transition duration-300 ease-in-out border-b-2 
-                                            ${isOpen ? 'bg-blue-50 border-blue-600' : 'bg-white hover:bg-gray-50 border-transparent'}`}
+                                        transition duration-300 ease-in-out border-b-2 
+                                        ${isOpen ? 'bg-blue-50 border-blue-600' : 'bg-white hover:bg-gray-50 border-transparent'}`}
                                     aria-expanded={isOpen}
                                     aria-controls={`content-${service.name.replace(/\s/g, '-')}`}
                                 >
                                     <div className="flex items-center">
                                         {/* Icon Container */}
                                         <div className={`flex-shrink-0 mr-4 p-3 rounded-full transition duration-300 
-                                                        ${isOpen ? 'bg-blue-600' : 'bg-blue-100'}`}>
+                                                         ${isOpen ? 'bg-blue-600' : 'bg-blue-100'}`}>
                                             <service.icon className={`w-6 h-6 transition duration-300 
-                                                                    ${isOpen ? 'text-white' : 'text-blue-800'}`} />
+                                                                         ${isOpen ? 'text-white' : 'text-blue-800'}`} />
                                         </div>
                                         
                                         {/* Title */}
-                                        <h4 className="text-xl font-bold text-gray-900">{service.name}</h4>
+                                        <h4 className="text-xl font-bold text-yellow-600 shadow-sm">{service.name}</h4>
                                     </div>
                                     
                                     {/* Chevron Icon (Rotation for visual feedback) */}
@@ -172,8 +178,8 @@ const Services: React.FC = () => {
     );
 };
 
-export default Services; 
-
+export default Services;
+// 'use client'; 
 // import React, { useState } from 'react';
 // import { Wrench, Factory, Truck, HardHat, Brain, ChevronDown, ChevronUp } from 'lucide-react'; 
 
@@ -186,17 +192,17 @@ export default Services;
 
 // // --- Data Definition (NOW CONTAINS RAW HTML STRINGS) ---
 // const services: ServiceItem[] = [
-//     { 
-//         name: "Asset Maintenance & Optimization (MRO)", 
-//         // HTML tags and <strong> used directly
-//         description: `<p>We provide <strong>full-scope Maintenance, Repair, and Overhaul (MRO) services</strong>, designed to transition your operations from reactive to <strong>predictive</strong>. Our core function is to maximize asset uptime and operational efficiency.</p>
-//             <p>We achieve this through:</p>
+//     {
+//         name: "Asset Maintenance & Optimization (MRO)",
+//         description: `<p>We provide <strong>full-scope Maintenance, Repair, and Overhaul (MRO) services</strong>, designed to transition your operations from reactive to <strong>predictive</strong> while maximizing asset uptime and operational efficiency.</p>
+//             <p>We achieve this through integrated technical expertise and precise lifecycle management:</p>
 //             <ul class="list-disc space-y-2 ml-6 my-4">
-//                 <li><strong>Predictive Analysis & Diagnostics:</strong> State-of-the-art techniques for early fault detection.</li>
+//                 <li><strong>Predictive Analysis & Diagnostics:</strong> State-of-the-art techniques for early fault detection and condition monitoring.</li>
 //                 <li><strong>Integrated Engineering:</strong> Covering Custom Design, Precision Manufacturing, Fabrication, and Expert Engineering Consultancy.</li>
+//                 <li><strong>Asset Lifecycle Management:</strong> Implementing <strong>Asset Tracking</strong> for real-time status, location, and history, along with <strong>BOQ Management, Planning, and Costing</strong> for detailed project budget control.</li>
 //                 <li><strong>Support:</strong> Reliable parts sales and structured <strong>long-term maintenance contracts</strong>.</li>
 //             </ul>
-//             <p>We also offer a dedicated fleet of <strong>assets for hire</strong> at competitive commercial terms.</p>`, 
+//             <p>We also offer a dedicated fleet of <strong>assets for hire</strong> at competitive commercial terms.</p>`,
 //         icon: Wrench 
 //     },
 //     { 
@@ -222,28 +228,43 @@ export default Services;
 //             </ul>`, 
 //         icon: HardHat 
 //     },
-//     { 
-//         name: "Smart Systems & Data Analytics", 
-//         description: `<p>We <strong>harness the power of data</strong> to optimize every operation by implementing cutting-edge <strong>Intelligent Systems</strong>.</p>
-//             <p>Our technology stack includes:</p>
-//             <ul class="list-disc space-y-2 ml-6 my-4">
-//                 <li><strong>Core Systems:</strong> AI, IoT, Computer Vision, Drone Technology, and PLCs.</li>
-//                 <li><strong>Predictive Solutions:</strong> AI-driven Predictive Maintenance for minimized downtime.</li>
-//                 <li><strong>Software:</strong> Comprehensive Software Solutions (ERP, SaaS, APIs, Cloud Services) and robust <strong>Business Intelligence</strong> reporting.</li>
-//             </ul>`, 
-//         icon: Brain 
+   
+//     {
+//         name: "Smart Systems & Data Analytics",
+//         description: `<p>We <strong>harness the power of data</strong> to optimize every operation by implementing cutting-edge <strong>Intelligent Systems</strong> tailored for industrial efficiency and predictability.</p>
+//         <p>Our service offers a <strong>full data lifecycle management solution</strong>:</p>
+//         <ul class="list-disc space-y-2 ml-6 my-4">
+//             <li><strong>Enterprise Data Collection & Cleaning:</strong> We collect raw data from all sources and rigorously <strong>clean and validate</strong> it, ensuring a <strong>Single Source of Truth</strong>.</li>
+//             <li><strong>Custom Data Layer & Integration:</strong> We build a <strong>customized data layer</strong> specific to your industrial needs, integrating disparate data streams to create a unified foundation for all analytics.</li>
+//             <li><strong>Informed Business Intelligence (BI):</strong> We transform integrated data into <strong>actionable intelligence</strong>, providing robust reporting and visualization that drives informed decision-making.</li>
+//         </ul>
+//         <p>Our technology stack delivers dual value: predictive maintenance and proactive security, enhanced by new strategic software services:</p>
+//         <ul class="list-disc space-y-2 ml-6 my-4">
+//             <li><strong>Core Systems:</strong> AI, IoT, Computer Vision, Drone Technology, and PLCs.</li>
+//             <li><strong>Predictive Solutions:</strong> We provide <strong>AI-driven Predictive Maintenance</strong> for minimized downtime and maximized asset lifespan.</li>
+//             <li><strong>Thermal Imaging Security & Loss Prevention:</strong> We deploy an Intelligent Security System leveraging <strong>Thermal-Imaging CCTV and Computer Vision</strong> for 24/7 <strong>autonomous monitoring</strong> to directly <strong>reduce the risk of theft and asset loss</strong>.</li>
+//             <li><strong>Strategic Software & API Services :</strong> We offer comprehensive <strong>Software Solutions</strong> (ERP, SaaS, and Cloud Services). Crucially, we utilize our platform to <strong>create various API services</strong> for industry and commerce, including:
+//                 <ul>
+//                     <li><strong>Asset Tracking Software & API:</strong> Provides real-time, digital management of assets for continuous visibility and optimized deployment.</li>
+//                     <li><strong>BOQ & Cost Management Software & API:</strong> Tools for <strong>Bill of Quantities (BOQ) management, planning, and costing</strong> to ensure granular project budget control.</li>
+//                     <li><strong>Ecosystem Platform:</strong> Links customers directly with service providers to efficiently <strong>pool resources and manage risk</strong>, removing intermediaries and reducing cost.</li>
+//                 </ul>
+//             </li>
+//         </ul>`,
+//         icon: Brain
 //     },
-//     { 
-//         name: "Manufacturing & Agribusiness", 
-//         description: `<p>We specialize in <strong>General Manufacturing</strong> (industrial products) and <strong>high-yield Agribusiness</strong>.</p>
-//             <p>Our scope covers:</p>
-//             <ul class="list-disc space-y-2 ml-6 my-4">
-//                 <li><strong>Agribusiness:</strong> Advanced food processing, intensive farming, controlled-environment agriculture (greenhouses), and efficient livestock management (feedlots).</li>
-//                 <li><strong>Industrial Production:</strong> General manufacturing of essential industrial products.</li>
-//                 <li><strong>Service Model:</strong> Pioneering the <strong>Integrated Service Center Model</strong> combining commercial service points with regional agricultural distribution.</li>
-//             </ul>`, 
-//         icon: Factory 
-//     },
+//    {
+//     name: "Integrated Manufacturing & Agribusiness",
+//     description: `<p>We specialize in <strong>General Manufacturing</strong> (industrial products) and <strong>High-Yield Agribusiness</strong>, operating as a single, vertically integrated unit.</p>
+//         <p>Our scope covers the full value chain:</p>
+//         <ul class="list-disc space-y-2 ml-6 my-4">
+//             <li><strong>Agribusiness & Production:</strong> Includes Advanced Food Processing, Intensive Farming, Controlled-Environment Agriculture (greenhouses), and Efficient Livestock Management (feedlots).</li>
+//             <li><strong>Integrated Feed Manufacturing:</strong> Large-scale, high-quality production of specialized, nutritional feeds for all key livestock, including <strong>Cattle, Fish, Goats, and Chicken</strong>.</li>
+//             <li><strong>Industrial Production:</strong> General manufacturing of essential industrial products.</li>
+//             <li><strong>Service & Distribution Model:</strong> Pioneering the <strong>Integrated Service Center Model</strong> combining commercial service points with regional agricultural distribution. This model is underpinned by a <strong>National Distribution Center Network</strong> established across the country for all product logistics.</li>
+//         </ul>`,
+//     icon: Factory 
+// }
 // ];
 
 // // --- Utility Function to Render Raw HTML (Simplified) ---
@@ -251,13 +272,8 @@ export default Services;
 // /**
 //  * Renders raw HTML strings using dangerouslySetInnerHTML, eliminating the need 
 //  * for complex string parsing logic.
-//  * NOTE: Using dangerouslySetInnerHTML requires careful security review 
-//  * if content were coming from an untrusted source.
 //  */
 // const RenderRawHTML: React.FC<{ html: string }> = ({ html }) => {
-//     // Setting Tailwind classes for the <ul> directly in the data strings 
-//     // ensures they are picked up, though for complex styling, a dedicated 
-//     // parser or component library is usually preferred.
 //     return (
 //         <div 
 //             // ⚠️ Using dangerouslySetInnerHTML is required to render the HTML tags from the string.
@@ -310,7 +326,7 @@ export default Services;
 //                                         </div>
                                         
 //                                         {/* Title */}
-//                                         <h4 className="text-xl font-bold text-gray-900">{service.name}</h4>
+//                                         <h4 className="text-xl font-bold text-yellow-600 shadow-sm">{service.name}</h4>
 //                                     </div>
                                     
 //                                     {/* Chevron Icon (Rotation for visual feedback) */}
@@ -343,127 +359,4 @@ export default Services;
 //     );
 // };
 
-// export default Services;
-// 'use client'; 
-// import React, { useState } from 'react';
-// import { Wrench, Factory, Truck, HardHat, Brain, ChevronDown, ChevronUp } from 'lucide-react'; 
-
-// // --- Data Definition (Unchanged) ---
-// interface ServiceItem {
-//     name: string;
-//     description: string;
-//     icon: React.ElementType; // Icon component type from lucide-react
-// }
-
-// const services: ServiceItem[] = [
-//     { 
-//         name: "Asset Maintenance & Optimization (MRO)", 
-//         description: "We provide full-scope Maintenance, Repair, and Overhaul (MRO) services. We maximize asset uptime and operational efficiency through state of art techniques that involved  predictive analysis and asset diagnostics. Our end-to-end capabilities encompass Engineering, Custom Design, Precision Manufacturing, Fabrication, Installation and Engineering Constultancy, supported by reliable parts sales and long-term maintenance contracts. We have a fleet of assets that we hire out at fair cost", 
-//         icon: Wrench 
-//     },
-//     { 
-//         name: "Logistics & Supply Chain Solutions", 
-//         description: "We deliver seamless global logistics, integrating all steps from source to consumption. Our comprehensive offerings include the sales and trading of genuine materials, efficient customs clearance, and global freight management with real-time tracking. Furthermore, we provide flexible warehousing, rigorous contract management, and a dedicated network of Modern Distribution Centers for efficient and fully transparent supply chains.", 
-//         icon: Truck 
-//     },
-//     { 
-//         name: "Infrastructure Development & Mining", 
-//         description: "We deliver sustainable infrastructure and resource development through an integrated model that drives urban and rural progress. Core operations involve major rail/road (BOT), real estate, and mining exploration. Our power strategy utilizes clean sources like solar/hydro and EV infrastructure, while incorporating reliable gas and oil generation. Future strategy includes nuclear power and emerging energy research.", 
-//         icon: HardHat 
-//     },
-//     { 
-//         name: "Smart Systems & Data Analytics", 
-//         description: "We harness the power of data to optimize every operation by implementing cutting-edge Intelligent Systems (AI, IoT, Computer Vision, Drone Technology, PLCs, and Smart Equipment). Our suite of offerings features AI-driven Predictive Maintenance, comprehensive Software Solutions (ERP, SaaS, APIs, Cloud Services), and robust Business Intelligence.", 
-//         icon: Brain 
-//     },
-//     { 
-//         name: "Manufacturing & Agribusiness", 
-//         description: "We specialize in General Manufacturing (including industrial products) and high-yield Agribusiness. Our scope covers advanced food processing, intensive farming, controlled-environment agriculture (greenhouses), and efficient livestock management (feedlots). Additionally, we pioneer the Integrated Service Center Model, which seamlessly combines commercial service points with regional agricultural distribution.", 
-//         icon: Factory 
-//     },
-// ];
-
-// // --- Main Component (Converted to Accordion/Expandable Rows) ---
-// const Services: React.FC = () => {
-//     // State to track the name of the currently open service (null if none are open)
-//     const [openServiceName, setOpenServiceName] = useState<string | null>(null);
-
-//     // Toggle function for the accordion logic
-//     const toggleService = (name: string) => {
-//         setOpenServiceName(name === openServiceName ? null : name);
-//     };
-
-//     return (
-//         // Removed pt-20/-mt-20 padding from the top div, added it back to the section for standard container spacing
-//         <div className="py-16" id="our-services">
-//             <h3 className="text-3xl font-extrabold text-blue-800 text-center mb-12 uppercase tracking-wider">
-//                 Our Service
-//             </h3>
-            
-//             {/* CHANGE: Removed grid layout (grid-cols-1 sm:grid-cols-2 lg:grid-cols-3) 
-//               and replaced it with a simple vertical flex container with spacing (space-y-4)
-//             */}
-//             <div className="flex flex-col space-y-4  mx-auto">
-//                 {services.map((service) => {
-//                     const isOpen = service.name === openServiceName;
-                    
-//                     return (
-//                         <div 
-//                             key={service.name} 
-//                             // Stronger default shadow, border on hover
-//                             className="bg-white rounded-xl shadow-lg border border-gray-200 transition duration-300 overflow-hidden"
-//                         >
-//                             {/* Header: Clickable Area */}
-//                             <button
-//                                 onClick={() => toggleService(service.name)}
-//                                 className={`w-full p-6 flex items-center justify-between text-left 
-//                                             transition duration-300 ease-in-out border-b-2 
-//                                             ${isOpen ? 'bg-blue-50 border-blue-600' : 'bg-white hover:bg-gray-50 border-transparent'}`}
-//                                 aria-expanded={isOpen}
-//                                 aria-controls={`content-${service.name.replace(/\s/g, '-')}`}
-//                             >
-//                                 <div className="flex items-center">
-//                                     {/* Icon Container (consistent styling) */}
-//                                     <div className={`flex-shrink-0 mr-4 p-3 rounded-full transition duration-300 
-//                                                     ${isOpen ? 'bg-blue-600' : 'bg-blue-100'}`}>
-//                                         <service.icon className={`w-6 h-6 transition duration-300 
-//                                                                   ${isOpen ? 'text-white' : 'text-blue-800'}`} />
-//                                     </div>
-                                    
-//                                     {/* Title */}
-//                                     <h4 className={`text-xl font-bold transition duration-300 
-//                                                     ${isOpen ? 'text-blue-800' : 'text-gray-900'}`}>{service.name}</h4>
-//                                 </div>
-                                
-//                                 {/* Chevron Icon (Rotation for visual feedback) */}
-//                                 {isOpen ? (
-//                                     <ChevronUp className="w-6 h-6 text-blue-600 flex-shrink-0" />
-//                                 ) : (
-//                                     <ChevronDown className="w-6 h-6 text-gray-400 hover:text-blue-600 flex-shrink-0" />
-//                                 )}
-//                             </button>
-
-//                             {/* Content: Collapsible Area */}
-//                             {/* Using a separate div for Tailwind's max-h transition for smooth expansion */}
-//                             <div
-//                                 id={`content-${service.name.replace(/\s/g, '-')}`}
-//                                 className={`transition-all duration-500 ease-in-out ${
-//                                     isOpen ? 'max-h-96 opacity-100 py-4' : 'max-h-0 opacity-0'
-//                                 }`}
-//                             >
-//                                 <p className="text-base text-gray-700 px-6 pt-2 pb-6">
-//                                     {service.description}
-//                                 </p>
-//                             </div>
-//                         </div>
-//                     );
-//                 })}
-//             </div>
-            
-//             {/* Note: The max-h-96 class is an estimate. For production code, consider a Headless UI component 
-//                      like Disclosure (from `@headlessui/react`) for fully dynamic height transitions. */}
-//         </div>
-//     );
-// };
-
-// export default Services;
+// export default Services; 
