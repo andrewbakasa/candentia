@@ -111,7 +111,7 @@ const NavLinks: React.FC<NavLinksProps> = ({ onLinkClick, currentUser, handleNav
         onClick={(e) => onNavLinkClick(e, "/membership#membership")}
         className={`group font-medium ${gold} ${darkGoldHover} ${isActive('/membership#membership') ? activeUnderline : hoverUnderline} ${subtleShadow} ${linkPadding} lg:block`}
       >
-        Join as Member
+        Membership
       </a>
 
       {/* Contact Us Link (Kept as is) */}
