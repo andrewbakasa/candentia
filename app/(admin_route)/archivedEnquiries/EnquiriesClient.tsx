@@ -228,10 +228,11 @@ const EnquiresClient: React.FC<EnquiriesClientProps> = ({
         <div className="min-h-screen bg-gray-50">
             <Container>
                 {/* Sticky Header with Navy Blue/Gold Styling */}
-                <div className="sticky top-0 w-full bg-white pt-4 pb-3 border-b-4 shadow-md z-10" style={{ borderColor: '#FFD700' }}>
-                    <div className="mx-auto px-0 sm:px-0 lg:px-0 max-w-7xl">
+                {/* <div className="sticky top-0 w-full bg-white pt-4 pb-3 border-b-4 shadow-md z-10" style={{ borderColor: '#FFD700' }}> */}
+                  <div  className="sticky w-full bg-white pt-4 pb-3 border-b-4 shadow-md z-10 mt-[-100px] sm:mt-[-60px]"      style={{ borderColor: '#FFD700', top: '60px' }}>
+                      <div className="mx-auto px-0 sm:px-0 lg:px-0 max-w-7xl">
                         
-                        <h1 className={cn("text-3xl font-extrabold mb-4 px-4 sm:px-6", NAVY_BLUE)}>Archived Enquiries</h1>
+                        {/* <h1 className={cn("text-3xl font-extrabold mb-4 px-4 sm:px-6", NAVY_BLUE)}>Archived Enquiries</h1> */}
 
                         {/* Search Bar, Stats, and Pagination */}
                         <div className={cn("flex gap-4 px-4 sm:px-6", isMobile ? 'flex-col' : 'flex-row items-center justify-between')}>
@@ -272,7 +273,8 @@ const EnquiresClient: React.FC<EnquiriesClientProps> = ({
                 </div>
                 
                 {/* ENQUIRIES LIST CONTAINER */}
-                <div className="mt-6 pb-20 sm:pb-10">
+                <div className="mt-14 sm:mt-6 pb-20 sm:pb-10">
+                
                     <div className="border border-gray-200 rounded-xl overflow-hidden shadow-lg">
                         {/* List */}
                         <div className="grid grid-cols-1 divide-y divide-gray-100">

@@ -243,7 +243,8 @@ const EnquiresClient: React.FC<EnquiriesClientProps> = ({
     <>
       <Container>
          {/* Sticky Header with Navy Blue/Gold Styling */}
-                <div className="sticky top-0 w-full bg-white pt-4 pb-3 border-b-4 shadow-md z-10" style={{ borderColor: '#FFD700' }}>
+                {/* <div className="sticky top-0 w-full bg-white pt-4 pb-3 border-b-4 shadow-md z-10" style={{ borderColor: '#FFD700' }}> */}
+                 <div  className="sticky w-full bg-white pt-4 pb-3 border-b-4 shadow-md z-10 mt-[-100px] sm:mt-[-60px]"      style={{ borderColor: '#FFD700', top: '60px' }}>
                     <div className="mx-auto px-0 sm:px-0 lg:px-0 max-w-7xl">
                         
                         {/* <h1 className={cn("text-3xl font-extrabold mb-4 px-4 sm:px-6", NAVY_BLUE)}>Archived Enquiries</h1> */}
@@ -288,6 +289,7 @@ const EnquiresClient: React.FC<EnquiriesClientProps> = ({
         
         {/* ENQUIRIES LIST CONTAINER */}
         <div className="mt-0 pb-10">
+    
           <div className="border border-gray-200 rounded-lg overflow-hidden">
             {
               (
@@ -333,7 +335,7 @@ const EnquiresClient: React.FC<EnquiriesClientProps> = ({
  {/*  i need the botton div  with two buttons to move up 50px in mobile */}
         {/* Footer Links - Styled with Navy and Gold */}
 {/*         <div className={cn("p-4 sm:p-6 flex space-x-3", isMobile && "mt-[-150px]")}> */}
-        <div className={cn("p-4 sm:p-6 flex space-x-3")}>
+        <div className={cn("p-4 sm:p-6 flex space-x-3 pb-5 mb-10 -mt-[20px]")}>
           {/* Back to Home Button */}
           <Link href="/#" 
             className={cn(
