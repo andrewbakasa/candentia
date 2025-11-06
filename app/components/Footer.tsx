@@ -77,7 +77,7 @@ const Footer: React.FC<FooterProps> = () => {
                       {/* Twitter */}
                       <Link
                         target='_blank'
-                        href="https://x.com/andy_etn"
+                        href="https://x.com/Horizontwenty1"
                         className="flex justify-center items-center text-blue-900 hover:text-gray-500 bg-white hover:bg-white-100 rounded-full shadow transition duration-150 ease-in-out"
                         aria-label="Twitter"
                       >
