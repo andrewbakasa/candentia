@@ -1,44 +1,87 @@
-
 import { NextResponse } from "next/server";
 import prisma from "../../../../libs/prismadb";
 import { revalidatePath } from "next/cache";
+import getCurrentUser from "@/app/actions/getCurrentUser";
+
+// Define the shape for the URL parameters
+interface IParams {
+  id?: string;
+}
+
+// DELETE handler for Next.js Route Handler
+// Note: While your original code used POST, DELETE is the RESTful method for deletion.
+// I've kept it as POST based on your function signature, but recommend using DELETE.
+// If you change the file name to 'route.ts' and the function to 'DELETE', you should use DELETE.
 
 export async function POST(
   request: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: IParams } // Use the defined interface for better type safety
 ) {
-  const MailId = params.id;
+  const MailId = params.id; // Correctly access the 'id' from the params object
 
+  // 1. Authentication and Authorization Checks
+  const currentUser = await getCurrentUser();
+
+  if (!currentUser) {
+    // Must return a NextResponse object for Next.js Route Handlers
+    return NextResponse.json(
+      { error: "Unauthorized", message: "User not logged in" },
+      { status: 401 } // 401 Unauthorized
+    );
+  }
+
+  // Authorization: Only administrators can delete enquiries
+  if (!currentUser.isAdmin) {
+    // Must return a NextResponse object
+    return NextResponse.json(
+      { error: "Forbidden", message: "User does not have admin permissions" },
+      { status: 403 } // 403 Forbidden
+    );
+  }
+
+  // Basic validation to ensure an ID was provided
+  if (!MailId) {
+    return NextResponse.json(
+      { error: "Bad Request", message: "Enquiry ID is missing" },
+      { status: 400 } // 400 Bad Request
+    );
+  }
+
+  // 2. Database Operation
   try {
-    // Calculate 30 days from the current date
-
-    // Update the Mail record to mark it as inactive and schedule deletion
-    const updatedMail = await prisma.enquiry.delete({
+    // Delete the enquiry record
+    const deletedEnquiry = await prisma.enquiry.delete({
       where: { id: MailId },
     });
-    revalidatePath(`/enquiries`)
-    revalidatePath(`/archivedEnquiries`)
+
+    // 3. Cache Revalidation (for Next.js App Router)
+    revalidatePath(`/enquiries`);
+    revalidatePath(`/archivedEnquiries`); // Assuming this is needed after a hard delete
+
+    // 4. Success Response
     return NextResponse.json(
       {
-        message: `Enquire "${updatedMail.last_name}" (ID: ${updatedMail.id}) has been deleted.`,
-        Mail: updatedMail,
+        message: `Enquiry for "${deletedEnquiry.last_name}" (ID: ${deletedEnquiry.id}) has been permanently deleted.`,
+        deletedEnquiry: deletedEnquiry,
       },
-      { status: 200 }
+      { status: 200 } // 200 OK
     );
   } catch (error: any) {
-    console.error(`Error marking Mail ${MailId} for deletion:`, error);
+    console.error(`Error deleting Enquiry ${MailId}:`, error);
 
-    // Provide a more specific error message based on the type of error
-    if (error.code === 'P2025') { // Prisma error code for record not found
-        return NextResponse.json(
-            { error: "Mail not found", message: `No Mail with ID ${MailId} could be found.` },
-            { status: 404 } // Use 404 for Not Found
-        );
+    // 5. Error Handling
+    // Prisma error code P2025: Record to delete does not exist.
+    if (error.code === 'P2025') {
+      return NextResponse.json(
+        { error: "Not Found", message: `No Enquiry with ID ${MailId} could be found to delete.` },
+        { status: 404 } // 404 Not Found
+      );
     }
 
+    // Generic Internal Server Error
     return NextResponse.json(
-      { error: "Failed to mark Mail for deletion", message: error.message },
-      { status: 500 }
+      { error: "Internal Server Error", message: "An unexpected error occurred during deletion." },
+      { status: 500 } // 500 Internal Server Error
     );
   }
 }
