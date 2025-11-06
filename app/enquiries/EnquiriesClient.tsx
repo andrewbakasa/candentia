@@ -335,7 +335,7 @@ const EnquiresClient: React.FC<EnquiriesClientProps> = ({
  {/*  i need the botton div  with two buttons to move up 50px in mobile */}
         {/* Footer Links - Styled with Navy and Gold */}
 {/*         <div className={cn("p-4 sm:p-6 flex space-x-3", isMobile && "mt-[-150px]")}> */}
-        <div className={cn("p-4 sm:p-6 flex space-x-3 pb-5 mb-10 -mt-[20px]")}>
+        <div className={cn("p-4 sm:p-6 flex space-x-3 pb-5 mb-10")}>
           {/* Back to Home Button */}
           <Link href="/#" 
             className={cn(

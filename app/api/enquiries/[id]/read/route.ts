@@ -10,10 +10,7 @@ export async function POST(
 
   try {
     // Calculate 30 days from the current date
-    const thirtyDaysFromNow = new Date();
-    thirtyDaysFromNow.setDate(thirtyDaysFromNow.getDate() + 30);
-
-    // Update the Mail record to mark it as inactive and schedule deletion
+     // Update the Mail record to mark it as inactive and schedule deletion
     const updatedMail = await prisma.enquiry.update({
       where: { id: MailId },
       data: {

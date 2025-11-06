@@ -1,7 +1,7 @@
 // pages/api/Mails/[id]/route.ts
 import { NextResponse } from "next/server";
 import prisma from "../../../../libs/prismadb";
-
+import { revalidatePath } from "next/cache";
 export async function POST(
   request: Request,
   { params }: { params: { id: string } }
@@ -29,7 +29,8 @@ export async function POST(
         scheduledDeleteAt: true,
       }
     });
-
+    revalidatePath(`/enquiries`)
+    revalidatePath(`/archivedEnquiries`)
     return NextResponse.json(
       {
         message: `Enquire "${updatedMail.id}" (ID: ${updatedMail.id}) has been marked as inactive and scheduled for permanent deletion on ${thirtyDaysFromNow.toLocaleDateString()}.`,
