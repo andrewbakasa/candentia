@@ -37,10 +37,7 @@ const EnquiresClient: React.FC<EnquiriesClientProps> = ({
     records,
     currentUser,
 }) => {
-    // Determine the actual current user and records
-    // const records = propRecords;
-    // const currentUser = propCurrentUser;
-    
+   
     // --- State and Hooks ---
     const router = useRouter();
     const [searchTerm, setSearchTerm] = useState("");
@@ -74,7 +71,7 @@ const EnquiresClient: React.FC<EnquiriesClientProps> = ({
     // --- Action Handlers ---
     const handleRowClick = useCallback((id: any) => {
         // Mock navigation to the detail page
-        router.push(`/archivedEnquiry/${id}`);
+       router.push(`/archivedEnquiry/${id}`);
     }, [router]);
 
 

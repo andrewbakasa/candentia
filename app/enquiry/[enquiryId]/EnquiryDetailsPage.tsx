@@ -58,9 +58,10 @@ const EnquiryDetailsClient: React.FC<EnquiryDetailsClientProps> = ({
     const handleDeleteMail = async (mailId: string) => {
         try {
         await deleteMail(mailId);
-        router.refresh();
-        toast.success("Mail deleted successfully!");
+        
+       // toast.success("Mail deleted successfully!");
         router.push("/enquiries", { refresh: true } as any)
+        router.refresh();
         } catch (err: any) {
         toast.error(err.message || "Failed to delete Mail.");
         }
@@ -69,9 +70,10 @@ const EnquiryDetailsClient: React.FC<EnquiryDetailsClientProps> = ({
     const handleArchiveMail = async (mailId: string) => {
         try {
         await archiveMail(mailId);
+       
+        //toast.success("Mail archived successfully!");
+        router.push("/enquiries", { refresh: true } as any) 
         router.refresh();
-        toast.success("Mail archived successfully!");
-        router.push("/enquiries", { refresh: true } as any)
         } catch (err: any) {
         toast.error(err.message || "Failed to archive Mail.");
         }
@@ -80,9 +82,10 @@ const EnquiryDetailsClient: React.FC<EnquiryDetailsClientProps> = ({
     const handleReadMail = async (mailId: string) => {
         try {
         await readMail(mailId);
+       
+       // toast.success("Mail read successfully!");
+        router.push("/enquiries", { refresh: true } as any) 
         router.refresh();
-        toast.success("Mail read successfully!");
-        router.push("/enquiries", { refresh: true } as any)
         } catch (err: any) {
         toast.error(err.message || "Failed to read Mail.");
         }
