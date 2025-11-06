@@ -9,10 +9,11 @@ import { FaReply, FaArchive, FaTrashAlt } from "react-icons/fa";
 import { IoArrowBackOutline, IoMailOpenOutline, IoMailOutline } from "react-icons/io5"; 
 import Container from "@/app/components/Container";
 import { cn } from "@/lib/utils"; 
-import ConfirmAction from "./ConfirmAction"; // Assuming this is styled separately
+//import ConfirmAction from "./ConfirmAction"; // Assuming this is styled separately
 import { deleteMail, restoreMail, readMail } from "./service";
 import { toast } from "sonner";
 import { BsDot } from "react-icons/bs"; // For a subtle unread indicator
+import ConfirmAction from "@/app/enquiry/[enquiryId]/ConfirmAction";
 
 // Define custom Tailwind classes (assuming they are in tailwind.config.js)
 const NAVY_BLUE = 'text-[#001F3F]';
@@ -44,62 +45,77 @@ const EnquiryDetailsClient: React.FC<EnquiryDetailsClientProps> = ({
 
     // --- Action Handlers (Kept unchanged for functionality) ---
 
-    const handleAction = (action: string) => {
-        // Placeholder logic for actions
-        alert(`Action: ${action} on enquiry ${enquiry.id}`);
-        // In a real application, this would call a server action or API route
-        // e.g., if action is 'delete', navigate away after successful deletion
-    };
+    
 
     const handleRead = (action: string) => {
         handleReadMail(enquiry.id)
     };
 
   
-
+        // --- Authorization Flags ---
+        const isLoggedIn = !!currentUser;
+        const isAdmin = currentUser?.isAdmin;
     
- 
+        // --- Action Handlers with Guards ---
     
-     const handleDeleteMail = async (mailId: string) => {
-        try {
-        await deleteMail(mailId);
-        router.refresh();
-        //setBoqs(currentBoqs => currentBoqs.filter(boq => boq.id !== boqId));
-        toast.success("Mail deleted successfully!");
-        router.push("/archivedEnquiries", { refresh: true } as any)
-        } catch (err: any) {
-        toast.error(err.message || "Failed to delete Mail.");
-        //setError(err.message);
-        }
-    };
+        const handleAction = (action: string) => {
+            // Placeholder for actions like Reply (which generates a mailto link)
+            if (action === 'Reply') {
+                window.location.href = `mailto:${enquiry.email}?subject=Re: Your Enquiry`;
+            } else {
+                 toast.info(`Action: ${action} on enquiry ${enquiry.id}`);
+            }
+        };
+    
+        const handleReadMail = async (mailId: string) => {
+            if (!isLoggedIn) {
+                toast.error("You must be logged in to change the read status.");
+                return;
+            }
+            try {
+                await readMail(mailId);
+                // toast.success("Mail read status updated successfully!");
+                router.refresh(); 
+                // Optional: router.push("/enquiries", { refresh: true } as any) if list needs updating
+            } catch (err: any) {
+                toast.error(err.message || "Failed to update read status.");
+            }
+        };
+    
+    
+        const handleDeleteMail = async (mailId: string) => {
+            if (!isAdmin) {
+                toast.error("You must be an administrator to delete mail permanently.");
+                return;
+            }
+            try {
+                await deleteMail(mailId);
+                
+                // toast.success("Mail deleted successfully!");
+                router.push("/archivedEnquiries", { refresh: true } as any)
+                router.refresh();
+            } catch (err: any) {
+                toast.error(err.message || "Failed to delete Mail.");
+            }
+        };
 
-    const handleRestoreMail = async (mailId: string) => {
-        try {
-        await restoreMail(mailId);
         
-        //setBoqs(currentBoqs => currentBoqs.filter(boq => boq.id !== boqId));
-       // toast.success("Mail restored successfully!");
-        router.push("/archivedEnquiries", { refresh: true } as any)
-        router.refresh();
-        } catch (err: any) {
-        toast.error(err.message || "Failed to restore Mail.");
-        //setError(err.message);
-        }
-    };
+        const handleRestoreMail = async (mailId: string) => {
 
-    
-    const handleReadMail = async (mailId: string) => {
-        try {
-        await readMail(mailId);
-        router.refresh();
-        //setBoqs(currentBoqs => currentBoqs.filter(boq => boq.id !== boqId));
-        toast.success("Mail read successfully!");
-        router.push("/archivedEnquiries", { refresh: true } as any)
-        } catch (err: any) {
-        toast.error(err.message || "Failed to read Mail.");
-        //setError(err.message);
-        }
-    };
+             if (!isAdmin) {
+                toast.error("You must be an administrator to restore archived mail.");
+                return;
+            }
+            try {
+                await restoreMail(mailId);
+
+                router.push("/archivedEnquiries", { refresh: true } as any)
+                router.refresh();
+                } catch (err: any) {
+                toast.error(err.message || "Failed to restore Mail.");
+            }
+        };
+
 
     // --- Formatting ---
     const formattedDate = format(new Date(enquiry.createdAt), 'MMM dd, yyyy, h:mm a');
@@ -132,49 +148,24 @@ const EnquiryDetailsClient: React.FC<EnquiryDetailsClientProps> = ({
                     
                     {/* Action Buttons (Right Side) */}
                     <div className="flex space-x-2">
-                        
-                        {/* Mark Read/Unread Toggle - Uses gold accent for unread icon */}
-                        <button
-                            onClick={() => handleRead(enquiry.isRead ? 'Mark as Unread' : 'Mark as Read')}
-                            className={actionButtonClasses}
-                            title={enquiry.isRead ? 'Mark as Unread' : 'Mark as Read'}
-                        >
-                            {enquiry.isRead ? (
-                                <IoMailOutline className="w-5 h-5 text-gray-500" />
-                            ) : (
-                                // Gold highlight for unread status toggle
-                                <IoMailOpenOutline className={cn("w-5 h-5", GOLD_ACCENT)} /> 
-                            )}
-                        </button>
-
-                        {/* ConfirmAction for Archiving Mail - Uses Navy for icon */}
-                           <ConfirmAction
-                            onConfirm={handleRestoreMail}
-                            itemId={enquiry.id}
-                            action="Restore"
-                            heading={`Restore Mail`}
-                            description="Are you sure you want to restore this Mail?"
-                            // Passes gold styling to the trigger button
-                            // triggerButton={
-                            //     <button className={actionButtonClasses} title="Archive Mail">
-                            //         <FaArchive className={cn("w-5 h-5", NAVY_BLUE)} /> 
-                            //     </button>
-                            // }
-                        />
-                        
-                        {/* ConfirmAction for Deleting Mail - Uses Red for danger */}
-                        <ConfirmAction
-                            onConfirm={handleDeleteMail}
-                            itemId={enquiry.id}
-                            action="Delete"
-                            heading={`Delete Mail`}
-                            description="Are you sure you want to permanently delete this Mail? This action cannot be undone."
-                            // triggerButton={
-                            //     <button className={actionButtonClasses} title="Delete Mail">
-                            //         <FaTrashAlt className="w-5 h-5 text-red-600" />
-                            //     </button>
-                            // }
-                        />
+                           <ConfirmAction 
+                                onConfirm={handleDeleteMail} 
+                                itemId={enquiry.id}
+                                action="Delete" 
+                                disabled={!isLoggedIn}
+                                disabledReason={'Cannot delete active items'}
+                                heading="Permanent Deletion"
+                                description="This item will be permanently removed from the system. This action cannot be undone."
+                                showHint={true}
+                            />
+                            <ConfirmAction 
+                                onConfirm={handleRestoreMail} 
+                                itemId={enquiry.id}
+                                action="Restore" 
+                                disabled={!isAdmin} // Opposite of the main state
+                                heading="Restore Mail"
+                                description="This action will restore this mail. Press the restore button to continue."
+                            />
                     </div>
                 </div>
 

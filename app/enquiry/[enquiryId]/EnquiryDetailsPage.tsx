@@ -8,10 +8,11 @@ import { FaReply, FaArchive, FaTrashAlt } from "react-icons/fa";
 import { IoArrowBackOutline, IoMailOpenOutline, IoMailOutline } from "react-icons/io5"; 
 import Container from "@/app/components/Container";
 import { cn } from "@/lib/utils"; 
-import ConfirmAction from "./ConfirmAction"; 
+//import ConfirmAction from "./ConfirmAction"; 
 import { deleteMail, archiveMail, readMail } from "./service";
 import { toast } from "sonner";
 import { BsDot } from "react-icons/bs"; 
+import ConfirmAction from "./ConfirmAction";
 
 // Define custom Tailwind classes (assuming they are in tailwind.config.js)
 const NAVY_BLUE = 'text-[#001F3F]';
@@ -37,6 +38,8 @@ const EnquiryDetailsClient: React.FC<EnquiryDetailsClientProps> = ({
     currentUser,
 }) => {
     const router = useRouter();
+
+  
 
     // --- Authorization Flags ---
     const isLoggedIn = !!currentUser;
@@ -148,37 +151,30 @@ const EnquiryDetailsClient: React.FC<EnquiryDetailsClientProps> = ({
                             </button>
                         )}
 
-                        {/* ConfirmAction for Archiving Mail - Requires Logged In */}
-                        {isLoggedIn && (
-                            <ConfirmAction
-                                onConfirm={handleArchiveMail}
+                                         
+
+                        {/* <div className="flex space-x-4 p-4 border rounded-lg bg-white shadow-lg"> */}
+                            <ConfirmAction 
+                                onConfirm={handleDeleteMail} 
+                                itemId={enquiry.id}
+                                action="Delete" 
+                                disabled={!isLoggedIn}
+                                disabledReason={'Cannot delete active items'}
+                                heading="Permanent Deletion"
+                                description="This item will be permanently removed from the system. This action cannot be undone."
+                                showHint={true}
+                            />
+                            <ConfirmAction 
+                                onConfirm={handleArchiveMail} 
                                 itemId={enquiry.id}
                                 action="Archive"
-                                heading={`Archive Mail`}
-                                description="Are you sure you want to archive this Mail? It will be moved to the archive folder."
-                                triggerButton={
-                                    <button className={actionButtonClasses} title="Archive Mail">
-                                        <FaArchive className={cn("w-5 h-5", NAVY_BLUE)} /> 
-                                    </button>
-                                }
+                                heading="Item Archiving"
+                                description="This item will be removed from the mail records. Press archive button to continue."
+                               
+                                disabled={!isAdmin} // Opposite of the main state
+                                showHint={true}
                             />
-                        )}
-                        
-                        {/* ConfirmAction for Deleting Mail - Requires Admin */}
-                        {isAdmin && (
-                            <ConfirmAction
-                                onConfirm={handleDeleteMail}
-                                itemId={enquiry.id}
-                                action="Delete"
-                                heading={`Delete Mail`}
-                                description="Are you sure you want to permanently delete this Mail? This action cannot be undone."
-                                triggerButton={
-                                    <button className={actionButtonClasses} title="Delete Mail">
-                                        <FaTrashAlt className="w-5 h-5 text-red-600" />
-                                    </button>
-                                }
-                            />
-                        )}
+                        {/* </div> */}
                     </div>
                 </div>
 

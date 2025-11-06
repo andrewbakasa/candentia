@@ -280,6 +280,7 @@ const EnquiresClient: React.FC<EnquiriesClientProps> = ({
                                     <EnquiryRow
                                         record={record} 
                                         onClick={handleRowClick}
+                                        isAdmin= {currentUser?.isAdmin}
                                     />
                                 </div>
                             ))}

@@ -108,13 +108,13 @@ export const deleteMail = async (mailId: string): Promise<void> => {
 
         if (!response.ok) {
             const errorData = await response.json();
-            throw new Error(errorData.message || 'Failed to delete BOQ');
+            throw new Error(errorData.message || 'Failed to delete Mail');
         }
-        toast.success(`Deleted BOQ: ${mailId}`);
+        toast.success(`Deleted Mail: ${mailId}`);
         
     } catch (err: any) {
-        console.error('Error deleting BOQ:', err);
-        toast.error(err.message || 'Failed to delete BOQ');
+        console.error('Error deleting Mail:', err);
+        toast.error(err.message || 'Failed to delete Mail');
         throw err;
     }
 };

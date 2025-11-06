@@ -7,16 +7,18 @@ import { Archive, Mail } from 'lucide-react';
 import { toast } from 'sonner';
 import { useRouter } from 'next/navigation';
 import { restoreMail } from '../../archivedEnquiry/[enquiryId]/service';
-import ConfirmAction from '../../archivedEnquiry/[enquiryId]/ConfirmAction';
+//import ConfirmAction from '../../archivedEnquiry/[enquiryId]/ConfirmAction';
 import { revalidatePath } from 'next/cache';
 import React from 'react'; // Ensure React is imported for React.FC
+import ConfirmAction from '@/app/enquiry/[enquiryId]/ConfirmAction';
 
 interface EnquiryRowProps {
     record: Enquiry & { isRead: boolean };
     onClick: (id: string) => void;
+    isAdmin:boolean;
 }
 
-const EnquiryRow: React.FC<EnquiryRowProps> = ({ record, onClick }) => {
+const EnquiryRow: React.FC<EnquiryRowProps> = ({ record, onClick, isAdmin }) => {
     const isReadClass = record.isRead ? 'bg-white hover:bg-gray-50 text-gray-600' : 'bg-yellow-50 hover:bg-yellow-100 text-[#001F3F] font-semibold';
     const readStatusIcon = record.isRead ? <Mail className="h-4 w-4 text-gray-400" /> : <Mail className="h-4 w-4 text-[#FFD700] fill-[#FFD700]" />;
     const router =useRouter();
@@ -59,13 +61,16 @@ const EnquiryRow: React.FC<EnquiryRowProps> = ({ record, onClick }) => {
                 
                 {/* 🛑 WRAPPER ADDED TO STOP PROPAGATION 🛑 */}
                 <div onClick={stopPropagation} className="flex-shrink-0 ml-4">
-                    <ConfirmAction
-                        onConfirm={handleRestoreMail}
-                        itemId={record.id}
-                        action="Restore"
-                        heading={`Restore Mail`}
-                        description="Are you sure you want to restore this Mail?"
-                    />
+                   
+                      <ConfirmAction 
+                            onConfirm={handleRestoreMail} 
+                            itemId={record.id}
+                            action="Restore" 
+                            disabled={!isAdmin} // Opposite of the main state
+                            heading="Restore Mail"
+                            description="This action will restore this mail. Press the restore button to continue."
+                            showHint={true}
+                        />
                 </div>
                 
             </div>
