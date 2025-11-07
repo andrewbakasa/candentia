@@ -316,7 +316,7 @@ const ContactFormComp = () => {
                                     </svg>
                                 </a>
                                 <a
-                                     href="https://www.facebook.com/bakasa.andrew"
+                                     href="https://www.facebook.com/HorizonTwentyOne21"
                                     target="_blank"
                                     rel="noreferrer"
                                     className="rounded-full flex justify-center bg-white h-8 text-blue-900  w-8  mx-1 text-center pt-1"
