@@ -70,7 +70,7 @@ const teamMembers: TeamMember[] = [
   {
     id: 8,
     name: "Ishmael Mavhenge",
-    role: "Executive Director Research, Innovation & Developement ",
+    role: "Executive Director Research, Innovation & Development ",
     description: `B.Eng | Ms Eng. Mgt | GCC | PMP | 20yrs Asset Management, Maintenance | Research & Development | Consultancy | Project Management | Manufacturing | Pulp & Paper | Sugar & Ethanol | Forestry | South Africa | Swaziland | Zimbabwe
 `,
     image:"/images/team/ishmael-mavhenge.jpg", // New Placeholder image path
