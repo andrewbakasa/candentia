@@ -2,7 +2,7 @@
 import { NextResponse } from 'next/server';
 import getCurrentUser from '@/app/actions/getCurrentUser';
 // Note: Assuming updateProjectRating is correctly implemented in Services
-import { updateProjectRating } from '@/app/busprojects/_components/Services'; 
+import { updateProjectRating } from '@/app/bps/_components/Services'; 
 
 /**
  * Handles posting a rating for a specific project.

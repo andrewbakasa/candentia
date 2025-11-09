@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 import prisma from '@/app/libs/prismadb'; 
 import getCurrentUser from '@/app/actions/getCurrentUser';
 // Assuming these service functions exist and handle Prisma logic
-import { createNewProject, getProjectsList } from '@/app/busprojects/_components/Services';
+import { createNewProject, getProjectsList } from '@/app/bps/_components/Services';
 
 /**
  * Handles the creation of a new business project proposal.

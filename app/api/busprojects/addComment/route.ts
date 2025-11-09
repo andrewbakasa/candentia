@@ -1,6 +1,6 @@
 // /pages/api/projects/[id]/comment.ts
 import getCurrentUser from '@/app/actions/getCurrentUser';
-import { addProjectComment } from '@/app/busprojects/_components/Services';
+import { addProjectComment } from '@/app/bps/_components/Services';
 import type { NextApiRequest, NextApiResponse } from 'next';
 //import { addProjectComment } from '../../../../lib/services/projectService';
 // import { getSessionUser } from '../../../../lib/auth';

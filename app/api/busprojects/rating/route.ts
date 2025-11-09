@@ -1,6 +1,6 @@
 // /pages/api/projects/[id]/comment.ts
 import type { NextApiRequest, NextApiResponse } from 'next';
-import { updateProjectRating } from '@/app/busprojects/_components/Services';
+import { updateProjectRating } from '@/app/bps/_components/Services';
 import getCurrentUser from '@/app/actions/getCurrentUser';
 
 

@@ -1,7 +1,7 @@
 // /app/api/busprojects/[id]/comment/route.ts (App Router structure)
 import { NextResponse } from 'next/server';
 import getCurrentUser from '@/app/actions/getCurrentUser';
-import { addProjectComment } from '@/app/busprojects/_components/Services'; // Assuming this service function exists
+import { addProjectComment } from '@/app/bps/_components/Services'; // Assuming this service function exists
 
 /**
  * Handles posting a new comment to a specific project.
