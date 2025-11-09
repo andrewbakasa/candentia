@@ -52,6 +52,10 @@ model User {
  // Membership Membership[]
 
   JobAttachment JobAttachment[]
+
+  projectToUserRatings ProjectToUserRating[]
+
+  projectComments ProjectComment[]
 }
 
 
@@ -482,4 +486,47 @@ model Visit {
   // but for the daily IP check, the query check is better.
 
   @@index([ipAddress, timestamp]) // Index for fast daily lookups
+}
+model BusinessProjectModel {
+  id                  String               @id @default(auto()) @map("_id") @db.ObjectId
+  rating              Float?               // total for all users... (Now calculated in service)
+  title               String
+  order               Int
+  description         String?              @db.String
+  progress            String               @db.String @default("proposal") // proposal, debating, adopted, running, aborted,shelved
+  visible             Boolean              @default(false)
+  active              Boolean              @default(true)
+  userId              String               @db.ObjectId // Proposer ID
+  proposedStartDate   DateTime?
+  comments            ProjectComment[]
+  viewCount           Int?                 @default(0)
+  timestamp           DateTime             @default(now())
+  notes               String?
+  projectToUserRatings ProjectToUserRating[]
+
+  createdAt           DateTime             @default(now())
+  updatedAt           DateTime             @updatedAt
+}
+
+model ProjectToUserRating {
+  id                  String               @id @default(auto()) @map("_id") @db.ObjectId
+  rate                Int
+  projectId           String               @db.ObjectId
+  project             BusinessProjectModel @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  userId              String               @db.ObjectId
+  user                User                 @relation(fields: [userId], references: [id])
+  createdAt           DateTime             @default(now())
+  updatedAt           DateTime             @updatedAt
+  @@unique([projectId, userId]) // Enforce one rating per user per project
+}
+
+model ProjectComment {
+  id                  String               @id @default(auto()) @map("_id") @db.ObjectId
+  projectId           String               @db.ObjectId
+  project             BusinessProjectModel @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  userId              String               @db.ObjectId // Commenter ID
+  user                User                 @relation(fields: [userId], references: [id])
+  content             String               @db.String // Added content for the comment
+  timestamp           DateTime             @default(now())
+  // rate removed as rating is tracked in ProjectToUserRating
 }
