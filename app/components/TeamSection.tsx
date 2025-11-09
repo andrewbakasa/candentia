@@ -67,9 +67,17 @@ const teamMembers: TeamMember[] = [
 `,
     image: DEFAULT_AVATAR_SRC//"/images/team/bhekimplio-nkonjela.jpg", // New Placeholder image path
   },
+  {
+    id: 8,
+    name: "Ishmael Mavhenge",
+    role: "Executive Director Research, Innovation & Developement ",
+    description: `B.Eng | Ms Eng. Mgt | GCC | PMP | 20yrs Asset Management, Maintenance | Consultancy | Project Management | Manufacturing | Pulp & Paper | Sugar & Ethanol | Forestry | South Africa | Swaziland | Zimbabwe
+`,
+    image:"/images/team/ishmael-mavhenge.jpg", // New Placeholder image path
+  },
 
     {
-    id: 8,
+    id: 9,
     name: "Phillip Makaniwa",
     role: "Non-Executive Director ",
     description: `B.Eng | MEng | 12yrs+ Cost & Risk Engineering Consultant in the Oil & Gas as well as Nuclear Industry | South Africa, Saudi Arabia, UAE
@@ -77,7 +85,7 @@ const teamMembers: TeamMember[] = [
     image: "/images/team/phillip-makaniwa.jpg", // New Placeholder image path
   },
     {
-    id: 9,
+    id: 10,
     name: "Kupakwashe Chamakavinga",
     role: "Non-Executive Director",
     description: `B.Eng(NUST). MPhil Cambridge, 20yrs+ experience | Manufacturing Executive & M&A Analyst | Expert in driving Sub-Saharan African export growth, operational efficiency (Plant Utilization), and strategic M&A integration | UK, Zimbabwe
@@ -86,7 +94,7 @@ const teamMembers: TeamMember[] = [
   },
 
     {
-    id: 10,
+    id: 11,
     name: "Andrew Bakasa",
     role: "Non-Executive Director",
     description: `B.Eng, MSc Investment, Prof Eng. MZwe.IE, M.ECZ 
@@ -95,7 +103,7 @@ const teamMembers: TeamMember[] = [
     image: "/images/team/andrew-bakasa.jpg", // New Placeholder image path
   },
   {
-    id: 11,
+    id: 12,
     name: "Happson Tshuma",
     role: "Non-Executive Director",
     description: `B.Eng Industrial | MBL | MSc (CHEP | Isuzu | Volvo | Cummins | Marcopolo| CBI Electric), 18yrs+ experience | EU | South Africa| Zimbabwe
@@ -103,7 +111,7 @@ const teamMembers: TeamMember[] = [
     image: "/images/team/happison-tshuma.jpg", // New Placeholder image path
   },
     {
-    id: 12,
+    id: 13,
     name: "Lamuel Mudzamiri",
     role: "Non-Executive Director",
     description: `B.Eng Industrial Engineering | Engineer Asset Leader | MBA - GSB UCT | PGDip Management, 17yrs+ experience| Zimbabwe |South Africa
@@ -111,7 +119,7 @@ const teamMembers: TeamMember[] = [
     image: "/images/team/lamuel-mudzamiri.jpg", // New Placeholder image path
   },
     {
-    id: 13,
+    id: 14,
     name: "Takawira Chikowore",
     role: "Non-Executive Director ",
     description: `B.Eng | MEng | Prof Eng. MZwe.IE, M.ECZ , 15yrs+ Lean and Six Sigma | Continuous Improvement | Quality | Supply Chain and Logistics
@@ -119,21 +127,14 @@ const teamMembers: TeamMember[] = [
     image: "/images/team/takawira-chikowore.jpg", // New Placeholder image path
   },
     {
-    id: 14,
+    id: 15,
     name: "Maina Nyoni",
     role: "Non-Executive Director",
     description: `B.Eng | MSc specializing in Engineering Project Management and Quality Monitoring & Control. Proven expertise in providing cross-functional oversight for building and construction initiatives | South Africa| Zimbabwe
 `,
     image: "/images/team/maina-nyoni.jpg", // New Placeholder image path
   },
-    {
-    id: 15,
-    name: "Ishmael Mavhenge",
-    role: "Non-Executive Director ",
-    description: `B.Eng | Ms Eng. Mgt | GCC | PMP | 20yrs Asset Management, Maintenance | Consultancy | Project Management | Manufacturing | Pulp & Paper | Sugar & Ethanol | Forestry | South Africa | Swaziland | Zimbabwe
-`,
-    image:"/images/team/ishmael-mavhenge.jpg", // New Placeholder image path
-  },
+    
 ];
 
 const TeamSection: React.FC = () => {
