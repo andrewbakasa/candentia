@@ -1,4 +1,3 @@
-// Inside ./_components/EnquiryRow.tsx
 
 import { Enquiry } from '@prisma/client';
 import { cn } from '@/lib/utils';

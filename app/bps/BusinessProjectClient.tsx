@@ -421,10 +421,14 @@ const ProjectListPage: React.FC<ProjectListClientProps> = ({
 
         return (
             <div key={project.id} className="bg-white p-4 mb-4 rounded-lg shadow-md border border-gray-200">
-                <Link href={`/bp/${project.id}`} className="text-xl font-semibold text-indigo-600 hover:text-indigo-800 block mb-2">
-                    {project.title}
-                </Link>
-
+                 <Hint
+                    sideOffset={10}
+                    description={ "Click here for more details..."}
+                >
+                    <Link href={`/bp/${project.id}`} className="text-xl font-semibold text-indigo-600 hover:text-indigo-800 block mb-2">
+                        {project.title}
+                    </Link>
+                </Hint>
                 <div className="flex justify-between items-center mb-3">
                     <span className={`px-3 py-1 inline-flex text-xs leading-5 font-bold rounded-full items-center ${color}`}>
                         {icon}
@@ -436,9 +440,16 @@ const ProjectListPage: React.FC<ProjectListClientProps> = ({
                 </div>
 
                 <div className="flex justify-between items-center border-t pt-3 mt-3">
-                    <div className="flex flex-col">
-                        <span className="text-xs font-medium text-gray-500">Comments</span>
-                        <span className="text-lg text-gray-700 font-mono">{project.commentCount}</span>
+                   
+                     <div className="relative"> 
+                            <span className="text-xs font-medium text-gray-500">Comments</span>
+                        {project.commentCount>0 && <div 
+                            className="absolute top-[-10px] left-[50px] p-2 bg-inherit text-red-400 rounded-full">
+                            <span className='text-sm '
+                            
+                            >{project.commentCount}</span>
+                        </div>
+                        }
                     </div>
                     <div className="flex flex-col items-end">
                         <span className="text-xs font-medium text-gray-500">Key Metric (NPV)</span>
@@ -608,7 +619,7 @@ const ProjectListPage: React.FC<ProjectListClientProps> = ({
                                         <tr className="hover:bg-indigo-50 transition duration-150 ease-in-out">
                                             <Hint
                                                 sideOffset={10}
-                                                description={ "Click for more details..."}
+                                                description={ "Click here for more details..."}
                                             >
                                                 <td className="px-6 py-4 whitespace-nowrap  text-sm font-medium">
                                                     <Link href={`/bp/${project.id}`} className="text-indigo-600 hover:text-indigo-800 font-semibold">
