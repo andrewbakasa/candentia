@@ -2,18 +2,43 @@
 import React, { useState, useCallback, useEffect, useMemo } from 'react';
 import Link from 'next/link';
 import { SafeUser } from '../types';
-import { ChevronLeft, ChevronRight, Search } from 'lucide-react'; 
-// Assuming cn utility function is available or you define a basic one
-const cn = (...classes: (string | boolean | undefined)[]): string => classes.filter(Boolean).join(' ');
+import { 
+    ChevronLeft, ChevronRight, Search, Zap, CheckCircle, Clock, 
+    TrendingUp, DollarSign, Target, RotateCw, BarChart3, ChevronDown, ChevronUp 
+} from 'lucide-react'; 
+import { cn } from '@/lib/utils';
+import { NewProjectTemplate } from './_components/utils';
 
 
-// --- Type Definitions (Kept the same) ---
+// --- Standardized Progress Stages (Aligned with the Prisma Enum) ---
+const PROGRESS_STAGES = [
+    'PROPOSAL',       // Initial idea submission
+    'REVIEW',         // Under Executive Committee Review
+    'ADOPTED',        // Approved for implementation
+    'DEVELOPMENT',    // Currently being developed/piloted
+    'IMPLEMENTATION', // Full rollout
+    'COMPLETED',      // Project finished
+    'SHELVED',        // Put on hold
+    'ABORTED',        // Failed/cancelled
+] as const;
+
+type ProjectProgress = typeof PROGRESS_STAGES[number];
+type FilterProgress = 'all' | ProjectProgress;
+
+
+// --- 1. TYPE DEFINITIONS (ENHANCED with Financial Metrics) ---
 type ProjectListItem = {
     id: string;
     title: string;
-    progress: 'proposal' | 'active' | 'complete' | string; // Narrowing the progress type for the filter
+    progress: ProjectProgress | string; 
     rating: number | null;
     commentCount: number;
+    // --- NEW FINANCIAL FIELDS ---
+    npv: number | null; // Net Present Value
+    irr: number | null; // Internal Rate of Return (as percentage, e.g., 0.15 for 15%)
+    roi: number | null; // Return on Investment (as percentage)
+    paybackPeriod: number | null; // Payback Period in years/months
+    riskScore: number | null;
 };
 
 interface ProjectListClientProps {
@@ -21,9 +46,8 @@ interface ProjectListClientProps {
     currentUser: SafeUser | null;
 }
 
-// --- API Fetch Function (Unchanged) ---
+// --- API Fetch Function (Simulated financial data addition) ---
 const fetchProjectsList = async (): Promise<ProjectListItem[]> => {
-    // ... (fetchProjectsList implementation is unchanged) ...
     const url = `/api/busprojects`; 
 
     try {
@@ -38,9 +62,15 @@ const fetchProjectsList = async (): Promise<ProjectListItem[]> => {
         return projects.map((p) => ({
             id: p.id,
             title: p.title,
-            progress: p.progress,
+            progress: (p.progress || 'PROPOSAL').toUpperCase() as ProjectProgress, 
             rating: p.rating,
+            riskScore: p.riskScore,
             commentCount: p._count?.comments || 0,
+            // --- SIMULATION: In a real app, these come from the backend ---
+            npv: p.npv ?? (Math.random() > 0.3 ? parseFloat((Math.random() * 500000 - 100000).toFixed(2)) : null),
+            irr: p.irr ?? (Math.random() > 0.3 ? parseFloat((Math.random() * 0.40).toFixed(4)) : null),
+            roi: p.roi ?? (Math.random() > 0.3 ? parseFloat((Math.random() * 3.5).toFixed(2)) : null),
+            paybackPeriod: p.paybackPeriod ?? (Math.random() > 0.3 ? parseFloat((Math.random() * 5 + 1).toFixed(1)) : null),
         }));
 
     } catch (err: any) {
@@ -51,13 +81,113 @@ const fetchProjectsList = async (): Promise<ProjectListItem[]> => {
 
 // --- Pagination Constants ---
 const DEFAULT_PAGE_SIZE = 8;
-type PageSizeOption = '4' | '8' | '16' | '24';
+type PageSizeOption = '2' |'4' | '8' | '16' | '24';
 const INDIGO_PRIMARY = 'text-indigo-600';
 const INDIGO_HOVER_BG = 'hover:bg-indigo-50';
 const GRAY_ACCENT = 'text-gray-500';
 
 
-// --- Main Client Component (Handles List View & Pagination/Filtering) ---
+// --- Utility Function: Get status badge styling ---
+const getStatusBadge = (progress: string) => {
+    const lowerProgress = progress.toLowerCase();
+    
+    switch (lowerProgress) {
+        case 'proposal':
+            return { icon: <Zap className="w-3 h-3 mr-1" />, color: 'bg-yellow-100 text-yellow-800', display: 'Proposal' };
+        case 'review':
+        case 'adopted':
+            return { icon: <Clock className="w-3 h-3 mr-1" />, color: 'bg-indigo-100 text-indigo-800', display: 'Review/Approved' };
+        case 'development':
+        case 'implementation':
+            return { icon: <Zap className="w-3 h-3 mr-1" />, color: 'bg-blue-100 text-blue-800', display: 'Active' };
+        case 'completed':
+            return { icon: <CheckCircle className="w-3 h-3 mr-1" />, color: 'bg-green-100 text-green-800', display: 'Completed' };
+        case 'shelved':
+            return { icon: <Clock className="w-3 h-3 mr-1" />, color: 'bg-gray-200 text-gray-700', display: 'Shelved' };
+        case 'aborted':
+            return { icon: <Zap className="w-3 h-3 mr-1" />, color: 'bg-red-100 text-red-800', display: 'Aborted' };
+        default:
+            return { icon: null, color: 'bg-gray-100 text-gray-800', display: progress };
+    }
+}
+
+// --- 2. NEW COMPONENT: Financial Details Row (Dropdown/Expansion) ---
+interface FinancialDetailsRowProps {
+    project: ProjectListItem;
+    isExpanded: boolean;
+    onToggle: (id: string) => void;
+}
+
+const FinancialDetailsRow: React.FC<FinancialDetailsRowProps> = ({ project, isExpanded, onToggle }) => {
+    // Check if any financial data is present
+    const hasFinancialData = project.npv !== null || project.irr !== null || project.riskScore !== null || project.rating !== null;
+
+    if (!hasFinancialData) {
+        return (
+            <tr className="bg-gray-50">
+                <td colSpan={5} className="px-6 py-2 text-center text-sm italic text-gray-500 border-t border-gray-200">
+                    Financial metrics not yet calculated for this project.
+                </td>
+            </tr>
+        );
+    }
+    
+    // Helper to format currency
+    const formatCurrency = (value: number | null) => 
+        value !== null ? `$${value.toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}` : 'N/A';
+    
+    // Helper to format percentage
+    const formatPercent = (value: number | null) => 
+        value !== null ? `${(value * 100).toFixed(1)}%` : 'N/A';
+
+    // Helper to determine NPV color
+    const getNPVColor = (value: number | null) => 
+        value === null ? 'text-gray-600' : value >= 0 ? 'text-green-600 font-bold' : 'text-red-600 font-bold';
+
+
+    return (
+        <React.Fragment>
+            {/* Main Project Row (only if using the simple table approach) */}
+            
+            {/* Financial Details Row (Expanded view) */}
+            {isExpanded && (
+                <tr className="bg-indigo-50/50 border-t border-indigo-200">
+                    <td colSpan={5} className="px-6 py-3">
+                        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 text-sm">
+                            <div className="flex flex-col">
+                                <span className="text-xs font-medium text-gray-500">Net Present Value (NPV)</span>
+                                <span className={cn('text-lg', getNPVColor(project.npv))}>
+                                    {formatCurrency(project.npv)}
+                                </span>
+                            </div>
+                            <div className="flex flex-col">
+                                <span className="text-xs font-medium text-gray-500">Internal Rate of Return (IRR)</span>
+                                <span className="text-lg text-blue-700">
+                                    {formatPercent(project.irr)}
+                                </span>
+                            </div>
+                            <div className="flex flex-col">
+                                <span className="text-xs font-medium text-gray-500">Return on Investment (ROI)</span>
+                                <span className="text-lg text-green-700">
+                                    {project.roi !== null ? `${project.roi.toFixed(2)}x` : 'N/A'}
+                                </span>
+                            </div>
+                            <div className="flex flex-col">
+                                <span className="text-xs font-medium text-gray-500">Payback Period</span>
+                                <span className="text-lg text-yellow-800">
+                                    {project.paybackPeriod !== null ? `${project.paybackPeriod} yrs` : 'N/A'}
+                                </span>
+                            </div>
+                        </div>
+                    </td>
+                </tr>
+            )}
+        </React.Fragment>
+    );
+};
+
+
+// --- Main Client Component ---
 
 const ProjectListPage: React.FC<ProjectListClientProps> = ({
     projects: initialProjects,
@@ -67,54 +197,59 @@ const ProjectListPage: React.FC<ProjectListClientProps> = ({
     const [isRefreshing, setIsRefreshing] = useState(false); 
     const [error, setError] = useState<string | null>(null); 
     const [isAddingNew, setIsAddingNew] = useState(false);
+    
+    // --- NEW STATE: Tracks expanded financial rows ---
+    const [expandedRows, setExpandedRows] = useState<Set<string>>(new Set());
 
-    // --- FILTER STATE ---
-    const [filterTerm, setFilterTerm] = useState(''); // For title search
-    const [filterProgress, setFilterProgress] = useState<'all' | ProjectListItem['progress']>('all'); // For dropdown filter
-    // You could add a [filterRating, setFilterRating] state here for min rating, e.g., useState<number | null>(null)
-
-    // --- PAGINATION STATE ---
+    // --- FILTER & PAGINATION STATE (Unchanged) ---
+    const [filterTerm, setFilterTerm] = useState(''); 
+    const [filterProgress, setFilterProgress] = useState<FilterProgress>('all'); 
     const [pageSize, setPageSize] = useState<number>(
         currentUser && currentUser.pageSize ? currentUser.pageSize : DEFAULT_PAGE_SIZE
     ); 
     const [itemOffset, setItemOffset] = useState(0); 
 
-    // --- FILTERED PROJECTS MEMOIZATION ---
+    // --- TOGGLE HANDLER (For Financial Details) ---
+    const handleToggleRow = useCallback((projectId: string) => {
+        setExpandedRows(prev => {
+            const newSet = new Set(prev);
+            if (newSet.has(projectId)) {
+                newSet.delete(projectId);
+            } else {
+                newSet.add(projectId);
+            }
+            return newSet;
+        });
+    }, []);
+
+    // --- MEMOIZED/PAGINATED LOGIC (Unchanged) ---
     const filteredProjects = useMemo(() => {
         const lowerFilterTerm = filterTerm.toLowerCase().trim();
+        const upperFilterProgress = filterProgress.toUpperCase();
 
         return projects.filter(project => {
-            // 1. Filter by Title/Search Term
+            const projectProgressUpper = (project.progress || 'PROPOSAL').toUpperCase();
             const matchesTitle = project.title.toLowerCase().includes(lowerFilterTerm);
-
-            // 2. Filter by Progress/Status
             const matchesProgress = 
-                filterProgress === 'all' || 
-                project.progress === filterProgress;
+                upperFilterProgress === 'ALL' || 
+                projectProgressUpper === upperFilterProgress;
 
-            // 3. (Optional) Filter by Rating
-            // const matchesRating = !filterRating || (project.rating && project.rating >= filterRating);
-
-            return matchesTitle && matchesProgress; // && matchesRating;
+            return matchesTitle && matchesProgress;
         });
-    }, [projects, filterTerm, filterProgress]); // Add filterRating here if used
+    }, [projects, filterTerm, filterProgress]); 
     
-    // --- PAGINATION LOGIC DEPENDENT ON FILTERED PROJECTS ---
     const pageCount = useMemo(() => {
         return Math.ceil(filteredProjects.length / pageSize);
     }, [filteredProjects.length, pageSize]);
 
-    // The current page slice
     const paginatedProjects = useMemo(() => {
         const endpoint = Math.min(itemOffset + pageSize, filteredProjects.length);
         return filteredProjects.slice(itemOffset, endpoint);
     }, [filteredProjects, itemOffset, pageSize]);
     
 
-    // Effect 1: Recalculate total pages whenever the project list or page size changes
+    // --- PAGINATION HANDLERS (Unchanged) ---
     useEffect(() => {
-        // Reset offset to 0 whenever the filtered list changes 
-        // (to prevent showing a blank page if the current page no longer exists)
         if (itemOffset >= filteredProjects.length && filteredProjects.length > 0) {
             setItemOffset(0);
         } else if (filteredProjects.length === 0) {
@@ -122,11 +257,10 @@ const ProjectListPage: React.FC<ProjectListClientProps> = ({
         }
     }, [filteredProjects.length, pageSize]);
     
-    // --- PAGINATION HANDLERS (Unchanged) ---
     const handlePageSizeChange = (newPageSize: PageSizeOption) => {
         const numericPageSize = parseInt(newPageSize, 10);
         setPageSize(numericPageSize);
-        setItemOffset(0); // Reset to page 1
+        setItemOffset(0);
     };
 
     const handlePageClick = ({ selected }: { selected: number }) => {
@@ -143,14 +277,12 @@ const ProjectListPage: React.FC<ProjectListClientProps> = ({
         const endRange = Math.min(itemOffset + pageSize, filteredProjects.length);
         const paginationSummary = `${startRange}-${endRange} of ${filteredProjects.length}`;
 
-        // ... (Pagination button rendering logic is unchanged) ...
         buttons.push(
             <div key="summary" className={cn("text-sm mr-2 sm:mr-4", INDIGO_PRIMARY, "font-semibold", GRAY_ACCENT)}>
                 {paginationSummary}
             </div>
         );
         
-        // Page Size Selector (Optional)
         if (showPageSize) {
             buttons.push(
                 <select
@@ -159,6 +291,7 @@ const ProjectListPage: React.FC<ProjectListClientProps> = ({
                     key={'pagesize-selector'}
                     onChange={(e) => handlePageSizeChange(e.target.value as PageSizeOption)}
                 > 
+                    <option value="2">2 per page</option>
                     <option value="4">4 per page</option>
                     <option value="8">8 per page</option>
                     <option value="16">16 per page</option>
@@ -167,7 +300,6 @@ const ProjectListPage: React.FC<ProjectListClientProps> = ({
             );
         }
 
-        // Previous button
         buttons.push(
             <button 
                 key="prev"
@@ -178,7 +310,6 @@ const ProjectListPage: React.FC<ProjectListClientProps> = ({
                 <ChevronLeft className="w-5 h-5" />
             </button>
         );
-        // Next button
         buttons.push(
             <button 
                 key="next"
@@ -194,14 +325,14 @@ const ProjectListPage: React.FC<ProjectListClientProps> = ({
     };
 
 
-    // Callback to perform the client-side refresh (Unchanged logic)
+    // Callback to perform the client-side refresh (Unchanged)
     const refreshProjects = useCallback(async () => {
         setIsRefreshing(true);
         setError(null);
         try {
             const data = await fetchProjectsList();
             setProjects(data);
-            setFilterTerm(''); // Clear filters on full refresh for clarity
+            setFilterTerm(''); 
             setFilterProgress('all');
         } catch (err: any) {
             setError(err.message || 'An unknown error occurred during refresh.');
@@ -210,7 +341,7 @@ const ProjectListPage: React.FC<ProjectListClientProps> = ({
         }
     }, []);
 
-    // ... handleNewProjectSubmit (Unchanged) ...
+    // handleNewProjectSubmit (Unchanged logic)
     const handleNewProjectSubmit = async (data: { title: string, description: string }) => {
         if (!currentUser) {
             setError('You must be logged in to propose a project.');
@@ -238,7 +369,6 @@ const ProjectListPage: React.FC<ProjectListClientProps> = ({
 
             console.log('Project created successfully.');
             setIsAddingNew(false);
-            // On successful POST, trigger a client-side refresh of the list
             refreshProjects(); 
         } catch (err: any) {
             console.error('Submission error:', err);
@@ -246,700 +376,422 @@ const ProjectListPage: React.FC<ProjectListClientProps> = ({
         }
     };
 
+    // --- 3. NEW COMPONENT: Mobile Card View ---
+    const MobileProjectCard: React.FC<{ project: ProjectListItem }> = ({ project }) => {
+        const isExpanded = expandedRows.has(project.id);
+        const { icon, color, display } = getStatusBadge(project.progress);
 
-    return (
-        <div className="container mx-auto p-4">
-            <h1 className="text-3xl font-bold mb-6 text-gray-800">🤝 Project Collaboration Portal</h1>
+        // Helper to format currency
+        const formatCurrency = (value: number | null) => 
+            value !== null ? `$${value.toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}` : 'N/A';
+        
+        // Helper to determine NPV color
+        const getNPVColor = (value: number | null) => 
+            value === null ? 'text-gray-600' : value >= 0 ? 'text-green-600 font-bold' : 'text-red-600 font-bold';
+
+
+        return (
+            <div key={project.id} className="bg-white p-4 mb-4 rounded-lg shadow-md border border-gray-200">
+                <Link href={`/bp/${project.id}`} className="text-xl font-semibold text-indigo-600 hover:text-indigo-800 block mb-2">
+                    {project.title}
+                </Link>
+
+                <div className="flex justify-between items-center mb-3">
+                    <span className={`px-3 py-1 inline-flex text-xs leading-5 font-bold rounded-full items-center ${color}`}>
+                        {icon}
+                        {display}
+                    </span>
+                    <span className="text-sm text-gray-600">
+                        Rating: {project.rating !== null ? `${project.rating.toFixed(1)} ⭐` : 'N/A'}
+                    </span>
+                </div>
+
+                <div className="flex justify-between items-center border-t pt-3 mt-3">
+                    <div className="flex flex-col">
+                        <span className="text-xs font-medium text-gray-500">Comments</span>
+                        <span className="text-lg text-gray-700 font-mono">{project.commentCount}</span>
+                    </div>
+                    <div className="flex flex-col items-end">
+                        <span className="text-xs font-medium text-gray-500">Key Metric (NPV)</span>
+                        <span className={cn('text-lg', getNPVColor(project.npv))}>
+                            {formatCurrency(project.npv)}
+                        </span>
+                    </div>
+                </div>
+
+                <button
+                    onClick={() => handleToggleRow(project.id)}
+                    className="w-full mt-3 flex justify-center items-center text-sm font-medium text-indigo-600 hover:text-indigo-800 transition"
+                >
+                    {isExpanded ? (
+                        <>
+                            Hide Financial Details <ChevronUp className="w-4 h-4 ml-1" />
+                        </>
+                    ) : (
+                        <>
+                            Show Financial Details <ChevronDown className="w-4 h-4 ml-1" />
+                        </>
+                    )}
+                </button>
+
+                {isExpanded && (
+                    <div className="mt-3 pt-3 border-t border-indigo-200 grid grid-cols-2 gap-3 text-sm">
+                        <div>
+                            <span className="text-xs font-medium text-gray-500">IRR</span>
+                            <p className="text-base text-blue-700 font-semibold">{project.irr !== null ? `${(project.irr * 100).toFixed(1)}%` : 'N/A'}</p>
+                        </div>
+                        <div>
+                            <span className="text-xs font-medium text-gray-500">ROI</span>
+                            <p className="text-base text-green-700 font-semibold">{project.roi !== null ? `${project.roi.toFixed(2)}x` : 'N/A'}</p>
+                        </div>
+                        <div>
+                            <span className="text-xs font-medium text-gray-500">Payback Period</span>
+                            <p className="text-base text-yellow-800 font-semibold">{project.paybackPeriod !== null ? `${project.paybackPeriod} yrs` : 'N/A'}</p>
+                        </div>
+                    </div>
+                )}
+            </div>
+        )
+    }
+
+    const formatCurrency = (value: number | null) => 
+        value !== null ? `$${value.toLocaleString('en-US', { notation: 'compact', minimumFractionDigits: 0, maximumFractionDigits: 1 })}` : 'N/A';
+    
+    const getNPVColor = (value: number | null) => 
+        value === null ? 'text-gray-600' : value >= 0 ? 'text-green-600 font-bold' : 'text-red-600 font-bold';
+
+
+    // return (
+    //     <div className="container mx-auto p-4">
+    //         <div className="flex flex-col gap-4 lg:flex-row lg:justify-between lg:items-center mb-8 border-b pb-4">
+    //             {/* Title on the left */}
+    //             <div className='flex flex row gap-1 justify-left'><h1 className="text-3xl font-extrabold text-gray-800">🤝 Project Collaboration Portal</h1>
+    //             ({filteredProjects.length}/{projects.length})</div>
+    //             {/* Button on the right, constrained to the content's width */}
+    //             <button 
+    //                 onClick={() => setIsAddingNew(!isAddingNew)} 
+    //                 // Responsive classes ensure the button is always visible and readable
+    //                 className="bg-indigo-600 text-white p-3 rounded-xl shadow-lg hover:bg-indigo-700 transition font-medium whitespace-nowrap"
+    //             >
+    //                 {isAddingNew ? 'Close Template' : '➕ Add New Project Proposal'}
+    //             </button>
+    //         </div>
+
+    //         {isAddingNew && (
+    //             <NewProjectTemplate onSubmit={handleNewProjectSubmit} />
+    //         )}
+
+           
+          
+
+           
+    //         {/* --- FILTER UI CONTROLS (Improved spacing/styling) --- */}
+    //         <div className="flex flex-col sm:flex-row gap-4 mb-6 p-4 border rounded-xl bg-white shadow-lg">
+                
+    //             {/* Search Filter by Title */}
+    //             <div className="relative flex-grow">
+    //                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
+    //                 <input
+    //                     type="text"
+    //                     placeholder="Search by Title..."
+    //                     value={filterTerm}
+    //                     onChange={(e) => {
+    //                         setFilterTerm(e.target.value);
+    //                         setItemOffset(0);
+    //                     }}
+    //                     className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-indigo-500 focus:border-indigo-500"
+    //                 />
+    //             </div>
+                
+    //             {/* Filter by Progress/Status Dropdown */}
+    //             <select
+    //                 value={filterProgress.toLowerCase()}
+    //                 onChange={(e) => {
+    //                     setFilterProgress(e.target.value.toUpperCase() as FilterProgress); 
+    //                     setItemOffset(0);
+    //                 }}
+    //                 className="sm:w-48 py-2 px-3 border border-gray-300 rounded-lg bg-white text-gray-700 focus:ring-indigo-500 focus:border-indigo-500"
+    //             >
+    //                 <option value="all">All Statuses</option>
+    //                 {PROGRESS_STAGES.map(stage => (
+    //                     <option key={stage} value={stage.toLowerCase()}>
+    //                         {stage.charAt(0) + stage.slice(1).toLowerCase().replace('_', ' ')}
+    //                     </option>
+    //                 ))}
+    //             </select>
+                
+    //         </div>
+    //         {/* --- End FILTER UI CONTROLS --- */}
+
+    //         {/* Error and Loading Feedback */}
+    //         {isRefreshing && <p className="text-blue-500 italic">Refreshing project list...</p>}
+    //         {error && <p className="text-red-700 font-semibold p-3 bg-red-100 border border-red-300 rounded-lg shadow-sm">Error: {error}</p>}
             
+    //         {/* Empty States */}
+    //         {!isRefreshing && !error && projects.length === 0 && (
+    //             <p className="text-gray-500 p-4 border rounded-lg bg-white">No projects found. Be the first to propose one!</p>
+    //         )}
+    //         {!isRefreshing && !error && projects.length > 0 && filteredProjects.length === 0 && (
+    //             <p className="text-gray-500 p-4 border rounded-lg bg-yellow-50">No projects match the current filter criteria.</p>
+    //         )}
+            
+    //         {/* --- Project List Table (Desktop View) --- */}
+    //         {!isRefreshing && !error && filteredProjects.length > 0 && (
+    //             <div className="hidden md:block">
+    //                 <table className="min-w-full divide-y divide-gray-200 rounded-xl overflow-hidden shadow-lg">
+    //                     <thead className="bg-gray-100">
+    //                         <tr>
+    //                             <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">Title</th>
+    //                             <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">Progress</th>
+    //                             <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">Rating</th>
+    //                             {/* --- NEW FINANCIAL COLUMN --- */}
+    //                             <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider flex items-center">
+    //                                 Financials (NPV) <BarChart3 className="w-4 h-4 ml-1" />
+    //                             </th>
+    //                             <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">Comments</th>
+    //                         </tr>
+    //                     </thead>
+    //                     <tbody className="bg-white divide-y divide-gray-200">
+    //                         {paginatedProjects.map((project) => {
+    //                             const { icon, color, display } = getStatusBadge(project.progress);
+    //                             const isExpanded = expandedRows.has(project.id);
+                                
+    //                             return (
+    //                                 <React.Fragment key={project.id}>
+    //                                     <tr className="hover:bg-indigo-50 transition duration-150 ease-in-out">
+    //                                         <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+    //                                             <Link href={`/bp/${project.id}`} className="text-indigo-600 hover:text-indigo-800 font-semibold">
+    //                                                 {project.title}
+    //                                             </Link>
+    //                                         </td>
+    //                                         <td className="px-6 py-4 whitespace-nowrap text-sm">
+    //                                             <span className={`px-3 py-1 inline-flex text-xs leading-5 font-bold rounded-full shadow-sm items-center ${color}`}>
+    //                                                 {icon}
+    //                                                 {display}
+    //                                             </span>
+    //                                         </td>
+    //                                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
+    //                                             {project.rating !== null ? `${project.rating.toFixed(1)} ⭐` : 'N/A'}
+    //                                         </td>
+    //                                         {/* --- FINANCIALS CELL (with Toggle Button) --- */}
+    //                                         <td className="px-6 py-4 whitespace-nowrap text-sm">
+    //                                             <div className="flex items-center space-x-2">
+    //                                                 <span className={getNPVColor(project.npv)}>
+    //                                                     {formatCurrency(project.npv)}
+    //                                                 </span>
+    //                                                 {(project.npv !== null || project.irr !== null || project.roi !== null) && (
+    //                                                     <button
+    //                                                         onClick={() => handleToggleRow(project.id)}
+    //                                                         className="text-indigo-500 hover:text-indigo-700 p-1 rounded-full transition"
+    //                                                         title={isExpanded ? 'Hide Details' : 'Show Details'}
+    //                                                     >
+    //                                                         {isExpanded ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+    //                                                     </button>
+    //                                                 )}
+    //                                             </div>
+    //                                         </td>
+    //                                         {/* --- COMMENTS CELL --- */}
+    //                                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600 font-mono">
+    //                                             {project.commentCount}
+    //                                         </td>
+    //                                     </tr>
+    //                                     {/* --- EXPANDED DETAILS ROW --- */}
+    //                                     <FinancialDetailsRow project={project} isExpanded={isExpanded} onToggle={handleToggleRow} />
+    //                                 </React.Fragment>
+    //                         )})}
+    //                     </tbody>
+    //                 </table>
+    //             </div>
+    //         )}
+
+    //         {/* --- Mobile View (Card Layout) --- */}
+    //         {!isRefreshing && !error && filteredProjects.length > 0 && (
+    //             <div className="block md:hidden">
+    //                 {paginatedProjects.map((project) => (
+    //                     <MobileProjectCard key={project.id} project={project} />
+    //                 ))}
+    //             </div>
+    //         )}
+
+    //         {/* --- Footer Pagination Controls (Always visible when needed) --- */}
+    //         {filteredProjects.length > 0 && (
+    //             <div className="mt-6 flex justify-center items-center p-4 bg-gray-50 rounded-lg shadow-inner">
+    //                 {renderPaginationButtons(true)} 
+    //             </div>
+    //         )}
+    //     </div>
+    // );
+    return (
+    <div className="container mx-auto p-4 md:p-8 max-w-7xl">
+        
+        {/* --- HEADER (Title & Main Action Button) --- */}
+        <div className="flex flex-col gap-3 lg:flex-row lg:justify-between lg:items-center mb-8 pb-4 border-b border-gray-200">
+            
+            {/* Title & Count Group */}
+            <div className="flex flex-col">
+                <h1 className="text-4xl font-extrabold text-gray-900 tracking-tight">
+                    🤝 Project Collaboration Portal
+                </h1>
+                {/* Count displayed as a clear subtitle */}
+                <p className="text-sm font-medium text-gray-500 mt-1">
+                    Showing <span className="font-bold text-indigo-600">{filteredProjects.length}</span> out of {projects.length} Total Projects
+                </p>
+            </div>
+            
+            {/* Primary Action Button - Enhanced Style */}
             <button 
                 onClick={() => setIsAddingNew(!isAddingNew)} 
-                className="bg-indigo-600 text-white p-3 rounded-lg mb-6 shadow-md hover:bg-indigo-700 transition"
+                className="flex-shrink-0 bg-indigo-600 text-white py-3 px-6 rounded-full shadow-xl hover:bg-indigo-700 transition duration-300 font-semibold text-sm transform hover:scale-[1.02] active:scale-[0.98] whitespace-nowrap"
             >
-                {isAddingNew ? 'Close Template' : '➕ Add New Project Proposal'}
+                {isAddingNew ? 'Close Proposal Template' : '➕ Propose New Business Project'}
             </button>
+        </div>
 
-            {isAddingNew && (
-                <NewProjectTemplate onSubmit={handleNewProjectSubmit} />
-            )}
+        {isAddingNew && (
+            <NewProjectTemplate onSubmit={handleNewProjectSubmit} />
+        )}
 
-            <h2 className="text-2xl font-semibold mt-8 mb-4 text-gray-700">Current Projects ({projects.length})</h2>
-            
-            {/* --- FILTER UI CONTROLS --- */}
-            <div className="flex flex-col sm:flex-row gap-4 mb-6 p-4 border rounded-lg bg-white shadow-sm">
+        {/* --- FILTER UI CONTROLS (Structured as a Control Bar) --- */}
+        <div className="bg-white p-5 rounded-2xl shadow-2xl mb-8 border border-gray-100">
+            {/* Use grid for desktop layout control: 2/3 width for search, 1/3 for dropdown */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 items-center">
                 
                 {/* Search Filter by Title */}
-                <div className="relative flex-grow">
+                <div className="relative md:col-span-2">
                     <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
                     <input
                         type="text"
-                        placeholder="Search by Title..."
+                        placeholder="Search projects by Title or Keywords..."
                         value={filterTerm}
                         onChange={(e) => {
                             setFilterTerm(e.target.value);
-                            setItemOffset(0); // Reset pagination on filter change
+                            setItemOffset(0);
                         }}
-                        className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-indigo-500 focus:border-indigo-500"
+                        className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-xl focus:ring-indigo-500 focus:border-indigo-500 transition shadow-sm"
                     />
                 </div>
                 
                 {/* Filter by Progress/Status Dropdown */}
-                <select
-                    value={filterProgress}
-                    onChange={(e) => {
-                        setFilterProgress(e.target.value as ProjectListItem['progress'] | 'all');
-                        setItemOffset(0); // Reset pagination on filter change
-                    }}
-                    className="sm:w-48 py-2 px-3 border border-gray-300 rounded-lg bg-white text-gray-700 focus:ring-indigo-500 focus:border-indigo-500"
-                >
-                    <option value="all">All Statuses</option>
-                    <option value="proposal">Proposal</option>
-                    <option value="active">Active</option>
-                    <option value="complete">Complete</option>
-                    {/* Add other progress statuses if needed */}
-                </select>
-                
-                {/* You could add a Rating filter here, e.g., a button group or a slider */}
+                <div className="relative">
+                    <select
+                        value={filterProgress.toLowerCase()}
+                        onChange={(e) => {
+                            setFilterProgress(e.target.value.toUpperCase() as FilterProgress); 
+                            setItemOffset(0);
+                        }}
+                        className="w-full appearance-none py-3 px-4 border border-gray-300 rounded-xl bg-white text-gray-700 focus:ring-indigo-500 focus:border-indigo-500 transition shadow-sm cursor-pointer"
+                    >
+                        <option value="all" className="text-gray-500">Filter by Status</option>
+                        {PROGRESS_STAGES.map(stage => (
+                            <option key={stage} value={stage.toLowerCase()}>
+                                {stage.charAt(0) + stage.slice(1).toLowerCase().replace('_', ' ')}
+                            </option>
+                        ))}
+                    </select>
+                    {/* Custom chevron to fix default select arrow for better visual consistency */}
+                    <ChevronDown className="absolute right-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-500 pointer-events-none" />
+                </div>
                 
             </div>
-            {/*  */}
-
-            {/* Error and Loading Feedback */}
-            {isRefreshing && <p className="text-blue-500 italic">Refreshing project list...</p>}
-            {error && <p className="text-red-700 font-semibold p-3 bg-red-100 border border-red-300 rounded-lg shadow-sm">Error: {error}</p>}
-            
-            {/* Empty State */}
-            {!isRefreshing && !error && projects.length === 0 && (
-                <p className="text-gray-500 p-4 border rounded-lg bg-white">No projects found. Be the first to propose one!</p>
-            )}
-
-            {/* Filtered Empty State */}
-            {!isRefreshing && !error && projects.length > 0 && filteredProjects.length === 0 && (
-                <p className="text-gray-500 p-4 border rounded-lg bg-yellow-50">No projects match the current filter criteria.</p>
-            )}
-            
-            {/* Project List Table */}
-            {!isRefreshing && !error && filteredProjects.length > 0 && (
-                <>
-                    <table className="min-w-full divide-y divide-gray-200 rounded-xl overflow-hidden shadow-lg">
-                        <thead className="bg-gray-100">
-                            <tr>
-                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">Title</th>
-                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">Progress</th>
-                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">Rating</th>
-                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">Comments</th>
-                            </tr>
-                        </thead>
-                        <tbody className="bg-white divide-y divide-gray-200">
-                            {/* --- Use paginatedProjects (the current filtered/sliced list) here --- */}
-                            {paginatedProjects.map((project) => (
-                                <tr key={project.id} className="hover:bg-indigo-50 transition duration-150 ease-in-out">
-                                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                                        <Link href={`/bp/${project.id}`} className="text-indigo-600 hover:text-indigo-800 font-semibold">
-                                            {project.title}
-                                        </Link>
-                                    </td>
-                                    <td className="px-6 py-4 whitespace-nowrap text-sm">
-                                        <span className={`px-3 py-1 inline-flex text-xs leading-5 font-bold rounded-full shadow-sm 
-                                            ${project.progress === 'proposal' 
-                                                ? 'bg-yellow-100 text-yellow-800' 
-                                                : project.progress === 'active'
-                                                ? 'bg-blue-100 text-blue-800'
-                                                : 'bg-green-100 text-green-800'}`}>
-                                            {project.progress}
-                                        </span>
-                                    </td>
-                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
-                                        {project.rating !== null ? `${project.rating.toFixed(1)} ⭐` : 'N/A'}
-                                    </td>
-                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600 font-mono">
-                                        {project.commentCount}
-                                    </td>
-                                </tr>
-                            ))}
-                        </tbody>
-                    </table>
-                    
-                    {/* --- Footer Pagination Controls (Always visible when needed) --- */}
-                    {filteredProjects.length > pageSize && (
-                        <div className="mt-6 flex justify-center items-center p-4 bg-gray-50 rounded-lg shadow-inner">
-                            {renderPaginationButtons(true)} 
-                        </div>
-                    )}
-                </>
-            )}
         </div>
-    );
+        {/* --- End FILTER UI CONTROLS --- */}
+
+        {/* Error and Loading Feedback */}
+        {isRefreshing && <p className="text-blue-500 italic">Refreshing project list...</p>}
+        {error && <p className="text-red-700 font-semibold p-3 bg-red-100 border border-red-300 rounded-lg shadow-sm">Error: {error}</p>}
+        
+        {/* Empty States */}
+        {!isRefreshing && !error && projects.length === 0 && (
+            <p className="text-gray-500 p-4 border rounded-lg bg-white">No projects found. Be the first to propose one!</p>
+        )}
+        {!isRefreshing && !error && projects.length > 0 && filteredProjects.length === 0 && (
+            <p className="text-gray-500 p-4 border rounded-lg bg-yellow-50">No projects match the current filter criteria.</p>
+        )}
+        
+        {/* --- Project List Table (Desktop View) --- */}
+        {!isRefreshing && !error && filteredProjects.length > 0 && (
+            <div className="hidden md:block">
+                <table className="min-w-full divide-y divide-gray-200 rounded-2xl overflow-hidden shadow-2xl"> {/* Enhanced shadow and rounding */}
+                    <thead className="bg-gray-100">
+                        <tr>
+                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">Title</th>
+                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">Progress</th>
+                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">Rating</th>
+                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider flex items-center">
+                                Financials (NPV) <BarChart3 className="w-4 h-4 ml-1" />
+                            </th>
+                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">Comments</th>
+                        </tr>
+                    </thead>
+                    <tbody className="bg-white divide-y divide-gray-200">
+                        {paginatedProjects.map((project) => {
+                            const { icon, color, display } = getStatusBadge(project.progress);
+                            const isExpanded = expandedRows.has(project.id);
+                            
+                            return (
+                                <React.Fragment key={project.id}>
+                                    <tr className="hover:bg-indigo-50 transition duration-150 ease-in-out">
+                                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                                            <Link href={`/bp/${project.id}`} className="text-indigo-600 hover:text-indigo-800 font-semibold">
+                                                {project.title}
+                                            </Link>
+                                        </td>
+                                        <td className="px-6 py-4 whitespace-nowrap text-sm">
+                                            <span className={`px-3 py-1 inline-flex text-xs leading-5 font-bold rounded-full shadow-sm items-center ${color}`}>
+                                                {icon}
+                                                {display}
+                                            </span>
+                                        </td>
+                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
+                                            {project.rating !== null ? `${project.rating.toFixed(1)} ⭐` : 'N/A'}
+                                        </td>
+                                        <td className="px-6 py-4 whitespace-nowrap text-sm">
+                                            <div className="flex items-center space-x-2">
+                                                <span className={getNPVColor(project.npv)}>
+                                                    {formatCurrency(project.npv)}
+                                                </span>
+                                                {(project.npv !== null || project.irr !== null || project.roi !== null) && (
+                                                    <button
+                                                        onClick={() => handleToggleRow(project.id)}
+                                                        className="text-indigo-500 hover:text-indigo-700 p-1 rounded-full transition"
+                                                        title={isExpanded ? 'Hide Details' : 'Show Details'}
+                                                    >
+                                                        {isExpanded ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+                                                    </button>
+                                                )}
+                                            </div>
+                                        </td>
+                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600 font-mono">
+                                            {project.commentCount}
+                                        </td>
+                                    </tr>
+                                    {/* --- EXPANDED DETAILS ROW --- */}
+                                    <FinancialDetailsRow project={project} isExpanded={isExpanded} onToggle={handleToggleRow} />
+                                </React.Fragment>
+                            )})}
+                    </tbody>
+                </table>
+            </div>
+        )}
+
+        {/* --- Mobile View (Card Layout) --- */}
+        {!isRefreshing && !error && filteredProjects.length > 0 && (
+            <div className="block md:hidden">
+                {paginatedProjects.map((project) => (
+                    <MobileProjectCard key={project.id} project={project} />
+                ))}
+            </div>
+        )}
+
+        {/* --- Footer Pagination Controls (Always visible when needed) --- */}
+        {filteredProjects.length > 0 && (
+            <div className="mt-8 flex justify-center items-center p-4 bg-gray-50 rounded-xl shadow-inner">
+                {renderPaginationButtons(true)} 
+            </div>
+        )}
+    </div>
+);
 };
 
-// ... NewProjectTemplate component (Unchanged) ...
-const NewProjectTemplate: React.FC<{ onSubmit: (data: { title: string, description: string }) => void }> = ({ onSubmit }) => {
-    // ... (NewProjectTemplate implementation is unchanged) ...
-    const [title, setTitle] = useState('');
-    const [description, setDescription] = useState('');
-    
-    const handleSubmit = (e: React.FormEvent) => {
-        e.preventDefault();
-        if (!title.trim() || !description.trim()) return;
-        onSubmit({ title, description });
-        setTitle('');
-        setDescription('');
-    };
-
-    return (
-        <form onSubmit={handleSubmit} className="p-6 border border-gray-300 rounded-xl mb-6 bg-white shadow-lg">
-            <h3 className="text-xl font-bold mb-4 text-indigo-700">New Project Proposal Template</h3>
-            
-            <div className="mb-4">
-                <label htmlFor="project-title" className="block text-sm font-medium text-gray-700 mb-1">Title</label>
-                <input 
-                    id="project-title"
-                    type="text" 
-                    value={title} 
-                    onChange={(e) => setTitle(e.target.value)} 
-                    required 
-                    placeholder="E.g., Global E-commerce Platform Integration"
-                    className="mt-1 block w-full border border-gray-300 p-3 rounded-lg focus:ring-indigo-500 focus:border-indigo-500 shadow-sm"
-                />
-            </div>
-
-            <div className="mb-6">
-                <label htmlFor="project-description" className="block text-sm font-medium text-gray-700 mb-1">Detailed Description</label>
-                <textarea 
-                    id="project-description"
-                    value={description} 
-                    onChange={(e) => setDescription(e.target.value)} 
-                    required 
-                    rows={6}
-                    placeholder="Describe the problem, solution, and estimated effort..."
-                    className="mt-1 block w-full border border-gray-300 p-3 rounded-lg focus:ring-indigo-500 focus:border-indigo-500 shadow-sm resize-none"
-                />
-            </div>
-            
-            <button type="submit" className="w-full bg-indigo-600 text-white p-3 rounded-lg font-semibold hover:bg-indigo-700 transition duration-150 ease-in-out shadow-md">
-                Submit Proposal
-            </button>
-        </form>
-    );
-};
 
 export default ProjectListPage;
-// 'use client'
-// import React, { useState, useCallback, useMemo } from 'react';
-// import Link from 'next/link';
-// import { SafeUser } from '../types';
-
-// // --- Type Definitions (Kept the same) ---
-// type ProjectListItem = {
-//     id: string;
-//     title: string;
-//     progress: string;
-//     rating: number | null;
-//     commentCount: number;
-// };
-
-// interface ProjectListClientProps {
-//     projects: ProjectListItem[]; 
-//     currentUser: SafeUser | null;
-// }
-
-// // --- API Fetch Function (Kept the same, still fetches ALL data) ---
-// // Note: For large datasets, server-side pagination is recommended. 
-// const fetchProjectsList = async (): Promise<ProjectListItem[]> => {
-//     const url = `/api/busprojects`; 
-
-//     try {
-//         const response = await fetch(url, { method: 'GET', headers: { 'Content-Type': 'application/json' } });
-
-//         if (!response.ok) {
-//             throw new Error(`Failed to fetch projects (Status: ${response.status})`);
-//         }
-        
-//         const projects: any[] = await response.json(); 
-        
-//         return projects.map((p) => ({
-//             id: p.id,
-//             title: p.title,
-//             progress: p.progress,
-//             rating: p.rating,
-//             commentCount: p._count?.comments || 0,
-//         }));
-
-//     } catch (err: any) {
-//         console.error(`Error fetching projects:`, err);
-//         throw err;
-//     }
-// };
-
-// // --- Pagination Constants ---
-// const PROJECTS_PER_PAGE = 10; 
-
-// // --- Main Client Component (Handles List View & Pagination) ---
-
-// const ProjectListPage: React.FC<ProjectListClientProps> = ({
-//     projects: initialProjects,
-//     currentUser,
-// }) => {
-//     const [projects, setProjects] = useState<ProjectListItem[]>(initialProjects);
-//     const [isRefreshing, setIsRefreshing] = useState(false); 
-//     const [error, setError] = useState<string | null>(null); 
-//     const [isAddingNew, setIsAddingNew] = useState(false);
-
-//     // --- Pagination State ---
-//     const [currentPage, setCurrentPage] = useState(1);
-    
-//     // --- Pagination Logic ---
-//     const totalPages = useMemo(() => {
-//         return Math.ceil(projects.length / PROJECTS_PER_PAGE);
-//     }, [projects.length]);
-
-//     const paginatedProjects = useMemo(() => {
-//         const startIndex = (currentPage - 1) * PROJECTS_PER_PAGE;
-//         const endIndex = startIndex + PROJECTS_PER_PAGE;
-//         return projects.slice(startIndex, endIndex);
-//     }, [projects, currentPage]);
-
-//     // Reset to page 1 whenever the project list is updated
-//     React.useEffect(() => {
-//         setCurrentPage(1);
-//     }, [projects.length]);
-
-//     // Callback to perform the client-side refresh
-//     const refreshProjects = useCallback(async () => {
-//         setIsRefreshing(true);
-//         setError(null);
-//         try {
-//             const data = await fetchProjectsList();
-//             setProjects(data);
-//             setCurrentPage(1); // Reset page on refresh
-//         } catch (err: any) {
-//             setError(err.message || 'An unknown error occurred during refresh.');
-//         } finally {
-//             setIsRefreshing(false);
-//         }
-//     }, []);
-
-//     // ... handleNewProjectSubmit (kept the same logic, calls refreshProjects) ...
-//     const handleNewProjectSubmit = async (data: { title: string, description: string }) => {
-//         if (!currentUser) {
-//             setError('You must be logged in to propose a project.');
-//             return;
-//         }
-
-//         setError(null);
-//         try {
-//             const response = await fetch('/api/busprojects', {
-//                 method: 'POST',
-//                 headers: { 'Content-Type': 'application/json' },
-//                 body: JSON.stringify(data),
-//             });
-            
-//             if (!response.ok) {
-//                 const text = await response.text();
-//                 let errorData;
-//                 try {
-//                     errorData = JSON.parse(text);
-//                 } catch {
-//                     throw new Error(`Failed to create project (Status: ${response.status}).`);
-//                 }
-//                 throw new Error(errorData.message || 'Failed to create project.');
-//             }
-
-//             console.log('Project created successfully.');
-//             setIsAddingNew(false);
-//             // On successful POST, trigger a client-side refresh of the list
-//             refreshProjects(); 
-//         } catch (err: any) {
-//             console.error('Submission error:', err);
-//             setError(err.message);
-//         }
-//     };
-
-
-//     return (
-//         <div className="container mx-auto p-4">
-//             <h1 className="text-3xl font-bold mb-6 text-gray-800">🤝 Project Collaboration Portal</h1>
-            
-//             {/* ... New Project Button and Template ... */}
-//             <button 
-//                 onClick={() => setIsAddingNew(!isAddingNew)} 
-//                 className="bg-indigo-600 text-white p-3 rounded-lg mb-6 shadow-md hover:bg-indigo-700 transition"
-//             >
-//                 {isAddingNew ? 'Close Template' : '➕ Add New Project Proposal'}
-//             </button>
-
-//             {isAddingNew && (
-//                 <NewProjectTemplate onSubmit={handleNewProjectSubmit} />
-//             )}
-
-//             <h2 className="text-2xl font-semibold mt-8 mb-4 text-gray-700">Current Projects ({projects.length})</h2>
-
-//             {/* Error and Loading Feedback */}
-//             {isRefreshing && <p className="text-blue-500 italic">Refreshing project list...</p>}
-//             {error && <p className="text-red-700 font-semibold p-3 bg-red-100 border border-red-300 rounded-lg shadow-sm">Error: {error}</p>}
-            
-//             {/* Empty State */}
-//             {!isRefreshing && !error && projects.length === 0 && (
-//                 <p className="text-gray-500 p-4 border rounded-lg bg-white">No projects found. Be the first to propose one!</p>
-//             )}
-
-//             {/* Project List Table */}
-//             {!isRefreshing && !error && projects.length > 0 && (
-//                 <>
-//                     <table className="min-w-full divide-y divide-gray-200 rounded-xl overflow-hidden shadow-lg">
-//                         <thead className="bg-gray-100">
-//                             <tr>
-//                                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">Title</th>
-//                                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">Progress</th>
-//                                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">Rating</th>
-//                                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">Comments</th>
-//                             </tr>
-//                         </thead>
-//                         <tbody className="bg-white divide-y divide-gray-200">
-//                             {/* --- Use paginatedProjects here --- */}
-//                             {paginatedProjects.map((project) => (
-//                                 <tr key={project.id} className="hover:bg-indigo-50 transition duration-150 ease-in-out">
-//                                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-//                                         <Link href={`/bp/${project.id}`} className="text-indigo-600 hover:text-indigo-800 font-semibold">
-//                                             {project.title}
-//                                         </Link>
-//                                     </td>
-//                                     <td className="px-6 py-4 whitespace-nowrap text-sm">
-//                                         <span className={`px-3 py-1 inline-flex text-xs leading-5 font-bold rounded-full shadow-sm 
-//                                             ${project.progress === 'proposal' 
-//                                                 ? 'bg-yellow-100 text-yellow-800' 
-//                                                 : 'bg-blue-100 text-blue-800'}`}>
-//                                             {project.progress}
-//                                         </span>
-//                                     </td>
-//                                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
-//                                         {project.rating !== null ? `${project.rating.toFixed(1)} ⭐` : 'N/A'}
-//                                     </td>
-//                                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600 font-mono">
-//                                         {project.commentCount}
-//                                     </td>
-//                                 </tr>
-//                             ))}
-//                         </tbody>
-//                     </table>
-                    
-//                     {/* --- Pagination Controls --- */}
-//                     {totalPages > 1 && (
-//                         <div className="flex justify-center items-center space-x-2 mt-6 p-4 bg-gray-50 rounded-lg shadow-inner">
-//                             <button
-//                                 onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
-//                                 disabled={currentPage === 1}
-//                                 className="px-4 py-2 text-sm font-medium text-indigo-600 bg-white border border-indigo-300 rounded-lg shadow-sm hover:bg-indigo-100 disabled:opacity-50 disabled:cursor-not-allowed transition"
-//                             >
-//                                 Previous
-//                             </button>
-                            
-//                             <span className="text-sm font-medium text-gray-700">
-//                                 Page **{currentPage}** of **{totalPages}**
-//                             </span>
-
-//                             <button
-//                                 onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
-//                                 disabled={currentPage === totalPages}
-//                                 className="px-4 py-2 text-sm font-medium text-indigo-600 bg-white border border-indigo-300 rounded-lg shadow-sm hover:bg-indigo-100 disabled:opacity-50 disabled:cursor-not-allowed transition"
-//                             >
-//                                 Next
-//                             </button>
-//                         </div>
-//                     )}
-//                 </>
-//             )}
-//         </div>
-//     );
-// };
-
-// // ... NewProjectTemplate component (Kept the same) ...
-// const NewProjectTemplate: React.FC<{ onSubmit: (data: { title: string, description: string }) => void }> = ({ onSubmit }) => {
-//     const [title, setTitle] = useState('');
-//     const [description, setDescription] = useState('');
-    
-//     const handleSubmit = (e: React.FormEvent) => {
-//         e.preventDefault();
-//         if (!title.trim() || !description.trim()) return;
-//         onSubmit({ title, description });
-//         setTitle('');
-//         setDescription('');
-//     };
-
-//     return (
-//         <form onSubmit={handleSubmit} className="p-6 border border-gray-300 rounded-xl mb-6 bg-white shadow-lg">
-//             <h3 className="text-xl font-bold mb-4 text-indigo-700">New Project Proposal Template</h3>
-            
-//             <div className="mb-4">
-//                 <label htmlFor="project-title" className="block text-sm font-medium text-gray-700 mb-1">Title</label>
-//                 <input 
-//                     id="project-title"
-//                     type="text" 
-//                     value={title} 
-//                     onChange={(e) => setTitle(e.target.value)} 
-//                     required 
-//                     placeholder="E.g., Global E-commerce Platform Integration"
-//                     className="mt-1 block w-full border border-gray-300 p-3 rounded-lg focus:ring-indigo-500 focus:border-indigo-500 shadow-sm"
-//                 />
-//             </div>
-
-//             <div className="mb-6">
-//                 <label htmlFor="project-description" className="block text-sm font-medium text-gray-700 mb-1">Detailed Description</label>
-//                 <textarea 
-//                     id="project-description"
-//                     value={description} 
-//                     onChange={(e) => setDescription(e.target.value)} 
-//                     required 
-//                     rows={6}
-//                     placeholder="Describe the problem, solution, and estimated effort..."
-//                     className="mt-1 block w-full border border-gray-300 p-3 rounded-lg focus:ring-indigo-500 focus:border-indigo-500 shadow-sm resize-none"
-//                 />
-//             </div>
-            
-//             <button type="submit" className="w-full bg-indigo-600 text-white p-3 rounded-lg font-semibold hover:bg-indigo-700 transition duration-150 ease-in-out shadow-md">
-//                 Submit Proposal
-//             </button>
-//         </form>
-//     );
-// };
-
-// export default ProjectListPage;
-// 'use client'
-// import React, { useState, useCallback } from 'react';
-// import Link from 'next/link';
-// // Assuming SafeUser is defined in '../types'
-// import { SafeUser } from '../types';
-
-// // Simplified Project List Item type, matching what the Server Component passes
-// type ProjectListItem = {
-//     id: string;
-//     title: string;
-//     progress: string;
-//     rating: number | null;
-//     commentCount: number;
-//     // Removed date fields as they are not used for display here, 
-//     // but ensured they are passed from the Server Component if needed elsewhere.
-// };
-
-// // Interface for the props received from the Server Component
-// interface ProjectListClientProps {
-//     projects: ProjectListItem[]; 
-//     currentUser: SafeUser | null;
-// }
-
-// // --- API Fetch Function for Client-Side Refresh ---
-// const fetchProjectsList = async (): Promise<ProjectListItem[]> => {
-//     // API path matching the user's specified POST path for consistency
-//     const url = `/api/busprojects`; 
-
-//     try {
-//         const response = await fetch(url, {
-//             method: 'GET',
-//             headers: { 'Content-Type': 'application/json' },
-//         });
-
-//         if (!response.ok) {
-//             throw new Error(`Failed to fetch projects (Status: ${response.status})`);
-//         }
-        
-//         const projects: any[] = await response.json(); 
-        
-//         // Map the result to match the expected ProjectListItem type
-//         return projects.map((p) => ({
-//             id: p.id,
-//             title: p.title,
-//             progress: p.progress,
-//             rating: p.rating,
-//             commentCount: p._count?.comments || 0, // Ensure comment count is mapped
-//         }));
-
-//     } catch (err: any) {
-//         console.error(`Error fetching projects:`, err);
-//         throw err;
-//     }
-// };
-
-// // --- Main Client Component (Handles List View) ---
-
-// const ProjectListPage: React.FC<ProjectListClientProps> = ({
-//     projects: initialProjects, // Use alias to get initial server data
-//     currentUser,
-// }) => {
-//     // Initialize state with the data passed from the Server Component
-//     const [projects, setProjects] = useState<ProjectListItem[]>(initialProjects);
-    
-//     // Use isRefreshing for client-side loading states
-//     const [isRefreshing, setIsRefreshing] = useState(false); 
-//     const [error, setError] = useState<string | null>(null); 
-//     const [isAddingNew, setIsAddingNew] = useState(false);
-
-
-//     // Callback to perform the client-side refresh
-//     const refreshProjects = useCallback(async () => {
-//         setIsRefreshing(true);
-//         setError(null);
-//         try {
-//             const data = await fetchProjectsList();
-//             setProjects(data);
-//         } catch (err: any) {
-//             setError(err.message || 'An unknown error occurred during refresh.');
-//         } finally {
-//             setIsRefreshing(false);
-//         }
-//     }, []);
-
-
-//     const handleNewProjectSubmit = async (data: { title: string, description: string }) => {
-//         if (!currentUser) {
-//             setError('You must be logged in to propose a project.');
-//             return;
-//         }
-
-//         setError(null);
-//         try {
-//             // Using the user's specified POST endpoint: /api/busprojects
-//             const response = await fetch('/api/busprojects', {
-//                 method: 'POST',
-//                 headers: { 'Content-Type': 'application/json' },
-//                 body: JSON.stringify(data),
-//             });
-            
-//             if (!response.ok) {
-//                 const text = await response.text();
-//                 let errorData;
-//                 try {
-//                     errorData = JSON.parse(text);
-//                 } catch {
-//                     throw new Error(`Failed to create project (Status: ${response.status}).`);
-//                 }
-//                 throw new Error(errorData.message || 'Failed to create project.');
-//             }
-
-//             console.log('Project created successfully.');
-//             setIsAddingNew(false);
-//             // On successful POST, trigger a client-side refresh of the list
-//             refreshProjects(); 
-//         } catch (err: any) {
-//             console.error('Submission error:', err);
-//             setError(err.message);
-//         }
-//     };
-
-//     return (
-//         <div className="container mx-auto p-4">
-//             <h1 className="text-3xl font-bold mb-6 text-gray-800">🤝 Project Collaboration Portal</h1>
-            
-//             <button 
-//                 onClick={() => setIsAddingNew(!isAddingNew)} 
-//                 className="bg-indigo-600 text-white p-3 rounded-lg mb-6 shadow-md hover:bg-indigo-700 transition"
-//             >
-//                 {isAddingNew ? 'Close Template' : '➕ Add New Project Proposal'}
-//             </button>
-
-//             {isAddingNew && (
-//                 <NewProjectTemplate onSubmit={handleNewProjectSubmit} />
-//             )}
-
-//             <h2 className="text-2xl font-semibold mt-8 mb-4 text-gray-700">Current Projects</h2>
-
-//             {/* Now uses the isRefreshing state for client-side loading feedback */}
-//             {isRefreshing && <p className="text-blue-500 italic">Refreshing project list...</p>}
-//             {error && <p className="text-red-700 font-semibold p-3 bg-red-100 border border-red-300 rounded-lg shadow-sm">Error: {error}</p>}
-            
-//             {/* The list rendering condition now uses isRefreshing state */}
-//             {!isRefreshing && !error && projects.length === 0 && (
-//                 <p className="text-gray-500 p-4 border rounded-lg bg-white">No projects found. Be the first to propose one!</p>
-//             )}
-
-//             {!isRefreshing && !error && projects.length > 0 && (
-//                 <table className="min-w-full divide-y divide-gray-200 rounded-xl overflow-hidden shadow-lg">
-//                     <thead className="bg-gray-100">
-//                         <tr>
-//                             <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">Title</th>
-//                             <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">Progress</th>
-//                             <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">Rating</th>
-//                             <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">Comments</th>
-//                         </tr>
-//                     </thead>
-//                     <tbody className="bg-white divide-y divide-gray-200">
-//                         {projects.map((project) => (
-//                             <tr key={project.id} className="hover:bg-indigo-50 transition duration-150 ease-in-out">
-//                                 <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-//                                     <Link href={`/bp/${project.id}`} className="text-indigo-600 hover:text-indigo-800 font-semibold">
-//                                         {project.title}
-//                                     </Link>
-//                                 </td>
-//                                 <td className="px-6 py-4 whitespace-nowrap text-sm">
-//                                     <span className={`px-3 py-1 inline-flex text-xs leading-5 font-bold rounded-full shadow-sm 
-//                                         ${project.progress === 'proposal' 
-//                                             ? 'bg-yellow-100 text-yellow-800' 
-//                                             : 'bg-blue-100 text-blue-800'}`}>
-//                                         {project.progress}
-//                                     </span>
-//                                 </td>
-//                                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
-//                                     {project.rating !== null ? `${project.rating.toFixed(1)} ⭐` : 'N/A'}
-//                                 </td>
-//                                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600 font-mono">
-//                                     {project.commentCount}
-//                                 </td>
-//                             </tr>
-//                         ))}
-//                     </tbody>
-//                 </table>
-//             )}
-//         </div>
-//     );
-// };
-
-// // Component for quick data entry (New Project Proposal) - Used in both files for consistency
-// const NewProjectTemplate: React.FC<{ onSubmit: (data: { title: string, description: string }) => void }> = ({ onSubmit }) => {
-//     const [title, setTitle] = useState('');
-//     const [description, setDescription] = useState('');
-    
-//     const handleSubmit = (e: React.FormEvent) => {
-//         e.preventDefault();
-//         if (!title.trim() || !description.trim()) return;
-//         onSubmit({ title, description });
-//         setTitle('');
-//         setDescription('');
-//     };
-
-//     return (
-//         <form onSubmit={handleSubmit} className="p-6 border border-gray-300 rounded-xl mb-6 bg-white shadow-lg">
-//             <h3 className="text-xl font-bold mb-4 text-indigo-700">New Project Proposal Template</h3>
-            
-//             <div className="mb-4">
-//                 <label htmlFor="project-title" className="block text-sm font-medium text-gray-700 mb-1">Title</label>
-//                 <input 
-//                     id="project-title"
-//                     type="text" 
-//                     value={title} 
-//                     onChange={(e) => setTitle(e.target.value)} 
-//                     required 
-//                     placeholder="E.g., Global E-commerce Platform Integration"
-//                     className="mt-1 block w-full border border-gray-300 p-3 rounded-lg focus:ring-indigo-500 focus:border-indigo-500 shadow-sm"
-//                 />
-//             </div>
-
-//             <div className="mb-6">
-//                 <label htmlFor="project-description" className="block text-sm font-medium text-gray-700 mb-1">Detailed Description</label>
-//                 <textarea 
-//                     id="project-description"
-//                     value={description} 
-//                     onChange={(e) => setDescription(e.target.value)} 
-//                     required 
-//                     rows={6}
-//                     placeholder="Describe the problem, solution, and estimated effort..."
-//                     className="mt-1 block w-full border border-gray-300 p-3 rounded-lg focus:ring-indigo-500 focus:border-indigo-500 shadow-sm resize-none"
-//                 />
-//             </div>
-            
-//             <button type="submit" className="w-full bg-indigo-600 text-white p-3 rounded-lg font-semibold hover:bg-indigo-700 transition duration-150 ease-in-out shadow-md">
-//                 Submit Proposal
-//             </button>
-//         </form>
-//     );
-// };
-
-// // Exporting the list component as the default export of the file
-// export default ProjectListPage;

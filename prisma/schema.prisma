@@ -487,25 +487,64 @@ model Visit {
 
   @@index([ipAddress, timestamp]) // Index for fast daily lookups
 }
+// Define a clear set of stages for a business project's lifecycle
+enum ProjectProgress {
+  PROPOSAL       // Initial idea submission (Section 3: Methodology for Teams)
+  REVIEW         // Under Executive Committee Review (Section 4: Executive Committee and Shareholder Action)
+  ADOPTED        // Approved for implementation
+  DEVELOPMENT    // Currently being developed/piloted
+  IMPLEMENTATION // Full rollout (Section 4: Implementation)
+  COMPLETED      // Project finished
+  SHELVED        // Put on hold indefinitely
+  ABORTED        // Failed/cancelled
+}
 model BusinessProjectModel {
-  id                  String               @id @default(auto()) @map("_id") @db.ObjectId
-  rating              Float?               // total for all users... (Now calculated in service)
-  title               String
-  order               Int
-  description         String?              @db.String
-  progress            String               @db.String @default("proposal") // proposal, debating, adopted, running, aborted,shelved
-  visible             Boolean              @default(false)
-  active              Boolean              @default(true)
-  userId              String               @db.ObjectId // Proposer ID
-  proposedStartDate   DateTime?
-  comments            ProjectComment[]
-  viewCount           Int?                 @default(0)
-  timestamp           DateTime             @default(now())
-  notes               String?
-  projectToUserRatings ProjectToUserRating[]
+  // --- Core Identification & Timestamps ---
+  id                   String            @id @default(auto()) @map("_id") @db.ObjectId
+  title                String
+  description          String?           @db.String
+  userId               String            @db.ObjectId // Proposer ID
+  createdAt            DateTime          @default(now())
+  updatedAt            DateTime          @updatedAt
 
-  createdAt           DateTime             @default(now())
-  updatedAt           DateTime             @updatedAt
+  // --- Status & Visibility (Now using Enum for Progress) ---
+  progress             ProjectProgress   @default(PROPOSAL) // proposal, review, adopted, implementation, etc.
+  visible              Boolean           @default(false)    // Should this be publicly visible?
+  active               Boolean           @default(true)     // Is this an active project?
+  order                Int?                                 // For manual sorting/display order
+
+  // --- Rating & Engagement ---
+  rating               Float?            // Calculated Average User Rating
+  viewCount            Int               @default(0)
+  projectToUserRatings ProjectToUserRating[]
+  comments             ProjectComment[]
+
+  // --- Financial & Evaluation Metrics (Key for Guideline Sections 2 & 5) ---
+  // Financial Performance (Section 5: Financial Performance)
+  irr                  Float?            // Internal Rate of Return (e.g., 0.15 for 15%)
+  npv                  Float?            // Net Present Value ($)
+  paybackPeriodYears   Float?            // Expected time until initial investment is recovered
+  
+  // Risk & Compliance (Section 2 & 5: Resources & Risk, Risk & Compliance)
+  riskScore            Float?            // Risk assessment score (e.g., 1-5 scale)
+  complianceStatus     String?           // E.g., 'Pending', 'Compliant', 'Non-Compliant'
+  
+  // Resources & Costing (Section 2: Resources & Risk, Section 6: Costing Examples)
+  initialInvestmentUsd Float?          // Total projected upfront cost
+  monthlyOpexUsd       Float?          // Projected ongoing operating expenses
+  resourceRequirements String?           // Details on human resources, infra needed
+  
+  // Strategy & Ranking (Section 5: Feasibility and Strategy, Section 3: Project Ranking)
+  marketViabilityScore Float?            // Score reflecting market potential (e.g., 1-100)
+  projectRanking       Int?              // Final determined rank based on composite evaluation
+
+  // --- Scheduling & Operational Notes ---
+  proposedStartDate    DateTime?
+  projectedCompletionDate DateTime?
+  notes                String?           // Internal/Operational notes
+  
+  // Legacy/Redundant field cleanup:
+  // timestamp is redundant with createdAt and updatedAt, keep only createdAt and updatedAt.
 }
 
 model ProjectToUserRating {

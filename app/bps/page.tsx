@@ -1,77 +1,82 @@
-import prisma from "@/app/libs/prismadb";
 import getCurrentUser from "@/app/actions/getCurrentUser";
 import Container from "@/app/components/Container";
-// Assuming the client component is correctly named and located
 import ProjectListPage from "./BusinessProjectClient"; 
-import { BusinessProjectModel } from "@prisma/client";
-import ProjectDetailPage from "./BusinessProjectClient";
+import { getProjectsList } from "./_components/Services";
+// Import the service function
+//import { getProjectsList } from "@/lib/services/projectService"; 
 
-// Define a safe type for what we will pass to the client component
+
+// --- 1. UPDATED TYPE DEFINITION (Includes Financial Metrics) ---
 type SafeProjectListItem = {
     id: string;
     title: string;
     progress: string;
     rating: number | null;
     commentCount: number;
-    createdAt: string;
+    // --- NEW FINANCIAL FIELDS ADDED ---
+    npv: number | null; // Net Present Value
+    irr: number | null; // Internal Rate of Return (as percentage)
+    roi: number | null; // Return on Investment (as multiple, e.g., 2.5)
+    paybackPeriod: number | null; // Payback Period in years/months
+    // --- END NEW FIELDS ---
+    createdAt: string; 
     updatedAt: string;
+    riskScore: number | null;
 };
 
-// Since this is a list page, we typically do not need `params.id`
+/**
+ * Server Component to fetch the list of business projects and render the client list view.
+ */
 const ProjectsPage = async () => {
     const currentUser = await getCurrentUser(); 
-    let proj: (BusinessProjectModel & { _count: { comments: number } })[] = [];
+    // The Awaited type from getProjectsList must now include the financial fields
+    let proj: Awaited<ReturnType<typeof getProjectsList>> = [];
 
-    // --- 1. FETCH DATA EFFICIENTLY FOR THE LIST VIEW ---
+    // --- 2. FETCH DATA EFFICIENTLY USING SERVICE LAYER ---
     try {
-        // Fetch necessary fields + comment count. Avoid fetching large nested relations.
-        const projectsWithCount = await prisma.businessProjectModel.findMany({
-            where: {
-                active: true,
-            },
-            select: {
-                id: true,
-                title: true,
-                progress: true,
-                rating: true, // Assuming rating is pre-calculated/stored on the model
-                createdAt: true,
-                updatedAt: true,
-                _count: {
-                    select: {
-                        comments: true,
-                    }
-                }
-            },
-            orderBy: {
-                createdAt: 'desc', // Sort by newest first
-            },
-        }) as any; 
+        // Use the dedicated service function to fetch the projects list.
+        // It is assumed getProjectsList now retrieves the financial fields.
+        const projectsWithCount = await getProjectsList(); 
         
         proj = projectsWithCount;
 
     } catch (error) {
-        console.error(`[PROJECTS_LIST_PAGE_ERROR] Database error:`, error);
-        // We let 'proj' remain an empty array on error, and the client component handles the display.
+        console.error(`[PROJECTS_LIST_PAGE_ERROR] Database error fetching list via service:`, error);
     }
 
-    // --- 2. DATA SERIALIZATION (MAPPING THE ARRAY) ---
-    const safeProjects: any[] = proj.map((p) => ({
-        id: p.id,
-        title: p.title,
-        progress: p.progress,
-        rating: p.rating,
-        // Extract the comment count from the aggregated field
-        commentCount: p._count.comments, 
-        // Serialize all date objects
-        createdAt: p.createdAt.toISOString(),
-        updatedAt: p.updatedAt.toISOString(),
-    }));
+    // --- 3. DATA SERIALIZATION (MAPPING THE ARRAY) ---
+    const safeProjects: SafeProjectListItem[] = proj.map((p) => {
+        
+        // Safely extract _count.comments.
+        const commentCount = (p as any)._count?.comments || 0; 
+        
+        return {
+            id: p.id,
+            title: p.title,
+            progress: p.progress,
+            rating: p.rating,
+            commentCount: commentCount, 
+            
+            // --- PASS THROUGH FINANCIAL METRICS ---
+            // Assuming these are numbers (or null) and can be passed directly.
+            npv: (p as any).npv || null, 
+            irr: (p as any).irr || null,
+            roi: (p as any).roi || null,
+            riskScore: (p as any).riskScore || null,
+            paybackPeriod: (p as any).paybackPeriod || null,
+            // --- END FINANCIAL METRICS ---
+            
+            // Serialize Date objects to strings
+            createdAt: p.createdAt ? p.createdAt.toISOString() : new Date().toISOString(),
+            updatedAt: p.updatedAt ? p.updatedAt.toISOString() : new Date().toISOString(),
+        }
+    });
 
 
-    // --- 3. RENDER CLIENT COMPONENT ---
+    // --- 4. RENDER CLIENT COMPONENT ---
     return (
         <Container>
-            <ProjectDetailPage
+            <ProjectListPage 
                 // Pass the array of correctly serialized project data
                 projects={safeProjects} 
                 currentUser={currentUser} // May be null

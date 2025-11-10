@@ -1,5 +1,6 @@
 // /lib/services/projectService.ts
-import { PrismaClient, BusinessProjectModel, ProjectToUserRating } from '@prisma/client';
+import { PrismaClient, BusinessProjectModel, ProjectToUserRating, ProjectProgress } from '@prisma/client';
+import { Decimal } from '@prisma/client/runtime/library';
 
 // NOTE: Initialize Prisma Client once
 const prisma = new PrismaClient();
@@ -11,9 +12,31 @@ export type ProjectDetails = BusinessProjectModel & {
     // Add user/proposer details if you populate the relation
 };
 
-/**
- * 1. Project Listing and Creation
- */
+// Type for the data that can be updated in a project
+// Matches the fields added in the improved schema
+export interface ProjectUpdateData {
+    title?: string;
+    description?: string;
+    progress?: ProjectProgress;
+    irr?: number | null;
+    npv?: number | null;
+    riskScore?: number | null;
+    projectRanking?: number | null;
+    initialInvestmentUsd?: number | null | Decimal;
+    monthlyOpexUsd?: number | null | Decimal;
+    notes?: string | null;
+    // Add other editable fields here as needed
+}
+// Interface for updating a comment (NEW)
+export interface CommentUpdateParams {
+    commentId: string;
+    newContent: string;
+    authorId: string; // ID of the user attempting the update (for authorization)
+}
+// ----------------------------------------------------------------------
+// 1. Project Listing and Creation
+// ----------------------------------------------------------------------
+
 export async function getProjectsList() {
     // Select essential fields for the list view
     const projects = await prisma.businessProjectModel.findMany({
@@ -25,15 +48,20 @@ export async function getProjectsList() {
             progress: true,
             rating: true, // Use the pre-calculated rating
             viewCount: true,
-            timestamp: true,
             userId: true,
+            createdAt: true,
+            updatedAt: true,
+            riskScore:true,
+            paybackPeriodYears:true,
+            npv:true,
+            irr:true,
             _count: {
                 select: { comments: true },
             },
         },
-        orderBy: { timestamp: 'desc' }, // Latest proposals first
+        orderBy: { createdAt: 'desc' }, // Latest proposals first
     });
-
+    console.log("Services.ts:",projects)
     return projects;
 }
 
@@ -46,14 +74,16 @@ export async function createNewProject(data: { title: string, description: strin
             userId: data.userId,
             order: 0, // Set default order
             visible: true, // Default to visible upon creation
+            progress: 'PROPOSAL', // Ensure new projects start at PROPOSAL stage
         },
     });
     return newProject;
 }
 
-/**
- * 2. Project Detail and Interaction
- */
+// ----------------------------------------------------------------------
+// 2. Project Detail and Interaction
+// ----------------------------------------------------------------------
+
 export async function getProjectDetails(projectId: string): Promise<ProjectDetails | null> {
     const project = await prisma.businessProjectModel.findUnique({
         where: { id: projectId },
@@ -75,6 +105,80 @@ export async function getProjectDetails(projectId: string): Promise<ProjectDetai
     }
 
     return project as ProjectDetails | null;
+}
+
+/**
+ * 3. NEW: Project Editing Function
+ * Used by the PATCH API route to update core project data.
+ * This is crucial for adhering to the "Executive Committee Review" (Section 4) 
+ * and updating the evaluation criteria (Section 5) in your guidelines.
+ */
+export async function updateProjectDetails(projectId: string, data: ProjectUpdateData) {
+    // Use the Prisma Decimal type constructor for financial inputs to ensure precision
+    const dataWithDecimals: Record<string, any> = {};
+
+    for (const [key, value] of Object.entries(data)) {
+        if (value !== undefined) {
+            if (key === 'initialInvestmentUsd' || key === 'monthlyOpexUsd') {
+                // Convert number/string to Decimal object, or set null
+                dataWithDecimals[key] = (value === null || typeof value === 'undefined') 
+                                        ? null 
+                                        : new Decimal(value as number | string);
+            } else {
+                dataWithDecimals[key] = value;
+            }
+        }
+    }
+
+    const updatedProject = await prisma.businessProjectModel.update({
+        where: { id: projectId },
+        data: dataWithDecimals,
+    });
+    
+    return updatedProject;
+}
+
+// ----------------------------------------------------------------------
+// 4. Commenting and Rating (Unchanged)
+// ----------------------------------------------------------------------
+
+// ----------------------------------------------------------------------
+// 4. Commenting and Rating
+// ----------------------------------------------------------------------
+
+/**
+ * Updates the content of an existing comment, ensuring the user is the original author.
+ * @param data Parameters including commentId, newContent, and authorId for authorization.
+ * @returns The updated comment object or null if not found/unauthorized.
+ * @throws Error if the user is not the author.
+ */
+export async function updateProjectComment(data: CommentUpdateParams) {
+    // 1. Check if the comment exists and if the user is the author
+    const existingComment = await prisma.projectComment.findUnique({
+        where: { id: data.commentId },
+        select: { userId: true },
+    });
+
+    if (!existingComment) {
+        // Return null so the API route can send a 404
+        return null;
+    }
+
+    if (existingComment.userId !== data.authorId) {
+        // Throw an error to be caught by the API route's catch block, resulting in a 500 or specific handling
+        throw new Error("Unauthorized: Only the original author can edit this comment.");
+    }
+    
+    // 2. Perform the update
+    const updatedComment = await prisma.projectComment.update({
+        where: { id: data.commentId },
+        data: {
+            content: data.newContent, // Update the content
+            // The `updatedAt` field should automatically update via Prisma's defaults if configured
+        },
+    });
+
+    return updatedComment;
 }
 
 export async function addProjectComment(projectId: string, userId: string, content: string) {
