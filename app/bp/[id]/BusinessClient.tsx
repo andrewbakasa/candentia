@@ -264,7 +264,7 @@ const ProjectDetailPage: React.FC<ProjectDetailsClientProps> = ({
 
             {/* Project Title, Edit Button, and Refresh Button */}
             <div className="flex justify-between items-center mb-2">
-                <h1 className="text-4xl font-extrabold text-gray-900">{localProject.title}</h1>
+                <h1 className="text-xl sm:text-4xl font-extrabold text-gray-900">{localProject.title}</h1>
                 
                 <div className="flex items-center space-x-2">
                     {/* 👈 ADDED: Edit Project Button */}
