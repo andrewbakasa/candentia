@@ -461,336 +461,176 @@ const ProjectListPage: React.FC<ProjectListClientProps> = ({
         value === null ? 'text-gray-600' : value >= 0 ? 'text-green-600 font-bold' : 'text-red-600 font-bold';
 
 
-    // return (
-    //     <div className="container mx-auto p-4">
-    //         <div className="flex flex-col gap-4 lg:flex-row lg:justify-between lg:items-center mb-8 border-b pb-4">
-    //             {/* Title on the left */}
-    //             <div className='flex flex row gap-1 justify-left'><h1 className="text-3xl font-extrabold text-gray-800">🤝 Project Collaboration Portal</h1>
-    //             ({filteredProjects.length}/{projects.length})</div>
-    //             {/* Button on the right, constrained to the content's width */}
-    //             <button 
-    //                 onClick={() => setIsAddingNew(!isAddingNew)} 
-    //                 // Responsive classes ensure the button is always visible and readable
-    //                 className="bg-indigo-600 text-white p-3 rounded-xl shadow-lg hover:bg-indigo-700 transition font-medium whitespace-nowrap"
-    //             >
-    //                 {isAddingNew ? 'Close Template' : '➕ Add New Project Proposal'}
-    //             </button>
-    //         </div>
-
-    //         {isAddingNew && (
-    //             <NewProjectTemplate onSubmit={handleNewProjectSubmit} />
-    //         )}
-
-           
-          
-
-           
-    //         {/* --- FILTER UI CONTROLS (Improved spacing/styling) --- */}
-    //         <div className="flex flex-col sm:flex-row gap-4 mb-6 p-4 border rounded-xl bg-white shadow-lg">
-                
-    //             {/* Search Filter by Title */}
-    //             <div className="relative flex-grow">
-    //                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
-    //                 <input
-    //                     type="text"
-    //                     placeholder="Search by Title..."
-    //                     value={filterTerm}
-    //                     onChange={(e) => {
-    //                         setFilterTerm(e.target.value);
-    //                         setItemOffset(0);
-    //                     }}
-    //                     className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-indigo-500 focus:border-indigo-500"
-    //                 />
-    //             </div>
-                
-    //             {/* Filter by Progress/Status Dropdown */}
-    //             <select
-    //                 value={filterProgress.toLowerCase()}
-    //                 onChange={(e) => {
-    //                     setFilterProgress(e.target.value.toUpperCase() as FilterProgress); 
-    //                     setItemOffset(0);
-    //                 }}
-    //                 className="sm:w-48 py-2 px-3 border border-gray-300 rounded-lg bg-white text-gray-700 focus:ring-indigo-500 focus:border-indigo-500"
-    //             >
-    //                 <option value="all">All Statuses</option>
-    //                 {PROGRESS_STAGES.map(stage => (
-    //                     <option key={stage} value={stage.toLowerCase()}>
-    //                         {stage.charAt(0) + stage.slice(1).toLowerCase().replace('_', ' ')}
-    //                     </option>
-    //                 ))}
-    //             </select>
-                
-    //         </div>
-    //         {/* --- End FILTER UI CONTROLS --- */}
-
-    //         {/* Error and Loading Feedback */}
-    //         {isRefreshing && <p className="text-blue-500 italic">Refreshing project list...</p>}
-    //         {error && <p className="text-red-700 font-semibold p-3 bg-red-100 border border-red-300 rounded-lg shadow-sm">Error: {error}</p>}
-            
-    //         {/* Empty States */}
-    //         {!isRefreshing && !error && projects.length === 0 && (
-    //             <p className="text-gray-500 p-4 border rounded-lg bg-white">No projects found. Be the first to propose one!</p>
-    //         )}
-    //         {!isRefreshing && !error && projects.length > 0 && filteredProjects.length === 0 && (
-    //             <p className="text-gray-500 p-4 border rounded-lg bg-yellow-50">No projects match the current filter criteria.</p>
-    //         )}
-            
-    //         {/* --- Project List Table (Desktop View) --- */}
-    //         {!isRefreshing && !error && filteredProjects.length > 0 && (
-    //             <div className="hidden md:block">
-    //                 <table className="min-w-full divide-y divide-gray-200 rounded-xl overflow-hidden shadow-lg">
-    //                     <thead className="bg-gray-100">
-    //                         <tr>
-    //                             <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">Title</th>
-    //                             <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">Progress</th>
-    //                             <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">Rating</th>
-    //                             {/* --- NEW FINANCIAL COLUMN --- */}
-    //                             <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider flex items-center">
-    //                                 Financials (NPV) <BarChart3 className="w-4 h-4 ml-1" />
-    //                             </th>
-    //                             <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">Comments</th>
-    //                         </tr>
-    //                     </thead>
-    //                     <tbody className="bg-white divide-y divide-gray-200">
-    //                         {paginatedProjects.map((project) => {
-    //                             const { icon, color, display } = getStatusBadge(project.progress);
-    //                             const isExpanded = expandedRows.has(project.id);
-                                
-    //                             return (
-    //                                 <React.Fragment key={project.id}>
-    //                                     <tr className="hover:bg-indigo-50 transition duration-150 ease-in-out">
-    //                                         <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-    //                                             <Link href={`/bp/${project.id}`} className="text-indigo-600 hover:text-indigo-800 font-semibold">
-    //                                                 {project.title}
-    //                                             </Link>
-    //                                         </td>
-    //                                         <td className="px-6 py-4 whitespace-nowrap text-sm">
-    //                                             <span className={`px-3 py-1 inline-flex text-xs leading-5 font-bold rounded-full shadow-sm items-center ${color}`}>
-    //                                                 {icon}
-    //                                                 {display}
-    //                                             </span>
-    //                                         </td>
-    //                                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
-    //                                             {project.rating !== null ? `${project.rating.toFixed(1)} ⭐` : 'N/A'}
-    //                                         </td>
-    //                                         {/* --- FINANCIALS CELL (with Toggle Button) --- */}
-    //                                         <td className="px-6 py-4 whitespace-nowrap text-sm">
-    //                                             <div className="flex items-center space-x-2">
-    //                                                 <span className={getNPVColor(project.npv)}>
-    //                                                     {formatCurrency(project.npv)}
-    //                                                 </span>
-    //                                                 {(project.npv !== null || project.irr !== null || project.roi !== null) && (
-    //                                                     <button
-    //                                                         onClick={() => handleToggleRow(project.id)}
-    //                                                         className="text-indigo-500 hover:text-indigo-700 p-1 rounded-full transition"
-    //                                                         title={isExpanded ? 'Hide Details' : 'Show Details'}
-    //                                                     >
-    //                                                         {isExpanded ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
-    //                                                     </button>
-    //                                                 )}
-    //                                             </div>
-    //                                         </td>
-    //                                         {/* --- COMMENTS CELL --- */}
-    //                                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600 font-mono">
-    //                                             {project.commentCount}
-    //                                         </td>
-    //                                     </tr>
-    //                                     {/* --- EXPANDED DETAILS ROW --- */}
-    //                                     <FinancialDetailsRow project={project} isExpanded={isExpanded} onToggle={handleToggleRow} />
-    //                                 </React.Fragment>
-    //                         )})}
-    //                     </tbody>
-    //                 </table>
-    //             </div>
-    //         )}
-
-    //         {/* --- Mobile View (Card Layout) --- */}
-    //         {!isRefreshing && !error && filteredProjects.length > 0 && (
-    //             <div className="block md:hidden">
-    //                 {paginatedProjects.map((project) => (
-    //                     <MobileProjectCard key={project.id} project={project} />
-    //                 ))}
-    //             </div>
-    //         )}
-
-    //         {/* --- Footer Pagination Controls (Always visible when needed) --- */}
-    //         {filteredProjects.length > 0 && (
-    //             <div className="mt-6 flex justify-center items-center p-4 bg-gray-50 rounded-lg shadow-inner">
-    //                 {renderPaginationButtons(true)} 
-    //             </div>
-    //         )}
-    //     </div>
-    // );
     return (
-    <div className="container mx-auto p-4 md:p-8 max-w-7xl">
-        
-        {/* --- HEADER (Title & Main Action Button) --- */}
-        <div className="flex flex-col gap-3 lg:flex-row lg:justify-between lg:items-center mb-8 pb-4 border-b border-gray-200">
+        <div className="container mx-auto p-4 md:p-8 max-w-7xl">
             
-            {/* Title & Count Group */}
-            <div className="flex flex-col">
-                <h1 className="text-4xl font-extrabold text-gray-900 tracking-tight">
-                    🤝 Project Collaboration Portal
-                </h1>
-                {/* Count displayed as a clear subtitle */}
-                <p className="text-sm font-medium text-gray-500 mt-1">
-                    Showing <span className="font-bold text-indigo-600">{filteredProjects.length}</span> out of {projects.length} Total Projects
-                </p>
-            </div>
-            
-            {/* Primary Action Button - Enhanced Style */}
-            <button 
-                onClick={() => setIsAddingNew(!isAddingNew)} 
-                className="flex-shrink-0 bg-indigo-600 text-white py-3 px-6 rounded-full shadow-xl hover:bg-indigo-700 transition duration-300 font-semibold text-sm transform hover:scale-[1.02] active:scale-[0.98] whitespace-nowrap"
-            >
-                {isAddingNew ? 'Close Proposal Template' : '➕ Propose New Business Project'}
-            </button>
-        </div>
-
-        {isAddingNew && (
-            <NewProjectTemplate onSubmit={handleNewProjectSubmit} />
-        )}
-
-        {/* --- FILTER UI CONTROLS (Structured as a Control Bar) --- */}
-        <div className="bg-white p-5 rounded-2xl shadow-2xl mb-8 border border-gray-100">
-            {/* Use grid for desktop layout control: 2/3 width for search, 1/3 for dropdown */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 items-center">
+            {/* --- HEADER (Title & Main Action Button) --- */}
+            <div className="flex flex-col gap-3 lg:flex-row lg:justify-between lg:items-center mb-8 pb-4 border-b border-gray-200">
                 
-                {/* Search Filter by Title */}
-                <div className="relative md:col-span-2">
-                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
-                    <input
-                        type="text"
-                        placeholder="Search projects by Title or Keywords..."
-                        value={filterTerm}
-                        onChange={(e) => {
-                            setFilterTerm(e.target.value);
-                            setItemOffset(0);
-                        }}
-                        className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-xl focus:ring-indigo-500 focus:border-indigo-500 transition shadow-sm"
-                    />
+                {/* Title & Count Group */}
+                <div className="flex flex-col">
+                    <h1 className="text-xl sm:text-4xl  font-extrabold text-gray-900 tracking-tight">
+                        🤝 Project Collaboration Portal
+                    </h1>
+                    {/* Count displayed as a clear subtitle */}
+                    <p className="text-sm font-medium text-gray-500 mt-1">
+                        Showing <span className="font-bold text-indigo-600">{filteredProjects.length}</span> out of {projects.length} Total Projects
+                    </p>
                 </div>
                 
-                {/* Filter by Progress/Status Dropdown */}
-                <div className="relative">
-                    <select
-                        value={filterProgress.toLowerCase()}
-                        onChange={(e) => {
-                            setFilterProgress(e.target.value.toUpperCase() as FilterProgress); 
-                            setItemOffset(0);
-                        }}
-                        className="w-full appearance-none py-3 px-4 border border-gray-300 rounded-xl bg-white text-gray-700 focus:ring-indigo-500 focus:border-indigo-500 transition shadow-sm cursor-pointer"
-                    >
-                        <option value="all" className="text-gray-500">Filter by Status</option>
-                        {PROGRESS_STAGES.map(stage => (
-                            <option key={stage} value={stage.toLowerCase()}>
-                                {stage.charAt(0) + stage.slice(1).toLowerCase().replace('_', ' ')}
-                            </option>
-                        ))}
-                    </select>
-                    {/* Custom chevron to fix default select arrow for better visual consistency */}
-                    <ChevronDown className="absolute right-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-500 pointer-events-none" />
-                </div>
-                
+                {/* Primary Action Button - Enhanced Style */}
+                <button 
+                    onClick={() => setIsAddingNew(!isAddingNew)} 
+                    className="flex-shrink-0 bg-indigo-600 text-white py-3 px-6 rounded-full shadow-xl hover:bg-indigo-700 transition duration-300 font-semibold text-sm transform hover:scale-[1.02] active:scale-[0.98] whitespace-nowrap"
+                >
+                    {isAddingNew ? 'Close Proposal Template' : '➕ Propose New Business Project'}
+                </button>
             </div>
-        </div>
-        {/* --- End FILTER UI CONTROLS --- */}
 
-        {/* Error and Loading Feedback */}
-        {isRefreshing && <p className="text-blue-500 italic">Refreshing project list...</p>}
-        {error && <p className="text-red-700 font-semibold p-3 bg-red-100 border border-red-300 rounded-lg shadow-sm">Error: {error}</p>}
-        
-        {/* Empty States */}
-        {!isRefreshing && !error && projects.length === 0 && (
-            <p className="text-gray-500 p-4 border rounded-lg bg-white">No projects found. Be the first to propose one!</p>
-        )}
-        {!isRefreshing && !error && projects.length > 0 && filteredProjects.length === 0 && (
-            <p className="text-gray-500 p-4 border rounded-lg bg-yellow-50">No projects match the current filter criteria.</p>
-        )}
-        
-        {/* --- Project List Table (Desktop View) --- */}
-        {!isRefreshing && !error && filteredProjects.length > 0 && (
-            <div className="hidden md:block">
-                <table className="min-w-full divide-y divide-gray-200 rounded-2xl overflow-hidden shadow-2xl"> {/* Enhanced shadow and rounding */}
-                    <thead className="bg-gray-100">
-                        <tr>
-                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">Title</th>
-                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">Progress</th>
-                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">Rating</th>
-                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider flex items-center">
-                                Financials (NPV) <BarChart3 className="w-4 h-4 ml-1" />
-                            </th>
-                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">Comments</th>
-                        </tr>
-                    </thead>
-                    <tbody className="bg-white divide-y divide-gray-200">
-                        {paginatedProjects.map((project) => {
-                            const { icon, color, display } = getStatusBadge(project.progress);
-                            const isExpanded = expandedRows.has(project.id);
-                            
-                            return (
-                                <React.Fragment key={project.id}>
-                                    <tr className="hover:bg-indigo-50 transition duration-150 ease-in-out">
-                                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                                            <Link href={`/bp/${project.id}`} className="text-indigo-600 hover:text-indigo-800 font-semibold">
-                                                {project.title}
-                                            </Link>
-                                        </td>
-                                        <td className="px-6 py-4 whitespace-nowrap text-sm">
-                                            <span className={`px-3 py-1 inline-flex text-xs leading-5 font-bold rounded-full shadow-sm items-center ${color}`}>
-                                                {icon}
-                                                {display}
-                                            </span>
-                                        </td>
-                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
-                                            {project.rating !== null ? `${project.rating.toFixed(1)} ⭐` : 'N/A'}
-                                        </td>
-                                        <td className="px-6 py-4 whitespace-nowrap text-sm">
-                                            <div className="flex items-center space-x-2">
-                                                <span className={getNPVColor(project.npv)}>
-                                                    {formatCurrency(project.npv)}
+            {isAddingNew && (
+                <NewProjectTemplate onSubmit={handleNewProjectSubmit} />
+            )}
+
+            {/* --- FILTER UI CONTROLS (Structured as a Control Bar) --- */}
+            <div className="bg-white p-5 rounded-2xl shadow-2xl mb-8 border border-gray-100">
+                {/* Use grid for desktop layout control: 2/3 width for search, 1/3 for dropdown */}
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6 items-center">
+                    
+                    {/* Search Filter by Title */}
+                    <div className="relative md:col-span-2">
+                        <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
+                        <input
+                            type="text"
+                            placeholder="Search projects by Title or Keywords..."
+                            value={filterTerm}
+                            onChange={(e) => {
+                                setFilterTerm(e.target.value);
+                                setItemOffset(0);
+                            }}
+                            className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-xl focus:ring-indigo-500 focus:border-indigo-500 transition shadow-sm"
+                        />
+                    </div>
+                    
+                    {/* Filter by Progress/Status Dropdown */}
+                    <div className="relative">
+                        <select
+                            value={filterProgress.toLowerCase()}
+                            onChange={(e) => {
+                                setFilterProgress(e.target.value.toUpperCase() as FilterProgress); 
+                                setItemOffset(0);
+                            }}
+                            className="w-full appearance-none py-3 px-4 border border-gray-300 rounded-xl bg-white text-gray-700 focus:ring-indigo-500 focus:border-indigo-500 transition shadow-sm cursor-pointer"
+                        >
+                            <option value="all" className="text-gray-500">Filter by Status</option>
+                            {PROGRESS_STAGES.map(stage => (
+                                <option key={stage} value={stage.toLowerCase()}>
+                                    {stage.charAt(0) + stage.slice(1).toLowerCase().replace('_', ' ')}
+                                </option>
+                            ))}
+                        </select>
+                        {/* Custom chevron to fix default select arrow for better visual consistency */}
+                        <ChevronDown className="absolute right-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-500 pointer-events-none" />
+                    </div>
+                    
+                </div>
+            </div>
+            {/* --- End FILTER UI CONTROLS --- */}
+
+            {/* Error and Loading Feedback */}
+            {isRefreshing && <p className="text-blue-500 italic">Refreshing project list...</p>}
+            {error && <p className="text-red-700 font-semibold p-3 bg-red-100 border border-red-300 rounded-lg shadow-sm">Error: {error}</p>}
+            
+            {/* Empty States */}
+            {!isRefreshing && !error && projects.length === 0 && (
+                <p className="text-gray-500 p-4 border rounded-lg bg-white">No projects found. Be the first to propose one!</p>
+            )}
+            {!isRefreshing && !error && projects.length > 0 && filteredProjects.length === 0 && (
+                <p className="text-gray-500 p-4 border rounded-lg bg-yellow-50">No projects match the current filter criteria.</p>
+            )}
+            
+            {/* --- Project List Table (Desktop View) --- */}
+            {!isRefreshing && !error && filteredProjects.length > 0 && (
+                <div className="hidden md:block">
+                    <table className="min-w-full divide-y divide-gray-200 rounded-2xl overflow-hidden shadow-2xl"> {/* Enhanced shadow and rounding */}
+                        <thead className="bg-gray-100">
+                            <tr>
+                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">Title</th>
+                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">Progress</th>
+                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">Rating</th>
+                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider flex items-center">
+                                    Financials (NPV) <BarChart3 className="w-4 h-4 ml-1" />
+                                </th>
+                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">Comments</th>
+                            </tr>
+                        </thead>
+                        <tbody className="bg-white divide-y divide-gray-200">
+                            {paginatedProjects.map((project) => {
+                                const { icon, color, display } = getStatusBadge(project.progress);
+                                const isExpanded = expandedRows.has(project.id);
+                                
+                                return (
+                                    <React.Fragment key={project.id}>
+                                        <tr className="hover:bg-indigo-50 transition duration-150 ease-in-out">
+                                            <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                                                <Link href={`/bp/${project.id}`} className="text-indigo-600 hover:text-indigo-800 font-semibold">
+                                                    {project.title}
+                                                </Link>
+                                            </td>
+                                            <td className="px-6 py-4 whitespace-nowrap text-sm">
+                                                <span className={`px-3 py-1 inline-flex text-xs leading-5 font-bold rounded-full shadow-sm items-center ${color}`}>
+                                                    {icon}
+                                                    {display}
                                                 </span>
-                                                {(project.npv !== null || project.irr !== null || project.roi !== null) && (
-                                                    <button
-                                                        onClick={() => handleToggleRow(project.id)}
-                                                        className="text-indigo-500 hover:text-indigo-700 p-1 rounded-full transition"
-                                                        title={isExpanded ? 'Hide Details' : 'Show Details'}
-                                                    >
-                                                        {isExpanded ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
-                                                    </button>
-                                                )}
-                                            </div>
-                                        </td>
-                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600 font-mono">
-                                            {project.commentCount}
-                                        </td>
-                                    </tr>
-                                    {/* --- EXPANDED DETAILS ROW --- */}
-                                    <FinancialDetailsRow project={project} isExpanded={isExpanded} onToggle={handleToggleRow} />
-                                </React.Fragment>
-                            )})}
-                    </tbody>
-                </table>
-            </div>
-        )}
+                                            </td>
+                                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
+                                                {project.rating !== null ? `${project.rating.toFixed(1)} ⭐` : 'N/A'}
+                                            </td>
+                                            <td className="px-6 py-4 whitespace-nowrap text-sm">
+                                                <div className="flex items-center space-x-2">
+                                                    <span className={getNPVColor(project.npv)}>
+                                                        {formatCurrency(project.npv)}
+                                                    </span>
+                                                    {(project.npv !== null || project.irr !== null || project.roi !== null) && (
+                                                        <button
+                                                            onClick={() => handleToggleRow(project.id)}
+                                                            className="text-indigo-500 hover:text-indigo-700 p-1 rounded-full transition"
+                                                            title={isExpanded ? 'Hide Details' : 'Show Details'}
+                                                        >
+                                                            {isExpanded ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+                                                        </button>
+                                                    )}
+                                                </div>
+                                            </td>
+                                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600 font-mono">
+                                                {project.commentCount}
+                                            </td>
+                                        </tr>
+                                        {/* --- EXPANDED DETAILS ROW --- */}
+                                        <FinancialDetailsRow project={project} isExpanded={isExpanded} onToggle={handleToggleRow} />
+                                    </React.Fragment>
+                                )})}
+                        </tbody>
+                    </table>
+                </div>
+            )}
 
-        {/* --- Mobile View (Card Layout) --- */}
-        {!isRefreshing && !error && filteredProjects.length > 0 && (
-            <div className="block md:hidden">
-                {paginatedProjects.map((project) => (
-                    <MobileProjectCard key={project.id} project={project} />
-                ))}
-            </div>
-        )}
+            {/* --- Mobile View (Card Layout) --- */}
+            {!isRefreshing && !error && filteredProjects.length > 0 && (
+                <div className="block md:hidden">
+                    {paginatedProjects.map((project) => (
+                        <MobileProjectCard key={project.id} project={project} />
+                    ))}
+                </div>
+            )}
 
-        {/* --- Footer Pagination Controls (Always visible when needed) --- */}
-        {filteredProjects.length > 0 && (
-            <div className="mt-8 flex justify-center items-center p-4 bg-gray-50 rounded-xl shadow-inner">
-                {renderPaginationButtons(true)} 
-            </div>
-        )}
-    </div>
-);
+            {/* --- Footer Pagination Controls (Always visible when needed) --- */}
+            {filteredProjects.length > 0 && (
+                <div className="mt-8 flex justify-center items-center p-4 bg-gray-50 rounded-xl shadow-inner">
+                    {renderPaginationButtons(true)} 
+                </div>
+            )}
+        </div>
+    );
 };
 
 
