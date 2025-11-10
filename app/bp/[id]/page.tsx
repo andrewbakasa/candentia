@@ -12,7 +12,7 @@ const ProjectPage = async ({ params }: { params: IParams }) => {
   const currentUser = await getCurrentUser(); // currentUser can be null if unlogged
 
   const id = params.id;
-  let proj
+  let proj: any;
   
   try {
     // 2a. Fetch the project, including its ratings and comments.
@@ -67,7 +67,7 @@ const ProjectPage = async ({ params }: { params: IParams }) => {
     createdAt: proj.createdAt.toISOString(),
     updatedAt: proj.updatedAt.toISOString(),
     // Ensure all comments have serializable dates too
-    comments: proj.comments.map(comment => ({
+    comments: proj.comments.map((comment: any) => ({
         ...comment,
         createdAt: proj.createdAt.toISOString(),
        updatedAt: proj.updatedAt.toISOString(),
