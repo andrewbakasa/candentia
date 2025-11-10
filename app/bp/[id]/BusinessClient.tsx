@@ -255,33 +255,47 @@ const ProjectDetailPage: React.FC<ProjectDetailsClientProps> = ({
                 Back to Projects List
             </Link>
 
+            
+
             {/* Project Title, Edit Button, and Refresh Button */}
-            <div className="flex justify-between items-center mb-2">
-                <h1 className="text-xl sm:text-4xl font-extrabold text-gray-900">{localProject.title}</h1>
-                
-                <div className="flex items-center space-x-2">
-                    {/* 👈 ADDED: Edit Project Button */}
-                    {canEditProject && (
+            <div className="flex flex-col mb-4 space-y-3">
+    
+                {/* 👈 Title Row (Always full width on top) */}
+                <div className="flex justify-between items-center">
+                    <h1 className="text-2xl sm:text-4xl font-extrabold text-gray-900 leading-tight">{localProject.title}</h1>
+                </div>
+
+                {/* 👈 Button Row (Pushed to the right on large screens, or full width row on mobile) */}
+                <div className="flex justify-end sm:justify-between items-center">
+            
+                    {/* Empty spacer div on mobile, or text/info on desktop if needed */}
+                    <div className="hidden sm:block"></div> 
+
+                    <div className="flex items-center space-x-2">
+                        {/* Edit Project Button */}
+                        {canEditProject && (
+                            <button
+                                onClick={() => setIsEditingProject(true)}
+                                className="flex items-center text-sm bg-indigo-600 text-white px-3 py-1 rounded-full hover:bg-indigo-700 transition duration-150 ease-in-out font-medium shadow-md"
+                                disabled={isRefreshing}
+                            >
+                                <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>
+                                Edit
+                            </button>
+                        )}
+                        
+                        {/* Refresh Button */}
                         <button
-                            onClick={() => setIsEditingProject(true)}
-                            className="flex items-center text-sm bg-indigo-600 text-white px-3 py-1 rounded-full hover:bg-indigo-700 transition duration-150 ease-in-out font-medium shadow-md"
+                            onClick={refreshProjectData}
                             disabled={isRefreshing}
+                            className="flex items-center text-sm bg-gray-100 text-gray-600 border border-gray-300 px-3 py-1 rounded-full hover:bg-gray-200 disabled:opacity-50 transition duration-150 ease-in-out"
                         >
-                            <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>
-                            Edit Project
+                            <svg className={`w-4 h-4 mr-1 ${isRefreshing ? 'animate-spin' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m15.356-2H15V4m6.582 13a8.001 8.001 0 01-15.356 2H15v-5"></path>
+                            </svg>
+                            {isRefreshing ? 'Refreshing...' : 'Refresh'}
                         </button>
-                    )}
-                    
-                    <button
-                        onClick={refreshProjectData}
-                        disabled={isRefreshing}
-                        className="flex items-center text-sm bg-gray-100 text-gray-600 border border-gray-300 px-3 py-1 rounded-full hover:bg-gray-200 disabled:opacity-50 transition duration-150 ease-in-out"
-                    >
-                        <svg className={`w-4 h-4 mr-1 ${isRefreshing ? 'animate-spin' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m15.356-2H15V4m6.582 13a8.001 8.001 0 01-15.356 2H15v-5"></path>
-                        </svg>
-                        {isRefreshing ? 'Refreshing...' : 'Refresh'}
-                    </button>
+                    </div>
                 </div>
             </div>
             
