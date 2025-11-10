@@ -87,7 +87,7 @@ export const ProjectEditModal: React.FC<{
 
     return (
         <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50 flex justify-center items-center">
-            <div className="bg-white p-6 rounded-xl shadow-2xl w-full max-w-lg mx-4">
+            <div className="bg-white p-6 rounded-xl shadow-2xl w-full max-w-3xl mx-4">
                 <h3 className="text-2xl font-bold mb-4 border-b pb-2 text-indigo-700">Edit Project: {project.title}</h3>
                 
                 <form onSubmit={handleSubmit} className="space-y-4">

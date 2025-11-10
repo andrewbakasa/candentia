@@ -59,7 +59,12 @@ export async function getProjectsList() {
                 select: { comments: true },
             },
         },
-        orderBy: { createdAt: 'desc' }, // Latest proposals first
+       // --- UPDATED ORDERING: Most promising (High NPV/Rating) first ---
+        orderBy: [
+            { npv: 'desc' }, // Primary sort: Highest Net Present Value first
+            { rating: 'desc' }, // Secondary sort: Highest average rating first
+            { createdAt: 'desc' }, // Tertiary sort: Newest as a tie-breaker
+        ],
     });
     console.log("Services.ts:",projects)
     return projects;
