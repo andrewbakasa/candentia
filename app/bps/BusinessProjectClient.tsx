@@ -4,7 +4,10 @@ import Link from 'next/link';
 import { SafeUser } from '../types';
 import { 
     ChevronLeft, ChevronRight, Search, Zap, CheckCircle, Clock, 
-    TrendingUp, DollarSign, Target, RotateCw, BarChart3, ChevronDown, ChevronUp 
+    TrendingUp, DollarSign, Target, RotateCw, BarChart3, ChevronDown, ChevronUp, 
+    Star,
+    MessageSquare,
+    AlertTriangle
 } from 'lucide-react'; 
 import { cn } from '@/lib/utils';
 import { NewProjectTemplate } from './_components/utils';
@@ -40,6 +43,7 @@ type ProjectListItem = {
     roi: number | null; // Return on Investment (as percentage)
     paybackPeriod: number | null; // Payback Period in years/months
     riskScore: number | null;
+    projectRanking: number | null;
 };
 
 interface ProjectListClientProps {
@@ -72,6 +76,7 @@ const fetchProjectsList = async (): Promise<ProjectListItem[]> => {
             irr: p.irr ?? (Math.random() > 0.3 ? parseFloat((Math.random() * 0.40).toFixed(4)) : null),
             roi: p.roi ?? (Math.random() > 0.3 ? parseFloat((Math.random() * 3.5).toFixed(2)) : null),
             paybackPeriod: p.paybackPeriod ?? (Math.random() > 0.3 ? parseFloat((Math.random() * 5 + 1).toFixed(1)) : null),
+            projectRanking: p.projectRanking
         }));
 
     } catch (err: any) {
@@ -112,12 +117,25 @@ const getStatusBadge = (progress: string) => {
     }
 }
 
-// Helper to determine Risk Score color
+
+// Helper to determine NPV text color
+const getNPVColor = (value: number | null) => 
+    value === null ? 'text-gray-700' : value >= 0 ? 'text-green-600 font-bold' : 'text-red-600 font-bold';
+
+// Helper to determine Risk Score text color
 const getRiskColor = (value: number | null) => {
-    if (value === null) return 'text-gray-600';
-    if (value <= 3) return 'text-green-600 font-bold'; // Low Risk
-    if (value <= 7) return 'text-yellow-700 font-bold'; // Medium Risk
-    return 'text-red-600 font-bold'; // High Risk
+    if (value === null) return 'text-gray-700';
+    if (value >= 4) return 'text-red-700 font-extrabold';
+    if (value >= 2.5) return 'text-yellow-700 font-extrabold';
+    return 'text-green-700 font-extrabold';
+};
+
+// Helper to determine Risk Score container color
+const getRiskBackgroundColor = (value: number | null) => {
+    if (value === null) return 'bg-gray-100 border-gray-200';
+    if (value >= 4) return 'bg-red-50 border-red-300/80'; // High Risk
+    if (value >= 2.5) return 'bg-yellow-50 border-yellow-300/80'; // Medium Risk
+    return 'bg-green-50 border-green-300/80'; // Low Risk
 };
 
 
@@ -136,12 +154,13 @@ const ProjectExpansionRow: React.FC<ProjectExpansionRowProps> = ({ project, isEx
         return (
             <tr className="bg-gray-50">
                 <td colSpan={5} className="px-6 py-2 text-center text-sm italic text-gray-500 border-t border-gray-200">
-                    Detailed metrics not yet calculated for this project.
+                    Detailed financial metrics are not yet calculated for this project.
                 </td>
             </tr>
         );
     }
-    
+         
+      
     // Helper to format currency (full number)
     const formatCurrency = (value: number | null) => 
         value !== null ? `$${value.toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}` : 'N/A';
@@ -149,60 +168,80 @@ const ProjectExpansionRow: React.FC<ProjectExpansionRowProps> = ({ project, isEx
     // Helper to format percentage
     const formatPercent = (value: number | null) => 
         value !== null ? `${(value * 100).toFixed(1)}%` : 'N/A';
+    
+    
+   
 
-    // Helper to determine NPV color
-    const getNPVColor = (value: number | null) => 
-        value === null ? 'text-gray-600' : value >= 0 ? 'text-green-600 font-bold' : 'text-red-600 font-bold';
-    
-    
     return (
         <React.Fragment>
             {/* Project Details Row (Expanded view) */}
             {isExpanded && (
-                <tr className="bg-indigo-50/50 border-t border-indigo-200">
-                    <td colSpan={5} className="px-6 py-4">
-                        <div className="text-base font-semibold text-gray-700 mb-3 flex items-center">
+                <tr className="bg-gray-50 border-t border-gray-200 transition-all duration-300 ease-in-out">
+                    <td colSpan={5} className="px-6 py-5">
+                        <div className="text-base font-semibold text-gray-700 mb-4 flex items-center">
                             <BarChart3 className="w-5 h-5 mr-2 text-indigo-600" />
-                            Key Financial and Risk Details
+                            Financial Projections and Risk Assessment
                         </div>
-                        <div className="grid grid-cols-2 sm:grid-cols-5 gap-4 text-sm">
+                        
+                        {/* Grid of Financial Cards */}
+                        <div className="grid grid-cols-2 sm:grid-cols-5 gap-4">
                             
-                            {/* NPV */}
-                            <div className="flex flex-col border-r sm:border-r-0 border-indigo-200/80 pr-2">
-                                <span className="text-xs font-medium text-gray-500 flex items-center"><DollarSign className="w-3 h-3 mr-1" /> NPV</span>
-                                <span className={cn('text-lg', getNPVColor(project.npv))}>
+                            {/* NPV - Highlighted as critical metric */}
+                            <div 
+                                className={cn(
+                                    "p-4 rounded-xl border shadow-lg transform hover:scale-[1.02] transition duration-200", 
+                                    project.npv !== null && project.npv >= 0 ? 'bg-green-100 border-green-300' : 'bg-red-100 border-red-300'
+                                )}
+                            >
+                                <span className="text-xs font-bold uppercase text-gray-500 flex items-center mb-1">
+                                    <DollarSign className="w-4 h-4 mr-1 text-gray-500" /> NPV
+                                </span>
+                                <span className={cn('text-xl font-extrabold', getNPVColor(project.npv))}>
                                     {formatCurrency(project.npv)}
                                 </span>
                             </div>
 
                             {/* IRR */}
-                            <div className="flex flex-col border-r sm:border-r-0 border-indigo-200/80 pr-2">
-                                <span className="text-xs font-medium text-gray-500 flex items-center"><TrendingUp className="w-3 h-3 mr-1" /> IRR</span>
-                                <span className="text-lg text-blue-700">
+                            <div className="bg-white p-4 rounded-xl border border-gray-200 shadow-md hover:shadow-lg transition duration-200">
+                                <span className="text-xs font-bold uppercase text-gray-500 flex items-center mb-1">
+                                    <TrendingUp className="w-4 h-4 mr-1 text-gray-500" /> IRR
+                                </span>
+                                <span className="text-xl text-blue-700 font-extrabold">
                                     {formatPercent(project.irr)}
                                 </span>
                             </div>
 
                             {/* ROI */}
-                            <div className="flex flex-col border-r sm:border-r-0 border-indigo-200/80 pr-2">
-                                <span className="text-xs font-medium text-gray-500 flex items-center"><Target className="w-3 h-3 mr-1" /> ROI</span>
-                                <span className="text-lg text-green-700">
+                            <div className="bg-white p-4 rounded-xl border border-gray-200 shadow-md hover:shadow-lg transition duration-200">
+                                <span className="text-xs font-bold uppercase text-gray-500 flex items-center mb-1">
+                                    <Target className="w-4 h-4 mr-1 text-gray-500" /> ROI
+                                </span>
+                                <span className="text-xl text-green-700 font-extrabold">
                                     {project.roi !== null ? `${project.roi.toFixed(2)}x` : 'N/A'}
                                 </span>
                             </div>
 
                             {/* Payback Period */}
-                            <div className="flex flex-col border-r sm:border-r-0 border-indigo-200/80 pr-2">
-                                <span className="text-xs font-medium text-gray-500 flex items-center"><Clock className="w-3 h-3 mr-1" /> Payback</span>
-                                <span className="text-lg text-yellow-800">
+                            <div className="bg-white p-4 rounded-xl border border-gray-200 shadow-md hover:shadow-lg transition duration-200">
+                                <span className="text-xs font-bold uppercase text-gray-500 flex items-center mb-1">
+                                    <Clock className="w-4 h-4 mr-1 text-gray-500" /> Payback Period
+                                </span>
+                                <span className="text-xl text-yellow-800 font-extrabold">
                                     {project.paybackPeriod !== null ? `${project.paybackPeriod} yrs` : 'N/A'}
                                 </span>
                             </div>
 
-                             {/* Risk Score */}
-                            <div className="flex flex-col">
-                                <span className="text-xs font-medium text-gray-500 flex items-center"><RotateCw className="w-3 h-3 mr-1" /> Risk Score</span>
-                                <span className={cn('text-lg', getRiskColor(project.riskScore))}>
+                            {/* Risk Score - Highlighted for risk management visibility */}
+                            <div 
+                                className={cn(
+                                    "p-4 rounded-xl border-2 shadow-lg transform hover:scale-[1.02] transition duration-200", 
+                                    getRiskBackgroundColor(project.riskScore)
+                                )}
+                            >
+                                <span className="text-xs font-bold uppercase text-gray-500 flex items-center mb-1">
+                                    <AlertTriangle className="w-4 h-4 mr-1 text-gray-500" /> Risk Score
+                                </span>
+                                <span className={cn('text-xl font-extrabold', getRiskColor(project.riskScore))}>
                                     {project.riskScore !== null ? project.riskScore.toFixed(1) : 'N/A'}
                                 </span>
                             </div>
@@ -410,89 +449,145 @@ const ProjectListPage: React.FC<ProjectListClientProps> = ({
         const isExpanded = expandedRows.has(project.id);
         const { icon, color, display } = getStatusBadge(project.progress);
 
-        // Helper to format currency
+        // Helper to format currency (Improved to handle large numbers better)
         const formatCurrency = (value: number | null) => 
-            value !== null ? `$${value.toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}` : 'N/A';
+            value !== null ? `$${value.toLocaleString('en-US', { notation: 'compact', maximumFractionDigits: 1 })}` : 'N/A';
         
         // Helper to determine NPV color
         const getNPVColor = (value: number | null) => 
-            value === null ? 'text-gray-600' : value >= 0 ? 'text-green-600 font-bold' : 'text-red-600 font-bold';
-
+            value === null ? 'text-gray-600' : value >= 0 ? 'text-green-700 font-extrabold' : 'text-red-600 font-extrabold';
+        
+        // Helper to get text color for IRR
+        const getIRRColor = (value: number | null) => {
+            if (value === null) return 'text-gray-600';
+            return value > 0.1 ? 'text-blue-700' : 'text-gray-700';
+        };
 
         return (
-            <div key={project.id} className="bg-white p-4 mb-4 rounded-lg shadow-md border border-gray-200">
-                 <Hint
-                    sideOffset={10}
-                    description={ "Click here for more details..."}
-                >
-                    <Link href={`/bp/${project.id}`} className="text-xl font-semibold text-indigo-600 hover:text-indigo-800 block mb-2">
-                        {project.title}
-                    </Link>
-                </Hint>
-                <div className="flex justify-between items-center mb-3">
-                    <span className={`px-3 py-1 inline-flex text-xs leading-5 font-bold rounded-full items-center ${color}`}>
+            <div 
+                key={project.id} 
+                className="bg-white p-4 mb-4 rounded-xl shadow-lg border border-gray-100 transition duration-300 hover:shadow-xl"
+            >
+                
+                {/* 1. HEADER: Title and Primary Status */}
+                <div className="flex items-start justify-between">
+                    <Hint
+                        sideOffset={5}
+                        description={"View Project Details & Discussion"}
+                    >
+                        {/* Title Link */}
+                        <Link 
+                            href={`/bp/${project.id}`} 
+                            className="text-lg font-bold text-indigo-700 hover:text-indigo-800 transition block pr-4"
+                        >
+                            {project.title}
+                        </Link>
+                    </Hint>
+
+                    {/* Status Badge */}
+                    <span className={`flex-shrink-0 px-3 py-1 text-xs leading-5 font-semibold rounded-full items-center whitespace-nowrap ${color}`}>
                         {icon}
                         {display}
                     </span>
-                    <span className="text-sm text-gray-600">
-                        Rating: {project.rating !== null ? `${project.rating.toFixed(1)} ⭐` : 'N/A'}
-                    </span>
                 </div>
 
-                <div className="flex justify-between items-center border-t pt-3 mt-3">
-                   
-                     <div className="relative"> 
-                            <span className="text-xs font-medium text-gray-500">Comments</span>
-                        {project.commentCount>0 && <div 
-                            className="absolute top-[-10px] left-[50px] p-2 bg-inherit text-red-400 rounded-full">
-                            <span className='text-sm '
-                            
-                            >{project.commentCount}</span>
-                        </div>
-                        }
-                    </div>
-                    <div className="flex flex-col items-end">
-                        <span className="text-xs font-medium text-gray-500">Key Metric (NPV)</span>
-                        <span className={cn('text-lg', getNPVColor(project.npv))}>
+                {/* 2. KEY METRICS & SECONDARY INFO */}
+                <div className="grid grid-cols-3 gap-2 mt-4 pb-4 border-b border-gray-100">
+                    
+                    {/* NPV - Most Important Metric */}
+                    <div className="flex flex-col items-start col-span-2">
+                        <span className="text-xs font-medium text-gray-500 flex items-center mb-0.5">
+                            <DollarSign className="w-3 h-3 mr-1" />
+                            Net Present Value
+                        </span>
+                        <span className={cn('text-xl', getNPVColor(project.npv))}>
                             {formatCurrency(project.npv)}
+                        </span>
+                    </div>
+
+                    {/* Rating */}
+                    <div className="flex flex-col items-end">
+                        <span className="text-xs font-medium text-gray-500 mb-0.5">Rating</span>
+                        <span className="text-base text-gray-800 font-bold flex items-center">
+                            {project.rating !== null ? project.rating.toFixed(1) : 'N/A'} 
+                            <Star className="w-4 h-4 ml-1 text-yellow-500 fill-current" />
                         </span>
                     </div>
                 </div>
 
-                {/* MOBILE TOGGLE BUTTON */}
-                <button
-                    onClick={() => handleToggleRow(project.id)}
-                    className="w-full mt-3 flex justify-center items-center text-sm font-medium text-indigo-600 hover:text-indigo-800 transition"
-                >
-                    {isExpanded ? (
-                        <>
-                            Hide Project Details <ChevronUp className="w-4 h-4 ml-1" />
-                        </>
-                    ) : (
-                        <>
-                            Show Project Details <ChevronDown className="w-4 h-4 ml-1" />
-                        </>
-                    )}
-                </button>
+                {/* 3. COMMENT COUNT & TOGGLE BUTTON */}
+                <div className="flex justify-between items-center pt-3">
+                    
+                    {/* Comments Badge (Cleaned up) */}
+                    <div className="flex items-center space-x-1.5 text-sm text-gray-600 font-medium"> 
+                        <MessageSquare className="w-4 h-4 text-indigo-500" />
+                        <span>Comments</span>
+                        {project.commentCount > 0 && (
+                            <span className="text-xs font-bold text-white bg-indigo-600 rounded-full h-5 w-5 flex items-center justify-center -translate-y-1">
+                                {project.commentCount}
+                            </span>
+                        )}
+                    </div>
 
-                {/* MOBILE EXPANDED CONTENT (Enhanced with Risk Score) */}
+                    {/* MOBILE TOGGLE BUTTON */}
+                    <button
+                        onClick={() => handleToggleRow(project.id)}
+                        className="flex items-center text-sm font-semibold text-indigo-600 hover:text-indigo-800 transition focus:outline-none"
+                    >
+                        {isExpanded ? (
+                            <>
+                                Hide Metrics <ChevronUp className="w-4 h-4 ml-1" />
+                            </>
+                        ) : (
+                            <>
+                                Show All Metrics <ChevronDown className="w-4 h-4 ml-1" />
+                            </>
+                        )}
+                    </button>
+                </div>
+
+                {/* 4. MOBILE EXPANDED CONTENT (Cleaner layout and focus on risk) */}
                 {isExpanded && (
-                    <div className="mt-3 pt-3 border-t border-indigo-200 grid grid-cols-2 gap-3 text-sm">
-                        <div>
-                            <span className="text-xs font-medium text-gray-500">IRR</span>
-                            <p className="text-base text-blue-700 font-semibold">{project.irr !== null ? `${(project.irr * 100).toFixed(1)}%` : 'N/A'}</p>
+                    <div className="mt-4 pt-4 border-t border-indigo-200 grid grid-cols-2 gap-y-4 gap-x-3 text-sm transition-all duration-300 animate-in fade-in">
+                        
+                        {/* RISK SCORE (Highlight this for visibility) */}
+                        <div className="p-2 bg-red-50/50 rounded-lg border border-red-200">
+                            <span className="text-xs font-bold text-red-700 block mb-0.5">Risk Score (1-5)</span>
+                            <p className={cn('text-lg font-extrabold', getRiskColor(project.riskScore))}>
+                                {project.riskScore !== null ? project.riskScore.toFixed(1) : 'N/A'}
+                            </p>
                         </div>
-                        <div>
-                            <span className="text-xs font-medium text-gray-500">ROI</span>
-                            <p className="text-base text-green-700 font-semibold">{project.roi !== null ? `${project.roi.toFixed(2)}x` : 'N/A'}</p>
+
+                        {/* Project Ranking */}
+                        <div className="p-2 bg-gray-50 rounded-lg">
+                            <span className="text-xs font-bold text-gray-600 block mb-0.5">Priority Rank</span>
+                            <p className="text-lg text-gray-800 font-extrabold">
+                                {project.projectRanking!== null ? `#${project.projectRanking}` : 'N/A'}
+                            </p>
                         </div>
-                        <div>
-                            <span className="text-xs font-medium text-gray-500">Payback Period</span>
-                            <p className="text-base text-yellow-800 font-semibold">{project.paybackPeriod !== null ? `${project.paybackPeriod} yrs` : 'N/A'}</p>
+
+                        {/* IRR */}
+                        <div className="p-2 bg-gray-50 rounded-lg">
+                            <span className="text-xs font-bold text-gray-600 block mb-0.5">IRR</span>
+                            <p className={cn('text-lg font-extrabold', getIRRColor(project.irr))}>
+                                {project.irr !== null ? `${(project.irr * 100).toFixed(1)}%` : 'N/A'}
+                            </p>
                         </div>
-                        <div>
-                            <span className="text-xs font-medium text-gray-500">Risk Score</span>
-                            <p className={cn('text-base font-semibold', getRiskColor(project.riskScore))}>{project.riskScore !== null ? project.riskScore.toFixed(1) : 'N/A'}</p>
+
+                        {/* ROI */}
+                        <div className="p-2 bg-gray-50 rounded-lg">
+                            <span className="text-xs font-bold text-gray-600 block mb-0.5">ROI</span>
+                            <p className="text-lg text-green-700 font-extrabold">
+                                {project.roi !== null ? `${project.roi.toFixed(2)}x` : 'N/A'}
+                            </p>
+                        </div>
+                        
+                        {/* Payback Period */}
+                        <div className="col-span-2 p-2 bg-gray-50 rounded-lg">
+                            <span className="text-xs font-bold text-gray-600 block mb-0.5">Payback Period</span>
+                            <p className="text-lg text-yellow-800 font-extrabold">
+                                {project.paybackPeriod !== null ? `${project.paybackPeriod} years` : 'N/A'}
+                            </p>
                         </div>
                     </div>
                 )}

@@ -53,6 +53,7 @@ export async function getProjectsList() {
             updatedAt: true,
             riskScore:true,
             paybackPeriodYears:true,
+            projectRanking:true,
             npv:true,
             irr:true,
             _count: {

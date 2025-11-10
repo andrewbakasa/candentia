@@ -22,6 +22,7 @@ type SafeProjectListItem = {
     createdAt: string; 
     updatedAt: string;
     riskScore: number | null;
+    projectRanking: number | null;
 };
 
 /**
@@ -63,6 +64,7 @@ const ProjectsPage = async () => {
             irr: (p as any).irr || null,
             roi: (p as any).roi || null,
             riskScore: (p as any).riskScore || null,
+            projectRanking: (p as any).projectRanking || null,
             paybackPeriod: (p as any).paybackPeriod || null,
             // --- END FINANCIAL METRICS ---
             
