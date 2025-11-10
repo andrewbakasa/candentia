@@ -5,11 +5,9 @@ import { BusinessProjectModel } from '@prisma/client';
 import React, { useState, useEffect, useCallback } from 'react';
 import Link from 'next/link';
 import { CommentDisplay, CommentEditor, StatBox, UserRatingComponent } from './_components/utility';
-import { ProjectEditModal } from './_components/ProjectEditModal';
+import { getTextFromEditor, ProjectEditModal } from './_components/ProjectEditModal';
 
-// --- Type Definitions ---
-
-// Simplified Comment structure with user details
+import { CompositeDecorator, Editor, EditorState } from "draft-js";
 interface ProjectCommentDisplay {
     id: string;
     content: string;
@@ -17,8 +15,6 @@ interface ProjectCommentDisplay {
     timestamp: string;
     user: { id: string; email: string };
 }
-
-// Simplified Rating structure
 interface ProjectRatingDisplay {
     id: string;
     projectId: string;
@@ -55,6 +51,7 @@ const ProjectDetailPage: React.FC<ProjectDetailsClientProps> = ({
     // Use local state initialized with server props for data that will be mutated
     const [localProject, setLocalProject] = useState<ProjectDetails>(project);
 
+    const [compositeDecorator,setCompositeDecorator] = useState(new CompositeDecorator([]))
     // State for client-side interactions
     const [isRefreshing, setIsRefreshing] = useState(false);
     const [mutationError, setMutationError] = useState<string | null>(null);
@@ -235,10 +232,6 @@ const ProjectDetailPage: React.FC<ProjectDetailsClientProps> = ({
     }, [localProject?.id, currentUser?.id, refreshProjectData]);
 
 
-    // Check if the current user should be allowed to edit the project (e.g., is an admin/creator/Executive Committee member)
-    // Placeholder logic - adjust this based on your actual authorization structure.
-    //const canEditProject = !!currentUser && (currentUser.roles === 'ADMIN' || currentUser.roles === 'EXECUTIVE');
-
     const allowedRoles = [ 'admin', 'executive'];
     const canEditProject = currentUser?.roles.some(role => 
         allowedRoles.some(allowed => allowed.toLowerCase() === role.toLowerCase())
@@ -321,8 +314,14 @@ const ProjectDetailPage: React.FC<ProjectDetailsClientProps> = ({
             <p className="mb-4 text-sm">Status: <span className={`font-bold uppercase ${localProject.progress === 'PROPOSAL' ? 'text-indigo-600' : 'text-green-600'}`}>{localProject.progress}</span></p>
             
             <div className="prose max-w-none border p-5 rounded-xl bg-white shadow-inner text-gray-800" >
-                {localProject.description} 
+                <Editor 
+                        editorState={EditorState.createWithContent(getTextFromEditor(localProject.description),    compositeDecorator)} 
+                        readOnly 
+                        onChange={() => {}} // Empty dummy function
+            />
             </div>
+
+              
             
             <hr className="my-10 border-gray-200" />
 

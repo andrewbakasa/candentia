@@ -535,7 +535,7 @@ const ProjectListPage: React.FC<ProjectListClientProps> = ({
                         <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
                         <input
                             type="text"
-                            placeholder="Search projects by Title or Keywords..."
+                            placeholder="Search projects.."
                             value={filterTerm}
                             onChange={(e) => {
                                 setFilterTerm(e.target.value);
