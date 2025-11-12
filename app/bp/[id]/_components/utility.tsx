@@ -19,7 +19,7 @@ interface ProjectCommentDisplay {
  * @param timestamp - The ISO 8601 timestamp string.
  * @returns The relative time string.
  */
-const timeAgo = (timestamp: string): string => {
+export const timeAgo = (timestamp: string): string => {
     const now = new Date();
     const past = new Date(timestamp);
     const seconds = Math.floor((now.getTime() - past.getTime()) / 1000);

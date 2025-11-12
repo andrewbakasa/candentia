@@ -4,7 +4,7 @@ import { SafeUser } from '@/app/types';
 import { BusinessProjectModel } from '@prisma/client';
 import React, { useState, useEffect, useCallback } from 'react';
 import Link from 'next/link';
-import { CommentDisplay, CommentEditor, StatBox, UserRatingComponent } from './_components/utility';
+import { CommentDisplay, CommentEditor, StatBox, timeAgo, UserRatingComponent } from './_components/utility';
 import { getTextFromEditor, ProjectEditModal } from './_components/ProjectEditModal';
 
 import { CompositeDecorator, Editor, EditorState } from "draft-js";
@@ -298,8 +298,28 @@ const ProjectDetailPage: React.FC<ProjectDetailsClientProps> = ({
                     </div>
                 </div>
             </div>
-            
-            <p className="text-sm text-gray-500 mb-4">Proposed: {new Date(localProject.createdAt).toLocaleDateString()}</p>
+           
+           <p 
+                className="text-sm text-gray-500 mb-4 font-medium" 
+                
+            >
+                Proposed: 
+                <span className="text-gray-700 font-semibold mr-1">
+                    {/* Full Short Date */}
+                    {new Date(localProject.createdAt).toLocaleDateString(undefined, {
+                        weekday: 'short', 
+                        day: 'numeric',   
+                        month: 'short', 
+                        year: 'numeric',
+                    })}
+                </span>
+    
+                <span className="text-gray-400">|</span> 
+
+                 <span className="text-blue-600 font-semibold ml-1">
+                    {timeAgo(new Date(localProject.createdAt).toLocaleDateString())}
+                </span>
+            </p>
 
             {isRefreshing && <p className="text-blue-600 mb-4 font-medium animate-pulse">Updating data...</p>}
             {mutationError && <p className="text-red-700 mb-4 font-semibold p-3 bg-red-100 rounded-lg border border-red-300 shadow-sm">Error: {mutationError}</p>}
