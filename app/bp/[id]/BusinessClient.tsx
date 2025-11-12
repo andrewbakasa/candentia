@@ -306,10 +306,28 @@ const ProjectDetailPage: React.FC<ProjectDetailsClientProps> = ({
 
             {/* Rating/Vote Section */}
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 p-5 bg-yellow-50 rounded-xl border border-yellow-200 shadow-md">
-                <span className="text-xl font-bold text-gray-800 mb-3 sm:mb-0">
-                    Overall Rating: <span className="text-yellow-600">{(localProject.rating || 0).toFixed(2)} ⭐</span>
-                    <span className="text-sm text-gray-500 ml-2">({localProject.projectToUserRatings.length} votes)</span>
-                </span>
+                
+
+                {/* <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between"> */}
+                    <span className="text-xl font-bold text-gray-800 mb-3 sm:mb-0">
+                        {/*
+                        Label Display Logic:
+                        - Default (mobile/small screen): "O/Rating:" (text-lg)
+                        - Small screens and up (sm:): "Overall Rating:" (text-xl)
+                        */}
+                        <span className="sm:hidden text-lg">O/Rating:</span>
+                        <span className="hidden sm:inline text-xl">Overall Rating:</span>
+                        
+                        <span className="text-yellow-600">{(localProject.rating || 0).toFixed(2)} ⭐</span>
+                        
+                        {/*
+                        Vote Count Display Logic:
+                        - Default (mobile/small screen): text-xs
+                        - Small screens and up (sm:): text-sm
+                        */}
+                        <span className="text-xs sm:text-sm text-gray-500 ml-2">({localProject.projectToUserRatings.length} votes)</span>
+                    </span>
+                {/* </div> */}
                 
                 <UserRatingComponent myRating={myRating} onRate={handleRate} />
             </div>
