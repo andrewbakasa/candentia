@@ -37,37 +37,93 @@ export interface CommentUpdateParams {
 // 1. Project Listing and Creation
 // ----------------------------------------------------------------------
 
+// export async function getProjectsList() {
+//     // Select essential fields for the list view
+//     const projects = await prisma.businessProjectModel.findMany({
+//         where: { active: true, visible: true },
+//         select: {
+//             id: true,
+//             title: true,
+//             description: true,
+//             progress: true,
+//             rating: true, // Use the pre-calculated rating
+//             viewCount: true,
+//             userId: true,
+//             createdAt: true,
+//             updatedAt: true,
+//             riskScore:true,
+//             paybackPeriodYears:true,
+//             projectRanking:true,
+//             npv:true,
+//             irr:true,
+//             _count: {
+//                 select: { comments: true },
+//             },
+//         },
+//      include: {
+//             comments: {
+//                 include: { user: { select: { id: true, email: true } } }, // Include commenter
+//                 orderBy: { timestamp: 'asc' },
+//             },
+//             projectToUserRatings: true, // Ratings list
+//         },
+//        // --- UPDATED ORDERING: Most promising (High NPV/Rating) first ---
+//         orderBy: [
+//             { npv: 'desc' }, // Primary sort: Highest Net Present Value first
+//             { rating: 'desc' }, // Secondary sort: Highest average rating first
+//             { createdAt: 'desc' }, // Tertiary sort: Newest as a tie-breaker
+//         ],
+//     });
+//     console.log("Services.ts:",projects)
+//     return projects;
+// }
 export async function getProjectsList() {
-    // Select essential fields for the list view
+    // Select all scalar fields by default and explicitly include related models
     const projects = await prisma.businessProjectModel.findMany({
         where: { active: true, visible: true },
-        select: {
-            id: true,
-            title: true,
-            description: true,
-            progress: true,
-            rating: true, // Use the pre-calculated rating
-            viewCount: true,
-            userId: true,
-            createdAt: true,
-            updatedAt: true,
-            riskScore:true,
-            paybackPeriodYears:true,
-            projectRanking:true,
-            npv:true,
-            irr:true,
+        
+        // REMOVED top-level 'select' block. 
+        // All scalar fields (id, title, progress, npv, etc.) are included automatically.
+
+        include: {
+            // Keep _count here as it's a special field
             _count: {
                 select: { comments: true },
             },
+            
+            // Include commenter details for the front-end hover/modal feature
+            comments: {
+                select: { // Use select here to only fetch user data, not the comment body
+                    user: { 
+                        select: { 
+                            id: true, 
+                            email: true, 
+                            // Assuming 'name' and 'image' are available for UI display
+                            name: true, 
+                            image: true,
+                        } 
+                    } 
+                }, 
+                orderBy: { timestamp: 'asc' },
+            },
+            
+            projectToUserRatings: true, // Ratings list (for calculating average if rating isn't pre-calculated)
         },
-       // --- UPDATED ORDERING: Most promising (High NPV/Rating) first ---
+        
+        // --- ORDERING ---
         orderBy: [
-            { npv: 'desc' }, // Primary sort: Highest Net Present Value first
-            { rating: 'desc' }, // Secondary sort: Highest average rating first
-            { createdAt: 'desc' }, // Tertiary sort: Newest as a tie-breaker
+            { npv: 'desc' }, 
+            { rating: 'desc' },
+            { createdAt: 'desc' },
         ],
     });
-    console.log("Services.ts:",projects)
+    
+    // The comments data fetched here will be an array of objects like:
+    // [{ user: { id: '...', name: '...', email: '...' } }, ...]
+    // You will need to process this in your client-side map function 
+    // to extract a unique list of commenters.
+
+    console.log("Services.ts:", projects);
     return projects;
 }
 
@@ -241,3 +297,4 @@ async function recalculateProjectRating(projectId: string) {
         data: { rating: newRating },
     });
 }
+
