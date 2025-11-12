@@ -242,86 +242,190 @@ const ProjectExpansionRow: React.FC<ProjectExpansionRowProps> = ({ project, isEx
   
 
 
-    return (
+    // return (
+    //     <React.Fragment>
+          
+    //         {isExpanded && (
+    //             <tr className="bg-gray-50 border-t border-gray-200 transition-all duration-300 ease-in-out">
+    //                 <td colSpan={5} className="px-6 py-5">
+    //                     <div className="text-base font-semibold text-gray-700 mb-4 flex items-center">
+    //                         <BarChart3 className="w-5 h-5 mr-2 text-indigo-600" />
+    //                         Financial Projections and Risk Assessment
+    //                     </div>
+                        
+    //                     {/* Grid of Financial Cards */}
+    //                     <div className="grid grid-cols-2 sm:grid-cols-5 gap-4">
+                            
+    //                         {/* NPV - Highlighted as critical metric */}
+    //                         <div 
+    //                             className={cn(
+    //                                 "p-4 rounded-xl border shadow-lg transform hover:scale-[1.02] transition duration-200", 
+    //                                 project.npv !== null && project.npv >= 0 ? 'bg-green-100 border-green-300' : 'bg-red-100 border-red-300'
+    //                             )}
+    //                         >
+    //                             <span className="text-xs font-bold uppercase text-gray-500 flex items-center mb-1">
+    //                                 <DollarSign className="w-4 h-4 mr-1 text-gray-500" /> NPV
+    //                             </span>
+    //                             <span className={cn('text-xl font-extrabold', getNPVColor(project.npv))}>
+    //                                 {formatCurrency(project.npv)}
+    //                             </span>
+    //                         </div>
+
+    //                         {/* IRR */}
+    //                         <div className="bg-white p-4 rounded-xl border border-gray-200 shadow-md hover:shadow-lg transition duration-200">
+    //                             <span className="text-xs font-bold uppercase text-gray-500 flex items-center mb-1">
+    //                                 <TrendingUp className="w-4 h-4 mr-1 text-gray-500" /> IRR
+    //                             </span>
+    //                             <span className="text-xl text-blue-700 font-extrabold">
+    //                                 {formatPercent(project.irr)}
+    //                             </span>
+    //                         </div>
+
+    //                         {/* ROI */}
+    //                         <div className="bg-white p-4 rounded-xl border border-gray-200 shadow-md hover:shadow-lg transition duration-200">
+    //                             <span className="text-xs font-bold uppercase text-gray-500 flex items-center mb-1">
+    //                                 <Target className="w-4 h-4 mr-1 text-gray-500" /> ROI
+    //                             </span>
+    //                             <span className="text-xl text-green-700 font-extrabold">
+    //                                 {project.roi !== null ? `${project.roi.toFixed(2)}x` : 'N/A'}
+    //                             </span>
+    //                         </div>
+
+    //                         {/* Payback Period */}
+    //                         <div className="bg-white p-4 rounded-xl border border-gray-200 shadow-md hover:shadow-lg transition duration-200">
+    //                             <span className="text-xs font-bold uppercase text-gray-500 flex items-center mb-1">
+    //                                 <Clock className="w-4 h-4 mr-1 text-gray-500" /> Payback Period
+    //                             </span>
+    //                             <span className="text-xl text-yellow-800 font-extrabold">
+    //                                 {project.paybackPeriod !== null ? `${project.paybackPeriod} yrs` : 'N/A'}
+    //                             </span>
+    //                         </div>
+
+    //                         {/* Risk Score - Highlighted for risk management visibility */}
+    //                         <div 
+    //                             className={cn(
+    //                                 "p-4 rounded-xl border-2 shadow-lg transform hover:scale-[1.02] transition duration-200", 
+    //                                 getRiskBackgroundColor(project.riskScore)
+    //                             )}
+    //                         >
+    //                             <span className="text-xs font-bold uppercase text-gray-500 flex items-center mb-1">
+    //                                 <AlertTriangle className="w-4 h-4 mr-1 text-gray-500" /> Risk Score
+    //                             </span>
+    //                             <span className={cn('text-xl font-extrabold', getRiskColor(project.riskScore))}>
+    //                                 {project.riskScore !== null ? project.riskScore.toFixed(1) : 'N/A'}
+    //                             </span>
+    //                         </div>
+                            
+    //                     </div>
+    //                 </td>
+    //             </tr>
+    //         )}
+    //     </React.Fragment>
+    // );
+   
+// Assuming cn, formatCurrency, formatPercent, getNPVColor, getRiskBackgroundColor, getRiskColor, 
+// and the icon components (BarChart3, DollarSign, TrendingUp, Target, Clock, AlertTriangle) are defined elsewhere.
+
+// NOTE: This file is a snippet and assumes required props (isExpanded, project) and
+// external functions (cn, formatCurrency, etc.) are available in the scope.
+
+   return (
         <React.Fragment>
             {/* Project Details Row (Expanded view) */}
             {isExpanded && (
-                <tr className="bg-gray-50 border-t border-gray-200 transition-all duration-300 ease-in-out">
-                    <td colSpan={5} className="px-6 py-5">
-                        <div className="text-base font-semibold text-gray-700 mb-4 flex items-center">
-                            <BarChart3 className="w-5 h-5 mr-2 text-indigo-600" />
-                            Financial Projections and Risk Assessment
-                        </div>
+                <tr className="bg-white border-t border-gray-200 transition-all duration-300 ease-in-out">
+                    <td colSpan={5} className="px-6 py-1">
                         
-                        {/* Grid of Financial Cards */}
-                        <div className="grid grid-cols-2 sm:grid-cols-5 gap-4">
-                            
-                            {/* NPV - Highlighted as critical metric */}
-                            <div 
-                                className={cn(
-                                    "p-4 rounded-xl border shadow-lg transform hover:scale-[1.02] transition duration-200", 
-                                    project.npv !== null && project.npv >= 0 ? 'bg-green-100 border-green-300' : 'bg-red-100 border-red-300'
-                                )}
-                            >
-                                <span className="text-xs font-bold uppercase text-gray-500 flex items-center mb-1">
-                                    <DollarSign className="w-4 h-4 mr-1 text-gray-500" /> NPV
-                                </span>
-                                <span className={cn('text-xl font-extrabold', getNPVColor(project.npv))}>
-                                    {formatCurrency(project.npv)}
-                                </span>
-                            </div>
-
-                            {/* IRR */}
-                            <div className="bg-white p-4 rounded-xl border border-gray-200 shadow-md hover:shadow-lg transition duration-200">
-                                <span className="text-xs font-bold uppercase text-gray-500 flex items-center mb-1">
-                                    <TrendingUp className="w-4 h-4 mr-1 text-gray-500" /> IRR
-                                </span>
-                                <span className="text-xl text-blue-700 font-extrabold">
-                                    {formatPercent(project.irr)}
-                                </span>
-                            </div>
-
-                            {/* ROI */}
-                            <div className="bg-white p-4 rounded-xl border border-gray-200 shadow-md hover:shadow-lg transition duration-200">
-                                <span className="text-xs font-bold uppercase text-gray-500 flex items-center mb-1">
-                                    <Target className="w-4 h-4 mr-1 text-gray-500" /> ROI
-                                </span>
-                                <span className="text-xl text-green-700 font-extrabold">
-                                    {project.roi !== null ? `${project.roi.toFixed(2)}x` : 'N/A'}
-                                </span>
-                            </div>
-
-                            {/* Payback Period */}
-                            <div className="bg-white p-4 rounded-xl border border-gray-200 shadow-md hover:shadow-lg transition duration-200">
-                                <span className="text-xs font-bold uppercase text-gray-500 flex items-center mb-1">
-                                    <Clock className="w-4 h-4 mr-1 text-gray-500" /> Payback Period
-                                </span>
-                                <span className="text-xl text-yellow-800 font-extrabold">
-                                    {project.paybackPeriod !== null ? `${project.paybackPeriod} yrs` : 'N/A'}
-                                </span>
-                            </div>
-
-                            {/* Risk Score - Highlighted for risk management visibility */}
-                            <div 
-                                className={cn(
-                                    "p-4 rounded-xl border-2 shadow-lg transform hover:scale-[1.02] transition duration-200", 
-                                    getRiskBackgroundColor(project.riskScore)
-                                )}
-                            >
-                                <span className="text-xs font-bold uppercase text-gray-500 flex items-center mb-1">
-                                    <AlertTriangle className="w-4 h-4 mr-1 text-gray-500" /> Risk Score
-                                </span>
-                                <span className={cn('text-xl font-extrabold', getRiskColor(project.riskScore))}>
-                                    {project.riskScore !== null ? project.riskScore.toFixed(1) : 'N/A'}
-                                </span>
+                        {/* OUTER BORDER CONTAINER (Yellow border applied here) */}
+                        <div className="p-5 border-2 border-yellow-100 rounded-xl bg-white shadow-xl">
+                            <div className="text-base font-semibold text-gray-700 mb-4 flex items-center">
+                                {/* Assuming BarChart3 is an imported icon */}
+                                {/* <BarChart3 className="w-5 h-5 mr-2 text-indigo-600" /> */}
+                                <svg className="w-5 h-5 mr-2 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M11 3.055A9.001 9.001 0 1020.945 13H11V3.055z"></path><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M20.488 9H15V3.512A9.025 9.025 0 0120.488 9z"></path></svg>
+                                Financial Projections and Risk Assessment
                             </div>
                             
+                            {/* Grid of Financial Cards */}
+                            <div className="grid grid-cols-2 sm:grid-cols-5 gap-4">
+                                
+                                {/* NPV - Highlighted as critical metric */}
+                                <div 
+                                    className={cn(
+                                        "p-4 rounded-xl border shadow-lg transform hover:scale-[1.02] transition duration-200", 
+                                        project.npv !== null && project.npv >= 0 ? 'bg-green-100 border-green-300' : 'bg-red-100 border-red-300'
+                                    )}
+                                >
+                                    <span className="text-xs font-bold uppercase text-gray-500 flex items-center mb-1">
+                                        {/* <DollarSign className="w-4 h-4 mr-1 text-gray-500" /> NPV */}
+                                        <svg className="w-4 h-4 mr-1 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                                        NPV
+                                    </span>
+                                    <span className={cn('text-xl font-extrabold', getNPVColor(project.npv))}>
+                                        {formatCurrency(project.npv)}
+                                    </span>
+                                </div>
+
+                                {/* IRR - ADDED YELLOW BORDER AND HOVER EFFECT */}
+                                <div className="bg-white p-4 rounded-xl border-2 border-yellow-400 shadow-md hover:shadow-lg hover:bg-yellow-50 transition duration-200">
+                                    <span className="text-xs font-bold uppercase text-gray-500 flex items-center mb-1">
+                                        {/* <TrendingUp className="w-4 h-4 mr-1 text-gray-500" /> IRR */}
+                                        <svg className="w-4 h-4 mr-1 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 7h8m0 0v8m0-8L10 21"></path></svg>
+                                        IRR
+                                    </span>
+                                    <span className="text-xl text-blue-700 font-extrabold">
+                                        {formatPercent(project.irr)}
+                                    </span>
+                                </div>
+
+                                {/* ROI - ADDED YELLOW BORDER AND HOVER EFFECT */}
+                                <div className="bg-white p-4 rounded-xl border-2 border-yellow-400 shadow-md hover:shadow-lg hover:bg-yellow-50 transition duration-200">
+                                    <span className="text-xs font-bold uppercase text-gray-500 flex items-center mb-1">
+                                        {/* <Target className="w-4 h-4 mr-1 text-gray-500" /> ROI */}
+                                        <svg className="w-4 h-4 mr-1 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0zM10 10v4m0-4h4m-4 0v4m-4 0h4"></path></svg>
+                                        ROI
+                                    </span>
+                                    <span className="text-xl text-green-700 font-extrabold">
+                                        {project.roi !== null ? `${project.roi.toFixed(2)}x` : 'N/A'}
+                                    </span>
+                                </div>
+
+                                {/* Payback Period - ADDED YELLOW BORDER AND HOVER EFFECT */}
+                                <div className="bg-white p-4 rounded-xl border-2 border-yellow-400 shadow-md hover:shadow-lg hover:bg-yellow-50 transition duration-200">
+                                    <span className="text-xs font-bold uppercase text-gray-500 flex items-center mb-1">
+                                        {/* <Clock className="w-4 h-4 mr-1 text-gray-500" /> Payback Period */}
+                                        <svg className="w-4 h-4 mr-1 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                                        Payback Period
+                                    </span>
+                                    <span className="text-xl text-yellow-800 font-extrabold">
+                                        {project.paybackPeriod !== null ? `${project.paybackPeriod} yrs` : 'N/A'}
+                                    </span>
+                                </div>
+
+                                {/* Risk Score - Highlighted for risk management visibility */}
+                                <div 
+                                    className={cn(
+                                        "p-4 rounded-xl border-2 shadow-lg transform hover:scale-[1.02] transition duration-200", 
+                                        getRiskBackgroundColor(project.riskScore)
+                                    )}
+                                >
+                                    <span className="text-xs font-bold uppercase text-gray-500 flex items-center mb-1">
+                                        {/* <AlertTriangle className="w-4 h-4 mr-1 text-gray-500" /> Risk Score */}
+                                        <svg className="w-4 h-4 mr-1 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>
+                                        Risk Score
+                                    </span>
+                                    <span className={cn('text-xl font-extrabold', getRiskColor(project.riskScore))}>
+                                        {project.riskScore !== null ? project.riskScore.toFixed(1) : 'N/A'}
+                                    </span>
+                                </div>
+                                
+                            </div>
                         </div>
                     </td>
                 </tr>
             )}
         </React.Fragment>
     );
+
 };
 
 
@@ -667,7 +771,7 @@ const ProjectListPage: React.FC<ProjectListClientProps> = ({
 
                 {/* 4. MOBILE EXPANDED CONTENT (Cleaner layout and focus on risk) */}
                 {isExpanded && (
-                    <div className="mt-4 pt-4 border-t border-indigo-200 grid grid-cols-2 gap-y-4 gap-x-3 text-sm transition-all duration-300 animate-in fade-in">
+                    <div className="mt-4 p-4 border-2 border-yellow-50 rounded-lg grid grid-cols-2 gap-y-4 gap-x-3 text-sm transition-all duration-300 animate-in fade-in">
                         
                         {/* RISK SCORE (Highlight this for visibility) */}
                         <div className="p-2 bg-red-50/50 rounded-lg border border-red-200">
