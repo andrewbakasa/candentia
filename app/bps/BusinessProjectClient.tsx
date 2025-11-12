@@ -1,5 +1,5 @@
 'use client'
-import React, { useState, useCallback, useEffect, useMemo } from 'react';
+import React, { useState, useCallback, useEffect, useMemo, useRef } from 'react';
 import Link from 'next/link';
 import { SafeUser } from '../types';
 import { 
@@ -15,6 +15,7 @@ import { Hint } from '@/components/hint';
 import { updatePagSize } from '@/actions/update-user-pagesize';
 import { useAction } from '@/hooks/use-action';
 import { toast } from 'sonner';
+import { fetchProjectsList } from './_components/Services';
 
 
 // --- Standardized Progress Stages (Aligned with the Prisma Enum) ---
@@ -63,93 +64,8 @@ interface ProjectListClientProps {
     projects: ProjectListItem[]; 
     currentUser: SafeUser | null;
 }
-
 // --- API Fetch Function (Simulated financial data addition) ---
-// const fetchProjectsList = async (): Promise<ProjectListItem[]> => {
-//     const url = `/api/busprojects`; 
 
-//     try {
-//         const response = await fetch(url, { method: 'GET', headers: { 'Content-Type': 'application/json' } });
-
-//         if (!response.ok) {
-//             throw new Error(`Failed to fetch projects (Status: ${response.status})`);
-//         }
-        
-//         const projects: any[] = await response.json(); 
-        
-//         return projects.map((p) => ({
-//             id: p.id,
-//             title: p.title,
-//             progress: (p.progress || 'PROPOSAL').toUpperCase() as ProjectProgress, 
-//             rating: p.rating,
-//             riskScore: p.riskScore,
-//             commentCount: p._count?.comments || 0,
-//             commenters:p.commenters,
-
-//             // --- SIMULATION: In a real app, these come from the backend ---
-//             npv: p.npv ?? (Math.random() > 0.3 ? parseFloat((Math.random() * 500000 - 100000).toFixed(2)) : null),
-//             irr: p.irr ?? (Math.random() > 0.3 ? parseFloat((Math.random() * 0.40).toFixed(4)) : null),
-//             roi: p.roi ?? (Math.random() > 0.3 ? parseFloat((Math.random() * 3.5).toFixed(2)) : null),
-//             paybackPeriod: p.paybackPeriod ?? (Math.random() > 0.3 ? parseFloat((Math.random() * 5 + 1).toFixed(1)) : null),
-//             projectRanking: p.projectRanking
-//         }));
-
-//     } catch (err: any) {
-//         console.error(`Error fetching projects:`, err);
-//         throw err;
-//     }
-// };
-
-// --- API Fetch Function (Simulated financial data addition) ---
-const fetchProjectsList = async (): Promise<ProjectListItem[]> => {
-    const url = `/api/busprojects`; 
-
-    try {
-        const response = await fetch(url, { method: 'GET', headers: { 'Content-Type': 'application/json' } });
-
-        if (!response.ok) {
-            throw new Error(`Failed to fetch projects (Status: ${response.status})`);
-        }
-        
-        // 'projects' here contains the raw data from the API, including p.comments[].user
-        const projects: any[] = await response.json(); 
-        
-       return projects.map((p) => {
-    
-                // Type assertion: Treat the comments array as CommentWithUser[] to access 'user' safely
-                const commentsWithUsers = (p.comments || []) as { user: Commenter }[];
-
-                // 1. Extract and de-duplicate the users from the comments array
-                // We map over commentsWithUsers, which is now correctly typed.
-                const uniqueCommenters: Commenter[] = Array.from(
-                    new Map(commentsWithUsers.map(comment => [comment.user.id, comment.user])).values()
-                );
-
-                return {
-                    id: p.id,
-                    title: p.title,
-                    progress: (p.progress || 'PROPOSAL').toUpperCase() as ProjectProgress, 
-                    rating: p.rating,
-                    riskScore: p.riskScore,
-                    commentCount: p._count?.comments || 0,
-                    
-                    // 2. Assign the de-duplicated list to the 'commenters' field
-                    commenters: uniqueCommenters, // Type is now correctly inferred as Commenter[]
-
-                    // --- SIMULATION: In a real app, these come from the backend ---
-                    npv: p.npv ?? (Math.random() > 0.3 ? parseFloat((Math.random() * 500000 - 100000).toFixed(2)) : null),
-                    irr: p.irr ?? (Math.random() > 0.3 ? parseFloat((Math.random() * 0.40).toFixed(4)) : null),
-                    roi: p.roi ?? (Math.random() > 0.3 ? parseFloat((Math.random() * 3.5).toFixed(2)) : null),
-                    paybackPeriod: p.paybackPeriod ?? (Math.random() > 0.3 ? parseFloat((Math.random() * 5 + 1).toFixed(1)) : null),
-                    projectRanking: p.projectRanking
-                };
-            });
-
-    } catch (err: any) {
-        console.error(`Error fetching projects:`, err);
-        throw err;
-    }
-};
 
 // --- Pagination Constants ---
 const DEFAULT_PAGE_SIZE = 8;
@@ -183,7 +99,6 @@ const getStatusBadge = (progress: string) => {
     }
 }
 
-
 // Helper to determine NPV text color
 const getNPVColor = (value: number | null) => 
     value === null ? 'text-gray-700' : value >= 0 ? 'text-green-600 font-bold' : 'text-red-600 font-bold';
@@ -212,8 +127,6 @@ interface ProjectExpansionRowProps {
     onToggle: (id: string) => void;
 }
 
-  
-
 const ProjectExpansionRow: React.FC<ProjectExpansionRowProps> = ({ project, isExpanded, onToggle }) => {
     // Check if any key data is present to justify the expansion
     const hasKeyData = project.npv !== null || project.irr !== null || project.riskScore !== null || project.rating !== null;
@@ -239,96 +152,6 @@ const ProjectExpansionRow: React.FC<ProjectExpansionRowProps> = ({ project, isEx
         value !== null ? `${(value * 100).toFixed(1)}%` : 'N/A';
     
     
-  
-
-
-    // return (
-    //     <React.Fragment>
-          
-    //         {isExpanded && (
-    //             <tr className="bg-gray-50 border-t border-gray-200 transition-all duration-300 ease-in-out">
-    //                 <td colSpan={5} className="px-6 py-5">
-    //                     <div className="text-base font-semibold text-gray-700 mb-4 flex items-center">
-    //                         <BarChart3 className="w-5 h-5 mr-2 text-indigo-600" />
-    //                         Financial Projections and Risk Assessment
-    //                     </div>
-                        
-    //                     {/* Grid of Financial Cards */}
-    //                     <div className="grid grid-cols-2 sm:grid-cols-5 gap-4">
-                            
-    //                         {/* NPV - Highlighted as critical metric */}
-    //                         <div 
-    //                             className={cn(
-    //                                 "p-4 rounded-xl border shadow-lg transform hover:scale-[1.02] transition duration-200", 
-    //                                 project.npv !== null && project.npv >= 0 ? 'bg-green-100 border-green-300' : 'bg-red-100 border-red-300'
-    //                             )}
-    //                         >
-    //                             <span className="text-xs font-bold uppercase text-gray-500 flex items-center mb-1">
-    //                                 <DollarSign className="w-4 h-4 mr-1 text-gray-500" /> NPV
-    //                             </span>
-    //                             <span className={cn('text-xl font-extrabold', getNPVColor(project.npv))}>
-    //                                 {formatCurrency(project.npv)}
-    //                             </span>
-    //                         </div>
-
-    //                         {/* IRR */}
-    //                         <div className="bg-white p-4 rounded-xl border border-gray-200 shadow-md hover:shadow-lg transition duration-200">
-    //                             <span className="text-xs font-bold uppercase text-gray-500 flex items-center mb-1">
-    //                                 <TrendingUp className="w-4 h-4 mr-1 text-gray-500" /> IRR
-    //                             </span>
-    //                             <span className="text-xl text-blue-700 font-extrabold">
-    //                                 {formatPercent(project.irr)}
-    //                             </span>
-    //                         </div>
-
-    //                         {/* ROI */}
-    //                         <div className="bg-white p-4 rounded-xl border border-gray-200 shadow-md hover:shadow-lg transition duration-200">
-    //                             <span className="text-xs font-bold uppercase text-gray-500 flex items-center mb-1">
-    //                                 <Target className="w-4 h-4 mr-1 text-gray-500" /> ROI
-    //                             </span>
-    //                             <span className="text-xl text-green-700 font-extrabold">
-    //                                 {project.roi !== null ? `${project.roi.toFixed(2)}x` : 'N/A'}
-    //                             </span>
-    //                         </div>
-
-    //                         {/* Payback Period */}
-    //                         <div className="bg-white p-4 rounded-xl border border-gray-200 shadow-md hover:shadow-lg transition duration-200">
-    //                             <span className="text-xs font-bold uppercase text-gray-500 flex items-center mb-1">
-    //                                 <Clock className="w-4 h-4 mr-1 text-gray-500" /> Payback Period
-    //                             </span>
-    //                             <span className="text-xl text-yellow-800 font-extrabold">
-    //                                 {project.paybackPeriod !== null ? `${project.paybackPeriod} yrs` : 'N/A'}
-    //                             </span>
-    //                         </div>
-
-    //                         {/* Risk Score - Highlighted for risk management visibility */}
-    //                         <div 
-    //                             className={cn(
-    //                                 "p-4 rounded-xl border-2 shadow-lg transform hover:scale-[1.02] transition duration-200", 
-    //                                 getRiskBackgroundColor(project.riskScore)
-    //                             )}
-    //                         >
-    //                             <span className="text-xs font-bold uppercase text-gray-500 flex items-center mb-1">
-    //                                 <AlertTriangle className="w-4 h-4 mr-1 text-gray-500" /> Risk Score
-    //                             </span>
-    //                             <span className={cn('text-xl font-extrabold', getRiskColor(project.riskScore))}>
-    //                                 {project.riskScore !== null ? project.riskScore.toFixed(1) : 'N/A'}
-    //                             </span>
-    //                         </div>
-                            
-    //                     </div>
-    //                 </td>
-    //             </tr>
-    //         )}
-    //     </React.Fragment>
-    // );
-   
-// Assuming cn, formatCurrency, formatPercent, getNPVColor, getRiskBackgroundColor, getRiskColor, 
-// and the icon components (BarChart3, DollarSign, TrendingUp, Target, Clock, AlertTriangle) are defined elsewhere.
-
-// NOTE: This file is a snippet and assumes required props (isExpanded, project) and
-// external functions (cn, formatCurrency, etc.) are available in the scope.
-
    return (
         <React.Fragment>
             {/* Project Details Row (Expanded view) */}
@@ -430,11 +253,13 @@ const ProjectExpansionRow: React.FC<ProjectExpansionRowProps> = ({ project, isEx
 
 
 // --- Main Client Component ---
-
 const ProjectListPage: React.FC<ProjectListClientProps> = ({
     projects: initialProjects,
     currentUser,
 }) => {
+
+    // --- NEW STATE: Map to store refs for each card (optional, but clean for lists) ---
+    const cardRefs = useRef<Map<string, HTMLDivElement>>(new Map());
     const [projects, setProjects] = useState<ProjectListItem[]>(initialProjects);
     const [isRefreshing, setIsRefreshing] = useState(false); 
     const [error, setError] = useState<string | null>(null); 
@@ -469,17 +294,48 @@ const ProjectListPage: React.FC<ProjectListClientProps> = ({
     };
 
     // --- TOGGLE HANDLER (For Project Expansion Details) ---
-    const handleToggleRow = useCallback((projectId: string) => {
-        setExpandedRows(prev => {
-            const newSet = new Set(prev);
-            if (newSet.has(projectId)) {
-                newSet.delete(projectId);
-            } else {
-                newSet.add(projectId);
-            }
-            return newSet;
-        });
-    }, []);
+    // const handleToggleRow = useCallback((projectId: string) => {
+    //     setExpandedRows(prev => {
+    //         const newSet = new Set(prev);
+    //         if (newSet.has(projectId)) {
+    //             newSet.delete(projectId);
+    //         } else {
+    //             newSet.add(projectId);
+    //         }
+    //         return newSet;
+    //     });
+    // }, []);
+
+    // --- TOGGLE HANDLER (For Project Expansion Details) ---
+        const handleToggleRow = useCallback((projectId: string) => {
+            setExpandedRows(prev => {
+                const newSet = new Set(prev);
+                const willExpand = !newSet.has(projectId);
+
+                if (willExpand) {
+                    newSet.add(projectId);
+                } else {
+                    newSet.delete(projectId);
+                }
+
+                // --- *FIX IMPLEMENTATION* ---
+                // Scroll the element into view AFTER the state update
+                // We defer this using a setTimeout to ensure the DOM has updated
+                // and the new expanded height is calculated.
+                if (willExpand) {
+                    setTimeout(() => {
+                        const cardElement = cardRefs.current.get(projectId);
+                        if (cardElement) {
+                            // Smooth scroll to the top of the card
+                            cardElement.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                        }
+                    }, 0); 
+                }
+                // --- *END FIX IMPLEMENTATION* ---
+
+                return newSet;
+            });
+        }, []); // Dependencies are fine here
 
     // --- MEMOIZED/PAGINATED LOGIC (Unchanged) ---
     const filteredProjects = useMemo(() => {
@@ -648,8 +504,10 @@ const ProjectListPage: React.FC<ProjectListClientProps> = ({
         }
     };
 
+   // You will need to use React.forwardRef for MobileProjectCard:
+    const MobileProjectCard = React.forwardRef<HTMLDivElement, { project: ProjectListItem }>(({ project }, ref) => {
     // --- 3. UPDATED COMPONENT: Mobile Card View ---
-    const MobileProjectCard: React.FC<{ project: ProjectListItem }> = ({ project }) => {
+    // const MobileProjectCard: React.FC<{ project: ProjectListItem }> = ({ project }) => {
         const isExpanded = expandedRows.has(project.id);
         const { icon, color, display } = getStatusBadge(project.progress);
 
@@ -670,6 +528,7 @@ const ProjectListPage: React.FC<ProjectListClientProps> = ({
         return (
             <div 
                 key={project.id} 
+                ref={ref} // Attach the ref here
                 className="bg-white p-4 mb-4 rounded-xl shadow-lg border border-gray-100 transition duration-300 hover:shadow-xl"
             >
                 
@@ -722,17 +581,7 @@ const ProjectListPage: React.FC<ProjectListClientProps> = ({
                 {/* 3. COMMENT COUNT & TOGGLE BUTTON */}
                 <div className="flex justify-between items-center pt-3">
                     
-                    {/* Comments Badge (Cleaned up) */}
-                    {/* <div className="flex items-center space-x-1.5 text-sm text-gray-600 font-medium"> 
-                        <MessageSquare className="w-4 h-4 text-indigo-500" />
-                        <span>Comments</span>
-                        {project.commentCount > 0 && (
-                            <span className="text-xs font-bold text-white bg-indigo-600 rounded-full h-5 w-5 flex items-center justify-center -translate-y-1">
-                                {project.commentCount}
-                            </span>
-                        )}
-                    </div> */}
-                    {/* Comments Badge - WRAPPED IN A BUTTON/CLICKABLE ELEMENT */}
+                   
                     {project.commentCount > 0 ? (
                         <button 
                             // Call the handler to open the modal for this project
@@ -813,18 +662,11 @@ const ProjectListPage: React.FC<ProjectListClientProps> = ({
                             </p>
                         </div>
                     </div>
-                )}
-
-                {/* --- NEW: Commenters Modal Render --- */}
-                {/* {openCommentersProjectId && (
-                    <CommentersModal
-                        project={projects.find(p => p.id === openCommentersProjectId)!}
-                        onClose={handleCloseCommenters}
-                    />
-                )} */}
+                )}               
             </div>
         )
-    }
+    });
+    MobileProjectCard.displayName = 'MobileProjectCard';
 
     const formatCurrencyCompact = (value: number | null) => 
         value !== null ? `$${value.toLocaleString('en-US', { notation: 'compact', minimumFractionDigits: 0, maximumFractionDigits: 1 })}` : 'N/A';
@@ -1022,8 +864,23 @@ const ProjectListPage: React.FC<ProjectListClientProps> = ({
             {/* --- Mobile View (Card Layout) --- */}
             {!isRefreshing && !error && filteredProjects.length > 0 && (
                 <div className="block md:hidden">
-                    {paginatedProjects.map((project) => (
+                    {/* {paginatedProjects.map((project) => (
                         <MobileProjectCard key={project.id} project={project} />
+                    ))} */}
+                   
+                    {paginatedProjects.map((project) => (
+                        <MobileProjectCard 
+                            key={project.id} 
+                            project={project}
+                            // Pass a function to set the ref for this specific card
+                            ref={(el) => {
+                                if (el) {
+                                    cardRefs.current.set(project.id, el);
+                                } else {
+                                    cardRefs.current.delete(project.id);
+                                }
+                            }}
+                        />
                     ))}
 
                       {/* --- Improve efficiency here --- */}
