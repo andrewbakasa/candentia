@@ -38,6 +38,8 @@ import Search from '../components/Search';
 import ReactPaginate from "react-paginate";
 import { useAction } from '@/hooks/use-action'; // Import useAction hook
 import { updateCareerActive } from '@/actions/update-jobApplicationStatus';
+import { updatePagSize } from '@/actions/update-user-pagesize';
+import { SafeUser } from '../types';
 //import { updateCareerActive } from '@/actions/update-job-application-status'; // Import the new server action
 
 // Define the type for our form data
@@ -56,9 +58,10 @@ interface CareerFormValues {
 
 interface CareerFormProps {
     dbCareers: Career[];
+    currentUser: SafeUser| null
 }
 
-const CareerClient: React.FC<CareerFormProps> = ({ dbCareers }) => {
+const CareerClient: React.FC<CareerFormProps> = ({ dbCareers, currentUser}) => {
     const [selectedCareer, setSelectedCareer] = useState<CareerFormValues | null>(null);
     const [isEditModalOpen, setIsEditModalOpen] = useState(false);
     const [isDeleteConfirmOpen, setIsDeleteConfirmOpen] = useState(false);
@@ -82,6 +85,16 @@ const CareerClient: React.FC<CareerFormProps> = ({ dbCareers }) => {
         },
         onError: (error) => {
             toast.error(`Failed to update career status: ${error}`);
+        },
+    });
+
+       // Action to update user page size
+    const { execute, fieldErrors } = useAction(updatePagSize, {
+        onSuccess: (data) => {
+            toast.success(`PageSize for ${data.email} updated to ${data.pageSize}`);
+        },
+        onError: (error) => {
+            toast.error(error);
         },
     });
 
@@ -220,8 +233,16 @@ const CareerClient: React.FC<CareerFormProps> = ({ dbCareers }) => {
     const handlePageSizeChange = (newPageSize: PageSizeOption) => {
         const numericPageSize = parseInt(newPageSize, 10);
         setPageSize(numericPageSize);
+         if (currentUser) {
+            execute({
+                id: currentUser?.id,
+                pageSize: numericPageSize
+            });
+        }
         setItemOffset(0);
     };
+
+    
 
     const handlePageClick = (event: { selected: number }) => {
         const newOffset = (event.selected * pageSize) % fList.length;

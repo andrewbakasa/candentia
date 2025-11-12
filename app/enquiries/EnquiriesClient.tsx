@@ -15,6 +15,9 @@ import EnquiryRow from "./_components/EnquiryRow";
 import { useInboxCountVarStore } from "@/hooks/use-inbox-count";
 import { FaArchive } from "react-icons/fa";
 import { ChevronLeft, ChevronRight } from 'lucide-react'; // Better icons for navigation
+import { updatePagSize } from "@/actions/update-user-pagesize";
+import { useAction } from "@/hooks/use-action";
+import { toast } from "sonner";
 //import EnquiryRow from "../(admin_route)/archivedEnquiries/_components/EnquiryRow";
 
 // Define custom Tailwind classes (assuming they are in tailwind.config.js)
@@ -49,6 +52,15 @@ const EnquiresClient: React.FC<EnquiriesClientProps> = ({
   const [uniquerecordId, setUniquerecordId] = useState('');
   const {setUnreadMessages}=useInboxCountVarStore();
   const [category, setCategory] = useState<string>('');
+   // Action to update user page size
+    const { execute, fieldErrors } = useAction(updatePagSize, {
+        onSuccess: (data) => {
+            toast.success(`PageSize for ${data.email} updated to ${data.pageSize}`);
+        },
+        onError: (error) => {
+            toast.error(error);
+        },
+    });
 
   // ... (handleToggleSelectUniquerecord, handleRowClick, useAction hooks remain unchanged)
     
@@ -113,14 +125,27 @@ const EnquiresClient: React.FC<EnquiriesClientProps> = ({
 
   type PageSizeOption = '1' | '2' | '3' | '4' | '8' | '16' | '24' | '32' | '48' | '60';
 
-  const handlePageSizeChange = (newPageSize: PageSizeOption) => {
-    const numericPageSize = parseInt(newPageSize, 10);
-    setPageSize(numericPageSize);
-    if (currentUser) {
-      // execute action...
-    }
-    setItemOffset(0);
-  };
+//   const handlePageSizeChange = (newPageSize: PageSizeOption) => {
+//     const numericPageSize = parseInt(newPageSize, 10);
+//     setPageSize(numericPageSize);
+//     if (currentUser) {
+//       // execute action...
+//     }
+//     setItemOffset(0);
+//   };
+
+   const handlePageSizeChange = (newPageSize: PageSizeOption) => {
+        const numericPageSize = parseInt(newPageSize, 10);
+        setPageSize(numericPageSize);
+        if (currentUser) {
+            execute({
+                id: currentUser?.id,
+                pageSize: numericPageSize
+            });
+        }
+        setItemOffset(0); // Reset to the first page when page size changes
+    };
+
 
 
   const handlePageClick = (event: { selected: number }) => {

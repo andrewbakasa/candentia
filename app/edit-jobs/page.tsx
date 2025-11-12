@@ -23,8 +23,7 @@ const EditJobsPortfolioPage = async () => {
   }
   return (
     <ClientOnly>
-      <CareerClient dbCareers={jobs}
-      />
+      <CareerClient dbCareers={jobs} currentUser={currentUser}      />
     </ClientOnly>
   );
 }

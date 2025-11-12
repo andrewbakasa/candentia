@@ -16,6 +16,9 @@ import { useInboxCountVarStore } from "@/hooks/use-inbox-count";
 import { FaArchive } from "react-icons/fa";
 import { ChevronLeft, ChevronRight } from 'lucide-react'; // Better icons for navigation
 import EnquiryRow from "./_components/EnquiryRow";
+import { updatePagSize } from "@/actions/update-user-pagesize";
+import { useAction } from "@/hooks/use-action";
+import { toast } from "sonner";
 //import EnquiryRow from "../_components/EnquiryRow";
 
 // Define custom Tailwind classes (assuming they are in tailwind.config.js)
@@ -59,6 +62,17 @@ const EnquiresClient: React.FC<EnquiriesClientProps> = ({
     const isAllowedAccess = currentUser?.roles.some(role => 
         allowedRoles.some(allowed => allowed.toLowerCase() === role.toLowerCase())
     );
+
+      // Action to update user page size
+    const { execute, fieldErrors } = useAction(updatePagSize, {
+        onSuccess: (data) => {
+            toast.success(`PageSize for ${data.email} updated to ${data.pageSize}`);
+        },
+        onError: (error) => {
+            toast.error(error);
+        },
+    });
+    
 
     // If access is denied, use the mock router push instead of redirect
     useEffect(() => {
@@ -106,10 +120,20 @@ const EnquiresClient: React.FC<EnquiriesClientProps> = ({
     const handlePageSizeChange = useCallback((newPageSize: string) => {
         const numericPageSize = parseInt(newPageSize, 10);
         setPageSize(numericPageSize);
-        // Update user preference mock here if needed:
-        // if (currentUser) { saveUserPageSize(currentUser.id, numericPageSize); }
+         if (currentUser) {
+            execute({
+                id: currentUser?.id,
+                pageSize: numericPageSize
+            });
+        }
         setItemOffset(0);
     }, []);
+
+    
+    
+
+
+
 
 
     const handlePageClick = useCallback((selectedPage: number) => {

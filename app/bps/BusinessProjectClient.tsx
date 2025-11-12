@@ -12,6 +12,9 @@ import {
 import { cn } from '@/lib/utils';
 import { CommentersModal, NewProjectTemplate } from './_components/utils';
 import { Hint } from '@/components/hint';
+import { updatePagSize } from '@/actions/update-user-pagesize';
+import { useAction } from '@/hooks/use-action';
+import { toast } from 'sonner';
 
 
 // --- Standardized Progress Stages (Aligned with the Prisma Enum) ---
@@ -209,10 +212,13 @@ interface ProjectExpansionRowProps {
     onToggle: (id: string) => void;
 }
 
+  
+
 const ProjectExpansionRow: React.FC<ProjectExpansionRowProps> = ({ project, isExpanded, onToggle }) => {
     // Check if any key data is present to justify the expansion
     const hasKeyData = project.npv !== null || project.irr !== null || project.riskScore !== null || project.rating !== null;
-
+         // Action to update user page size
+    
     if (!hasKeyData) {
         return (
             <tr className="bg-gray-50">
@@ -233,7 +239,8 @@ const ProjectExpansionRow: React.FC<ProjectExpansionRowProps> = ({ project, isEx
         value !== null ? `${(value * 100).toFixed(1)}%` : 'N/A';
     
     
-   
+  
+
 
     return (
         <React.Fragment>
@@ -343,6 +350,15 @@ const ProjectListPage: React.FC<ProjectListClientProps> = ({
     // --- NEW STATE: Tracks the project whose commenters list is open ---
     const [openCommentersProjectId, setOpenCommentersProjectId] = useState<string | null>(null);
 
+    const { execute, fieldErrors } = useAction(updatePagSize, {
+        onSuccess: (data) => {
+            toast.success(`PageSize for ${data.email} updated to ${data.pageSize}`);
+        },
+        onError: (error) => {
+            toast.error(error);
+        },
+    });
+
     // Function to close the modal/popover
     const handleCloseCommenters = () => {
         setOpenCommentersProjectId(null);
@@ -396,11 +412,24 @@ const ProjectListPage: React.FC<ProjectListClientProps> = ({
         }
     }, [filteredProjects.length, pageSize]);
     
+    // const handlePageSizeChange = (newPageSize: PageSizeOption) => {
+    //     const numericPageSize = parseInt(newPageSize, 10);
+    //     setPageSize(numericPageSize);
+    //     setItemOffset(0);
+    // };
+
     const handlePageSizeChange = (newPageSize: PageSizeOption) => {
         const numericPageSize = parseInt(newPageSize, 10);
         setPageSize(numericPageSize);
-        setItemOffset(0);
+        if (currentUser) {
+            execute({
+                id: currentUser?.id,
+                pageSize: numericPageSize
+            });
+        }
+        setItemOffset(0); // Reset to the first page when page size changes
     };
+
 
     const handlePageClick = ({ selected }: { selected: number }) => {
         const newOffset = (selected * pageSize) % filteredProjects.length;
