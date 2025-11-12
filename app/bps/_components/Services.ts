@@ -1,7 +1,8 @@
 // /lib/services/projectService.ts
+
 import { PrismaClient, BusinessProjectModel, ProjectToUserRating, ProjectProgress } from '@prisma/client';
-import { Decimal } from '@prisma/client/runtime/library';
 import { Commenter, ProjectListItem } from '../BusinessProjectClient';
+import { Decimal } from '@prisma/client/runtime/library';
 
 // NOTE: Initialize Prisma Client once
 const prisma = new PrismaClient();
@@ -23,8 +24,8 @@ export interface ProjectUpdateData {
     npv?: number | null;
     riskScore?: number | null;
     projectRanking?: number | null;
-    initialInvestmentUsd?: number | null | Decimal;
-    monthlyOpexUsd?: number | null | Decimal;
+    initialInvestmentUsd?: number | null ;
+    monthlyOpexUsd?: number | null ;
     notes?: string | null;
     // Add other editable fields here as needed
 }
@@ -299,52 +300,3 @@ async function recalculateProjectRating(projectId: string) {
     });
 }
 
-export const fetchProjectsList = async (): Promise<ProjectListItem[]> => {
-    const url = `/api/busprojects`; 
-
-    try {
-        const response = await fetch(url, { method: 'GET', headers: { 'Content-Type': 'application/json' } });
-
-        if (!response.ok) {
-            throw new Error(`Failed to fetch projects (Status: ${response.status})`);
-        }
-        
-        // 'projects' here contains the raw data from the API, including p.comments[].user
-        const projects: any[] = await response.json(); 
-        
-       return projects.map((p) => {
-    
-                // Type assertion: Treat the comments array as CommentWithUser[] to access 'user' safely
-                const commentsWithUsers = (p.comments || []) as { user: Commenter }[];
-
-                // 1. Extract and de-duplicate the users from the comments array
-                // We map over commentsWithUsers, which is now correctly typed.
-                const uniqueCommenters: Commenter[] = Array.from(
-                    new Map(commentsWithUsers.map(comment => [comment.user.id, comment.user])).values()
-                );
-
-                return {
-                    id: p.id,
-                    title: p.title,
-                    progress: (p.progress || 'PROPOSAL').toUpperCase() as ProjectProgress, 
-                    rating: p.rating,
-                    riskScore: p.riskScore,
-                    commentCount: p._count?.comments || 0,
-                    
-                    // 2. Assign the de-duplicated list to the 'commenters' field
-                    commenters: uniqueCommenters, // Type is now correctly inferred as Commenter[]
-
-                    // --- SIMULATION: In a real app, these come from the backend ---
-                    npv: p.npv ?? (Math.random() > 0.3 ? parseFloat((Math.random() * 500000 - 100000).toFixed(2)) : null),
-                    irr: p.irr ?? (Math.random() > 0.3 ? parseFloat((Math.random() * 0.40).toFixed(4)) : null),
-                    roi: p.roi ?? (Math.random() > 0.3 ? parseFloat((Math.random() * 3.5).toFixed(2)) : null),
-                    paybackPeriod: p.paybackPeriod ?? (Math.random() > 0.3 ? parseFloat((Math.random() * 5 + 1).toFixed(1)) : null),
-                    projectRanking: p.projectRanking
-                };
-            });
-
-    } catch (err: any) {
-        console.error(`Error fetching projects:`, err);
-        throw err;
-    }
-};
