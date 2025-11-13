@@ -554,7 +554,7 @@ const ProjectListPage: React.FC<ProjectListClientProps> = ({
     };
 
    // You will need to use React.forwardRef for MobileProjectCard:
-    const MobileProjectCard = React.forwardRef<HTMLDivElement, { project: ProjectListItem }>(({ project }, ref) => {
+    const MobileProjectCard = React.forwardRef<HTMLDivElement, { project: ProjectListItem,itemNum:number }>(({ project, itemNum}, ref) => {
     // --- 3. UPDATED COMPONENT: Mobile Card View ---
     // const MobileProjectCard: React.FC<{ project: ProjectListItem }> = ({ project }) => {
         const isExpanded = expandedRows.has(project.id);
@@ -592,7 +592,7 @@ const ProjectListPage: React.FC<ProjectListClientProps> = ({
                             href={`/bp/${project.id}`} 
                             className="text-lg font-bold text-indigo-700 hover:text-indigo-800 transition block pr-4"
                         >
-                            {project.title}
+                            {itemNum}. {project.title}
                         </Link>
                     </Hint>
 
@@ -827,7 +827,7 @@ const ProjectListPage: React.FC<ProjectListClientProps> = ({
                             </tr>
                         </thead>
                         <tbody className="bg-white divide-y divide-gray-200">
-                            {paginatedProjects.map((project) => {
+                            {paginatedProjects.map((project,index) => {
                                 const { icon, color, display } = getStatusBadge(project.progress);
                                 const isExpanded = expandedRows.has(project.id);
                                 
@@ -840,7 +840,7 @@ const ProjectListPage: React.FC<ProjectListClientProps> = ({
                                             >
                                                 <td className="px-6 py-4 whitespace-nowrap  text-sm font-medium">
                                                     <Link href={`/bp/${project.id}`} className="text-indigo-600 hover:text-indigo-800 font-semibold">
-                                                        {project.title}
+                                                        {index+1}. {project.title}
                                                     </Link>
                                                 </td>
                                             </Hint>
@@ -917,7 +917,7 @@ const ProjectListPage: React.FC<ProjectListClientProps> = ({
                         <MobileProjectCard key={project.id} project={project} />
                     ))} */}
                    
-                    {paginatedProjects.map((project) => (
+                    {paginatedProjects.map((project, index) => (
                         <MobileProjectCard 
                             key={project.id} 
                             project={project}
@@ -929,6 +929,7 @@ const ProjectListPage: React.FC<ProjectListClientProps> = ({
                                     cardRefs.current.delete(project.id);
                                 }
                             }}
+                            itemNum= {index+1}
                         />
                     ))}
 
