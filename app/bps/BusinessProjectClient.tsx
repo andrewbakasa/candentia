@@ -337,7 +337,7 @@ const ProjectListPage: React.FC<ProjectListClientProps> = ({
 
     const { execute, fieldErrors } = useAction(updatePagSize, {
         onSuccess: (data) => {
-            toast.success(`PageSize for ${data.email} updated to ${data.pageSize}`);
+            toast.success(`PageSize for ${data?.email} updated to ${data.pageSize}`);
         },
         onError: (error) => {
             toast.error(error);
@@ -592,7 +592,7 @@ const ProjectListPage: React.FC<ProjectListClientProps> = ({
                 <div className="flex items-start justify-between">
                     <Hint
                         sideOffset={5}
-                        description={`Click to view more details... proposed by ${project.proposer.email} `}
+                        description={`Click to view more details... proposed by ${project.proposer?.email} `}
                     >
                         {/* Title Link */}
                         <Link 
@@ -843,7 +843,7 @@ const ProjectListPage: React.FC<ProjectListClientProps> = ({
                                         <tr className="hover:bg-indigo-50 transition duration-150 ease-in-out">
                                             <Hint
                                                 sideOffset={10}
-                                                description={ `Click here for more details...proposed by ${project.proposer.email} `}
+                                                description={ `Click here for more details...proposed by ${project.proposer?.email} `}
                                             >
                                                 <td className="px-6 py-4 whitespace-nowrap  text-sm font-medium">
                                                     <Link href={`/bp/${project.id}`} className="text-indigo-600 hover:text-indigo-800 font-semibold">

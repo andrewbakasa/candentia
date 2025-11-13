@@ -41,7 +41,7 @@ export const UserData = ({
 }: UserDataProps) => {
   const params = useParams();
   const queryClient = useQueryClient();
-  const [isEditing, setIsEditing] = useState(false);
+ // const [isEditing, setIsEditing] = useState(true);//always set to true
   const [isChecked, setIsChecked] = useState(data.isAdmin||false); // Default checked
   const [isCheckedReadMode, setIsCheckedReadMode] = useState(data.cardReadMode||false); // Default checked
   
@@ -174,25 +174,25 @@ export const UserData = ({
       setRecentInput(newRecentDays);
     }
   };
-  const enableEditing = () => {
-    setIsEditing(true);
-    setTimeout(() => {
-      textareaRef.current?.focus();
-    });
-  }
+  // const enableEditing = () => {
+  //   setIsEditing(true);
+  //   setTimeout(() => {
+  //     textareaRef.current?.focus();
+  //   });
+  // }
 
-  const disableEditing = () => {
-    setIsEditing(false);
-  };
+  // const disableEditing = () => {
+  //   setIsEditing(false);
+  // };
 
   const onKeyDown = (e: KeyboardEvent) => {
     if (e.key === "Escape") {
-      disableEditing();
+    //  disableEditing();
     }
   };
 
   useEventListener("keydown", onKeyDown);
-  useOnClickOutside(formRef, disableEditing);
+ // useOnClickOutside(formRef, disableEditing);
 
   const { execute, fieldErrors } = useAction(updateUser, {
     onSuccess: (data) => {
@@ -224,7 +224,7 @@ export const UserData = ({
       setShowBGImageState(data.showBGImage)
      
       //-------
-      disableEditing();
+     // disableEditing();
     },
     onError: (error) => {
       toast.error(error);
@@ -357,7 +357,10 @@ const isAllowedAccess = currentUser?.roles.filter((role: string) =>
           </Link>}
         </p>
 
-        {isEditing ? (
+        {
+        // isEditing ?
+        
+        (
           <form
             id="id1"
             name= "name1"
@@ -609,7 +612,7 @@ const isAllowedAccess = currentUser?.roles.filter((role: string) =>
               </FormSubmit>
               <Button
                 type="button"
-                onClick={disableEditing}
+                //onClick={disableEditing}
                 size="sm"
                 variant="ghost"
               >
@@ -617,46 +620,47 @@ const isAllowedAccess = currentUser?.roles.filter((role: string) =>
               </Button>
             </div>
           </form>
-        ) : (
-          <>
-              <div
-                onClick={enableEditing}
-                role="button"
-                className="min-h-[178px] bg-neutral-200 text-sm font-medium py-3 px-3.5 rounded-md"
-              >
-                {data.email || "Add a more detailed description..."}
-              </div>
-              <div className="flex flex-row justify-between">
-                  <div className="space-x-2">
-                      <input 
-                          id="isAdmin" 
-                          name="isAdmin"
-                          type="checkbox" 
-                          ref={inputboxRef} 
-                          checked={isChecked}
-                          disabled={true} />
-                      <label htmlFor="checkbox">Is User Admin?</label>
-                  </div>
-                  <div className="flex flex-row space-x-2">
-                    <label htmlFor="progress" className="italic">Roles:</label>
-                    <span className="text-rose-500">{data?.roles.join(", ")}</span>
-                  </div>
-              </div>
-              <div className="flex flex-row justify-between">
-                <div className="space-x-2">           
-                  <label htmlFor="progress">Name</label>
-                  <span className="text-rose-500">{data.name} </span> 
-                </div>
+        // ) : (
+        //   <>
+        //       <div
+        //         onClick={enableEditing}
+        //         role="button"
+        //         className="min-h-[178px] bg-neutral-200 text-sm font-medium py-3 px-3.5 rounded-md"
+        //       >
+        //         {data.email || "Add a more detailed description..."}
+        //       </div>
+        //       <div className="flex flex-row justify-between">
+        //           <div className="space-x-2">
+        //               <input 
+        //                   id="isAdmin" 
+        //                   name="isAdmin"
+        //                   type="checkbox" 
+        //                   ref={inputboxRef} 
+        //                   checked={isChecked}
+        //                   disabled={true} />
+        //               <label htmlFor="checkbox">Is User Admin?</label>
+        //           </div>
+        //           <div className="flex flex-row space-x-2">
+        //             <label htmlFor="progress" className="italic">Roles:</label>
+        //             <span className="text-rose-500">{data?.roles.join(", ")}</span>
+        //           </div>
+        //       </div>
+        //       <div className="flex flex-row justify-between">
+        //         <div className="space-x-2">           
+        //           <label htmlFor="progress">Name</label>
+        //           <span className="text-rose-500">{data.name} </span> 
+        //         </div>
               
-              </div>
-              <div  
-                onClick={enableEditing} 
-                role="button"
-                className="mt-2 text-sm text-blue-500">
-                  Click here to update {data.email} roles
-              </div>
-          </>
-        )}
+        //       </div>
+        //       <div  
+        //         onClick={enableEditing} 
+        //         role="button"
+        //         className="mt-2 text-sm text-blue-500">
+        //           Click here to update {data.email} roles
+        //       </div>
+        //   </>
+        )
+        }
       </div>
     </div>
   );

@@ -266,7 +266,7 @@ const ProjectDetailPage: React.FC<ProjectDetailsClientProps> = ({
             <div className="flex flex-col mb-4 space-y-3">
     
                 {/* 👈 Title Row (Always full width on top) */}
-                <div className="flex justify-between items-center">
+                <div className="flex justify-between items-center truncate">
                     <h1 className="text-2xl sm:text-4xl font-extrabold text-gray-900 leading-tight">{localProject.title}</h1>
                 </div>
 
@@ -327,7 +327,7 @@ const ProjectDetailPage: React.FC<ProjectDetailsClientProps> = ({
                 {/* ⭐️ ADDED: Proposer Details */}
                 <span className="text-gray-400">|</span> 
                 <span className="text-gray-600 ml-2">
-                    Proposer: <strong className="text-gray-800">{localProject.proposer.email}</strong>
+                    Proposer: <strong className="text-gray-800">{localProject.proposer?.email}</strong>
                 </span>
             </p>
 
