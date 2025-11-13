@@ -64,7 +64,14 @@ export async function getProjectsList() {
                 }, 
                 orderBy: { timestamp: 'asc' },
             },
-            
+             // ✅ NEW: Include the proposer details using the relation name 'proposer'
+            proposer: {
+            select: {
+                id: true,
+                email: true,
+                // Add other required user fields here (e.g., name, image)
+            }
+            },
             projectToUserRatings: true, // Ratings list (for calculating average if rating isn't pre-calculated)
         },
         

@@ -5,6 +5,12 @@ import { getProjectsList } from "./_components/Services";
 // Import the service function
 
 
+
+interface ProposerDisplay {
+    id: string;
+    email: string|null;
+    // Add other user fields here if you select them on the server (e.g., name: string)
+}
 // --- 1. UPDATED TYPE DEFINITION (Includes Financial Metrics) ---
 type SafeProjectListItem = {
     id: string;
@@ -23,6 +29,7 @@ type SafeProjectListItem = {
     updatedAt: string;
     riskScore: number | null;
     projectRanking: number | null;
+    proposer:ProposerDisplay
 };
 
 /**
@@ -76,7 +83,7 @@ const ProjectsPage = async () => {
             
             // Assign the de-duplicated list to the 'commenters' field
             commenters: uniqueCommenters, 
-            
+            proposer: p.proposer,
             // --- END FINANCIAL METRICS ---
             
             // Serialize Date objects to strings

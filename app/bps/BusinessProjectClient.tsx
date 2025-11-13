@@ -42,6 +42,11 @@ export type Commenter = {
     image: string | null; // Useful for showing avatars
 };
 // --- 1. TYPE DEFINITIONS (ENHANCED with Financial Metrics) ---
+interface ProposerDisplay {
+    id: string;
+    email: string|null;
+    // Add other user fields here if you select them on the server (e.g., name: string)
+}
 export type ProjectListItem = {
     id: string;
     title: string;
@@ -56,7 +61,8 @@ export type ProjectListItem = {
     roi: number | null; // Return on Investment (as percentage)
     paybackPeriod: number | null; // Payback Period in years/months
     riskScore: number | null;
-    projectRanking: number | null;
+    projectRanking: number | null;    
+    proposer:ProposerDisplay
 };
 
 interface ProjectListClientProps {
@@ -159,7 +165,8 @@ export const fetchProjectsList = async (): Promise<ProjectListItem[]> => {
                     commentCount: p._count?.comments || 0,
                     
                     // 2. Assign the de-duplicated list to the 'commenters' field
-                    commenters: uniqueCommenters, // Type is now correctly inferred as Commenter[]
+                    commenters: uniqueCommenters, // Type is now correctly inferred as Commenter[]                    
+                    proposer: p.proposer,
 
                     // --- SIMULATION: In a real app, these come from the backend ---
                     npv: p.npv ?? (Math.random() > 0.3 ? parseFloat((Math.random() * 500000 - 100000).toFixed(2)) : null),
@@ -585,7 +592,7 @@ const ProjectListPage: React.FC<ProjectListClientProps> = ({
                 <div className="flex items-start justify-between">
                     <Hint
                         sideOffset={5}
-                        description={"View Project Details & Discussion"}
+                        description={`Click to view more details... proposed by ${project.proposer.email} `}
                     >
                         {/* Title Link */}
                         <Link 
@@ -836,7 +843,7 @@ const ProjectListPage: React.FC<ProjectListClientProps> = ({
                                         <tr className="hover:bg-indigo-50 transition duration-150 ease-in-out">
                                             <Hint
                                                 sideOffset={10}
-                                                description={ "Click here for more details..."}
+                                                description={ `Click here for more details...proposed by ${project.proposer.email} `}
                                             >
                                                 <td className="px-6 py-4 whitespace-nowrap  text-sm font-medium">
                                                     <Link href={`/bp/${project.id}`} className="text-indigo-600 hover:text-indigo-800 font-semibold">
