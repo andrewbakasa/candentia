@@ -44,7 +44,7 @@ const teamMembers: TeamMember[] = [
   {
     id: 5,
     name: "Wellington Chingwere",
-    role: "Executive Director Infrastructure Development & Mining",
+    role: "Executive Director Infrastructure Development, Mining & Energy",
     description: `B.Eng | PMP | Prof Eng MZwe.IE, M.ECZ | 20yrs Asset Management, Maintenance | Consultancy | Project Management | Mining | Underground Ore Handling | Ore Process Plants, Upgading/Installation | Zimbabwe. 
 `,
     image:DEFAULT_AVATAR_SRC// "/images/team/wellington-chengwere.jpg", // Placeholder image path
@@ -62,7 +62,7 @@ const teamMembers: TeamMember[] = [
   {
     id: 7,
     name: "Bhekimpilo Nkonjela",
-    role: "Executive Director Asset Maintenance & Optimization ",
+    role: "Executive Director Asset Maintenance & Equipment ",
     description: `B.Eng 15yrs+ in mining and infrastructural development
 `,
     image: DEFAULT_AVATAR_SRC//"/images/team/bhekimplio-nkonjela.jpg", // New Placeholder image path

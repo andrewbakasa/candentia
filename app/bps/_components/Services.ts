@@ -35,50 +35,6 @@ export interface CommentUpdateParams {
     newContent: string;
     authorId: string; // ID of the user attempting the update (for authorization)
 }
-// ----------------------------------------------------------------------
-// 1. Project Listing and Creation
-// ----------------------------------------------------------------------
-
-// export async function getProjectsList() {
-//     // Select essential fields for the list view
-//     const projects = await prisma.businessProjectModel.findMany({
-//         where: { active: true, visible: true },
-//         select: {
-//             id: true,
-//             title: true,
-//             description: true,
-//             progress: true,
-//             rating: true, // Use the pre-calculated rating
-//             viewCount: true,
-//             userId: true,
-//             createdAt: true,
-//             updatedAt: true,
-//             riskScore:true,
-//             paybackPeriodYears:true,
-//             projectRanking:true,
-//             npv:true,
-//             irr:true,
-//             _count: {
-//                 select: { comments: true },
-//             },
-//         },
-//      include: {
-//             comments: {
-//                 include: { user: { select: { id: true, email: true } } }, // Include commenter
-//                 orderBy: { timestamp: 'asc' },
-//             },
-//             projectToUserRatings: true, // Ratings list
-//         },
-//        // --- UPDATED ORDERING: Most promising (High NPV/Rating) first ---
-//         orderBy: [
-//             { npv: 'desc' }, // Primary sort: Highest Net Present Value first
-//             { rating: 'desc' }, // Secondary sort: Highest average rating first
-//             { createdAt: 'desc' }, // Tertiary sort: Newest as a tie-breaker
-//         ],
-//     });
-//     console.log("Services.ts:",projects)
-//     return projects;
-// }
 export async function getProjectsList() {
     // Select all scalar fields by default and explicitly include related models
     const projects = await prisma.businessProjectModel.findMany({

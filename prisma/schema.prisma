@@ -56,6 +56,8 @@ model User {
   projectToUserRatings ProjectToUserRating[]
 
   projectComments ProjectComment[]
+
+  businessProjectModels BusinessProjectModel[]
 }
 
 
@@ -504,6 +506,8 @@ model BusinessProjectModel {
   title                String
   description          String?           @db.String
   userId               String            @db.ObjectId // Proposer ID
+  // ADD THIS RELATION FIELD (1-to-N relation):
+  proposer             User              @relation(fields: [userId], references: [id])
   createdAt            DateTime          @default(now())
   updatedAt            DateTime          @updatedAt
 
@@ -543,8 +547,6 @@ model BusinessProjectModel {
   projectedCompletionDate DateTime?
   notes                String?           // Internal/Operational notes
   
-  // Legacy/Redundant field cleanup:
-  // timestamp is redundant with createdAt and updatedAt, keep only createdAt and updatedAt.
 }
 
 model ProjectToUserRating {

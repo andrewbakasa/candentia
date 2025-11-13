@@ -25,7 +25,7 @@ const services: ServiceItem[] = [
     //     icon: Wrench 
     // },
     {
-        name: "Asset Maintenance & Predictive Performance",
+        name: "Asset Maintenance & Equipment",
         description: `<p>We provide <span class="text-yellow-600 shadow-sm">full-scope Maintenance, Repair, and Overhaul (MRO) services</span>, designed to transition your operations from reactive failure to <span class="text-yellow-600 shadow-sm">predictive performance</span> while maximizing asset uptime and operational efficiency.</p> 
         <p>We achieve this superior level of technical expertise through three integrated pillars:</p> 
         <h3>1. Advanced Technical Expertise & Visualization</h3> 
@@ -59,13 +59,13 @@ const services: ServiceItem[] = [
         icon: Truck 
     },
     { 
-        name: "Infrastructure Development & Mining", 
+        name: "Infrastructure Development, Mining & Energy", 
         description: `<p>We deliver sustainable infrastructure and resource development through an integrated model that drives urban and rural progress.</p>
             <p>Core operational areas:</p>
             <ul class="list-disc space-y-2 ml-6 my-4">
                 <li><span class="text-yellow-600 shadow-sm">Major Infrastructure Projects:</span> Rail/Road (BOT models) and Real Estate development.</li>
                 <li><span class="text-yellow-600 shadow-sm">Mining & Resources:</span> Responsible mining exploration.</li>
-                <li><span class="text-yellow-600 shadow-sm">Power Strategy:</span> Utilizing clean sources (solar/hydro) and stable generation (gas/oil). Future strategy incorporates <span class="text-yellow-600 shadow-sm">nuclear power and emerging energy research</span> (EV infrastructure).</li>
+                <li><span class="text-yellow-600 shadow-sm">Energy Strategy:</span> Utilizing clean sources (solar/hydro) and stable generation (gas/oil). Future strategy incorporates <span class="text-yellow-600 shadow-sm">nuclear power and emerging energy research</span> (EV infrastructure).</li>
             </ul>`, 
         icon: HardHat 
     },
@@ -75,7 +75,7 @@ const services: ServiceItem[] = [
         description: `<p>We <span class="text-yellow-600 shadow-sm">harness the power of data</span> to optimize every operation by implementing cutting-edge <span class="text-yellow-600 shadow-sm">Intelligent Systems</span> tailored for industrial efficiency and predictability.</p>
         <p>Our service offers a <span class="text-yellow-600 shadow-sm">full data lifecycle management solution</span>:</p>
         <ul class="list-disc space-y-2 ml-6 my-4">
-            <li><span class="text-yellow-600 shadow-sm">Enterprise Data Collection & Cleaning:</span> We collect raw data from all sources and rigorously <span class="text-yellow-600 shadow-sm">clean and validate</span> it, ensuring a <span class="text-yellow-600 shadow-sm">Single Source of Truth</span>.</li>
+            <li><span class="text-yellow-600 shadow-sm">Enterprise Data Collection & Cleaning:</span> We collect raw data from all sources (including hard data using industrial scanners) and rigorously <span class="text-yellow-600 shadow-sm">clean and validate</span> it, ensuring a  <span class="text-yellow-600 shadow-sm">Single Source of Truth</span>. We use scanners to create searchable digital data from hard copies, which significantly improves the knowledge base of your staff.
             <li><span class="text-yellow-600 shadow-sm">Custom Data Layer & Integration:</span> We build a <span class="text-yellow-600 shadow-sm">customized data layer</span> specific to your industrial needs, integrating disparate data streams to create a unified foundation for all analytics.</li>
             <li><span class="text-yellow-600 shadow-sm">Informed Business Intelligence (BI):</span> We transform integrated data into <span class="text-yellow-600 shadow-sm">actionable intelligence</span>, providing robust reporting and visualization that drives informed decision-making.</li>
         </ul>

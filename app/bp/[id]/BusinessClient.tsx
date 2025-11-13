@@ -8,6 +8,13 @@ import { CommentDisplay, CommentEditor, StatBox, timeAgo, UserRatingComponent } 
 import { getTextFromEditor, ProjectEditModal } from './_components/ProjectEditModal';
 
 import { CompositeDecorator, Editor, EditorState } from "draft-js";
+
+// Define the structure for the proposer (User model details)
+interface ProposerDisplay {
+    id: string;
+    email: string;
+    // Add other user fields here if you select them on the server (e.g., name: string)
+}
 interface ProjectCommentDisplay {
     id: string;
     content: string;
@@ -29,10 +36,8 @@ interface ProjectDetails extends BusinessProjectModel {
     comments: ProjectCommentDisplay[];
     projectToUserRatings: ProjectRatingDisplay[];
     rating: number | null;
-    //irr?: number | null;
-    //npv?: number | null;
-    //riskScore?: number | null;
-    //projectRanking?: number | null;
+    // ⭐️ ADD THIS FIELD: The included proposer details
+    proposer: ProposerDisplay;
 }
 
 // Component Props
@@ -318,6 +323,11 @@ const ProjectDetailPage: React.FC<ProjectDetailsClientProps> = ({
 
                  <span className="text-blue-600 font-semibold ml-1">
                     {timeAgo(new Date(localProject.createdAt).toLocaleDateString())}
+                </span>
+                {/* ⭐️ ADDED: Proposer Details */}
+                <span className="text-gray-400">|</span> 
+                <span className="text-gray-600 ml-2">
+                    Proposer: <strong className="text-gray-800">{localProject.proposer.email}</strong>
                 </span>
             </p>
 

@@ -39,6 +39,14 @@ const ProjectPage = async ({ params }: { params: IParams }) => {
                 timestamp: 'asc', // Order comments chronologically
             }
         },
+        // ✅ NEW: Include the proposer details using the relation name 'proposer'
+        proposer: {
+          select: {
+            id: true,
+            email: true,
+            // Add other required user fields here (e.g., name, image)
+          }
+        }
       } as any, // Use as any to manage complex relation typing with BusinessProjectModel
     });
 
