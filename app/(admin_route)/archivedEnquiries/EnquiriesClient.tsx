@@ -299,12 +299,13 @@ const EnquiresClient: React.FC<EnquiriesClientProps> = ({
                     <div className="border border-gray-200 rounded-xl overflow-hidden shadow-lg">
                         {/* List */}
                         <div className="grid grid-cols-1 divide-y divide-gray-100">
-                            {fListPage.map((record) => (
+                            {fListPage.map((record, index) => (
                                 <div className="col-span-1" key={record.id}>
                                     <EnquiryRow
                                         record={record} 
                                         onClick={handleRowClick}
                                         isAdmin= {currentUser?.isAdmin}
+                                        itemNum ={index+1}
                                     />
                                 </div>
                             ))}

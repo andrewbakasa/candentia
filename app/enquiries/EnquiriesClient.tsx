@@ -329,6 +329,7 @@ const EnquiresClient: React.FC<EnquiriesClientProps> = ({
                       <EnquiryRow
                         record={record as Enquiry & { isRead: boolean }} 
                         onClick={handleRowClick}
+                        itemNum={index+1}
                       />
                     </div>
                   ))}

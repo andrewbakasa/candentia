@@ -14,6 +14,7 @@ import { deleteMail, restoreMail, readMail } from "./service";
 import { toast } from "sonner";
 import { BsDot } from "react-icons/bs"; // For a subtle unread indicator
 import ConfirmAction from "@/app/enquiry/[enquiryId]/ConfirmAction";
+import { timeAgo } from "@/app/bp/[id]/_components/utility";
 
 // Define custom Tailwind classes (assuming they are in tailwind.config.js)
 const NAVY_BLUE = 'text-[#001F3F]';
@@ -198,7 +199,22 @@ const EnquiryDetailsClient: React.FC<EnquiryDetailsClientProps> = ({
                             </div>
                             
                             <div className="text-sm text-gray-500 mt-0.5 flex items-center">
-                                Received: {formattedDate}
+                                {/* Received: {formattedDate} */}
+                                <span className="text-gray-700 font-semibold mr-1">
+                                    {/* Full Short Date */}
+                                    {new Date(enquiry.createdAt).toLocaleDateString(undefined, {
+                                        weekday: 'short', 
+                                        day: 'numeric',   
+                                        month: 'short', 
+                                        year: 'numeric',
+                                    })}
+                                </span>
+                    
+                                <span className="text-gray-400">|</span> 
+                
+                                    <span className="text-blue-600 font-semibold ml-1">
+                                    {timeAgo(new Date(enquiry.createdAt).toLocaleDateString())}
+                                </span>
                                 {!enquiry.isRead && (
                                     <span className={cn("ml-2 font-bold flex items-center", GOLD_ACCENT)}>
                                         <BsDot className="w-6 h-6 -ml-2"/> UNREAD
