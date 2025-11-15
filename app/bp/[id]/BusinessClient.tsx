@@ -325,7 +325,7 @@ const ProjectDetailPage: React.FC<ProjectDetailsClientProps> = ({
                     {timeAgo(new Date(localProject.createdAt).toLocaleDateString())}
                 </span>
                 {/* ⭐️ ADDED: Proposer Details */}
-                <span className="text-gray-400">|</span> 
+                <span className="text-gray-400"> |</span> 
                 <span className="text-gray-600 ml-2">
                     Proposer: <strong className="text-gray-800">{localProject.proposer?.email}</strong>
                 </span>
