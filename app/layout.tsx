@@ -18,7 +18,7 @@ export const metadata = {
   // description: 'Your Integrated Partner for Industrial Excellence',
  
    icons: {
-    icon: '/horizon.png', // This refers to app/icon.png
+    icon: '/horizon.ico', // This refers to app/icon.png
     shortcut: '/shortcut-icon.png', // If you have a different shortcut icon
     apple: '/horizon.png', // This refers to app/apple-icon.png
     other: [

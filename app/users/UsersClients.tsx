@@ -1,21 +1,19 @@
 'use client';
-import { useCallback, useState, useEffect } from "react";
-
+import { useCallback, useState, useEffect, useMemo } from "react";
 import { useRouter } from "next/navigation";
-
 import { SafeUser } from "../types";
-
 import Heading from "../components/Heading";
 import Search from "../components/Search";
 import Container from "../components/Container";
 import Link from "next/link";
-import { FormPopover } from "../components/form/form-popover";
 import { Hint } from "../components/hint";
-import { HelpCircle } from "lucide-react";
+import { User, Shield, UserCog, ChevronLeft, ChevronRight } from "lucide-react";
 import { redirect } from "next/navigation";
 import { useWindowSize } from "@/hooks/use-screenWidth";
 import Avatar from "@/app/components/Avatar";
 import { cn } from "@/lib/utils";
+// NOTE: Assuming Separator, FormPopover, HelpCircle are not needed for core functionality.
+
 interface UsersClientProps {
   users: SafeUser[],
   currentUser?: SafeUser | null,
@@ -27,139 +25,288 @@ const UsersClient: React.FC<UsersClientProps> = ({
   currentUser
 }) => {
   const router = useRouter();
-  const [deletingId, setDeletingId] = useState(''); 
   const [searchTerm, setSearchTerm] = useState("");
-  const [filterUsers, setfilterUsers] = useState(users);
   
-  
-  
-  //Cookies.set('originString', 'projects')
+  // Renaming original 'filterUsers' to 'fList' for clearer pagination separation
+  const [fList, setFList] = useState(users); 
+  const [fListPage, setFListPage] = useState<SafeUser[]>([]); 
+
+  // --- Pagination Constants ---
+  const DEFAULT_PAGE_SIZE = 12; // Adjusted to 12 for better grid visibility
+  type PageSizeOption = '4' | '8' | '12' | '16' | '24'; // Updated options
+  const INDIGO_PRIMARY = 'text-indigo-600';
+  const INDIGO_HOVER_BG = 'hover:bg-indigo-50';
+  const GRAY_ACCENT = 'text-gray-500';
+
+  // --- PAGINATION STATE ---
+  const [pageSize, setPageSize] = useState<number>(
+    currentUser && currentUser.pageSize ? currentUser.pageSize : DEFAULT_PAGE_SIZE
+  ); 
+  const [itemOffset, setItemOffset] = useState(0); 
+
+  // --- FILTERING LOGIC (Using original searchTerm) ---
   useEffect(() => {
+    let results = users;
     if (searchTerm !== "") {
-      const results = users.filter((user) =>
-          (//Outer bracket           
-              //Select current user title
-              user?.email?.toLowerCase().includes(searchTerm.toLowerCase())
-              ||
-              user?.name?.toLowerCase().includes(searchTerm.toLowerCase())
-             
-              
-          )// Out bracker
-       
+      const lowerSearchTerm = searchTerm.toLowerCase().trim();
+      results = users.filter((user) =>
+        user?.email?.toLowerCase().includes(lowerSearchTerm) ||
+        user?.name?.toLowerCase().includes(lowerSearchTerm)
       );
-      setfilterUsers(results);
-    } else {
-      setfilterUsers(users);
     }
+    // Update the full filtered list and reset the offset to 0
+    setFList(results);
+    setItemOffset(0); 
   }, [searchTerm, users]);
- 
-  const handleSearch = (event: React.ChangeEvent<HTMLInputElement>) => {
-    setSearchTerm(event.target.value);
+  
+  // --- PAGINATION CALCULATIONS ---
+
+  const pageCount = useMemo(() => {
+    return Math.ceil(fList.length / pageSize);
+  }, [fList.length, pageSize]);
+
+  // Logic for slicing the array for the current page
+  const paginatedUsers = useMemo(() => {
+    const endpoint = Math.min(itemOffset + pageSize, fList.length);
+    return fList.slice(itemOffset, endpoint);
+  }, [fList, itemOffset, pageSize]);
+
+  // Update fListPage when pagination parameters change
+  useEffect(() => {
+      setFListPage(paginatedUsers);
+  }, [paginatedUsers]);
+
+
+  // Reset offset if the current offset is invalid after filtering or size change
+  useEffect(() => {
+    if (itemOffset >= fList.length && fList.length > 0) {
+      setItemOffset(0);
+    } else if (fList.length === 0 && itemOffset !== 0) {
+      setItemOffset(0);
+    }
+  }, [fList.length, pageSize, itemOffset]);
+
+  // --- PAGINATION HANDLERS ---
+  
+  // Handle page size change (The 'execute' action for persistence is commented out/removed as it's not defined here)
+  const handlePageSizeChange = useCallback((newPageSize: PageSizeOption) => {
+    const numericPageSize = parseInt(newPageSize, 10);
+    setPageSize(numericPageSize);
+    setItemOffset(0); // Reset to the first page when page size changes
+    
+    // NOTE: Uncomment and define `execute` if you want to persist pageSize to the DB
+    /*
+    if (currentUser) {
+      // execute({ id: currentUser?.id, pageSize: numericPageSize });
+    }
+    */
+  }, []);
+
+  // Handle page navigation click (Prev/Next/Page Number)
+  const handlePageClick = useCallback(({ selected }: { selected: number }) => {
+    const newOffset = (selected * pageSize) % fList.length;
+    setItemOffset(newOffset);
+  }, [pageSize, fList.length]);
+
+  // --- ACCESS CONTROL ---
+  const { width } = useWindowSize();
+  const mobileWidth = 400; 
+  
+  if (!currentUser) return redirect('/denied');
+  
+  const allowedRoles: String[] = ['admin', 'manager'];
+  const isAllowedAccess = currentUser?.roles.some(role => 
+    allowedRoles.some(allowed => allowed.toLowerCase() === role.toLowerCase())
+  );
+
+  if (!isAllowedAccess) return redirect('/denied'); 
+
+  const title_ = `Users (${fList.length} of ${users.length})`;
+
+    const UserCard = ({ user, isCurrentUser }: { user: SafeUser, isCurrentUser: boolean }) => {
+    // Determine the icon based on isAdmin status
+    const AdminIcon = user.isAdmin ? (
+      <Hint description="Admin User" side="top" sideOffset={10}>
+        <Shield className="h-5 w-5 text-red-500 fill-red-100" />
+      </Hint>
+    ) : (
+      <Hint description="Standard User" side="top" sideOffset={10}>
+         <UserCog className="h-5 w-5 text-gray-400" />
+      </Hint>
+    );
+
+    return (
+      <Link
+        key={user.id}
+        href={`/user/${user.id}`}
+        className={cn(
+          "flex flex-col p-3 border rounded-xl shadow-sm transition hover:shadow-lg hover:border-blue-500 cursor-pointer bg-white",
+          isCurrentUser ? "border-[3px] border-rose-600 bg-rose-50/50" : "border-neutral-200"
+        )}
+      >
+        <div className="flex justify-between items-start mb-2">
+            {/* Avatar and Indicator */}
+            <div className="relative">
+                <Avatar classList="border-2 border-neutral-300 h-10 w-10" src={user.image} />
+                {isCurrentUser && (
+                    <div className="absolute -top-1 -right-1 h-3 w-3 rounded-full bg-rose-600 ring-2 ring-white" title="This is you"></div>
+                )}
+            </div>
+
+            {/* Admin/Role Status Icon */}
+            {AdminIcon}
+        </div>
+
+        {/* User Details */}
+        <div className="space-y-0.5">
+            <p className="text-base font-semibold text-neutral-800 truncate">
+                {user.name}
+            </p>
+            <p className="text-xs text-neutral-500 truncate">
+                {user.email}
+            </p>
+            {user.roles && user.roles.length > 0 && (
+                <div className="flex flex-wrap pt-1 gap-1">
+                    {user.roles.map((role, index) => (
+                        <span key={index} className="text-[10px] font-medium px-2 py-0.5 rounded-full bg-blue-100 text-blue-800">
+                            {role.charAt(0).toUpperCase() + role.slice(1)}
+                        </span>
+                    ))}
+                </div>
+            )}
+        </div>
+      </Link>
+    );
   };
-  const { width, height } = useWindowSize();
-  const mobileWidth =400
-  if(!currentUser)return redirect('/denied')
- let allowedRoles:String[]
- allowedRoles=['admin', 'manager']
 
- // if its empty allow also:
- //this is just testing
-  const isAllowedAccess = currentUser?.roles.filter((role: string) =>
-                                          (//Outer bracket ::forEach user role  
-                                              //Search Card  within the List
-                                              allowedRoles.some((y)=>(// Allowed Roles
-                                                  //Search Card Title
-                                                  y.toLowerCase().includes(role.toLowerCase())
-                                                  
-                                                )// Return clossing bracket
-                                              )
-                                        )// Out bracker
-                                    ) || []
+   const renderPaginationButtons = (showPageSize = true) => {
+    if (fList.length === 0) return null;
+    
+    const buttons = [];
+    const currentPageIndex = Math.floor(itemOffset / pageSize);
+    const startRange = itemOffset + 1;
+    const endRange = Math.min(itemOffset + pageSize, fList.length);
+    const paginationSummary = `${startRange}-${endRange} of ${fList.length}`;
 
-//console.log('isAllowedAccess' ,isAllowedAccess)
+    buttons.push(
+      <div key="summary" className={cn("text-sm mr-2 sm:mr-4", INDIGO_PRIMARY, "font-semibold", GRAY_ACCENT)}>
+        {paginationSummary}
+      </div>
+    );
+    
+    if (showPageSize) {
+      buttons.push(
+        <select
+          className={cn('h-9 px-2 border border-gray-300 rounded text-sm focus:ring-1 focus:ring-indigo-500 cursor-pointer hidden sm:block', INDIGO_PRIMARY)}
+          value={pageSize}
+          key={'pagesize-selector'}
+          onChange={(e) => handlePageSizeChange(e.target.value as PageSizeOption)}
+        > 
+          <option value="4">4 per page</option>
+          <option value="8">8 per page</option>
+          <option value="12">12 per page</option>
+          <option value="16">16 per page</option>
+          <option value="24">24 per page</option>
+        </select>
+      );
+    }
 
-const popover_content_pos =width?width<mobileWidth?'bottom':'right':'right'
-//Mobile push bottom
+    // Previous button
+    buttons.push(
+      <button 
+        key="prev"
+        onClick={() => handlePageClick({ selected: currentPageIndex - 1 })} 
+        disabled={itemOffset === 0}
+        className={cn("p-1 mx-1 rounded-full disabled:text-gray-400 disabled:hover:bg-transparent", `text-gray-600 ${INDIGO_HOVER_BG}`)}
+      >
+        <ChevronLeft className="w-5 h-5" />
+      </button>
+    );
+    
+    // Next button
+    buttons.push(
+      <button 
+        key="next"
+        onClick={() => handlePageClick({ selected: currentPageIndex + 1 })}
+        disabled={endRange >= fList.length}
+        className={cn("p-1 mx-1 rounded-full disabled:text-gray-400 disabled:hover:bg-transparent", `text-gray-600 ${INDIGO_HOVER_BG}`)}
+      >
+        <ChevronRight className="w-5 h-5" />
+      </button>
+    );
+    
+    return <div className="flex items-center">{buttons}</div>;
+  };
 
-let title_ =  `Users ${filterUsers.length} of ${users.length}`
- if (isAllowedAccess?.length==0) return redirect('/denied') 
 
   return (
     <Container>
       
-     <div className="pt-0 flex flex-col  sm:flex-row  justify-between">
+      {/* Header, Title, and Search */}
+      <div className="pt-4 pb-6 flex flex-col sm:flex-row justify-between items-start sm:items-end border-b">
         <Heading
           title={title_}
-          subtitle="Manage your projects and teams online"
+          subtitle="View and manage the accounts of registered users."
         />
-        <div className="flex flex-row ">
-            <Search 
-                //handleSearch ={handleSearch} 
-                setSearchTerm={setSearchTerm}               
-                placeholderText={"Filter Users..."}
-                searchTerm = {searchTerm} />  
-         
+        <div className="flex flex-col sm:flex-row items-end sm:items-center mt-4 sm:mt-0 w-full sm:w-auto space-y-4 sm:space-y-0 sm:space-x-4">
+          <Search 
+            setSearchTerm={setSearchTerm}               
+            placeholderText={"Filter by Name or Email..."}
+            searchTerm={searchTerm} 
+            
+          /> 
+          {/* Desktop Pagination Controls (including Page Size) */}
+          <div className="hidden md:block">
+            {renderPaginationButtons(true)}
+          </div>
         </div>
-     </div>
-    <div className="space-y-4 pb-10">
-      <div className="flex items-center font-semibold text-lg text-neutral-700">
-        {/* <User2 className="h-6 w-6 mr-2" /> */}
-      Available Users
       </div>
       
-      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
-        {filterUsers.map((user) => (
-         <>
-            <div 
-            className={cn(
-              "aspect-square w-full relative overflow-hidden rounded-xl  group relative aspect-video bg-no-repeat bg-center bg-cover bg-sky-700 rounded-sm h-full w-full p-2 overflow-hidden",
-              currentUser?.id == user.id  ? "border-[3px] border-rose-600" : "",
-            )}
-              
-              style={{ backgroundImage: `url(${user.image})` }}
-            >
-                    <div className="absolute inset-0 ">
-                      <Avatar classList="border-[1.5px] border-white"  src={user.image} />
-                    </div>
-                    <Link
-                          key={user.id}
-                          href={`/user/${user.id}`}
-                        
-                        >
-                          <div className="absolute inset-0 bg-black/30 group-hover:bg-black/40 transition" />
-                          <p className="relative font-semibold text-white">
-                            {user.name}
-                          </p>
-                          <p className="relative font-semibold text-white">
-                            {user.email}
-                          </p>
-                    </Link>
-                    <div 
-                        className="
-                        absolute
-                        top-3
-                        right-3
-                        "
-                    >
-                        {user.isAdmin 
-                          &&  <svg className="text-rose-700 cursor-pointer peer peer-hover:text-yellow-400 hover:text-yellow-400 duration-100 " width="23" height="23" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 24 24" stroke="currentColor">
-                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z"></path>
-                        </svg>
-                        }
-                    </div>
-            </div>
-          </>
-
+      {/* User Grid */}
+      <div className="space-y-4 pt-6 pb-20">
+        <div className="flex items-center font-semibold text-lg text-neutral-700">
+          <User className="h-5 w-5 mr-2" /> 
+          {fListPage.length > 0 ? 'Active User Accounts' : 'No Users Found'}
+        </div>
         
-        ))}
-       
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+          
+          {fListPage.map((user) => (
+            <UserCard 
+              key={user.id} 
+              user={user} 
+              isCurrentUser={currentUser?.id === user.id} 
+            />
+          ))}
+
+          {/* Empty State Handling */}
+          {fList.length === 0 && searchTerm !== '' && (
+            <div className="col-span-full p-10 text-center bg-white rounded-xl shadow-inner">
+              <p className="text-xl font-bold mb-2 text-neutral-700">
+                No users match search term: {searchTerm}
+              </p>
+              <p className="text-gray-500">
+                Try adjusting your search query.
+              </p>
+            </div>
+          )}
+        </div>
+        
+        {/* Fallback pagination for smaller screens if the filter list is populated */}
+        <div className="mt-8 flex justify-center items-center p-4 bg-gray-50 rounded-xl shadow-inner hidden md:flex">
+             {renderPaginationButtons(true)} 
+        </div>
+
       </div>
-    </div>
-  
-     </Container>
-   );
+
+      {/* MOBILE FOOTER PAGINATION */}
+      <div className="fixed bottom-0 left-0 w-full md:hidden bg-white border-t border-gray-200 p-2 z-50 shadow-2xl">
+          <div className="flex justify-center">
+              {renderPaginationButtons(false)} {/* Don't show page size selector on mobile footer */}
+          </div>
+      </div>
+    </Container>
+  );
 }
- 
+ 
 export default UsersClient;
-
-

@@ -304,6 +304,7 @@ export const UserData = ({
     { value: 'visitor', label:"visitor"},
     { value: 'employee', label:"employee"},
     { value: 'manager', label:"manager"},
+    { value: 'executive', label:"executive"},
     { value: 'admin', label:"admin"},
     // ...
   ];
