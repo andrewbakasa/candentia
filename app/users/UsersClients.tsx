@@ -12,6 +12,9 @@ import { redirect } from "next/navigation";
 import { useWindowSize } from "@/hooks/use-screenWidth";
 import Avatar from "@/app/components/Avatar";
 import { cn } from "@/lib/utils";
+import { updatePagSize } from "@/actions/update-user-pagesize";
+import { useAction } from "@/hooks/use-action";
+import { toast } from "sonner";
 // NOTE: Assuming Separator, FormPopover, HelpCircle are not needed for core functionality.
 
 interface UsersClientProps {
@@ -43,6 +46,15 @@ const UsersClient: React.FC<UsersClientProps> = ({
     currentUser && currentUser.pageSize ? currentUser.pageSize : DEFAULT_PAGE_SIZE
   ); 
   const [itemOffset, setItemOffset] = useState(0); 
+
+   const { execute, fieldErrors } = useAction(updatePagSize, {
+          onSuccess: (data) => {
+              toast.success(`PageSize for ${data?.email} updated to ${data.pageSize}`);
+          },
+          onError: (error) => {
+              toast.error(error);
+          },
+      });
 
   // --- FILTERING LOGIC (Using original searchTerm) ---
   useEffect(() => {
@@ -95,11 +107,11 @@ const UsersClient: React.FC<UsersClientProps> = ({
     setItemOffset(0); // Reset to the first page when page size changes
     
     // NOTE: Uncomment and define `execute` if you want to persist pageSize to the DB
-    /*
+    
     if (currentUser) {
-      // execute({ id: currentUser?.id, pageSize: numericPageSize });
+      execute({ id: currentUser?.id, pageSize: numericPageSize });
     }
-    */
+    
   }, []);
 
   // Handle page navigation click (Prev/Next/Page Number)
