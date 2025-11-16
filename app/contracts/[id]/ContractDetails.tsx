@@ -423,6 +423,13 @@ function ContractDetailView({ contract: initialContract }: ContractDetailProps) 
             <dd className="mt-1 text-sm text-gray-900 sm:col-span-2 font-medium">{value}</dd>
         </div>
     );
+        // This revised helper replaces the old DetailRow and the new DetailItem
+        const DetailItem: React.FC<{ label: string, value: React.ReactNode }> = ({ label, value }) => (
+            <div className="p-4"> 
+                <dt className="text-sm font-medium text-gray-500 mb-0.5">{label}</dt>
+                <dd className="text-base text-gray-900 font-semibold">{value}</dd>
+            </div>
+        );
 
     return (
         <div className="container mx-auto p-4 sm:p-6 lg:p-8 max-w-5xl font-sans">
@@ -439,8 +446,8 @@ function ContractDetailView({ contract: initialContract }: ContractDetailProps) 
                 </button>
 
                 {/* Title and Edit Button */}
-                <div className="flex justify-between items-center pb-4 border-b border-gray-200">
-                    <h1 className="text-3xl font-extrabold text-gray-800 flex items-center gap-3">
+                <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center pb-4 border-b border-gray-200">
+                    <h1 className="text-xl sm:text-3xl font-extrabold text-gray-800 flex items-center gap-3">
                         <span className="text-indigo-600">📄</span> {contract.title}
                     </h1>
                     <button
@@ -453,44 +460,77 @@ function ContractDetailView({ contract: initialContract }: ContractDetailProps) 
                 </div>
             </div>
 
+          
+
             {isEditing ? (
                 // Using the mock component here
                 <ContractUpdateForm contract={contract} onUpdateSuccess={handleUpdate} />
             ) : (
                 <div className="bg-white rounded-2xl shadow-2xl border border-gray-100 divide-y divide-gray-200 overflow-hidden">
 
-                    {/* --- Contract Metadata Section --- */}
+                                        {/* --- Contract Metadata Section --- */}
                     <div className="px-6 py-4 bg-indigo-50/50">
                         <h3 className="text-lg font-semibold text-indigo-800">Contract Information</h3>
                         <p className="mt-1 max-w-2xl text-sm text-gray-600">Key details and term dates for the agreement.</p>
                     </div>
 
-                    <dl className="divide-y divide-gray-200">
-                        <DetailRow label="Contract Type" value={contract.contractType || 'N/A'} />
-                        <DetailRow label="Counterparty" value={contract.counterpartyName} />
-                        <DetailRow
-                            label="Status"
-                            value={<span className={getStatusClasses(contract.status)}>{contract.status.replace('_', ' ')}</span>}
-                        />
-                        <DetailRow label="Effective Date" value={formatDate(contract.effectiveDate)} />
-                        <DetailRow label="Expiration Date" value={formatDate(contract.expirationDate)} />
-                        <DetailRow label="Next Review Date" value={formatDate(contract.nextReviewDate)} />
-                        <DetailRow label="Auto Renew" value={contract.autoRenew ? 'Yes' : 'No'} />
+                    {/* --- Contract Information Grid (1 Column Mobile, 2 Columns Desktop) --- */}
+                    <dl className="grid grid-cols-1 md:grid-cols-2 divide-y md:divide-y-0 divide-gray-200">
+                        
+                        {/* Row 1 */}
+                        <div className="md:border-r border-gray-200">
+                            <DetailItem label="Contract Type" value={contract.contractType || 'N/A'} />
+                        </div>
+                        <DetailItem label="Counterparty" value={contract.counterpartyName} />
+                        
+                        {/* Row 2 */}
+                        <div className="md:border-r border-gray-200">
+                            <DetailItem
+                                label="Status"
+                                value={<span className={getStatusClasses(contract.status)}>{contract.status.replace('_', ' ')}</span>}
+                            />
+                        </div>
+                        <DetailItem label="Auto Renew" value={contract.autoRenew ? 'Yes' : 'No'} />
+
+                        {/* Row 3 (Dates) */}
+                        <div className="md:border-r border-gray-200">
+                            <DetailItem label="Effective Date" value={formatDate(contract.effectiveDate)} />
+                        </div>
+                        <DetailItem label="Expiration Date" value={formatDate(contract.expirationDate)} />
+
+                        {/* Row 4 - Next Review spans both columns on desktop */}
+                        <div className="md:col-span-2 border-t md:border-t-0 border-gray-200">
+                            <DetailItem label="Next Review Date" value={formatDate(contract.nextReviewDate)} />
+                        </div>
                     </dl>
 
                     {/* --- Financial Metrics Section --- */}
                     <div className="px-6 py-4 bg-indigo-50/50">
                         <h3 className="text-lg font-semibold text-indigo-800">Financial Metrics & Risk</h3>
                     </div>
-                    <dl className="divide-y divide-gray-200">
-                        <DetailRow label="Annual Revenue (USD)" value={formatCurrency(contract.annualRevenueUsd)} />
-                        <DetailRow label="Annual Cost (USD)" value={formatCurrency(contract.annualizedCostUsd)} />
-                        <DetailRow
-                            label="Risk Rating"
-                            value={contract.riskRating ? <span className="font-mono text-lg font-bold text-red-600">{contract.riskRating.toFixed(1)}</span> : 'N/A'}
-                        />
-                        <DetailRow label="Created On" value={formatDate(contract.createdAt)} />
-                        <DetailRow label="Last Updated" value={formatDate(contract.updatedAt)} />
+
+                    {/* --- Financial Metrics Grid (1 Column Mobile, 2 Columns Desktop) --- */}
+                    <dl className="grid grid-cols-1 md:grid-cols-2 divide-y md:divide-y-0 divide-gray-200">
+                        
+                        {/* Row 1 */}
+                        <div className="md:border-r border-gray-200">
+                            <DetailItem label="Annual Revenue (USD)" value={formatCurrency(contract.annualRevenueUsd)} />
+                        </div>
+                        <DetailItem label="Annual Cost (USD)" value={formatCurrency(contract.annualizedCostUsd)} />
+                        
+                        {/* Row 2 (Risk Rating Spans Two Columns) */}
+                        <div className="md:col-span-2 border-t md:border-t-0 border-gray-200">
+                            <DetailItem
+                                label="Risk Rating"
+                                value={contract.riskRating ? <span className="font-mono text-lg font-bold text-red-600">{contract.riskRating.toFixed(1)}</span> : 'N/A'}
+                            />
+                        </div>
+                        
+                        {/* Row 3 (Audit/Date Stamps) */}
+                        <div className="md:border-r border-gray-200">
+                            <DetailItem label="Created On" value={formatDate(contract.createdAt)} />
+                        </div>
+                        <DetailItem label="Last Updated" value={formatDate(contract.updatedAt)} />
                     </dl>
 
                     {/* --- Description / Summary --- */}
@@ -503,9 +543,20 @@ function ContractDetailView({ contract: initialContract }: ContractDetailProps) 
                         <p className="whitespace-pre-wrap leading-relaxed">{contract.description || 'No detailed summary provided.'}</p>
                     </div>
 
-                    {/* --- Contract Activities (Plans) Section --- */}
-                    <div className="px-6 py-4 bg-indigo-50/50 flex justify-between items-center border-t border-gray-200">
-                        <h3 className="text-lg font-semibold text-indigo-800">
+                    {/* --- Description / Summary --- */}
+                    <div className="px-6 py-4 bg-indigo-50/50">
+                        <h3 className="text-lg font-semibold text-indigo-800 flex items-center">
+                            <MessageSquare className="w-5 h-5 mr-2 text-indigo-600" /> Contract Summary
+                        </h3>
+                    </div>
+                    <div className="px-6 py-6 text-gray-700">
+                        <p className="whitespace-pre-wrap leading-relaxed">{contract.description || 'No detailed summary provided.'}</p>
+                    </div>
+
+                  {/* --- Contract Activities (Plans) Section --- */}
+               {/* --- Contract Activities (Plans) Section --- */}
+                    <div className="px-6 py-4 bg-indigo-50/50 flex flex-col sm:flex-row justify-between items-start sm:items-center border-t border-gray-200">
+                        <h3 className="text-lg font-semibold text-indigo-800 mb-2 sm:mb-0">
                             Related Activities/Plans ({contract.contractActivityModels.length})
                         </h3>
                         <button
@@ -514,7 +565,8 @@ function ContractDetailView({ contract: initialContract }: ContractDetailProps) 
                                 // Clear error when opening/closing
                                 setError(null); 
                             }}
-                            className="flex items-center text-sm font-semibold text-indigo-600 bg-white px-3 py-1.5 rounded-lg border border-indigo-300 shadow-sm hover:bg-indigo-50 transition focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                            // Key change: Added ml-auto and removed w-full, but kept justify-center for internal content alignment
+                            className="flex items-center justify-center text-sm font-semibold text-indigo-600 bg-white px-3 py-1.5 rounded-lg border border-indigo-300 shadow-sm hover:bg-indigo-50 transition focus:outline-none focus:ring-2 focus:ring-indigo-500 ml-auto sm:ml-0"
                         >
                             <Plus className="w-4 h-4 mr-1" />
                             {isAddingActivity ? 'Close Form' : 'Add Activity'}
@@ -541,11 +593,14 @@ function ContractDetailView({ contract: initialContract }: ContractDetailProps) 
                         {contract.contractActivityModels && contract.contractActivityModels.length > 0 ? (
                             contract.contractActivityModels.map(activity => (
                                 <li key={activity.id} className="p-4 sm:p-6 hover:bg-gray-50 transition border-b border-gray-100 last:border-b-0">
-                                    <div className="flex justify-between items-start">
+                                   <div className="flex flex-col sm:flex-row justify-between items-start">
                                         <p className="font-bold text-lg text-gray-900 leading-snug">
                                             {activity.title}
                                         </p>
-                                        <span className={getStatusClasses(activity.status)}>{activity.status.replace('_', ' ')}</span>
+                                        {/* Status badge: Added responsive text size classes */}
+                                        <span className={`${getStatusClasses(activity.status)} mt-2 sm:mt-0 ml-auto sm:ml-0 text-xs sm:text-sm`}>
+                                            {activity.status.replace('_', ' ')}
+                                        </span>
                                     </div>
                                     <div className="text-sm text-gray-600 mt-2 flex flex-col sm:flex-row sm:space-x-4">
                                         <span className="flex items-center">
