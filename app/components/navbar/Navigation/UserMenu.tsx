@@ -205,6 +205,9 @@ const UserMenu: React.FC<UserMenuProps> = ({ currentUser, handleNavigate }) => {
                   <MenuItem label="Website Traffic" onClick={() => handleMenuItemClickWithNav("/views")} />
                 )}
                  {currentUser?.isAdmin && (
+                  <MenuItem label="Contracts" onClick={() => handleMenuItemClickWithNav("/contracts")} />
+                )}
+                 {currentUser?.isAdmin && (
                   <MenuItem label="Tags" onClick={() => handleMenuItemClickWithNav("/tags")} />
                 )}
              

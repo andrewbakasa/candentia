@@ -58,6 +58,8 @@ model User {
   projectComments ProjectComment[]
 
   businessProjectModels BusinessProjectModel[]
+
+  contractModels ContractModel[] @relation("OwnedContracts")
 }
 
 
@@ -547,6 +549,8 @@ model BusinessProjectModel {
   projectedCompletionDate DateTime?
   notes                String?           // Internal/Operational notes
   
+
+  contractModels ContractModel[]
 }
 
 model ProjectToUserRating {
@@ -570,4 +574,126 @@ model ProjectComment {
   content             String               @db.String // Added content for the comment
   timestamp           DateTime             @default(now())
   // rate removed as rating is tracked in ProjectToUserRating
+}
+
+enum ContractStatus {
+  DRAFT            // Initial internal creation
+  INTERNAL_REVIEW  // Legal/Internal review phase (Relates to Section 4: Executive Committee Review)
+  NEGOTIATION      // In discussion with Counterparty
+  ACTIVE           // Fully executed and in force (Relates to Section 4: Implementation)
+  EXPIRED          // End date reached
+  TERMINATED       // Ended early (e.g., due to Section 5: Risk & Compliance failure)
+  ARCHIVED         // Completed or permanently inactive
+}
+
+model ContractModel {
+  // --- Core Identification & Timestamps ---
+  id                   String        @id @default(auto()) @map("_id") @db.ObjectId
+  title                String
+  contractType         String        // E.g., 'Vendor Agreement', 'Partnership', 'Employment', 'Lease'
+  description          String?       @db.String
+  
+  // ADD RELATION TO PROJECT (Optional 1-to-N relation)
+  projectId            String?       @db.ObjectId
+  relatedProject       BusinessProjectModel? @relation(fields: [projectId], references: [id])
+  
+  createdAt            DateTime      @default(now())
+  updatedAt            DateTime      @updatedAt
+
+  // --- Status & Visibility (Lifecycle Management) ---
+  status               ContractStatus @default(DRAFT)
+  version              String        @default("1.0") // Tracking version number
+  
+  // --- Dates & Duration ---
+  effectiveDate        DateTime?     // When the contract legally starts
+  expirationDate       DateTime?     // When the contract automatically ends
+  autoRenew            Boolean       @default(false) // Does it auto-renew?
+  
+  // --- Counterparties & Signatures ---
+  internalOwnerId      String        @db.ObjectId // User ID of the internal manager/owner
+  internalOwner        User          @relation("OwnedContracts", fields: [internalOwnerId], references: [id])
+  
+  counterpartyName     String        // Name of the external organization/person
+  counterpartyContact  String?       // Key contact person at the counterparty
+  signedDocumentUrl    String?       // Link to the final signed contract document (Section 3: Standardized Documentation)
+
+  // --- Financial & Compensation ---
+  totalValueUsd        Float?        // Total contract value or ceiling amount (Section 2: Financials)
+  paymentTerms         String?       // E.g., 'Net 30', 'Quarterly in Advance'
+  annualizedCostUsd    Float?        // Recurring annual cost or revenue (Relates to monthlyOpexUsd/annualRevenueEstimateUsd in ProjectModel)
+
+// ADDITIONS FOR REVENUE & PROFIT
+  annualRevenueUsd       Float?       // Projected/Actual recurring annual revenue from this contract
+  totalContractValueUsd  Float?       // Total aggregate revenue over the full contract term
+  profitMarginPercent    Float?       // Calculated Gross Profit Margin (e.g., 0.25 for 25%)
+  costAllocationDetails  Json?        // Structured data for detailed cost breakdown
+  // --- Risk & Compliance (Aligned with Guidelines Section 5) ---
+  riskRating           Float?        // Contract-specific risk score (e.g., 1-5 scale) (Section 5: Risk & Compliance)
+  complianceJurisdiction String?     // Governing Law/Jurisdiction
+  breachOfContractClause String?     // Summary or reference to breach terms
+  
+  // --- Obligations & Reminders ---
+  obligationsJson      Json?         // Structured data detailing required actions (deliverables, reports, etc.)
+  nextReviewDate       DateTime?     // Date for the next internal review (Section 6: Ad-Hoc Meetings)
+
+  // --- Attachments and Notes ---
+  notes                String?       @db.String
+
+  contractActivityModels ContractActivityModel[]
+}
+
+enum ActivityType {
+  MEETING          // Formal scheduled discussion (e.g., Kick-off, Review)
+  FOLLOW_UP        // Action item resulting from a meeting or review
+  DRAWING_APPROVAL // Submission or approval of technical/design documentation
+  RESOURCE_ALLOCATION // Action to secure specific resources (equipment, staff)
+  SUPPLIER_ENGAGEMENT // Contact or negotiation with an external party (OEM/vendor)
+  DOCUMENT_SUBMISSION // Sending a formal document (e.g., Invoice, Report)
+  OTHER            // For general, unclassified tasks
+}
+
+enum ActivityStatus {
+  SCHEDULED
+  IN_PROGRESS
+  PENDING_REVIEW
+  COMPLETED
+  CANCELLED
+}
+
+model ContractActivityModel {
+  // --- Core Identification & Timestamps ---
+  id                  String           @id @default(auto()) @map("_id") @db.ObjectId
+  title               String
+  description         String?          @db.String
+  
+  // --- Linking to Contract & Responsible Parties ---
+  contractId          String           @db.ObjectId // Mandatory link to the parent contract
+  contract            ContractModel    @relation(fields: [contractId], references: [id])
+  
+  //assignedToId        String           @db.ObjectId // User responsible for this action/follow-up
+  //assignedTo          User             @relation(fields: [assignedToId], references: [id])
+  responsiblePersons String
+  
+  createdByUserId     String           @db.ObjectId // User who created the activity record
+  
+  createdAt           DateTime         @default(now())
+  updatedAt           DateTime         @updatedAt
+
+  // --- Activity Details ---
+  activeType                ActivityType     @default(FOLLOW_UP)
+  status              ActivityStatus   @default(SCHEDULED)
+  
+  // --- Scheduling & Deadlines ---
+  dueDate             DateTime         // Target completion date for the activity
+  completedAt         DateTime?        // Actual completion date
+  
+  // --- Resources & Documentation ---
+  // Tracks resources committed or allocated by this activity
+  resourceDetails     String?          // E.g., "3 engineers for 40 hours," "Purchase Order #1234"
+  
+  // Tracks specific documentation related to the activity (e.g., meeting minutes, drawing file reference)
+  documentReferenceUrl String?          // Link to the specific document (Minutes, Drawing file)
+
+  // --- Source/Outcome Notes ---
+  outcomeNotes        String?          @db.String // Summary of the outcome or what was agreed upon
 }
