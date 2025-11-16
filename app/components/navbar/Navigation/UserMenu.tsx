@@ -170,8 +170,11 @@ const UserMenu: React.FC<UserMenuProps> = ({ currentUser, handleNavigate }) => {
  
                 {/* <MenuItem label="My Job Applications" onClick={() => handleMenuItemClickWithNav("/myjobapplications")} />
                <hr className="my-1" /> */}
-              <MenuItem label="Business Proposals" onClick={() => handleMenuItemClickWithNav("/bps")} />
+                <MenuItem label="Business Proposals" onClick={() => handleMenuItemClickWithNav("/bps")} />
                           <hr className="my-1" />
+
+             
+                <MenuItem label="Contracts" onClick={() => handleMenuItemClickWithNav("/contracts")} />
                             
                 <MenuItem
                   label="Profile Settings"
@@ -204,9 +207,7 @@ const UserMenu: React.FC<UserMenuProps> = ({ currentUser, handleNavigate }) => {
                 {currentUser?.isAdmin && (
                   <MenuItem label="Website Traffic" onClick={() => handleMenuItemClickWithNav("/views")} />
                 )}
-                 {currentUser?.isAdmin && (
-                  <MenuItem label="Contracts" onClick={() => handleMenuItemClickWithNav("/contracts")} />
-                )}
+                
                  {currentUser?.isAdmin && (
                   <MenuItem label="Tags" onClick={() => handleMenuItemClickWithNav("/tags")} />
                 )}
