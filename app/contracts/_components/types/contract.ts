@@ -122,4 +122,5 @@ export interface ContractListModel {
   expirationDate: string | null;
   annualRevenueUsd: number | null;
   updatedAt: string;
+  description:string
 }

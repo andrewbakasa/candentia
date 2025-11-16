@@ -19,6 +19,7 @@ export async function GET() {
         expirationDate: true,
         annualRevenueUsd: true,
         updatedAt: true,
+        description:true,
       },
       orderBy: {
         updatedAt: 'desc', // Show most recently updated contracts first

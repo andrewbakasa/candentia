@@ -543,18 +543,10 @@ function ContractDetailView({ contract: initialContract }: ContractDetailProps) 
                         <p className="whitespace-pre-wrap leading-relaxed">{contract.description || 'No detailed summary provided.'}</p>
                     </div>
 
-                    {/* --- Description / Summary --- */}
-                    <div className="px-6 py-4 bg-indigo-50/50">
-                        <h3 className="text-lg font-semibold text-indigo-800 flex items-center">
-                            <MessageSquare className="w-5 h-5 mr-2 text-indigo-600" /> Contract Summary
-                        </h3>
-                    </div>
-                    <div className="px-6 py-6 text-gray-700">
-                        <p className="whitespace-pre-wrap leading-relaxed">{contract.description || 'No detailed summary provided.'}</p>
-                    </div>
+                  
 
-                  {/* --- Contract Activities (Plans) Section --- */}
-               {/* --- Contract Activities (Plans) Section --- */}
+                 
+                   {/* --- Contract Activities (Plans) Section --- */}
                     <div className="px-6 py-4 bg-indigo-50/50 flex flex-col sm:flex-row justify-between items-start sm:items-center border-t border-gray-200">
                         <h3 className="text-lg font-semibold text-indigo-800 mb-2 sm:mb-0">
                             Related Activities/Plans ({contract.contractActivityModels.length})
