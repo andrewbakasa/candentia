@@ -21,7 +21,7 @@ export async function POST(request: NextRequest) {
         { status: 401 } // Unauthorized
       );
     }
-
+    console.log("from from:", body)
     // 2. Input Validation (Ensure required fields for linking are present)
     const { title, dueDate, responsiblePersons, activeType, status, contractId } = body;
 

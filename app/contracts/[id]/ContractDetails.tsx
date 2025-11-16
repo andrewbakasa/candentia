@@ -91,7 +91,7 @@ function ContractUpdateForm({ contract, onUpdateSuccess }: ContractUpdateFormPro
 
 // --- HELPER COMPONENTS ---
 
-const activityTypes: ActivityType[] = ['MEETING', 'FOLLOW_UP', 'DRAWING_APPROVAL', 'RESOURCE_ALLOCATION', 'SUPPLIER_ENGAGEMENT','DOCUMENT_SUBMISSION','OTHER'];
+const activityTypes: ActivityType[] = [ 'FOLLOW_UP', 'MEETING','DRAWING_APPROVAL', 'RESOURCE_ALLOCATION', 'SUPPLIER_ENGAGEMENT','DOCUMENT_SUBMISSION','OTHER'];
 const activityStatuses: ActivityStatus[] = ['SCHEDULED',  'IN_PROGRESS','PENDING_REVIEW', 'COMPLETED', 'CANCELLED'];
 
 
@@ -248,7 +248,7 @@ function AddActivityForm({ onAdd, onCancel, isLoading, error }: AddActivityFormP
 
                 <SelectField
                     label="Activity Type"
-                    name="type"
+                    name="activeType"
                     value={formData.activeType}
                     onChange={handleChange as React.ChangeEventHandler<HTMLSelectElement>}
                     options={activityTypes}
