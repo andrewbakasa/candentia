@@ -15,7 +15,7 @@ export async function generateMetadata({
 
     
   return {
-    title: contract?.title || "Contract",
+    title: `Contract: ${contract?.title}` || "Contract",
   };
 }
 const ContractLayout = async ({
