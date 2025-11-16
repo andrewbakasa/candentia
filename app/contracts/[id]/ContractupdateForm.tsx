@@ -3,8 +3,6 @@
 
 import React, { useState } from 'react';
 import { ContractModel, ContractUpdateData, ContractStatus } from '../_components/types/contract';
-// import { ContractModel, ContractStatus, ContractUpdateData } from './_components/types/contract';
-//import { ContractModel, ContractUpdateData, ContractStatus } from '@/types/contract';
 
 interface ContractUpdateFormProps {
   contract: ContractModel;

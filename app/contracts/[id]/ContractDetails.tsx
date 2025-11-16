@@ -1,7 +1,12 @@
 'use client'
 import React, { useState, useCallback } from 'react';
 import { ArrowLeft, Calendar, CheckCircle, Edit2, Plus, User, Zap, MessageSquare } from 'lucide-react';
-import { ActivityStatus, ActivityType, ContractStatus } from '@prisma/client';
+import { ActivityStatus, 
+    ActivityType,
+     ContractStatus } from '@prisma/client';
+import ContractUpdateForm from './ContractupdateForm';
+import { ContractModel } from '../_components/types/contract';
+import { useRouter } from 'next/navigation';
 
 interface ContractActivityModel {
     id: string;
@@ -10,86 +15,80 @@ interface ContractActivityModel {
     dueDate: string; // ISO date string
     responsiblePersons: string;
     status: ActivityStatus;
-    description?: string;
+    description: string;
     contractId: string;
     createdByUserId: string;
     createdAt: string;
+
+    updatedAt: string;      
+    completedAt?: string | null;      // <--- Change 1: Added ? and | null
+    resourceDetails?: string | null;  // <--- Change 2
+    documentReferenceUrl?: string | null; // <--- Change 3
+    outcomeNotes?: string | null;     // <--- Change 4
 }
 
+// export interface ContractModel {
+//   id: string;
+//   title: string;
+//   contractType: string;
+//   description: string | null;
+//   projectId: string | null;
+//   // relatedProject?: BusinessProjectModelMinimal; // Uncomment if you include project relation
+//   createdAt: string;
+//   updatedAt: string;
+//   status: ContractStatus;
+//   version: string;
+//   effectiveDate: string | null;
+//   expirationDate: string | null;
+//   autoRenew: boolean;
+//   internalOwnerId: string;
+//   // internalOwner?: UserMinimal; // Uncomment if you include owner relation
+//   counterpartyName: string;
+//   counterpartyContact: string | null;
+//   signedDocumentUrl: string | null;
+//   totalValueUsd: number | null; // float becomes number
+//   paymentTerms: string | null;
+//   annualizedCostUsd: number | null;
+//   annualRevenueUsd: number | null;
+//   totalContractValueUsd: number | null;
+//   profitMarginPercent: number | null;
+//   costAllocationDetails: any; // Use 'any' or define a specific JSON type
+//   riskRating: number | null;
+//   complianceJurisdiction: string | null;
+//   breachOfContractClause: string | null;
+//   obligationsJson: any; // Use 'any' or define a specific JSON type
+//   nextReviewDate: string | null;
+//   notes: string | null;
+//   //activityType:string;
+//   // Included activities for viewing the detail page
+//   contractActivityModels: ContractActivityModel[];
+// }
+
 // Minimal mock for ContractModel to make the file runnable
-interface ContractModel {
-    id: string; // CRITICAL: Used as contractId when creating activities
-    title: string;
-    contractType?: string;
-    counterpartyName: string;
-    status: ContractStatus;
-    effectiveDate: string;
-    expirationDate: string;
-    nextReviewDate?: string | null;
-    autoRenew: boolean;
-    annualRevenueUsd?: number | null;
-    annualizedCostUsd?: number | null;
-    riskRating?: number | null;
-    createdAt: string;
-    updatedAt: string;
-    description?: string;
-    contractActivityModels: ContractActivityModel[];
-}
+// interface ContractModel {
+//     id: string; // CRITICAL: Used as contractId when creating activities
+//     title: string;
+//     contractType?: string;
+//     counterpartyName: string;
+//     status: ContractStatus;
+//     effectiveDate: string;
+//     expirationDate: string;
+//     nextReviewDate?: string | null;
+//     autoRenew: boolean;
+//     annualRevenueUsd?: number | null;
+//     annualizedCostUsd?: number | null;
+//     riskRating?: number | null;
+//     createdAt: string;
+//     updatedAt: string;
+//     description?: string;
+//     contractActivityModels: ContractActivityModel[];
+// }
 
 interface ContractDetailProps {
     contract: ContractModel;
 }
 
-// --- MOCK COMPONENT (Since the original was not provided) ---
 
-interface ContractUpdateFormProps {
-    contract: ContractModel;
-    onUpdateSuccess: (updatedData: ContractModel) => void;
-}
-
-function ContractUpdateForm({ contract, onUpdateSuccess }: ContractUpdateFormProps) {
-    const [title, setTitle] = useState(contract.title);
-
-    const handleSubmit = (e: React.FormEvent) => {
-        e.preventDefault();
-        // Mocking the update logic
-        const updatedContract = {
-            ...contract,
-            title,
-            updatedAt: new Date().toISOString(),
-        };
-        onUpdateSuccess(updatedContract);
-    };
-
-    return (
-        <div className="p-6 bg-white rounded-xl shadow-2xl border border-indigo-200">
-            <h2 className="text-2xl font-bold text-indigo-700 mb-4">Edit Contract Details</h2>
-            <form onSubmit={handleSubmit}>
-                <div className="mb-4">
-                    <label htmlFor="title" className="block text-sm font-medium text-gray-700">Contract Title</label>
-                    <input
-                        type="text"
-                        id="title"
-                        value={title}
-                        onChange={(e) => setTitle(e.target.value)}
-                        className="mt-1 w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-indigo-500 focus:border-indigo-500"
-                        required
-                    />
-                </div>
-                <div className="flex justify-end">
-                    <button
-                        type="submit"
-                        className="px-6 py-2 text-sm font-medium text-white bg-indigo-600 rounded-xl shadow-md hover:bg-indigo-700 transition"
-                    >
-                        Save Changes (Mock)
-                    </button>
-                </div>
-            </form>
-        </div>
-    );
-}
-
-// --- HELPER COMPONENTS ---
 
 const activityTypes: ActivityType[] = [ 'FOLLOW_UP', 'MEETING','DRAWING_APPROVAL', 'RESOURCE_ALLOCATION', 'SUPPLIER_ENGAGEMENT','DOCUMENT_SUBMISSION','OTHER'];
 const activityStatuses: ActivityStatus[] = ['SCHEDULED',  'IN_PROGRESS','PENDING_REVIEW', 'COMPLETED', 'CANCELLED'];
@@ -187,6 +186,8 @@ function AddActivityForm({ onAdd, onCancel, isLoading, error }: AddActivityFormP
         responsiblePersons: '',
         status: 'IN_PROGRESS',
         description: '', // Added description field
+        updatedAt :today,
+        //completedAt,
     });
 
     const handleChange = useCallback((e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
@@ -361,7 +362,7 @@ function ContractDetailView({ contract: initialContract }: ContractDetailProps) 
     const [isAddingActivity, setIsAddingActivity] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
-
+    const router = useRouter();
     // Function to handle adding a new activity (updates local state after API call)
     const handleAddActivity = async (newActivityData: ActivityFormDataType) => {
         setIsLoading(true);
@@ -397,7 +398,7 @@ function ContractDetailView({ contract: initialContract }: ContractDetailProps) 
             // Update the local state by prepending the new activity
             setContract(prevContract => ({
                 ...prevContract,
-                contractActivityModels: [createdActivity, ...(prevContract.contractActivityModels || [])],
+            //    contractActivityModels: [createdActivity, ...(prevContract.contractActivityModels || [])],
             }));
 
             setIsAddingActivity(false); // Close the form
@@ -430,7 +431,7 @@ function ContractDetailView({ contract: initialContract }: ContractDetailProps) 
             <div className="mb-6">
                 {/* Return to Contracts Link - Replaced router push with console log */}
                 <button
-                    onClick={() => console.log('Simulating navigation back to /contracts')}
+                    onClick={() => router.push('/contracts')}
                     className="flex items-center text-sm font-medium text-gray-600 hover:text-indigo-600 transition mb-4 focus:outline-none focus:ring-2 focus:ring-indigo-500 rounded-lg p-1"
                 >
                     <ArrowLeft className="w-4 h-4 mr-1" />

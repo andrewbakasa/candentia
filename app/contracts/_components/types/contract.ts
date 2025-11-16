@@ -12,6 +12,7 @@ export enum ContractStatus {
   ARCHIVED = 'ARCHIVED',
 }
 
+
 export enum ActivityType {
   MEETING = 'MEETING',
   FOLLOW_UP = 'FOLLOW_UP',
@@ -51,7 +52,7 @@ export interface ContractActivityModel {
   createdByUserId: string;
   createdAt: string; // Use string for DateTimes from API
   updatedAt: string;
-  type: ActivityType;
+  activeType: ActivityType;
   status: ActivityStatus;
   dueDate: string;
   completedAt: string | null;
@@ -94,6 +95,7 @@ export interface ContractModel {
   obligationsJson: any; // Use 'any' or define a specific JSON type
   nextReviewDate: string | null;
   notes: string | null;
+  //activityType:string;
   // Included activities for viewing the detail page
   contractActivityModels: ContractActivityModel[];
 }
