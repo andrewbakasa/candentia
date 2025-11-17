@@ -185,22 +185,94 @@ function ContractDetailView({ contract: initialContract }: ContractDetailProps) 
         }
     };
     
+    // const handleAddActivity = async (newActivityData: ActivityFormDataType) => {
+    //     setIsLoading(true);
+    //     clearMessages();
+
+    //     const payload = {
+    //         ...newActivityData,
+    //         contractId: contract.id,
+    //         activityType: newActivityData.activityType.toUpperCase(),
+    //         status: newActivityData.status.toUpperCase(),
+    //     };
+     
+    //     try {
+    //         const response = await fetch('/api/contracts/activity', {
+    //             method: 'POST',
+    //             headers: { 'Content-Type': 'application/json' },
+    //             body: JSON.stringify(payload),
+    //         });
+
+    //         const result = await response.json();
+
+    //         if (!response.ok) {
+    //             setError(result.message || 'Failed to create contract activity.');
+    //             return;
+    //         }
+
+    //         const createdActivity: ContractActivityModel = result;
+            
+    //         setContract((prevContract: { contractActivityModels: any; }) => ({
+    //             ...prevContract,
+    //             contractActivityModels: [createdActivity, ...(prevContract.contractActivityModels || [])],
+    //         }));
+
+    //         setIsAddingActivity(false); // Close the form
+    //         setSuccessMessage('Activity created successfully!'); // Show success message
+    //         setTimeout(() => setSuccessMessage(null), 3000);
+
+    //     } catch (e) {
+    //         console.error('Network or Parse Error:', e);
+    //         setError('A network error occurred. Please try again.');
+    //     } finally {
+    //         setIsLoading(false);
+    //     }
+    // };
+
     const handleAddActivity = async (newActivityData: ActivityFormDataType) => {
         setIsLoading(true);
         clearMessages();
 
-        const payload = {
-            ...newActivityData,
-            contractId: contract.id,
-            activityType: newActivityData.activityType.toUpperCase(),
-            status: newActivityData.status.toUpperCase(),
+        // 1. Initialize payload, including the contractId foreign key.
+        const payload: Partial<ActivityFormDataType> & { contractId: string } = {
+            contractId: contract.id, // Ensure this field is added
         };
+
+        for (const key in newActivityData) {
+            if (Object.prototype.hasOwnProperty.call(newActivityData, key)) {
+                const k = key as keyof ActivityFormDataType;
+                let value = newActivityData[k];
+
+                // Identify Date Fields for ISO-8601 Fix (removed 'updatedAt' as it's for the DB to handle on creation)
+                const isDateField = k === 'completedAt' || k === 'dueDate'|| k === 'updatedAt';
+
+                if (isDateField && typeof value === 'string' && value.trim() !== '') {
+                    // FIX: Convert "YYYY-MM-DD" to full ISO-8601 format (T00:00:00.000Z)
+                    (payload as any)[k] = value.trim() + 'T00:00:00.000Z';
+                }
+                // Handle Case Conversion for Enums (activityType, status)
+                else if ((k === 'activityType' || k === 'status') && typeof value === 'string' && value.trim() !== '') {
+                    // Apply uppercase conversion directly
+                    (payload as any)[k] = value.toUpperCase();
+                }
+                // Convert Empty Strings to Null for all other nullable string fields
+                else if (typeof value === 'string' && value.trim() === '') {
+                    (payload as any)[k] = null;
+                }
+                // Pass all other valid values (numbers, booleans, already null data)
+                else if (value !== undefined) {
+                    (payload as any)[k] = value;
+                }
+            }
+        }
+        
+        // --- The second redundant/overwriting payload definition is now REMOVED ---
 
         try {
             const response = await fetch('/api/contracts/activity', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(payload),
+                body: JSON.stringify(payload), // Send the fully corrected payload
             });
 
             const result = await response.json();
@@ -468,7 +540,7 @@ function ContractDetailView({ contract: initialContract }: ContractDetailProps) 
                                             </div>
                                             {activity.description && (
                                                 <p className="mt-2 text-xs italic text-gray-500 max-w-lg">
-                                                    Description: {activity.description}
+                                                    <span className='text-red-500'>Description</span>: {activity.description}
                                                 </p>
                                             )}
                                         </>

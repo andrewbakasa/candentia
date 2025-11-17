@@ -31,7 +31,7 @@ export async function POST(request: NextRequest) {
             { status: 400 } // Bad Request
         );
     }
-    
+    console.log("body",body)
     // 3. Data Preparation
     const data = {
       ...body,

@@ -306,7 +306,7 @@ const ContractsListPage: React.FC<ContractListClientProps> = ({
                         </tr>
                     </thead>
                     <tbody className="bg-white divide-y divide-gray-100">
-                        {contractsToDisplay.map((contract) => (
+                        {contractsToDisplay.map((contract, index) => (
                             <tr key={contract.id} className="hover:bg-indigo-50/20 transition duration-150 ease-in-out">
                                 
                                 {/* Title / Type (Updated for Hover/Click functionality) */}
@@ -320,7 +320,7 @@ const ContractsListPage: React.FC<ContractListClientProps> = ({
                                         <div 
                                             className="text-sm font-semibold text-indigo-700 hover:text-indigo-900 transition"
                                         >
-                                            {contract.title}
+                                            {index+1}. {contract.title}
                                         </div>
                                         <div className="text-xs text-gray-500 mt-0.5">
                                             {contract.contractType}
@@ -374,7 +374,7 @@ const ContractsListPage: React.FC<ContractListClientProps> = ({
 
             {/* 4. Card View (Mobile: Default to block, hidden on md and up) */}
             <div className="md:hidden space-y-3"> {/* Increased space-y for better card separation */}
-                {contractsToDisplay.map((contract) => (
+                {contractsToDisplay.map((contract,index) => (
                     <Link 
                         key={contract.id} 
                         href={`/contracts/${contract.id}`} 
@@ -384,7 +384,7 @@ const ContractsListPage: React.FC<ContractListClientProps> = ({
                         {/* Header Row */}
                         <div className="flex justify-between items-start mb-2">
                             {/* Removed line-clamp-1 to show full title on mobile card view for immediate visibility */}
-                            <h3 className="text-base font-semibold text-indigo-700 pr-6">{contract.title}</h3>
+                            <h3 className="text-base font-semibold text-indigo-700 pr-6">{index+1}. {contract.title}</h3>
                             <span className={getStatusClasses(contract.status)}>{contract.status.replace('_', ' ')}</span>
                         </div>
 
