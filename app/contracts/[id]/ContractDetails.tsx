@@ -362,7 +362,7 @@ function EditActivityForm({ activity, onUpdate, onCancel, isLoading, error }: Ed
         dueDate: activity.dueDate.split('T')[0], // Ensure date is formatted correctly for input type="date"
         responsiblePersons: activity.responsiblePersons,
         status: activity.status,
-        description: activity.description || "",
+        description: activity.description,
         updatedAt: new Date().toISOString(), // Update timestamp
     });
 
@@ -397,7 +397,7 @@ function EditActivityForm({ activity, onUpdate, onCancel, isLoading, error }: Ed
                     <InputField label="Description (Optional)" name="description" type="textarea" value={formData.description || ''} onChange={handleChange} icon={MessageSquare} required={false} />
                 </div>
                 <InputField label="Responsible Persons" name="responsiblePersons" value={formData.responsiblePersons} onChange={handleChange} icon={User} />
-                <SelectField label="Activity Type" name="activityType" value={formData.activeType} onChange={handleChange as React.ChangeEventHandler<HTMLSelectElement>} options={activityTypes} icon={Zap} />
+                <SelectField label="Activity Type" name="activeType" value={formData.activeType} onChange={handleChange as React.ChangeEventHandler<HTMLSelectElement>} options={activityTypes} icon={Zap} />
                 <InputField label="Due Date" name="dueDate" type="date" value={formData.dueDate} onChange={handleChange} icon={Calendar} />
                 <SelectField label="Current Status" name="status" value={formData.status} onChange={handleChange as React.ChangeEventHandler<HTMLSelectElement>} options={activityStatuses} icon={CheckCircle} />
                 {/* Additional fields (completedAt, resourceDetails, etc.) can be added here */}
@@ -439,7 +439,7 @@ function EditActivityForm({ activity, onUpdate, onCancel, isLoading, error }: Ed
         const payload = {
             ...updatedData,
             // Ensure status and type are uppercase for Prisma Enum matching
-            activityType: updatedData.activeType.toUpperCase(),
+            activeType: updatedData.activeType.toUpperCase(),
             status: updatedData.status.toUpperCase(),
         };
 
