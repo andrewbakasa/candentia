@@ -680,7 +680,7 @@ model ContractActivityModel {
   updatedAt           DateTime         @updatedAt
 
   // --- Activity Details ---
-  activeType                ActivityType     @default(FOLLOW_UP)
+  activityType                ActivityType     @default(FOLLOW_UP)
   status              ActivityStatus   @default(SCHEDULED)
   
   // --- Scheduling & Deadlines ---

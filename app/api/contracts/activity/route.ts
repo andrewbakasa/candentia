@@ -23,9 +23,9 @@ export async function POST(request: NextRequest) {
     }
     console.log("from from:", body)
     // 2. Input Validation (Ensure required fields for linking are present)
-    const { title, dueDate, responsiblePersons, activeType, status, contractId } = body;
+    const { title, dueDate, responsiblePersons, activityType, status, contractId } = body;
 
-    if (!contractId || !title || !dueDate || !responsiblePersons || !activeType || !status) {
+    if (!contractId || !title || !dueDate || !responsiblePersons || !activityType || !status) {
         return NextResponse.json(
             { message: 'Missing required fields: contractId, title, dueDate, responsiblePersons, type, status.' },
             { status: 400 } // Bad Request
@@ -42,7 +42,7 @@ export async function POST(request: NextRequest) {
       dueDate: new Date(dueDate), 
 
       // Ensure activity type and status are uppercase strings matching the Prisma Enums
-       activeType: activeType.toUpperCase(),
+       activityType: activityType.toUpperCase(),
       status: status.toUpperCase(),
     };
 

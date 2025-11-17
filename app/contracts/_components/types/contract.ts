@@ -52,7 +52,7 @@ export interface ContractActivityModel {
   createdByUserId: string;
   createdAt: string; // Use string for DateTimes from API
   updatedAt: string;
-  activeType: ActivityType;
+  activityType: ActivityType;
   status: ActivityStatus;
   dueDate: string;
   completedAt: string | null;
@@ -69,6 +69,7 @@ export interface ContractModel {
   contractType: string;
   description: string | null;
   projectId: string | null;
+  activityType: string;
   // relatedProject?: BusinessProjectModelMinimal; // Uncomment if you include project relation
   createdAt: string;
   updatedAt: string;

@@ -5,7 +5,7 @@ import { Prisma } from '@prisma/client';
 // Define the expected structure of the activity update request body
 interface UpdateActivityBody {
     title: string;
-    activeType: 'LEGAL_REVIEW' | 'NEGOTIATION' | 'EXECUTION' | 'ARCHIVING' | string; // Use your actual Prisma Enum types
+    activityType: 'LEGAL_REVIEW' | 'NEGOTIATION' | 'EXECUTION' | 'ARCHIVING' | string; // Use your actual Prisma Enum types
     dueDate: string;
     responsiblePersons: string;
     status: 'PENDING' | 'IN_PROGRESS' | 'COMPLETED' | 'ON_HOLD' | string; // Use your actual Prisma Enum types
@@ -37,23 +37,21 @@ export async function PUT(
     // it should be called here (e.g., const currUser = await getCurrentUser();)
 
     // 2. Simple Data Validation (Ensure required fields are present)
-    if (!body.title || !body.activeType || !body.dueDate || !body.status) {
+    if (!body.title || !body.activityType || !body.dueDate || !body.status) {
         return NextResponse.json(
             { message: 'Missing required fields: title, activityType, dueDate, and status.' }, 
             { status: 400 }
         );
     }
 
-    // Correcting a field name in the original payload structure to match the model
-    // Assuming 'activityType' is the correct field name in your Prisma model.
-    const activityTypeField = 'activeType' in body ? body.activeType : 'activeType'; 
+  
 
     try {
         // Prepare the data payload for Prisma update
         const dataToUpdate: Prisma.ContractActivityModelUpdateInput = {
             title: body.title,
             // Use the determined field name and cast for Prisma Enum
-            [activityTypeField]: body.activeType as any, 
+            activityType: body.activityType as any, 
             dueDate: new Date(body.dueDate), // Convert string to Date
             responsiblePersons: body.responsiblePersons,
             status: body.status as any, // Cast for Prisma Enum
@@ -137,7 +135,7 @@ export async function PUT(
 //         // Prepare the data payload for Prisma update
 //         const dataToUpdate: Prisma.ContractActivityModelUpdateInput = {
 //             title: body.title,
-//             activeType: body.activityType as any, // Cast to any to handle type compatibility with Prisma Enum
+//             activityType: body.activityType as any, // Cast to any to handle type compatibility with Prisma Enum
 //             dueDate: new Date(body.dueDate),
 //             responsiblePersons: body.responsiblePersons,
 //             status: body.status as any, // Cast to any for Prisma Enum
