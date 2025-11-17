@@ -67,7 +67,7 @@ const ContractPage = async ({ params }: { params: IParams }) => {
     updatedAt: contract.updatedAt ? contract.updatedAt.toString() : null,
     effectiveDate: contract.effectiveDate ? contract.effectiveDate.toString() : null,
     expirationDate: contract.expirationDate ? contract.expirationDate.toString() : null,
-    
+    //dueDate: contract.dueDate ? contract.dueDate.toString() : null,
     // Serialize nested activity dates
     contractActivityModels: contract.contractActivityModels.map(activity => ({
       ...activity,

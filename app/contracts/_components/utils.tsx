@@ -228,16 +228,43 @@ export const formatDate = (dateString: string | Date | null | undefined) => {
      }
  };
 
+export const getISODate = (date: string | Date | null | undefined): string => {
+    if (!date) return '';
+
+    // Convert to a Date object if it's a string, or use the object directly
+    const d = date instanceof Date ? date : new Date(date);
+
+    // If d is an 'Invalid Date' object, return empty string
+    if (isNaN(d.getTime())) {
+        return '';
+    }
+
+    // Get YYYY, MM, DD components from the LOCAL time of the Date object
+    const year = d.getFullYear();
+    // Month is 0-indexed, so add 1, then pad to 2 digits
+    const month = String(d.getMonth() + 1).padStart(2, '0'); 
+    // Pad day to 2 digits
+    const day = String(d.getDate()).padStart(2, '0');
+
+    // Return YYYY-MM-DD format
+    const formattedDate = `${year}-${month}-${day}`;
+    console.log("Formatted dueDate for input type='date':", formattedDate); // Check this log value!
+    
+    return formattedDate;
+};
 export function EditActivityForm({ activity, onUpdate, onCancel, isLoading, error }: EditActivityFormProps) {
     // Initialize form data with the existing activity data
     const [formData, setFormData] = useState<ActivityFormDataType>({
         title: activity.title,
         activityType: activity.activityType,
-        dueDate: activity.dueDate.split('T')[0], // Ensure date is formatted correctly for input type="date"
+       // dueDate: activity.dueDate.split('T')[0], // Ensure date is formatted correctly for input type="date"
+        // *** FIX IS HERE ***
+        dueDate: getISODate(activity.dueDate),
         responsiblePersons: activity.responsiblePersons,
         status: activity.status,
         description: activity.description,
         updatedAt: new Date().toISOString(), // Update timestamp
+
     });
 
     const handleChange = useCallback((e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {

@@ -73,6 +73,7 @@ export interface ContractModel {
   // relatedProject?: BusinessProjectModelMinimal; // Uncomment if you include project relation
   createdAt: string;
   updatedAt: string;
+  dueDate:string;
   status: ContractStatus;
   version: string;
   effectiveDate: string | null;
@@ -123,8 +124,8 @@ export interface ContractListModel {
   expirationDate: string | null;
   annualRevenueUsd: number | null;
   updatedAt: string;
-  description:string
-  
+  description:string;
+  dueDate: string;
   // 🏆 ADD THIS FIELD 🏆
   _count: {
     contractActivityModels: number;

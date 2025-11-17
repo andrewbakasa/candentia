@@ -53,6 +53,7 @@ export async function GET() {
         expirationDate: true,
         annualRevenueUsd: true,
         updatedAt: true,
+        createdAt:true,
         description: true,
         // 🏆 Use _count to get the total number of related activities 🏆
         _count: {
