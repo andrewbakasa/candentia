@@ -356,7 +356,14 @@ const ContractsListPage: React.FC<ContractListClientProps> = ({
                                         href={`/contracts/${contract.id}`} 
                                         className="text-indigo-600 hover:text-indigo-800 flex items-center justify-end gap-1 font-semibold"
                                     >
-                                        View <ArrowUpRight className="w-4 h-4" />
+                                       View
+                                        {/* Conditional rendering: Only render the <sup> element if the count is > 0 */}
+                                        {contract._count.contractActivityModels > 0 && (
+                                        <sup className="-ml-0.5 text-xs -top-2">
+                                            {contract._count.contractActivityModels}
+                                        </sup>
+                                        )}
+                                        <ArrowUpRight className="w-4 h-4" />
                                     </Link>
                                 </td>
                             </tr>

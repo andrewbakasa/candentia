@@ -5,10 +5,44 @@ import prisma from "../../libs/prismadb" // Assuming this path is correct
 import getCurrentUser from '@/app/actions/getCurrentUser';
 
 // Define the handler for GET requests (already existing)
+// export async function GET() {
+//   try {
+//     const contracts = await prisma.contractModel.findMany({
+//       // Select only the essential fields needed for the list view
+//       select: {
+//         id: true,
+//         title: true,
+//         contractType: true,
+//         status: true,
+//         counterpartyName: true,
+//         effectiveDate: true,
+//         expirationDate: true,
+//         annualRevenueUsd: true,
+//         updatedAt: true,
+//         description:true,
+//       },
+      
+//       orderBy: {
+//         updatedAt: 'desc', // Show most recently updated contracts first
+//       },
+//     });
+
+//     // Return the list of contracts as JSON
+//     return NextResponse.json(contracts, { status: 200 });
+//   } catch (error) {
+//     console.error('Failed to fetch contracts:', error);
+//     return NextResponse.json(
+//       { message: 'Internal Server Error while fetching contracts.' },
+//       { status: 500 }
+//     );
+//   }
+// }
+
+
+
 export async function GET() {
   try {
     const contracts = await prisma.contractModel.findMany({
-      // Select only the essential fields needed for the list view
       select: {
         id: true,
         title: true,
@@ -19,24 +53,38 @@ export async function GET() {
         expirationDate: true,
         annualRevenueUsd: true,
         updatedAt: true,
-        description:true,
+        description: true,
+        // 🏆 Use _count to get the total number of related activities 🏆
+        _count: {
+          select: {
+            contractActivityModels: true,
+          },
+        },
       },
+      // Removed 'include' as _count is used instead for efficiency
       orderBy: {
         updatedAt: 'desc', // Show most recently updated contracts first
       },
     });
 
+    // ➡️ The resulting data shape will be:
+    // [{ 
+    //    id: '...', 
+    //    title: '...', 
+    //    // ... other fields
+    //    _count: { contractActivityModels: N } // N is the activity count
+    // }, ...]
+    
     // Return the list of contracts as JSON
     return NextResponse.json(contracts, { status: 200 });
   } catch (error) {
-    console.error('Failed to fetch contracts:', error);
+    console.error('Failed to fetch contracts with activity count:', error);
     return NextResponse.json(
       { message: 'Internal Server Error while fetching contracts.' },
       { status: 500 }
     );
   }
 }
-
 // Ensure these imports are correct based on your file structure
 // import prisma from "../../libs/prismadb" 
 // import getCurrentUser from '../../actions/getCurrentUser'; 

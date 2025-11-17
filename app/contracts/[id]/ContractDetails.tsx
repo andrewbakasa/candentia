@@ -16,7 +16,7 @@
      dueDate: string;  //ISO date string
      responsiblePersons: string;
      status: ActivityStatus;
-     description: string;
+     description: string | null;
      contractId: string;
      createdByUserId: string;
      createdAt: string;
@@ -344,7 +344,79 @@
          return 'Invalid Date';
      }
  };
+// Add this new interface and component just below the AddActivityForm component.
 
+interface EditActivityFormProps {
+    activity: ContractActivityModel;
+    onUpdate: (activityId: string, updatedActivity: ActivityFormDataType) => void;
+    onCancel: () => void;
+    isLoading: boolean;
+    error: string | null;
+}
+
+function EditActivityForm({ activity, onUpdate, onCancel, isLoading, error }: EditActivityFormProps) {
+    // Initialize form data with the existing activity data
+    const [formData, setFormData] = useState<ActivityFormDataType>({
+        title: activity.title,
+        activeType: activity.activeType,
+        dueDate: activity.dueDate.split('T')[0], // Ensure date is formatted correctly for input type="date"
+        responsiblePersons: activity.responsiblePersons,
+        status: activity.status,
+        description: activity.description || "",
+        updatedAt: new Date().toISOString(), // Update timestamp
+    });
+
+    const handleChange = useCallback((e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
+        setFormData(prevData => ({
+            ...prevData,
+            [e.target.name]: e.target.value,
+        }));
+    }, []);
+
+    const handleSubmit = (e: React.FormEvent) => {
+        e.preventDefault();
+        onUpdate(activity.id, formData); // Pass ID and updated form data
+    };
+
+    return (
+        <form onSubmit={handleSubmit} className="p-6 bg-yellow-50 border border-yellow-300 rounded-xl shadow-lg mb-6">
+            <h3 className="text-xl font-bold text-yellow-800 mb-5 border-b pb-3">Edit Activity: {activity.title}</h3>
+
+            {error && (
+                <div className="p-3 mb-4 bg-red-100 border border-red-300 text-red-700 rounded-lg text-sm">
+                    Error: {error}
+                </div>
+            )}
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {/* Fields similar to AddActivityForm */}
+                <div className="md:col-span-2">
+                    <InputField label="Activity Title" name="title" value={formData.title} onChange={handleChange} icon={Edit2} />
+                </div>
+                <div className="md:col-span-2">
+                    <InputField label="Description (Optional)" name="description" type="textarea" value={formData.description || ''} onChange={handleChange} icon={MessageSquare} required={false} />
+                </div>
+                <InputField label="Responsible Persons" name="responsiblePersons" value={formData.responsiblePersons} onChange={handleChange} icon={User} />
+                <SelectField label="Activity Type" name="activityType" value={formData.activeType} onChange={handleChange as React.ChangeEventHandler<HTMLSelectElement>} options={activityTypes} icon={Zap} />
+                <InputField label="Due Date" name="dueDate" type="date" value={formData.dueDate} onChange={handleChange} icon={Calendar} />
+                <SelectField label="Current Status" name="status" value={formData.status} onChange={handleChange as React.ChangeEventHandler<HTMLSelectElement>} options={activityStatuses} icon={CheckCircle} />
+                {/* Additional fields (completedAt, resourceDetails, etc.) can be added here */}
+            </div>
+
+            <div className="mt-6 flex justify-end space-x-3">
+                <button type="button" onClick={onCancel} disabled={isLoading} className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-xl hover:bg-gray-200 transition ring-1 ring-gray-300 disabled:opacity-50">
+                    Cancel
+                </button>
+                <button type="submit" disabled={isLoading} className="px-4 py-2 text-sm font-medium text-white bg-yellow-600 rounded-xl shadow-lg hover:bg-yellow-700 transition transform hover:scale-[1.01] active:scale-95 flex items-center disabled:opacity-50">
+                    {isLoading ? 
+                        (<>Saving...</>) : 
+                        (<>Save Changes</>)
+                    }
+                </button>
+            </div>
+        </form>
+    );
+}
 
  function ContractDetailView({ contract: initialContract }: ContractDetailProps) {
      const [contract, setContract] = useState<ContractModel>(initialContract);
@@ -354,6 +426,57 @@
      const [error, setError] = useState<string | null>(null);
      const router = useRouter();
      const [copied, setCopied] = useState(false);//  <-- NEW STATE FOR CLIPBOARD MESSAGE
+
+
+ // NEW STATE: Tracks the ID of the activity currently being edited
+    const [editingActivityId, setEditingActivityId] = useState<string | null>(null); 
+
+    // NEW HANDLER: Function to handle updating an activity (uses PUT/PATCH API)
+    const handleUpdateActivity = async (activityId: string, updatedData: ActivityFormDataType) => {
+        setIsLoading(true);
+        setError(null);
+
+        const payload = {
+            ...updatedData,
+            // Ensure status and type are uppercase for Prisma Enum matching
+            activityType: updatedData.activeType.toUpperCase(),
+            status: updatedData.status.toUpperCase(),
+        };
+
+        try {
+            // Use PUT or PATCH method targeting the specific activity ID
+            const response = await fetch(`/api/contracts/activity/${activityId}`, {
+                method: 'PUT', // Assuming PUT for a full replacement or PATCH if only updating fields
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload),
+            });
+
+            const result = await response.json();
+
+            if (!response.ok) {
+                setError(result.message || 'Failed to update contract activity.');
+                return;
+            }
+
+            const updatedActivity: ContractActivityModel = result;
+            
+            // SUCCESS: Update the local state
+            setContract(prevContract => ({
+                ...prevContract,
+                // contractActivityModels: prevContract.contractActivityModels.map(activity =>
+                //     activity.id === activityId ? updatedActivity : activity
+                // ),
+            }));
+
+            setEditingActivityId(null); // Close the edit form
+
+        } catch (e) {
+            console.error('Network or Parse Error:', e);
+            setError('A network error occurred during update. Please try again.');
+        } finally {
+            setIsLoading(false);
+        }
+    };
      //NEW FUNCTION: Handle copying the current URL to the clipboard
      const copyToClipboard = () => {
          if (typeof window !== 'undefined') {
@@ -604,44 +727,76 @@
 
                      <ul className="divide-y divide-gray-200">
                          {contract.contractActivityModels && contract.contractActivityModels.length > 0 ? (
-                             contract.contractActivityModels.map((activity, index) => (
-                                 <li key={activity.id} className="p-4 sm:p-6 hover:bg-gray-50 transition border-b border-gray-100 last:border-b-0">
-                                    <div className="flex flex-col sm:flex-row justify-between items-start">
-                                         <p className="font-bold text-lg text-gray-900 leading-snug">
-                                             {index+1}. {activity.title}
-                                         </p>
-                                         {/* Status badge: Added responsive text size classes */}
-                                         <span className={`${getStatusClasses(activity.status)} mt-2 sm:mt-0 ml-auto sm:ml-0 text-xs sm:text-sm`}>
-                                             {activity.status.replace('_', ' ')}
-                                         </span>
-                                     </div>
-                                     <div className="text-sm text-gray-600 mt-2 flex flex-col sm:flex-row sm:space-x-4">
-                                         <span className="flex items-center">
-                                             <Zap className="w-3 h-3 mr-1 text-indigo-500" />
-                                             <span className="font-semibold text-gray-700">{activity.activeType.replace('_', ' ')}</span>
-                                         </span>
-                                         <span className="flex items-center">
-                                             <Calendar className="w-3 h-3 mr-1 text-indigo-500" />
-                                             Due: {formatDate(activity.dueDate)}
-                                         </span>
-                                         <span className="flex items-center">
-                                             <User className="w-3 h-3 mr-1 text-indigo-500" />
-                                             Responsible: {activity.responsiblePersons || 'N/A'}
-                                         </span>
-                                     </div>
-                                     {activity.description && (
-                                         <p className="mt-2 text-xs italic text-gray-500 max-w-lg">
-                                             Description: {activity.description}
-                                         </p>
-                                     )}
-                                 </li>
-                             ))
+                              contract.contractActivityModels.map((activity, index) => (
+                                <li key={activity.id} className="p-4 sm:p-6 hover:bg-gray-50 transition border-b border-gray-100 last:border-b-0">
+                                    
+                                    {/* CONDITIONAL RENDERING: Show Edit Form or Activity Details */}
+                                    {editingActivityId === activity.id ? (
+                                        // SHOW EDIT FORM
+                                        <EditActivityForm
+                                            activity={activity}
+                                            onUpdate={handleUpdateActivity}
+                                            onCancel={() => setEditingActivityId(null)}
+                                            isLoading={isLoading}
+                                            error={error}
+                                        />
+                                    ) : (
+                                        // SHOW ACTIVITY DETAILS
+                                        <>
+                                            <div className="flex flex-col sm:flex-row justify-between items-start">
+                                                <p className="font-bold text-lg text-gray-900 leading-snug">
+                                                    {index + 1}. {activity.title}
+                                                </p>
+                                                <div className="flex items-center space-x-3 mt-2 sm:mt-0 ml-auto sm:ml-0">
+                                                    {/* NEW EDIT BUTTON */}
+                                                    <button
+                                                        onClick={() => {
+                                                            setEditingActivityId(activity.id);
+                                                            // Hide Add Form if open
+                                                            setIsAddingActivity(false); 
+                                                        }}
+                                                        className="text-sm font-semibold text-gray-500 hover:text-indigo-600 transition"
+                                                    >
+                                                        <Edit2 className="w-4 h-4" />
+                                                    </button>
+                                                    {/* Status badge */}
+                                                    <span className={`${getStatusClasses(activity.status)} text-xs sm:text-sm`}>
+                                                        {activity.status.replace('_', ' ')}
+                                                    </span>
+                                                </div>
+                                            </div>
+                                            <div className="text-sm text-gray-600 mt-2 flex flex-col sm:flex-row sm:space-x-4">
+                                                <span className="flex items-center">
+                                                    <Zap className="w-3 h-3 mr-1 text-indigo-500" />
+                                                    <span className="font-semibold text-gray-700">{activity.activeType.replace('_', ' ')}</span>
+                                                </span>
+                                                <span className="flex items-center">
+                                                    <Calendar className="w-3 h-3 mr-1 text-indigo-500" />
+                                                    Due: {formatDate(activity.dueDate)}
+                                                </span>
+                                                <span className="flex items-center">
+                                                    <User className="w-3 h-3 mr-1 text-indigo-500" />
+                                                    Responsible: {activity.responsiblePersons || 'N/A'}
+                                                </span>
+                                            </div>
+                                            {activity.description && (
+                                                <p className="mt-2 text-xs italic text-gray-500 max-w-lg">
+                                                    Description: {activity.description}
+                                                </p>
+                                            )}
+                                        </>
+                                    )}
+                                </li>
+                            ))
                          ) : (
                              <li className="p-6 text-gray-500 text-center bg-gray-50">
                                  No compliance or management activities recorded for this contract. Click Add Activity to create one.
                              </li>
                          )}
                      </ul>
+
+
+
                  </div>
              )}
          </div>

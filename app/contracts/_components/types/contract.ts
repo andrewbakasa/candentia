@@ -123,4 +123,10 @@ export interface ContractListModel {
   annualRevenueUsd: number | null;
   updatedAt: string;
   description:string
+  
+  // 🏆 ADD THIS FIELD 🏆
+  _count: {
+    contractActivityModels: number;
+  };
+
 }
