@@ -62,7 +62,46 @@ const StrategyClient: React.FC<StrategyClientProps> = ({
     // 1. Voting Logic
     const handleVote = async (strategyId: string, voteType: 'YES' | 'NO') => {
         // Simulate API call delay
-        await new Promise(resolve => setTimeout(resolve, 800));
+         const payload = {
+                voterId: currentUser?.id, // Mandatory check for the API
+                voteType: voteType,
+            };
+         try {
+                    const response = await fetch(`/api/strategies/${strategyId}/vote`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(payload),
+                    });
+
+                    if (!response.ok) {
+                        // Attempt to read JSON error message
+                        let errorDetail = response.statusText;
+                        try {
+                            const errorBody = await response.json();
+                            errorDetail = errorBody.message || errorDetail;
+                        } catch (e) {
+                            // Ignore if not JSON
+                        }
+                        
+                        
+                    } else {
+                        // Success path
+                        const result = await response.json();
+                        //toast.success(`Your "${voteType}" vote for "${result.title}" was recorded!`);
+                        
+                        // NOTE: In a production app, you would dispatch a state update here 
+                        // to refresh the strategies list, or ideally, the parent component 
+                        // handles re-fetching or listens to a real-time update.
+                        // For this example, we rely on the parent component's data fetching.
+                   //     break; // Exit loop on success
+                    }
+                } catch (error) {
+                    
+                        throw error; // Re-throw last error to be caught by the outer catch
+                   
+                    
+                   
+                }
         
         setStrategies(prevStrategies => 
             prevStrategies.map(s => {
