@@ -58,7 +58,7 @@ const StrategyDashboardList: React.FC<StrategyListProps> = ({ strategies, curren
             const statusMatch = activeFilters.status === 'ALL' || strategy.status === activeFilters.status;
 
             // 2. Year Filter
-            const yearMatch = activeFilters.year === 'ALL' || strategy.year === activeFilters.year;
+            const yearMatch = activeFilters.year === 'ALL' || String(strategy.year) === activeFilters.year;
 
             // 3. Minimum Score Filter
             const minScore = activeFilters.minScore;

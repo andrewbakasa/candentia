@@ -1,6 +1,6 @@
 'use client'
 import { AlertTriangle, Plus, Zap } from "lucide-react";
-import StrategyCard, { StrategyWithRBM } from "../strategy/_components/StrategyCard";
+import StrategyCard , { StrategyWithRBM } from "../strategy/_components/StrategyCard";
 import { useMemo, useState } from "react";
 import StrategyForm from "../strategy/_components/StrategyForm";
 import { toast, Toaster } from "sonner";
@@ -22,7 +22,15 @@ interface StrategyGoal { id: string; title: string; targetYear: number; }
 //     goals: StrategyGoal[];
 // }
 interface Filters { status: string; year: string; minScore: number | null; }
-
+// interface StrategyWithRBM {
+//     id: string;
+//     title: string;
+//     content: string;
+//     year: string;
+//     status: string; // Note: This is a generic string in the external interface
+//     goals: StrategyGoal[];
+//     authorId: string;
+// }
 const ProposalStatus = {
     DRAFT: 'DRAFT',
     PENDING_REVIEW: 'PENDING_REVIEW',
@@ -108,7 +116,7 @@ const StrategyClient: React.FC<StrategyClientProps> = ({
             const statusMatch = currentFilters.status === 'ALL' || strategy.status === currentFilters.status;
 
             // Filter by year
-            const yearMatch = currentFilters.year === 'ALL' || strategy.year === currentFilters.year;
+            const yearMatch = currentFilters.year === 'ALL' || String(strategy.year) === currentFilters.year;
 
             // Filter by minimum score
             const minScore = currentFilters.minScore;
@@ -140,7 +148,7 @@ const StrategyClient: React.FC<StrategyClientProps> = ({
                     Strategy Proposals
                 </h1>
                 <p className="text-gray-600 mt-2">
-                    Review, filter, and vote on current proposals. You are logged in as **{currentUser?.name || mockAuthorId}**.
+                    Review, filter, and vote on current proposals. You are logged in as <span className="text-red-500 text-bold">{currentUser?.name || mockAuthorId}</span>
                 </p>
             </header>
 
