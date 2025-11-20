@@ -40,8 +40,8 @@ export default function VotingSection({ strategyId, onVote }: VotingSectionProps
 
     try {
       await onVote(type);
-      console.log(`Submitted ${type} vote for strategy ${strategyId}`);
-      setMessage({ text: `Your ${type} vote has been successfully recorded. Thank you!`, type: 'success' });
+     // console.log(`Submitted ${type} vote for strategy ${strategyId}`);
+      //setMessage({ text: `Your ${type} vote has been successfully recorded. Thank you!`, type: 'success' });
     } catch (error) {
       console.error('Voting failed:', error);
       const errorMessage = error instanceof Error ? error.message : 'An unknown error occurred during voting.';

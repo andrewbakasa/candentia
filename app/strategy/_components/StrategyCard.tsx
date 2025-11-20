@@ -45,7 +45,8 @@ const ProposalStatus = {
 interface StrategyCardProps {
     strategy: StrategyWithRBM;
     currentUser: SafeUser | null;
-    onVote: (strategyId: string, type: 'YES' | 'NO') => void; 
+   // onVote: (strategyId: string, type: 'YES' | 'NO') => void; 
+     onVote: (strategyId: string, type: 'YES' | 'NO') => Promise<void>; 
     onStrategyClick: (strategy: StrategyWithRBM) => void;
 }
 
@@ -69,6 +70,7 @@ const StatusBadge: React.FC<{ status: string }> = ({ status }) => (
 export default function StrategyCard({ strategy, currentUser, onVote, onStrategyClick }: StrategyCardProps) {
 
     const isVotingOpen = strategy.status === ProposalStatus.VOTING_OPEN;
+    console.log("strategy",strategy)
     const totalVotes = strategy?.votes?.YES + strategy?.votes?.NO;
     const votePercentage = totalVotes > 0 
         ? Math.round((strategy?.votes?.YES / totalVotes) * 100)
@@ -141,10 +143,20 @@ export default function StrategyCard({ strategy, currentUser, onVote, onStrategy
             </div>
 
             {/* Voting Section (only if VOTING_OPEN) */}
-            {isVotingOpen && (
+            {/* {isVotingOpen && (
                 <VotingSection 
                     strategyId={strategy.id} 
                     onVote={async (type) => onVote(strategy.id, type as 'YES' | 'NO')}
+                />
+            )} */}
+
+            {/* Voting Section (only if VOTING_OPEN) */}
+            {/* Voting Section (only if VOTING_OPEN) */}
+            {isVotingOpen && (
+                <VotingSection 
+                    strategyId={strategy.id} 
+                    onVote={(type: 'YES' | 'NO') => onVote(strategy.id, type)}
+                    //isVoting={isVoting} // Pass the loading state down
                 />
             )}
 
