@@ -42,26 +42,31 @@ export async function PUT(
     const { title, content, year, authorId, status, goals } = body; 
     console.log("body", body)
     // Basic Validation
-    if (!title || !content || !year || !authorId || !goals || goals.length === 0 || !status) {
-        return NextResponse.json({ message: 'Missing required fields (title, content, year, authorId, goals, status).' }, { status: 400 });
-    }
+    // if (!title || !content || !year || !authorId || !goals || goals.length === 0 || !status) {
+    //     return NextResponse.json({ message: 'Missing required fields (title, content, year, authorId, goals, status).' }, { status: 400 });
+    // }
 
     // --- Authorization & Edit Check ---
     try {
+        let pas:number=1;
+        console.log("pass",pas)
         const existingStrategy = await prisma.strategy.findUnique({
             where: { id: strategyId },
             select: { authorId: true, status: true },
         });
-
+        pas+=1
+        console.log("pass",pas)
         if (!existingStrategy) {
             return NextResponse.json({ message: 'Strategy not found.' }, { status: 404 });
         }
-
+        pas+=1
+        console.log("pass",pas, existingStrategy.authorId !== authorId)
         // 1. Authorization: Only the author can edit
-        if (existingStrategy.authorId !== authorId) {
-            return NextResponse.json({ message: 'Unauthorized: Only the author can edit this strategy.' }, { status: 403 });
-        }
-
+        // if (existingStrategy.authorId !== authorId) {
+        //     return NextResponse.json({ message: 'Unauthorized: Only the author can edit this strategy.' }, { status: 403 });
+        // }
+ pas+=1
+        console.log("pass",pas)
         // 2. Status Check: Only DRAFTs can be edited, or VOTING_OPEN strategies can be amended.
         const canEditDraft = existingStrategy.status === ProposalStatus.DRAFT;
         const isAmendingVote = existingStrategy.status === ProposalStatus.VOTING_OPEN && status === AMENDED_STATUS_SIGNAL;
@@ -72,7 +77,8 @@ export async function PUT(
                 message: `Cannot edit strategy with status ${existingStrategy.status}. Only DRAFTs can be updated, or a VOTING_OPEN strategy can be amended to status ${AMENDED_STATUS_SIGNAL}.` 
             }, { status: 400 });
         }
-
+ pas+=1
+        console.log("pass",pas)
     } catch (error) {
         console.error('Error during authorization check:', error);
         return NextResponse.json({ message: 'Failed authorization check.' }, { status: 500 });
@@ -81,6 +87,8 @@ export async function PUT(
     // --------------------------------------------------
     // 🏛️ TRANSACTION: Update Strategy and Nested Goals
     // --------------------------------------------------
+      
+        console.log("out")
     try {
         const updatedStrategy = await prisma.$transaction(async (tx) => {
             
@@ -98,7 +106,7 @@ export async function PUT(
                     updatedAt: new Date(),
                 },
             });
-
+           console.log('updated..........',updatedStrategy)
             // 2. Manage Goals (Delete existing, Create/Update new/old)
             
             // Get current goal IDs to identify which ones to delete (old goals not in the new list)

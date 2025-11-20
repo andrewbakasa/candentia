@@ -38,7 +38,7 @@ const StrategyDashboardList: React.FC<StrategyListProps> = ({ strategies, curren
     
     // --- Core API Implementation for Voting ---
     const handleVote = useCallback(async (strategyId: string, voteType: 'YES' | 'NO') => {
-        console.log("i am in...............>")
+        //console.log("i am in...............>")
         if (!currentUser) {
             toast.error("You must be logged in to cast a vote.");
             return;
