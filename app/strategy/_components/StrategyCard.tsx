@@ -22,6 +22,8 @@ export interface StrategyWithRBM {
     authorId: string;
     rbm: { riskLevel: string; impactScore: number }; // Example RBM structure
     averageScore: number | null; // Changed to allow null if scoring is not complete
+    totalVotesYes: number;
+    totalVotesNo: number;
 }
 
 // interface StrategyWithRBM {
@@ -71,7 +73,7 @@ export default function StrategyCard({ strategy, currentUser, onVote, onStrategy
 
     const isVotingOpen = strategy.status === ProposalStatus.VOTING_OPEN;
     console.log("strategy",strategy)
-    const totalVotes = strategy?.votes?.YES + strategy?.votes?.NO;
+    const totalVotes = strategy.totalVotesNo + strategy?.totalVotesYes;
     const votePercentage = totalVotes > 0 
         ? Math.round((strategy?.votes?.YES / totalVotes) * 100)
         : 0;
@@ -125,8 +127,8 @@ export default function StrategyCard({ strategy, currentUser, onVote, onStrategy
                 {totalVotes > 0 && (
                     <div className="mt-4">
                         <div className="flex justify-between text-xs font-semibold mb-1">
-                            <span className="text-green-600">YES ({strategy?.votes?.YES})</span>
-                            <span className="text-red-600">NO ({strategy?.votes?.NO})</span>
+                            <span className="text-green-600">YES ({strategy?.totalVotesYes})</span>
+                            <span className="text-red-600">NO ({strategy?.totalVotesNo})</span>
                         </div>
                         <div className="w-full bg-gray-200 rounded-full h-2.5">
                             <div 

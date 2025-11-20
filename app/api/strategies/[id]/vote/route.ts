@@ -19,7 +19,7 @@ export async function POST(
     // NOTE: voterId must be provided by the client, often from an authenticated session.
     const { voterId, voteType } = await request.json(); 
 
-    console.log("voterId, voteType-------->",voterId, voteType)
+    //console.log("voterId, voteType-------->",voterId, voteType)
 
     if (!voterId || !voteType) {
       return NextResponse.json(
