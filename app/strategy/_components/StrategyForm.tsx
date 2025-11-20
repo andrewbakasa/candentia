@@ -1,3 +1,4 @@
+'use client'
 import React, { useState } from 'react';
 import { BookOpen, Flag, Loader2, Plus, Save, Trash2, AlertTriangle, ArrowLeft } from 'lucide-react';
 import { toast, Toaster } from 'sonner';
