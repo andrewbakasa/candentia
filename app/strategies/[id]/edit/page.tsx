@@ -1,42 +1,155 @@
 // app/strategies/[id]/edit/page.tsx
 
-import getCurrentUser from "@/app/actions/getCurrentUser";
+import prisma from "@/app/libs/prismadb"; // Using the user's import path for Prisma
+import getCurrentUser from "@/app/actions/getCurrentUser"; // Assuming this path is correct
+import Container from "@/app/components/Container"; 
+import { notFound } from 'next/navigation';
 import StrategyForm from "@/app/strategy/_components/StrategyForm";
-// Dedicated function to call the API
-async function getStrategyToEdit(id: string) {
-    // const res = await fetch(`/api/strategies/${id}`, {
-    //     cache: 'no-store', // Essential to ensure we don't serve stale data for editing
-    // });
- const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000';
-  const res = await fetch(`${baseUrl}/api/strategies/${id}`, {
-    cache: 'no-store', // Use 'no-store' for dynamic data
-  });
 
-    if (!res.ok) {
-        // If the strategy isn't found or API fails, throw an error to trigger Next.js error boundary
-        throw new Error(`Failed to load strategy ${id} for editing: ${res.statusText}`);
-    }
-
-    return res.json();
+interface IParams {
+  id?: string;
 }
 
-export default async function EditStrategyPage({ params }: { params: { id: string } }) {
-    
-    // 🧭 Step 1: Call the new API to fetch the real data
-    const strategyToEdit = await getStrategyToEdit(params.id); 
-    console.log("strategyToEdit",strategyToEdit)
-    const currentUser= await getCurrentUser()
+// Next.js Server Component for fetching contract data
+const StrategyPage = async ({ params }: { params: IParams }) => {
+  // 1. Fetch User (needed for client component permissions/context)
+  const currentUser = await getCurrentUser(); 
+  let strategyToEdit
+  const strategyId = params.id;
+  // Basic check for missing ID
+  if (!strategyId) {
+      notFound();
+  }
 
-    // NOTE: In a real app, the authorId would come from a session/currentUser check.
-    //const MOCK_AUTHOR_ID = 'user_team_member_alpha'; 
+  try {  
+
+  
+    strategyToEdit = await prisma.strategy.findUnique({
+      where: { id: strategyId },
+      include: {
+        author: true, // Include the author data
+        goals: {
+          include: {
+            outcomes: {
+              include: {
+                outputs: true,
+              },
+            },
+          },
+        },
+      },
+    });
+     
+
+  } catch (error) {
+    console.error(`[CONTRACT_PAGE_ERROR] Database error for ID ${strategyId}:`, error);
+    // 'contract' remains null if the fetch failed.
+  }
+
+  // --- 3. NOT FOUND CHECK ---
+  if (!strategyToEdit) {
+    // Renders the structured not found UI
+    return (
+      <Container>
+        <div className="text-center py-20">
+          <h2 className="text-3xl font-bold text-gray-900">No Strategy Found</h2>
+          <p className="text-gray-500 mt-2">The strategy you are looking for does not exist or is unavailable.</p>
+        </div>
+      </Container>
+    );
+  }
+
+
 
     return (
         <div className="max-w-4xl mx-auto py-10">
             {/* StrategyForm receives the real, hydrated data */}
             <StrategyForm 
                 initialStrategy={strategyToEdit} 
-                authorId={currentUser?.id|| ""} 
+                authorId={currentUser?.id || ""} 
             />
         </div>
     );
-}
+    // </Container>
+//   );
+};
+
+export default StrategyPage;
+
+
+// import getCurrentUser from "@/app/actions/getCurrentUser";
+// import StrategyForm from "@/app/strategy/_components/StrategyForm";
+
+// // Dedicated function to call the internal API using a relative path.
+// // When running on the server, Next.js automatically resolves the host.
+// async function getStrategyToEdit(id: string) {
+    
+//     // Removed the dependency on process.env.NEXT_PUBLIC_BASE_URL.
+//     // We now use the relative path directly to call the internal API Route Handler.
+//     const res = await fetch(`/api/strategies/${id}`, {
+//       cache: 'no-store', // Use 'no-store' for dynamic data
+//     });
+
+//     if (!res.ok) {
+//         // If the strategy isn't found or API fails, throw an error to trigger Next.js error boundary
+//         throw new Error(`Failed to load strategy ${id} for editing: ${res.statusText}`);
+//     }
+
+//     return res.json();
+// }
+
+// export default async function EditStrategyPage({ params }: { params: { id: string } }) {
+    
+//     // 🧭 Step 1: Call the new API to fetch the real data
+//     const strategyToEdit = await getStrategyToEdit(params.id); 
+    
+//     // Fetch the current authenticated user (assuming getCurrentUser is a server function)
+//     const currentUser = await getCurrentUser()
+
+//     return (
+//         <div className="max-w-4xl mx-auto py-10">
+//             {/* StrategyForm receives the real, hydrated data */}
+//             <StrategyForm 
+//                 initialStrategy={strategyToEdit} 
+//                 authorId={currentUser?.id || ""} 
+//             />
+//         </div>
+//     );
+// }
+// // app/strategies/[id]/edit/page.tsx
+
+// import getCurrentUser from "@/app/actions/getCurrentUser";
+// import StrategyForm from "@/app/strategy/_components/StrategyForm";
+// // Dedicated function to call the API
+// async function getStrategyToEdit(id: string) {
+    
+//  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000';
+//   const res = await fetch(`${baseUrl}/api/strategies/${id}`, {
+//     cache: 'no-store', // Use 'no-store' for dynamic data
+//   });
+
+//     if (!res.ok) {
+//         // If the strategy isn't found or API fails, throw an error to trigger Next.js error boundary
+//         throw new Error(`Failed to load strategy ${id} for editing: ${res.statusText}`);
+//     }
+
+//     return res.json();
+// }
+
+// export default async function EditStrategyPage({ params }: { params: { id: string } }) {
+    
+//     // 🧭 Step 1: Call the new API to fetch the real data
+//     const strategyToEdit = await getStrategyToEdit(params.id); 
+//     console.log("strategyToEdit",strategyToEdit)
+//     const currentUser= await getCurrentUser()
+
+//     return (
+//         <div className="max-w-4xl mx-auto py-10">
+//             {/* StrategyForm receives the real, hydrated data */}
+//             <StrategyForm 
+//                 initialStrategy={strategyToEdit} 
+//                 authorId={currentUser?.id|| ""} 
+//             />
+//         </div>
+//     );
+// }

@@ -161,12 +161,12 @@ export default function StrategyForm({ initialStrategy, authorId }: StrategyForm
       {/* 1. Strategy Core Fields */}
       <div className="space-y-6 mb-8 p-4 sm:p-6 border border-gray-200 rounded-lg bg-gray-50 shadow-inner">
         <h3 className="text-xl sm:text-2xl font-semibold text-gray-800 flex items-center gap-2">
-            <BookOpen className="w-5 h-5 text-gray-600"/> 1. Core Proposal Details
+            <BookOpen className="w-5 h-5 text-gray-600"/> 1. Core Strategy Details
         </h3>
         
         {/* Input: Title */}
         <div>
-          <label htmlFor="title" className="block text-sm font-bold text-gray-700 mb-1">Proposal Title</label>
+          <label htmlFor="title" className="block text-sm font-bold text-gray-700 mb-1">Strategy Title</label>
           <input
             type="text"
             id="title"
@@ -180,7 +180,7 @@ export default function StrategyForm({ initialStrategy, authorId }: StrategyForm
 
         {/* Input: Content */}
         <div>
-          <label htmlFor="content" className="block text-sm font-bold text-gray-700 mb-1">Detailed Content & Analysis</label>
+          <label htmlFor="content" className="block text-sm font-bold text-gray-700 mb-1">Strategy Content & Analysis</label>
           <textarea
             id="content"
             name="content"
