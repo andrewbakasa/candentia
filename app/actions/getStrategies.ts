@@ -15,6 +15,7 @@ export default async function getStrategies() {
      const strategies = await prisma.strategy.findMany({
       include: {
         author: true,
+        votes: true, // <-- CORRECTED: Include the 'votes' relationship
         goals: {
           include: {
             outcomes: {

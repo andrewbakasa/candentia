@@ -14,7 +14,7 @@ interface IParams {
 const StrategyPage = async ({ params }: { params: IParams }) => {
   // 1. Fetch User (needed for client component permissions/context)
   const currentUser = await getCurrentUser(); 
-  let strategyToEdit
+  let strategyToEdit:any
   const strategyId = params.id;
   // Basic check for missing ID
   if (!strategyId) {
@@ -65,9 +65,14 @@ const StrategyPage = async ({ params }: { params: IParams }) => {
         <div className="max-w-4xl mx-auto py-10">
             {/* StrategyForm receives the real, hydrated data */}
             <StrategyForm 
-                initialStrategy={strategyToEdit} 
+                initialStrategy={strategyToEdit}
                 authorId={currentUser?.id || ""} 
-            />
+                onSave={function (data: any): void {
+                    throw new Error("Function not implemented.");
+                } } onCancel={function (): void {
+                    throw new Error("Function not implemented.");
+                } }            
+                />
         </div>
     );
     // </Container>
