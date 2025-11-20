@@ -60,6 +60,12 @@ model User {
   businessProjectModels BusinessProjectModel[]
 
   contractModels ContractModel[] @relation("OwnedContracts")
+
+  strategies Strategy[]
+
+  strategyComments StrategyComment[]
+
+  strategyVotes StrategyVote[]
 }
 
 
@@ -696,4 +702,212 @@ model ContractActivityModel {
 
   // --- Source/Outcome Notes ---
   outcomeNotes        String?          @db.String // Summary of the outcome or what was agreed upon
+}
+
+
+// ----------------------------------------------------
+// ENUMS (Status, Roles, Scores)
+// ----------------------------------------------------
+
+// Defines the standardized scoring scale
+enum ScoreValue {
+  LOW
+  MEDIUM
+  HIGH
+}
+
+// Defines the status of a proposal (Milestones M1, M2, M3)
+enum ProposalStatus {
+  DRAFT          // M1.1: Concept Submission (Editable)
+  REVIEW_PENDING   // M1.2: Leadership Review
+  COMMENT_OPEN     // M1.3: Collaborative Input
+  VOTING_OPEN      // M2.2: Voting Opens
+  VOTING_CLOSED    // M2.4: Voting Closes & Tally
+  APPROVED       // M3.2: Formal Decision Communication
+  REJECTED       // M3.2: Formal Decision Communication
+}
+
+// Defines the possible vote outcomes
+enum VoteType {
+  YES
+  NO
+  ABSTAIN
+}
+
+// Defines user roles based on Guideline 1 of 2025
+enum UserRole {
+  SHAREHOLDER       // Can vote on final proposals (M2.2)
+  EXECUTIVE_COMMITTEE // Reviews proposals (M1.2, M3.1)
+  TEAM_MEMBER       // Can submit proposals and provide comments
+}
+
+// ----------------------------------------------------
+// 2. STRATEGY (PROPOSAL) & STAGE MANAGEMENT
+// ----------------------------------------------------
+
+model Strategy {
+  id                    String             @id @default(auto()) @map("_id") @db.ObjectId
+  title                 String
+  content               String          // Detailed analysis, financials, operations, etc.
+  year                  String?         // Added the 'year' field from your updated model
+  status                ProposalStatus   @default(DRAFT)
+  submissionDate        DateTime         @default(now())
+  updatedAt             DateTime         @updatedAt
+
+  // Voting period details
+  votingStart           DateTime?
+  votingEnd             DateTime?
+
+  // Results
+  totalVotesYes         Int              @default(0)
+  totalVotesNo          Int              @default(0)
+  averageStrategicScore Float?          // Calculated score based on StrategicAttributes and Criteria weights
+
+  // Relationships
+  authorId              String           @db.ObjectId
+  author                User             @relation(fields: [authorId], references: [id])
+  comments              StrategyComment[]
+  votes                 StrategyVote[]
+  strategicAttributes   StrategicAttribute[]
+  goals                 StrategyGoal[]    // RBM Relationship: One Strategy can have multiple Goals
+
+  @@index([authorId])
+  @@index([status]) // Optimize lookup by status
+}
+
+// ----------------------------------------------------
+// RBM MODELS (Goal, Outcome, Output)
+// These models implement the RBM results chain: Strategy -> Goal -> Outcome -> Output
+// ----------------------------------------------------
+
+// 1. StrategyGoal (Long-Term/High-Level Impact)
+model StrategyGoal {
+  id              String            @id @default(auto()) @map("_id") @db.ObjectId
+  title           String            // e.g., "Achieve significant market share in the B2G sector"
+  description     String?
+  targetYear      Int               // e.g., 2027
+
+  // Relationship to the Strategy
+  strategyId      String            @db.ObjectId
+  strategy        Strategy          @relation(fields: [strategyId], references: [id])
+
+  // RBM Relationship: One Goal can have multiple Outcomes
+  outcomes        StrategyOutcome[]
+
+  @@index([strategyId])
+}
+
+// 2. StrategyOutcome (Medium-Term/Behavioral Change or Effect)
+model StrategyOutcome {
+  id              String           @id @default(auto()) @map("_id") @db.ObjectId
+  title           String           // e.g., "Improve supplier relationship and perception"
+  description     String?
+  kpi             String?          // Key Performance Indicator (KPI) to track success, e.g., "Number of unsolicited RFQs received per quarter"
+
+  // Relationship to the Goal
+  goalId          String           @db.ObjectId
+  goal            StrategyGoal     @relation(fields: [goalId], references: [id])
+
+  // RBM Relationship: One Outcome is achieved through multiple Outputs
+  outputs         StrategyOutput[]
+
+  @@index([goalId])
+}
+
+// 3. StrategyOutput (Short-Term/Tangible Deliverable)
+model StrategyOutput {
+  id              String           @id @default(auto()) @map("_id") @db.ObjectId
+  title           String           // e.g., "NRZ Vendor Registration Complete"
+  description     String?
+  responsible     String?          // Name or ID of the person responsible for this specific output
+  costEstimate    Float?
+  isCompleted     Boolean          @default(false)
+
+  // Relationship to the Outcome
+  outcomeId       String           @db.ObjectId
+  outcome         StrategyOutcome  @relation(fields: [outcomeId], references: [id])
+
+  // activities    StrategyActivity[] // New model if you want to track activities granularly
+
+  @@index([outcomeId])
+}
+
+// ----------------------------------------------------
+// SUPPORT MODELS (Comments, Votes, Criteria)
+// ----------------------------------------------------
+
+// 3. COMMENTS AND SUGGESTIONS (M1.3)
+model StrategyComment {
+  id              String   @id @default(auto()) @map("_id") @db.ObjectId
+  content         String
+  createdAt       DateTime @default(now())
+  likesCount      Int      @default(0)
+
+  // Foreign Keys
+  proposalId      String   @db.ObjectId
+  authorId        String   @db.ObjectId
+
+  // Relationships
+  proposal        Strategy @relation(fields: [proposalId], references: [id])
+  author          User     @relation(fields: [authorId], references: [id])
+
+  @@index([proposalId])
+  @@index([authorId])
+}
+
+// 4. VOTING MECHANISM (M2.2)
+model StrategyVote {
+  id              String   @id @default(auto()) @map("_id") @db.ObjectId
+  type            VoteType
+  timestamp       DateTime @default(now())
+
+  // Foreign Keys
+  voterId         String   @db.ObjectId
+  proposalId      String   @db.ObjectId
+
+  // Relationships
+  voter           User     @relation(fields: [voterId], references: [id])
+  proposal        Strategy @relation(fields: [proposalId], references: [id])
+
+  // Ensures a user can only vote once per proposal
+  @@unique([voterId, proposalId])
+  @@index([proposalId])
+}
+
+// 5. STRATEGIC CRITERIA & EVALUATION
+
+// Model for the criteria themselves (e.g., Financial Performance, Risk)
+// Allows for dynamic criteria management and weighting
+model StrategyCriterion {
+  id                    String               @id @default(auto()) @map("_id") @db.ObjectId
+  name                  String               @unique // e.g., "Financial Performance"
+  description           String?              // Guidance on evaluation
+  weight                Int                  @default(1) // Allows for weighted scoring (e.g., Financials weight 3)
+
+  // Relationship to link to the evaluations
+  strategicAttributes   StrategicAttribute[]
+}
+
+// Model for the actual evaluation score of a proposal against a criterion
+model StrategicAttribute {
+  id                    String               @id @default(auto()) @map("_id") @db.ObjectId
+
+  // Link to the Criterion
+  criterionId            String   @db.ObjectId
+  criterion             StrategyCriterion    @relation(fields: [criterionId], references: [id])
+
+  scoreValue            ScoreValue          // The score given (e.g., HIGH)
+  justification         String              // Detailed comments or justification for the score
+
+  // Who performed the evaluation?
+  evaluatorId           String?             // This could link back to User.id for audit purposes
+
+  // Link to the Proposal
+  proposalId             String   @db.ObjectId
+  proposal              Strategy             @relation(fields: [proposalId], references: [id])
+
+  // Ensures only one score for a specific criterion on a specific proposal
+  @@unique([proposalId, criterionId])
+  @@index([proposalId])
+  @@index([criterionId])
 }
