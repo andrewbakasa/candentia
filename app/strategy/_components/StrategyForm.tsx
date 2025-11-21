@@ -341,8 +341,8 @@ export default function StrategyForm({ initialStrategy, authorId, onSave, onCanc
         
         // Default initial state
         return {
-            title: '',
-            content: '',
+            title: 'title',
+            content: 'content',
             year: new Date().getFullYear().toString(),
             status: ProposalStatus.DRAFT, 
             goals: [getEmptyGoal()], // Start with one complete nested goal
