@@ -93,15 +93,15 @@ const getStatusBadge = (status: string | undefined) => {
 
 const getEmptyOutput = (): StrategyOutputForm => ({
     tempId: crypto.randomUUID(),
-    title: "",
-    responsible: "",
+    title: "Output title",
+    responsible: "Responsible person",
     isCompleted: false,
 });
 
 const getEmptyOutcome = (): StrategyOutcomeForm => ({
     tempId: crypto.randomUUID(),
-    title: "",
-    kpi: "",
+    title: "Outcome Title",
+    kpi: "kpi details",
     outputs: [getEmptyOutput()]
 });
 
