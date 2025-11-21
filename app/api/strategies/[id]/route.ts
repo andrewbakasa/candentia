@@ -151,7 +151,7 @@ export async function PUT(
 ) {
     const strategyId = params.id;
     let body: PutBody;
-
+    console.log("her:body ")
     try {
         body = await request.json();
     } catch (error) {
@@ -159,21 +159,22 @@ export async function PUT(
     }
 
     const { title, content, year, authorId, status, goals } = body; 
-    
+    console.log("her:body ", body)
     // --- Authorization & Edit Check (Omitted for brevity, assuming your logic works) ---
     try {
         const existingStrategy = await prisma.strategy.findUnique({
             where: { id: strategyId },
             select: { authorId: true, status: true },
         });
-        
+        console.log("her:existingStrategy ", existingStrategy)
         if (!existingStrategy) {
             return NextResponse.json({ message: 'Strategy not found.' }, { status: 404 });
         }
         
         const canEditDraft = existingStrategy.status === ProposalStatus.DRAFT;
         const isAmendingVote = existingStrategy.status === ProposalStatus.VOTING_OPEN && status === AMENDED_STATUS_SIGNAL;
-
+        
+        console.log("her:check here  ", (!canEditDraft && !isAmendingVote))
         if (!canEditDraft && !isAmendingVote) {
             return NextResponse.json({ 
                 message: `Cannot edit strategy with status ${existingStrategy.status}. Only DRAFTs can be updated, or a VOTING_OPEN strategy can be amended to status ${AMENDED_STATUS_SIGNAL}.` 
@@ -273,7 +274,7 @@ export async function PUT(
             
             return finalStrategy; // Return the fully populated object
         });
-
+       console.log("back end return:", updatedStrategyWithRBM)
         // Send the fully updated object (including goals, outcomes, and outputs) to the client
         return NextResponse.json(updatedStrategyWithRBM);
 

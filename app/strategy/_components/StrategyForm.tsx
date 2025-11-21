@@ -2,7 +2,7 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { BookOpen, Flag, Loader2, Plus, Save, Trash2, AlertTriangle, ArrowLeft } from 'lucide-react';
 import { toast, Toaster } from 'sonner';
-import { StrategyWithRBM } from './StrategyCard'; 
+//import { StrategyWithRBM } from './StrategyCard'; 
 
 interface SafeUser {
     id: string;
@@ -30,6 +30,22 @@ interface StrategyGoal {
     title: string;
     targetYear: number;
     outcomes: StrategyOutcome[]; // Added outcomes array
+}
+export interface StrategyWithRBM {
+    id: string;
+    title: string;
+    content: string;
+    year: string;
+    status: string;//'DRAFT' | 'PENDING_REVIEW' | 'VOTING_OPEN' | 'APPROVED' | 'REJECTED';
+    score: number | null;
+    //goals: any[];
+    goals: StrategyGoal[]; // ⬅️ Must be present
+    votes: { YES: number; NO: number };
+    authorId: string;
+    rbm: { riskLevel: string; impactScore: number }; // Example RBM structure
+    averageScore: number | null; // Changed to allow null if scoring is not complete
+    totalVotesYes: number;
+    totalVotesNo: number;
 }
 
 // Updated StrategyWithRBM structure (using the full Goal type)

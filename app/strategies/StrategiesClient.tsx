@@ -74,6 +74,8 @@ const StrategyClient: React.FC<StrategyClientProps> = ({
 
             // Success Path: Use the returned data for an accurate state update.
             const result: StrategyWithRBM = await response.json(); 
+
+            console.log("result:",result)
             
             // FIX: Update the state using the full, fresh data from the server.
             setStrategies(prevStrategies => 

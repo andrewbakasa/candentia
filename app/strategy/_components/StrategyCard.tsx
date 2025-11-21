@@ -45,15 +45,7 @@ export interface StrategyWithRBM {
     totalVotesNo: number;
 }
 
-// interface StrategyWithRBM {
-//     id: string;
-//     title: string;
-//     content: string;
-//     year: string;//|number;
-//     status: string; // Note: This is a generic string in the external interface
-//     goals: StrategyGoal[];
-//     authorId: string;
-// }
+
 
 const ProposalStatus = {
     DRAFT: 'DRAFT',
@@ -85,7 +77,7 @@ const getStatusColor = (status: string) => {
 
 const StatusBadge: React.FC<{ status: string }> = ({ status }) => ( 
     <span className={`inline-flex items-center px-3 py-1 text-xs font-semibold rounded-full border ${getStatusColor(status)}`}>
-        {status.replace('_', ' ')}
+        {status?.replace('_', ' ')}
     </span>
 );
 
