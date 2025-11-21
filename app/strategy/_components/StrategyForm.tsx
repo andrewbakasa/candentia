@@ -123,7 +123,7 @@ const getEmptyOutcome = (): StrategyOutcomeForm => ({
 
 const getEmptyGoal = (): StrategyGoalForm => ({
     tempId: crypto.randomUUID(),
-    title: "Enter your strategic goal here (Goal).",
+    title: "",
     targetYear: new Date().getFullYear() + 2,
     outcomes: [getEmptyOutcome()]
 });
@@ -358,8 +358,8 @@ export default function StrategyForm({ initialStrategy, authorId, onSave, onCanc
         
         // Default initial state
         return {
-            title: 'title',
-            content: 'content',
+            title: '',
+            content: '',
             year: new Date().getFullYear().toString(),
             status: ProposalStatus.DRAFT, 
             goals: [getEmptyGoal()], // Start with one complete nested goal
@@ -688,6 +688,7 @@ export default function StrategyForm({ initialStrategy, authorId, onSave, onCanc
                         id="title"
                         name="title"
                         value={formData.title}
+                        placeholder='Enter your strategic title here.'
                         onChange={handleStrategyChange}
                         required
                         disabled={isLoading || !isReady}
@@ -701,6 +702,7 @@ export default function StrategyForm({ initialStrategy, authorId, onSave, onCanc
                     <textarea
                         id="content"
                         name="content"
+                        placeholder='Content here'
                         value={formData.content}
                         onChange={handleStrategyChange}
                         required
@@ -721,6 +723,7 @@ export default function StrategyForm({ initialStrategy, authorId, onSave, onCanc
                             id="year"
                             name="year"
                             value={formData.year}
+                            placeholder='Enter Year 2027'
                             onChange={handleStrategyChange}
                             required
                             disabled={isLoading || !isReady}
@@ -789,6 +792,7 @@ export default function StrategyForm({ initialStrategy, authorId, onSave, onCanc
                                     id={`goal-title-${goal.tempId}`}
                                     name="title"
                                     value={goal.title}
+                                    placeholder='Enter your strategic goal here (Goal).'
                                     onChange={(e) => handleGoalChange(goal.tempId, e)}
                                     required
                                     disabled={isLoading || !isReady}
@@ -802,6 +806,7 @@ export default function StrategyForm({ initialStrategy, authorId, onSave, onCanc
                                     id={`goal-year-${goal.tempId}`}
                                     name="targetYear"
                                     value={goal.targetYear}
+                                    placeholder='Target Year'
                                     onChange={(e) => handleGoalChange(goal.tempId, e)}
                                     required
                                     disabled={isLoading || !isReady}
