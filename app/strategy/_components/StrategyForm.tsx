@@ -185,7 +185,7 @@ const OutcomeEditor: React.FC<OutcomeEditorProps> = React.memo(({
     const isRemoveDisabled = !isRemovable || isDisabled;
 
     return (
-        <div key={outcome.tempId} className="p-4 bg-gray-50 border border-gray-200 rounded-lg space-y-3">
+        <div key={outcome.tempId} className="p-1 sm:p-4 bg-gray-50 border border-gray-200 rounded-lg space-y-3">
             {/* Outcome Header & Remove Button */}
             <div className="flex justify-between items-start mb-2 border-b pb-2 border-gray-100">
                 <h5 className="text-md font-semibold text-gray-700 pt-1">Outcome:</h5>
@@ -643,7 +643,7 @@ export default function StrategyForm({ initialStrategy, authorId, onSave, onCanc
 
 
     return (
-        <form onSubmit={handleSubmit} className="w-full max-w-5xl mx-auto p-4 sm:p-8 bg-white rounded-xl shadow-2xl my-4 sm:my-10 font-sans">
+        <form onSubmit={handleSubmit} className="w-full max-w-5xl mx-auto p-1 sm:p-4 bg-white rounded-xl shadow-2xl my-4 sm:my-10 font-sans">
             <Toaster position="top-right" richColors />
             
             {!isReady && (
@@ -656,7 +656,7 @@ export default function StrategyForm({ initialStrategy, authorId, onSave, onCanc
                 <button onClick={onCancel} type="button" className="inline-flex items-center text-sm font-medium text-indigo-600 hover:text-indigo-800 transition mb-4">
                     <ArrowLeft className="w-4 h-4 mr-1" /> Go back to Strategies List
                 </button>
-                <h2 className="text-3xl sm:text-4xl font-extrabold text-gray-800 border-b pb-4 border-gray-100">
+                <h2 className="text-2xl sm:text-3xl font-extrabold text-gray-800 border-b pb-4 border-gray-100">
                     {mainTitle}
                 </h2>
 
@@ -675,7 +675,7 @@ export default function StrategyForm({ initialStrategy, authorId, onSave, onCanc
             </div>
 
             {/* 1. Strategy Core Fields */}
-            <div className="space-y-6 mb-8 p-4 sm:p-6 border border-gray-200 rounded-lg bg-gray-50 shadow-inner">
+            <div className="space-y-6 mb-8 p-1 sm:p-4 border border-gray-200 rounded-lg bg-gray-50 shadow-inner">
                 <h3 className="text-xl sm:text-2xl font-semibold text-gray-800 flex items-center gap-2">
                     <BookOpen className="w-5 h-5 text-gray-600" /> 1. Core Strategy Details
                 </h3>
@@ -761,7 +761,7 @@ export default function StrategyForm({ initialStrategy, authorId, onSave, onCanc
             </div>
 
             {/* 2. Strategy Goals (RBM) */}
-            <div className="space-y-6 mb-8 p-4 sm:p-6 border border-indigo-300 rounded-lg bg-indigo-50 shadow-lg">
+            <div className="space-y-6 mb-8 p-1 sm:p-4 border border-indigo-300 rounded-lg bg-indigo-50 shadow-lg">
                 <h3 className="text-xl sm:text-2xl font-semibold text-indigo-800 flex items-center gap-2">
                     <Flag className="w-5 h-5" /> 2. RBM Goals, Outcomes, & Outputs
                 </h3>
