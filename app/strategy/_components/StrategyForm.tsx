@@ -93,15 +93,15 @@ const getStatusBadge = (status: string | undefined) => {
 
 const getEmptyOutput = (): StrategyOutputForm => ({
     tempId: crypto.randomUUID(),
-    title: "Output title",
-    responsible: "Responsible person",
+    title: "",
+    responsible: "",
     isCompleted: false,
 });
 
 const getEmptyOutcome = (): StrategyOutcomeForm => ({
     tempId: crypto.randomUUID(),
-    title: "Outcome Title",
-    kpi: "kpi details",
+    title: "",
+    kpi: "",
     outputs: [getEmptyOutput()]
 });
 
@@ -300,7 +300,8 @@ const OutcomeEditor: React.FC<OutcomeEditorProps> = React.memo(({
         </div>
     );
 });
-
+// Add this line after the definition
+OutcomeEditor.displayName = 'OutcomeEditor';
 
 // --- Main StrategyForm Component ---
 
