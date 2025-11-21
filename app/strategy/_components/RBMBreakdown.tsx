@@ -16,7 +16,7 @@ interface StrategyOutcome {
     outputs: StrategyOutput[];
 }
 
-interface StrategyGoal {
+export interface StrategyGoal {
     id: string;
     title: string;
     targetYear: number;

@@ -218,7 +218,7 @@ export default function StrategyForm({ initialStrategy, authorId, onSave, onCanc
         const maxRetries = 3; 
         let strategyId = initialStrategy?.id || '';
 
-        // while (attempt < maxRetries) {
+        
             try {
                 const method = isEditing && strategyId ? 'PUT' : 'POST';
                 const url = isEditing && strategyId 

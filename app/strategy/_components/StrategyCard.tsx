@@ -2,12 +2,12 @@
 
 import { SafeUser } from '@/app/types';
 //import { StrategyWithRBM } from '../types/strategy';
-import RBMBreakdown from './RBMBreakdown';
+import RBMBreakdown, { StrategyGoal } from './RBMBreakdown';
 import VotingSection from './VotingSection';
 import Link from 'next/link'; 
 import { ArrowRight, Flag, Zap } from 'lucide-react';
 import { Toaster } from 'sonner';
-import { StrategyGoal } from '@prisma/client';
+//import { StrategyGoal } from '@prisma/client';
 
 // --- 3. StrategyCard COMPONENT (Your requested component) ---
 export interface StrategyWithRBM {
@@ -17,7 +17,8 @@ export interface StrategyWithRBM {
     year: string;
     status: string;//'DRAFT' | 'PENDING_REVIEW' | 'VOTING_OPEN' | 'APPROVED' | 'REJECTED';
     score: number | null;
-    goals: any[];
+    //goals: any[];
+    goals: StrategyGoal[]; // ⬅️ Must be present
     votes: { YES: number; NO: number };
     authorId: string;
     rbm: { riskLevel: string; impactScore: number }; // Example RBM structure

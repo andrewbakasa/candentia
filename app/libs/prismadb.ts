@@ -1,18 +1,4 @@
-// import { PrismaClient } from "@prisma/client"
 
-// declare global {
-//   var prisma: PrismaClient | undefined
-// }
-
-// let client = globalThis.prisma || new PrismaClient()
-// if (process.env.NODE_ENV !== "production"){
-//    globalThis.prisma = client
-//   }else{
-//   //new connection
-//   globalThis.prisma= client
-// }
-
-// export default client
 
 import { PrismaClient } from '@prisma/client'
 
@@ -33,41 +19,21 @@ export default client
 }
 
 
-// import { PrismaClient } from "@prisma/client";
+// import { PrismaClient } from '@prisma/client';
+// import config from '../prisma/config'; // Import the new configuration
 
+// // Global variable to hold the Prisma Client instance (for development hot-reloading)
 // declare global {
+//   // eslint-disable-next-line no-var
 //   var prisma: PrismaClient | undefined;
 // }
 
-// let client: PrismaClient | undefined;
+// // Create the Prisma client instance, passing the configuration adapter
+// // This is the core change required by Prisma v7
+// const prisma = global.prisma || new PrismaClient({ adapter: config });
 
-// if (process.env.NODE_ENV !== "production") {
-//   client = globalThis.prisma || new PrismaClient();
-//   globalThis.prisma = client;
-// } else {
-//   // Use a singleton pattern to ensure only one connection is created
-//   if (!client) {
-//     client = new PrismaClient();
-//   }
-// }
-
-// export default client;
-
-
-// import { PrismaClient } from '@prisma/client';
-
-
-// declare global {
-//    var prisma: PrismaClient | undefined
-// }
-
-// if (process.env.NODE_ENV === 'production') {
-//   prisma = new PrismaClient({
-//     log: ['error', 'warn'], // Adjust log level as needed
-//   });
-// } else {
-//   prisma = globalThis.prisma || new PrismaClient();
-//   if (!globalThis.prisma) globalThis.prisma = prisma;
+// if (process.env.NODE_ENV !== 'production') {
+//   global.prisma = prisma;
 // }
 
 // export default prisma;

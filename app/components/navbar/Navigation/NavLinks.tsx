@@ -102,10 +102,7 @@ const NavLinks: React.FC<NavLinksProps> = ({ onLinkClick, currentUser, handleNav
       >
         Why Partner With Us
       </a>
-      {/* Careers Link (Kept as is) */}
      
-    
-      {/* Join as Member Link (Kept as is) */}
       <a
         href="/membership#membership"
         onClick={(e) => onNavLinkClick(e, "/membership#membership")}
