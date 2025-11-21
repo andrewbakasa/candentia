@@ -96,15 +96,15 @@ const getStatusBadge = (status: string | undefined) => {
 
 const getEmptyOutput = (): StrategyOutputForm => ({
     tempId: crypto.randomUUID(),
-    title: "Define the specific action required (Output).",
+    title: "",
     responsible: "",
     isCompleted: false,
 });
 
 const getEmptyOutcome = (): StrategyOutcomeForm => ({
     tempId: crypto.randomUUID(),
-    title: "Define the measurable result (Outcome).",
-    kpi: "Key Performance Indicator (KPI)",
+    title: "",
+    kpi: "",
     outputs: [getEmptyOutput()]
 });
 
@@ -195,6 +195,7 @@ const OutcomeEditor: React.FC<OutcomeEditorProps> = React.memo(({
                     <input
                         type="text"
                         name="title"
+                        placeholder='Define Outcome Title'
                         value={outcome.title}
                         onChange={(e) => handleOutcomeChange(goalId, outcome.tempId, e)}
                         required
@@ -209,6 +210,7 @@ const OutcomeEditor: React.FC<OutcomeEditorProps> = React.memo(({
                         type="text"
                         name="kpi"
                         value={outcome.kpi}
+                        placeholder='Define kpi as % e.g. 15%'
                         onChange={(e) => handleOutcomeChange(goalId, outcome.tempId, e)}
                         required
                         disabled={isDisabled}
