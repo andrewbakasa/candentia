@@ -102,7 +102,7 @@ export default function StrategyCard({ strategy, currentUser, onVote, onStrategy
     const isAuthor = currentUser?.id === strategy.authorId; 
     
     return (
-        <div className="bg-white rounded-xl shadow-xl overflow-hidden hover:shadow-2xl transition duration-300 border border-gray-100 p-6 flex flex-col justify-between">
+        <div className="bg-white rounded-xl shadow-xl overflow-hidden hover:shadow-2xl transition duration-300 border border-gray-100 p-1 sm:p6 flex flex-col justify-between">
             <Toaster position="top-right" richColors />
             <div>
                 <div className="flex justify-between items-start mb-3">
