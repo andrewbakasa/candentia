@@ -2,7 +2,7 @@
 import { AlertTriangle, Plus, Zap } from "lucide-react";
 import StrategyCard, { StrategyWithRBM } from "../strategy/_components/StrategyCard";
 import { useMemo, useState } from "react";
-import StrategyForm from "../strategy/_components/StrategyForm";
+import StrategyForm, { StrategyWithRBMFull } from "../strategy/_components/StrategyForm";
 import { toast, Toaster } from "sonner";
 import FilterSidebar from "../strategy/_components/FilterSideBar";
 import { SafeUser } from "../types";
@@ -33,10 +33,10 @@ const StrategyClient: React.FC<StrategyClientProps> = ({
     mockStrategies,
 }) => {
 
-    const [strategies, setStrategies] = useState<StrategyWithRBM[]>(mockStrategies);
+    const [strategies, setStrategies] = useState<StrategyWithRBMFull[]>(mockStrategies);
     const [currentFilters, setCurrentFilters] = useState<Filters>(initialFilters);
     const [view, setView] = useState<'list' | 'form'>('list'); // 'list' or 'form'
-    const [selectedStrategy, setSelectedStrategy] = useState<StrategyWithRBM | null>(null); 
+    const [selectedStrategy, setSelectedStrategy] = useState<StrategyWithRBMFull | null>(null); 
 
     // --- Core Logic Handlers ---
 
@@ -89,7 +89,7 @@ const StrategyClient: React.FC<StrategyClientProps> = ({
     };
 
     // 2. Navigation Handlers
-    const handleStrategyClick = (strategy: StrategyWithRBM) => {
+    const handleStrategyClick = (strategy: StrategyWithRBMFull) => {
         setSelectedStrategy(strategy);
         setView('form');
     };
@@ -100,16 +100,12 @@ const StrategyClient: React.FC<StrategyClientProps> = ({
     };
 
     // 3. Form Save Handler (updates strategies array)
-    const handleSave = (updatedStrategy: StrategyWithRBM) => {
+    const handleSave = (updatedStrategy: StrategyWithRBMFull) => {
         setStrategies(prevStrategies => {
-            const index = prevStrategies.findIndex(s => s.id === updatedStrategy.id);
-            // console.log("All strategies........", prevStrategies)
-            // console.log(`strategies ${index}........`, prevStrategies[index])
-            //  console.log(`updatedStrategy........`, updatedStrategy)
+            const index = prevStrategies.findIndex(s => s.id === updatedStrategy.id);            
             if (index !== -1) {
                 // Case 1: Update existing strategy
-                toast.success(`Proposal "${updatedStrategy.title}" updated.`);
-                
+                toast.success(`Proposal "${updatedStrategy.title}" updated.`);                
                 // ✅ FIX APPLIED HERE: Using updatedStrategy directly should work, 
                 // but we explicitly replace the object to ensure React recognizes the state change.
                 return prevStrategies.map(s => 
@@ -119,7 +115,7 @@ const StrategyClient: React.FC<StrategyClientProps> = ({
                 );
             } else {
                 // Case 2: Add new strategy (mocking PENDING_REVIEW status after creation)
-                const newStrategyWithDefaults: StrategyWithRBM = { 
+                const newStrategyWithDefaults: StrategyWithRBMFull = { 
                     ...updatedStrategy, 
                     // ✅ FIX APPLIED HERE: Ensure goals are explicitly included 
                     // (even though they are in updatedStrategy, this ensures defaults are handled safely).
@@ -214,13 +210,14 @@ const StrategyClient: React.FC<StrategyClientProps> = ({
 
                     <div className="grid grid-cols-1 md:grid-cols-1 xl:grid-cols-1 gap-6">
                         {filteredStrategies.length > 0 ? (
-                            filteredStrategies.map(strategy => (
+                            filteredStrategies.map((strategy, index) => (
                                 <StrategyCard
                                     key={strategy.id}
                                     strategy={strategy}
                                     onStrategyClick={handleStrategyClick}
                                     onVote={handleVote}
                                     currentUser={currentUser}
+                                    counter= {index}
                                 />
                             ))
                         ) : (

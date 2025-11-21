@@ -2,14 +2,32 @@
 
 import { SafeUser } from '@/app/types';
 //import { StrategyWithRBM } from '../types/strategy';
-import RBMBreakdown, { StrategyGoal } from './RBMBreakdown';
+import RBMBreakdown from './RBMBreakdown';
 import VotingSection from './VotingSection';
 import Link from 'next/link'; 
 import { ArrowRight, Flag, Zap } from 'lucide-react';
 import { Toaster } from 'sonner';
+import { StrategyWithRBMFull } from './StrategyForm';
 //import { StrategyGoal } from '@prisma/client';
-
+export interface StrategyOutput {
+    id: string;
+    title: string;
+    responsible: string;
+    isCompleted: boolean;
+}
 // --- 3. StrategyCard COMPONENT (Your requested component) ---
+export interface StrategyOutcome {
+    id: string;
+    title: string;
+    kpi: string;
+    outputs: StrategyOutput[];
+}
+export interface StrategyGoal {
+    id: string;
+    title: string;
+    targetYear: number;
+    outcomes: StrategyOutcome[];
+}
 export interface StrategyWithRBM {
     id: string;
     title: string;
@@ -46,11 +64,12 @@ const ProposalStatus = {
 } as const; // Use 'as const' for strong literal typing
 
 interface StrategyCardProps {
-    strategy: StrategyWithRBM;
+    strategy: StrategyWithRBMFull;
     currentUser: SafeUser | null;
    // onVote: (strategyId: string, type: 'YES' | 'NO') => void; 
      onVote: (strategyId: string, type: 'YES' | 'NO') => Promise<void>; 
-    onStrategyClick: (strategy: StrategyWithRBM) => void;
+    onStrategyClick: (strategy: StrategyWithRBMFull) => void;
+    counter:number
 }
 
 const getStatusColor = (status: string) => {
@@ -70,7 +89,7 @@ const StatusBadge: React.FC<{ status: string }> = ({ status }) => (
     </span>
 );
 
-export default function StrategyCard({ strategy, currentUser, onVote, onStrategyClick }: StrategyCardProps) {
+export default function StrategyCard({ strategy, currentUser, onVote, onStrategyClick, counter }: StrategyCardProps) {
 
     const isVotingOpen = strategy.status === ProposalStatus.VOTING_OPEN;
     console.log("strategy",strategy)
@@ -96,7 +115,7 @@ export default function StrategyCard({ strategy, currentUser, onVote, onStrategy
                 <h3 className="text-2xl font-extrabold text-gray-800 mb-2 hover:text-indigo-600 cursor-pointer"
                     onClick={() => onStrategyClick(strategy)}
                 >
-                    {strategy.title}
+                    {counter+1}. {strategy.title}
                 </h3>
                 
                 <p className="text-sm text-gray-600 mb-4 line-clamp-3">{strategy.content}</p>
@@ -122,7 +141,7 @@ export default function StrategyCard({ strategy, currentUser, onVote, onStrategy
                 
                 {/* RBM Breakdown - Correction Applied Here */}
                 {/* We pass the goals array which contains the full RBM results chain structure */}
-                <RBMBreakdown goals={strategy.goals} />
+                 <RBMBreakdown goals={strategy.goals} /> 
 
                 {/* Voting Indicators */}
                 {totalVotes > 0 && (
@@ -145,16 +164,7 @@ export default function StrategyCard({ strategy, currentUser, onVote, onStrategy
                 )}
             </div>
 
-            {/* Voting Section (only if VOTING_OPEN) */}
-            {/* {isVotingOpen && (
-                <VotingSection 
-                    strategyId={strategy.id} 
-                    onVote={async (type) => onVote(strategy.id, type as 'YES' | 'NO')}
-                />
-            )} */}
-
-            {/* Voting Section (only if VOTING_OPEN) */}
-            {/* Voting Section (only if VOTING_OPEN) */}
+            
             {isVotingOpen && (
                 <VotingSection 
                     strategyId={strategy.id} 

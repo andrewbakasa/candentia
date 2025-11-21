@@ -8,6 +8,7 @@ import { useState, useMemo, useCallback } from 'react';
 import { AlertTriangle, Zap, Loader2 } from "lucide-react";
 import { toast, Toaster } from "sonner";
 import FilterSidebar, { StrategyFilters } from "./FilterSideBar";
+import { StrategyWithRBMFull } from "./StrategyForm";
 
 
 
@@ -31,7 +32,7 @@ const StrategyDashboardList: React.FC<StrategyListProps> = ({ strategies, curren
     };
     
     // Placeholder actions for the StrategyCard component
-    const handleStrategyClick = (strategy: StrategyWithRBM) => {
+    const handleStrategyClick = (strategy: StrategyWithRBMFull) => {
         toast.info(`Navigating to details for: ${strategy.title}`);
         // In a real app, this would change the view state or navigate.
     };
@@ -189,13 +190,12 @@ const StrategyDashboardList: React.FC<StrategyListProps> = ({ strategies, curren
                         {filteredStrategies.length > 0 ? (
                             filteredStrategies.map((strategy) => (
                                 <StrategyCard 
-                                    key={strategy.id} 
-                                    strategy={strategy} 
-                                    currentUser={currentUser} 
+                                    key={strategy.id}
+                                    strategy={strategy}
+                                    currentUser={currentUser}
                                     // Pass the implemented handleVote function
-                                    onVote={handleVote} 
-                                    onStrategyClick={handleStrategyClick}
-                                    // Pass the current voting status to disable buttons
+                                    onVote={handleVote}
+                                    onStrategyClick={handleStrategyClick} counter={0}                                    // Pass the current voting status to disable buttons
                                    // isVoting={isVoting === strategy.id}
                                 />
                             ))
