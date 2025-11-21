@@ -75,7 +75,7 @@ const StrategyClient: React.FC<StrategyClientProps> = ({
             // Success Path: Use the returned data for an accurate state update.
             const result: StrategyWithRBM = await response.json(); 
 
-            console.log("result:",result)
+            //console.log("result:",result)
             
             // FIX: Update the state using the full, fresh data from the server.
             setStrategies(prevStrategies => 
@@ -166,7 +166,7 @@ const StrategyClient: React.FC<StrategyClientProps> = ({
     }
 
     return (
-        <div className="min-h-screen bg-gray-50 font-sans p-4 sm:p-8">
+        <div className="min-h-screen bg-gray-50 font-sans p-1 sm:p-4">
             <Toaster position="top-right" richColors />
             
             <header className="max-w-7xl mx-auto mb-8">
