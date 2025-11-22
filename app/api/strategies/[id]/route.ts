@@ -25,7 +25,7 @@ interface StrategyGoal {
     outcomes: StrategyOutcome[]; // Nested Outcomes added
 }
 
-interface PutBody {
+export interface PutBody {
     title: string;
     content: string;
     year: string;
@@ -49,7 +49,7 @@ type PrismaTransaction = Omit<PrismaClient, '$connect' | '$disconnect' | '$on' |
  * Handles the recursive creation, update, and deletion of Outcomes and their Outputs
  * for a single goal within a transaction.
  */
-async function manageOutcomesAndOutputs(
+export async function manageOutcomesAndOutputs(
     tx: PrismaTransaction, 
     goalId: string, 
     incomingOutcomes: StrategyOutcome[]
