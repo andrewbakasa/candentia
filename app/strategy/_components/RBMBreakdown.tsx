@@ -69,14 +69,15 @@ const OutcomeBlock: React.FC<{ outcome: StrategyOutcome }> = ({ outcome }) => (
 // --- 3. Main Component Props Interface ---
 interface RBMProps {
     goals: any[];//StrategyGoal[];
+    pos:number;
 }
 
 // --- 4. Main RBMBreakdown Component (Long-Term Impact) ---
-const RBMBreakdown: React.FC<RBMProps> = ({ goals }) => {
+const RBMBreakdown: React.FC<RBMProps> = ({ goals,pos }) => {
     return (
         <div className="mt-8 p-1 sm:p-4 bg-white shadow-2xl rounded-xl border border-gray-100">
-            <h3 className="text-2xl sm:text-3xl font-extrabold mb-6 text-indigo-800 border-b pb-3">
-                RBM Results Chain Breakdown
+            <h3 className="text-xl sm:text-2xl font-extrabold mb-6 text-indigo-800 border-b pb-3">
+                {pos+1}.1 RBM Results Chain Breakdown
             </h3>
             
             {goals?.length === 0 ? (
@@ -91,7 +92,7 @@ const RBMBreakdown: React.FC<RBMProps> = ({ goals }) => {
                                 <span className="text-4xl text-indigo-600 flex-shrink-0">
                                     <Target className="w-8 h-8" />
                                 </span>
-                                <span className="flex-1">{goal.title}</span>
+                                <span className="flex-1">{pos+1}.1.{index+1}. {goal.title}</span>
                                 <span className="ml-0 sm:ml-auto text-sm font-semibold text-indigo-700 bg-indigo-100 px-3 py-1 rounded-full whitespace-nowrap shadow-sm">
                                     Target: {goal.targetYear}
                                 </span>

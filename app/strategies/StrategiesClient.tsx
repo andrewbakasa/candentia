@@ -10,6 +10,7 @@ import { SafeUser } from "../types";
 
 // Interface definitions (assuming these are imported or defined elsewhere)
 interface StrategyGoal { id: string; title: string; targetYear: number; }
+// Filters will check minScore against the strategy's averageStrategicScore
 interface Filters { status: string; year: string; minScore: number | null; }
 
 const ProposalStatus = {
@@ -40,7 +41,7 @@ const StrategyClient: React.FC<StrategyClientProps> = ({
 
     // --- Core Logic Handlers ---
 
-    // 1. Voting Logic
+    // 1. Voting Logic (No change needed here as the server returns the updated object)
     const handleVote = async (strategyId: string, voteType: 'YES' | 'NO') => {
         // Mandatory check for user
         if (!currentUser?.id) {
@@ -74,8 +75,6 @@ const StrategyClient: React.FC<StrategyClientProps> = ({
 
             // Success Path: Use the returned data for an accurate state update.
             const result: StrategyWithRBM = await response.json(); 
-
-            //console.log("result:",result)
             
             // FIX: Update the state using the full, fresh data from the server.
             setStrategies(prevStrategies => 
@@ -104,29 +103,28 @@ const StrategyClient: React.FC<StrategyClientProps> = ({
     // 3. Form Save Handler (updates strategies array)
     const handleSave = (updatedStrategy: StrategyWithRBMFull) => {
         setStrategies(prevStrategies => {
-            const index = prevStrategies.findIndex(s => s.id === updatedStrategy.id);            
+            const index = prevStrategies.findIndex(s => s.id === updatedStrategy.id); 
             if (index !== -1) {
                 // Case 1: Update existing strategy
-                //toast.success(`Proposal "${updatedStrategy.title}" updated.`);                
-                // ✅ FIX APPLIED HERE: Using updatedStrategy directly should work, 
-                // but we explicitly replace the object to ensure React recognizes the state change.
                 return prevStrategies.map(s => 
                     s.id === updatedStrategy.id 
                         ? updatedStrategy
                         : s
                 );
             } else {
-                // Case 2: Add new strategy (mocking PENDING_REVIEW status after creation)
+                // Case 2: Add new strategy
                 const newStrategyWithDefaults: StrategyWithRBMFull = { 
                     ...updatedStrategy, 
-                    // ✅ FIX APPLIED HERE: Ensure goals are explicitly included 
-                    // (even though they are in updatedStrategy, this ensures defaults are handled safely).
                     goals: updatedStrategy.goals || [], 
                     // Set necessary defaults for a new submission:
                     id: `temp-${Date.now()}`, 
                     status: ProposalStatus.PENDING_REVIEW, 
-                    score: null, 
-                    votes: { YES: 0, NO: 0 }
+                    // 🎯 CORRECTION: Use averageStrategicScore instead of score
+                    averageStrategicScore: null, 
+                    totalVotesYes: 0, // Add explicit default for votes
+                    totalVotesNo: 0,  // Add explicit default for votes
+                    votes: { YES: 0, NO: 0 },        // Initial empty votes array
+                    // Ensure other required fields for StrategyWithRBMFull are present if necessary
                 };
                 toast.success(`New proposal "${updatedStrategy.title}" submitted for review.`);
                 return [...prevStrategies, newStrategyWithDefaults];
@@ -144,9 +142,10 @@ const StrategyClient: React.FC<StrategyClientProps> = ({
             // Filter by year
             const yearMatch = currentFilters.year === 'ALL' || String(strategy.year) === currentFilters.year;
 
-            // Filter by minimum score
+            // 🎯 CORRECTION: Filter by minimum score using strategy.averageStrategicScore
             const minScore = currentFilters.minScore;
-            const scoreMatch = minScore === null || (strategy.score !== null && strategy.score >= minScore);
+            // Check if minScore is null OR (strategy.averageStrategicScore is not null AND score >= minScore)
+            const scoreMatch = minScore === null || (strategy.averageStrategicScore !== null && strategy.averageStrategicScore >= minScore);
 
             return statusMatch && yearMatch && scoreMatch;
         });
@@ -165,6 +164,8 @@ const StrategyClient: React.FC<StrategyClientProps> = ({
         );
     }
 
+    // ... (rest of the component remains the same)
+
     return (
         <div className="min-h-screen bg-gray-50 font-sans p-1 sm:p-4">
             <Toaster position="top-right" richColors />
@@ -178,7 +179,7 @@ const StrategyClient: React.FC<StrategyClientProps> = ({
                 </p>
             </header>
             
-            ---
+            <hr className="my-8"/>
 
             <main className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-4 gap-8">
                 {/* Sidebar */}
@@ -206,7 +207,7 @@ const StrategyClient: React.FC<StrategyClientProps> = ({
                 {/* Proposal List */}
                 <div className="lg:col-span-3">
                     <h2 className="text-2xl font-bold text-gray-800 mb-6">
-                        {filteredStrategies.length} Active Proposals 
+                         Active Proposals [{filteredStrategies.length}]
                         <span className='text-base font-medium text-gray-500 ml-2'>(Filtered)</span>
                     </h2>
 

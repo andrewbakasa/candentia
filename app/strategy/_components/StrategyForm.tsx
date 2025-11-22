@@ -37,7 +37,7 @@ export interface StrategyWithRBM {
     content: string;
     year: string;
     status: string;//'DRAFT' | 'PENDING_REVIEW' | 'VOTING_OPEN' | 'APPROVED' | 'REJECTED';
-    score: number | null;
+    averageStrategicScore: number | null;
     //goals: any[];
     goals: StrategyGoal[]; // ⬅️ Must be present
     votes: { YES: number; NO: number };
@@ -584,7 +584,7 @@ export default function StrategyForm({ initialStrategy, authorId, onSave, onCanc
         // Prepare the nested payload for the API
         const apiGoals = mapFormToApi(formData.goals);
 
-        const payload: Omit<StrategyWithRBMFull, 'id' | 'votes' | 'score' | 'rbm' | 'averageScore' | 'totalVotesYes' | 'totalVotesNo'> = {
+        const payload: Omit<StrategyWithRBMFull, 'id' | 'votes' | 'averageStrategicScore' | 'rbm' | 'averageScore' | 'totalVotesYes' | 'totalVotesNo'> = {
             title: formData.title,
             content: formData.content,
             year: formData.year,

@@ -26,9 +26,13 @@ export default async function getStrategies() {
           },
         },
       },
-      orderBy: {
-        submissionDate: 'desc',
-      },
+      orderBy: [
+        {
+          averageStrategicScore: 'desc', // Primary sort: highest 'Yes' votes first
+        },
+        {
+          submissionDate: 'desc', // Secondary sort: newest strategies first for ties
+        },]
     });
 
     return strategies;

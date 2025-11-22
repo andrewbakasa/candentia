@@ -757,7 +757,7 @@ model Strategy {
   // Voting period details
   votingStart           DateTime?
   votingEnd             DateTime?
-
+ 
   // Results
   totalVotesYes         Int              @default(0)
   totalVotesNo          Int              @default(0)

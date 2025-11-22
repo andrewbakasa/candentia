@@ -315,8 +315,8 @@ export async function PUT(
         console.error('Error Stack:', error.stack);
         console.error('Error Object:', JSON.stringify(error, Object.getOwnPropertyNames(error), 2));
         console.error('-----------------------------------------');
-
-        return NextResponse.json({ message: 'Failed to update strategy and goals due to a database error.' }, { status: 500 });
+      // @ts-ignore
+        return NextResponse.json({ message: `Failed to update strategy and goals due to a database error.${error.code}` }, { status: 500 });
     }
 }
 // // app/api/strategies/[id]/route.ts

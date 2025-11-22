@@ -34,8 +34,9 @@ export interface StrategyWithRBM {
     content: string;
     year: string;
     status: string;//'DRAFT' | 'PENDING_REVIEW' | 'VOTING_OPEN' | 'APPROVED' | 'REJECTED';
-    score: number | null;
+    averageStrategicScore: number | null;
     //goals: any[];
+    
     goals: StrategyGoal[]; // ⬅️ Must be present
     votes: { YES: number; NO: number };
     authorId: string;
@@ -110,7 +111,7 @@ export default function StrategyCard({ strategy, currentUser, onVote, onStrategy
                     {counter+1}. {strategy.title}
                 </h3>
                 
-                <p className="text-sm text-gray-600 mb-4 line-clamp-3">{strategy.content}</p>
+                <p className="text-sm text-gray-600 mb-4 p-2 line-clamp-4 overflow-y-scroll">{strategy.content}</p>
                 
                 <div className="flex justify-between items-center text-xs text-gray-500 mt-3 border-t pt-3">
                     <span className='flex items-center gap-1 font-medium'>
@@ -124,16 +125,16 @@ export default function StrategyCard({ strategy, currentUser, onVote, onStrategy
                 </div>
                 
                 {/* Expert Score */}
-                {strategy.score !== null && strategy.score !== undefined && (
+                {strategy.averageStrategicScore !== null && strategy.averageStrategicScore !== undefined && (
                     <div className="mt-4 p-3 bg-blue-50 border border-blue-200 rounded-lg flex justify-between items-center text-sm">
                         <span className='font-semibold text-blue-800'>Expert Score:</span>
-                        <span className='font-extrabold text-blue-900 text-lg'>{strategy?.score.toFixed(1)} / 10</span>
+                        <span className='font-extrabold text-blue-900 text-lg'>{strategy?.averageStrategicScore.toFixed(1)} / 10</span>
                     </div>
                 )}
                 
                 {/* RBM Breakdown - Correction Applied Here */}
                 {/* We pass the goals array which contains the full RBM results chain structure */}
-                 <RBMBreakdown goals={strategy.goals} /> 
+                 <RBMBreakdown goals={strategy.goals} pos={counter} /> 
 
                 {/* Voting Indicators */}
                 {totalVotes > 0 && (
