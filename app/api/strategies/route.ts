@@ -1,10 +1,10 @@
-// app/api/strategies/route.ts
 import { NextResponse } from 'next/server';
 import prisma from "../../libs/prismadb";
 
 import { PrismaClient, ProposalStatus } from '@prisma/client'; // Import the enums from Prisma
 import { manageOutcomesAndOutputs, PutBody } from './[id]/route';
-// Utility type for Prisma transaction context
+
+// Utility type for Prisma transaction context (used by manageOutcomesAndOutputs)
 type PrismaTransaction = Omit<PrismaClient, '$connect' | '$disconnect' | '$on' | '$transaction' | '$use' | '$extends'>;
 
 // GET: Fetch all Strategies
@@ -34,109 +34,228 @@ export async function GET() {
   }
 }
 
-// POST: Create a new Strategy
+// POST: Create a new Strategy and its nested RBM chain (Goals, Outcomes, Outputs)
 export async function POST(request: Request) {
-  // try {
-  //   const body = await request.json();
-  //   const { title, content, authorId } = body;
-
-  //   // Basic validation
-  //   if (!title || !content || !authorId) {
-  //     return NextResponse.json({ message: 'Missing required fields' }, { status: 400 });
-  //   }
-
-  //   const newStrategy = await prisma.strategy.create({
-  //     data: {
-  //       title,
-  //       content,
-  //       authorId, // Assumes authorId is provided
-  //       status: ProposalStatus.DRAFT, // Default status
-  //       // Add default RBM Goal/Outcome/Output structure here if required on creation
-  //     },
-  //   });
-  //   return NextResponse.json(newStrategy, { status: 201 });
-  // } catch (error) {
-  //   console.error('Error creating strategy:', error);
-  //   return NextResponse.json({ message: 'Failed to create strategy' }, { status: 500 });
-  // }
-
-
-   // --------------------------------------------------
-    // 🏛️ TRANSACTION: Update Strategy and Nested RBM Chain
-    // --------------------------------------------------
     try {
-         let body: PutBody;
-           //console.log("her:body ")
-           try {
-               body = await request.json();
-           } catch (error) {
-               return NextResponse.json({ message: 'Invalid JSON body' }, { status: 400 });
-           }
-       const { title, content, year, authorId, status, goals } = body;
-        // Basic validation
-        if (!title || !content || !authorId) {
-          return NextResponse.json({ message: 'Missing required fields' }, { status: 400 });
-        }
-        const updatedStrategyWithRBM = await prisma.$transaction(async (tx) => {
-            
-            // 1. Update the main Strategy record
-            const newStrategy =await tx.strategy.create({
-                data: {
-                    title,
-                    content,
-                    year,
-                    authorId, // Assumes authorId is provided
-                    status: ProposalStatus.DRAFT, // Default status
-                },
-            });
-            
-       
-            // Create/Update all incoming goals AND their children
-            for (const goal of goals) {
-                let currentGoalId: string;
-                    // Create new goal
-                    const created = await tx.strategyGoal.create({
-                        data: {
-                            strategyId: newStrategy.id,
-                            title: goal.title,
-                            targetYear: goal.targetYear,
-                        },
-                    });
-                    currentGoalId = created.id;
-                
-                // 3. Recursive call to manage Outcomes and Outputs for this Goal
-                await manageOutcomesAndOutputs(tx, currentGoalId, goal.outcomes);
-            }
-            
-            // 4. FINAL STEP: Fetch the fully updated Strategy with all its related RBM chain
-            // Includes are necessary for every level: Goal -> Outcome -> Output
-            const finalStrategy = await tx.strategy.findUnique({
-                where: { id: newStrategy.id },
-                include: {
-                    goals: {
-                        include: {
-                            outcomes: {
-                                include: {
-                                    outputs: true,
-                                }
-                            }
-                        }
-                    },
-                },
-            });
+      let body: PutBody;
+      try {
+          body = await request.json();
+      } catch (error) {
+          return NextResponse.json({ message: 'Invalid JSON body' }, { status: 400 });
+      }
 
-            if (!finalStrategy) {
-                throw new Error("Failed to retrieve created strategy after transaction.");
-            }
-            
-            return finalStrategy; // Return the fully populated object
-        });
-       console.log("back end return:", updatedStrategyWithRBM)
-        // Send the fully updated object (including goals, outcomes, and outputs) to the client
-        return NextResponse.json(updatedStrategyWithRBM);
+      // Destructure and validate required fields
+      const { title, content, year, authorId, goals } = body;
+
+      if (!title || !content || !authorId || !goals) {
+        return NextResponse.json({ message: 'Missing required fields (title, content, authorId, goals)' }, { status: 400 });
+      }
+
+      // --- TRANSACTION: Create Strategy and Nested RBM Chain ---
+      const newStrategyWithRBM = await prisma.$transaction(async (tx: PrismaTransaction) => {
+          
+          // 1. Create the main Strategy record
+          const newStrategy = await tx.strategy.create({
+              data: {
+                  title,
+                  content,
+                  year,
+                  authorId,
+                  // Default status for a new creation is DRAFT
+                  status: ProposalStatus.DRAFT, 
+              },
+          });
+          
+          // 2. Iterate and create all incoming Goals and their children
+          for (const goal of goals) {
+              
+              // Create new Goal record, linked to the Strategy
+              const createdGoal = await tx.strategyGoal.create({
+                  data: {
+                      strategyId: newStrategy.id,
+                      title: goal.title,
+                      targetYear: goal.targetYear,
+                  },
+              });
+              
+              // 3. Use the management utility to create Outcomes and Outputs for this Goal
+              // This function (imported from [id]/route) must handle the creation logic.
+              if (goal.outcomes) {
+                await manageOutcomesAndOutputs(tx, createdGoal.id, goal.outcomes);
+              }
+          }
+          
+          // 4. FINAL STEP: Fetch the fully created Strategy with all its nested relations
+          const finalStrategy = await tx.strategy.findUnique({
+              where: { id: newStrategy.id },
+              include: {
+                  goals: {
+                      include: {
+                          outcomes: {
+                              include: {
+                                  outputs: true,
+                              }
+                          }
+                      }
+                  },
+              },
+          });
+
+          if (!finalStrategy) {
+              // This is a safety check: if the final fetch fails, the entire transaction rolls back.
+              throw new Error("Failed to retrieve created strategy after transaction.");
+          }
+          
+          return finalStrategy; // Return the fully populated object
+      });
+
+      // Send the fully populated object with a 201 Created status
+      return NextResponse.json(newStrategyWithRBM, { status: 201 });
 
     } catch (error) {
-        console.error('Prisma Transaction Error during PUT:', error);
-        return NextResponse.json({ message: 'Failed to update strategy and goals due to a database error.' }, { status: 500 });
+      console.error('Prisma Transaction Error during Strategy POST:', error);
+      return NextResponse.json({ message: 'Failed to create strategy and goals due to a database error.' }, { status: 500 });
     }
 }
+// // app/api/strategies/route.ts
+// import { NextResponse } from 'next/server';
+// import prisma from "../../libs/prismadb";
+
+// import { PrismaClient, ProposalStatus } from '@prisma/client'; // Import the enums from Prisma
+// import { manageOutcomesAndOutputs, PutBody } from './[id]/route';
+// // Utility type for Prisma transaction context
+// type PrismaTransaction = Omit<PrismaClient, '$connect' | '$disconnect' | '$on' | '$transaction' | '$use' | '$extends'>;
+
+// // GET: Fetch all Strategies
+// export async function GET() {
+//   try {
+//     const strategies = await prisma.strategy.findMany({
+//       include: {
+//         author: true,
+//         goals: {
+//           include: {
+//             outcomes: {
+//               include: {
+//                 outputs: true,
+//               },
+//             },
+//           },
+//         },
+//       },
+//       orderBy: {
+//         submissionDate: 'desc',
+//       },
+//     });
+//     return NextResponse.json(strategies);
+//   } catch (error) {
+//     console.error('Error fetching strategies:', error);
+//     return NextResponse.json({ message: 'Failed to fetch strategies' }, { status: 500 });
+//   }
+// }
+
+// // POST: Create a new Strategy
+// export async function POST(request: Request) {
+//   // try {
+//   //   const body = await request.json();
+//   //   const { title, content, authorId } = body;
+
+//   //   // Basic validation
+//   //   if (!title || !content || !authorId) {
+//   //     return NextResponse.json({ message: 'Missing required fields' }, { status: 400 });
+//   //   }
+
+//   //   const newStrategy = await prisma.strategy.create({
+//   //     data: {
+//   //       title,
+//   //       content,
+//   //       authorId, // Assumes authorId is provided
+//   //       status: ProposalStatus.DRAFT, // Default status
+//   //       // Add default RBM Goal/Outcome/Output structure here if required on creation
+//   //     },
+//   //   });
+//   //   return NextResponse.json(newStrategy, { status: 201 });
+//   // } catch (error) {
+//   //   console.error('Error creating strategy:', error);
+//   //   return NextResponse.json({ message: 'Failed to create strategy' }, { status: 500 });
+//   // }
+
+
+//    // --------------------------------------------------
+//     // 🏛️ TRANSACTION: Update Strategy and Nested RBM Chain
+//     // --------------------------------------------------
+//     try {
+//          let body: PutBody;
+//            //console.log("her:body ")
+//            try {
+//                body = await request.json();
+//            } catch (error) {
+//                return NextResponse.json({ message: 'Invalid JSON body' }, { status: 400 });
+//            }
+//        const { title, content, year, authorId, status, goals } = body;
+//         // Basic validation
+//         if (!title || !content || !authorId) {
+//           return NextResponse.json({ message: 'Missing required fields' }, { status: 400 });
+//         }
+//         const updatedStrategyWithRBM = await prisma.$transaction(async (tx) => {
+            
+//             // 1. Update the main Strategy record
+//             const newStrategy =await tx.strategy.create({
+//                 data: {
+//                     title,
+//                     content,
+//                     year,
+//                     authorId, // Assumes authorId is provided
+//                     status: ProposalStatus.DRAFT, // Default status
+//                 },
+//             });
+            
+       
+//             // Create/Update all incoming goals AND their children
+//             for (const goal of goals) {
+//                 let currentGoalId: string;
+//                     // Create new goal
+//                     const created = await tx.strategyGoal.create({
+//                         data: {
+//                             strategyId: newStrategy.id,
+//                             title: goal.title,
+//                             targetYear: goal.targetYear,
+//                         },
+//                     });
+//                     currentGoalId = created.id;
+                
+//                 // 3. Recursive call to manage Outcomes and Outputs for this Goal
+//                 await manageOutcomesAndOutputs(tx, currentGoalId, goal.outcomes);
+//             }
+            
+//             // 4. FINAL STEP: Fetch the fully updated Strategy with all its related RBM chain
+//             // Includes are necessary for every level: Goal -> Outcome -> Output
+//             const finalStrategy = await tx.strategy.findUnique({
+//                 where: { id: newStrategy.id },
+//                 include: {
+//                     goals: {
+//                         include: {
+//                             outcomes: {
+//                                 include: {
+//                                     outputs: true,
+//                                 }
+//                             }
+//                         }
+//                     },
+//                 },
+//             });
+
+//             if (!finalStrategy) {
+//                 throw new Error("Failed to retrieve created strategy after transaction.");
+//             }
+            
+//             return finalStrategy; // Return the fully populated object
+//         });
+//        console.log("back end return:", updatedStrategyWithRBM)
+//         // Send the fully updated object (including goals, outcomes, and outputs) to the client
+//         return NextResponse.json(updatedStrategyWithRBM);
+
+//     } catch (error) {
+//         console.error('Prisma Transaction Error during PUT:', error);
+//         return NextResponse.json({ message: 'Failed to update strategy and goals due to a database error.' }, { status: 500 });
+//     }
+// }
