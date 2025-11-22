@@ -107,7 +107,7 @@ const StrategyClient: React.FC<StrategyClientProps> = ({
             const index = prevStrategies.findIndex(s => s.id === updatedStrategy.id);            
             if (index !== -1) {
                 // Case 1: Update existing strategy
-                toast.success(`Proposal "${updatedStrategy.title}" updated.`);                
+                //toast.success(`Proposal "${updatedStrategy.title}" updated.`);                
                 // ✅ FIX APPLIED HERE: Using updatedStrategy directly should work, 
                 // but we explicitly replace the object to ensure React recognizes the state change.
                 return prevStrategies.map(s => 
