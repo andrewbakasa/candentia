@@ -2,13 +2,14 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { BookOpen, Flag, Loader2, Plus, Save, Trash2, AlertTriangle, ArrowLeft } from 'lucide-react';
 import { toast, Toaster } from 'sonner';
+import { SafeUser } from '@/app/types';
 //import { StrategyWithRBM } from './StrategyCard'; 
 
-interface SafeUser {
-    id: string;
-    name: string | null;
-    email: string | null;
-}
+// interface SafeUser {
+//     id: string;
+//     name: string | null;
+//     email: string | null;
+// }
 
 // Full RBM Structure for API submission (without client-side tempId)
 interface StrategyOutput {
@@ -331,18 +332,22 @@ interface FormState {
 
 interface StrategyFormProps {
     initialStrategy: StrategyWithRBMFull | null; 
+    currentUser:SafeUser;
     authorId: string | null; 
     onSave: (data: StrategyWithRBMFull) => void;
     onCancel: () => void;
 }
 
-export default function StrategyForm({ initialStrategy, authorId, onSave, onCancel }: StrategyFormProps) {
+export default function StrategyForm({ initialStrategy, currentUser, authorId, onSave, onCancel }: StrategyFormProps) {
     const [isLoading, setIsLoading] = useState(false);
 
     const isEditing = !!initialStrategy;
     const initialStatus = initialStrategy?.status || ProposalStatus.DRAFT; 
     const isVotingOpen = initialStatus === ProposalStatus.VOTING_OPEN;
-    const isReady = !!authorId;
+    
+    //allow button to be enable only if user is allowed to edit
+    //let AI correct here 
+    const isReady = !!authorId && !(currentUser.id==authorId || currentUser.isAdmin);
 
     // --- State Initialization (using RBM Helpers) ---
     const initialData: FormState = useMemo(() => {
@@ -573,6 +578,11 @@ export default function StrategyForm({ initialStrategy, authorId, onSave, onCanc
         }
         if (formData.goals.some(g => !g.title || g.targetYear < new Date().getFullYear())) {
             toast.error("Please ensure all goals have a title and a valid target year.");
+            return;
+        }
+
+         if (isEditing && ( !(authorId==currentUser.id) || !currentUser?.isAdmin) ) {
+            toast.error(`You dont have the right to change this ,see Admin or Owner ${currentUser.email}.`);
             return;
         }
 

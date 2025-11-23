@@ -153,13 +153,14 @@ const StrategyClient: React.FC<StrategyClientProps> = ({
 
     // --- Render Logic ---
 
-    if (view === 'form') {
+    if (view === 'form' && currentUser) {
         return (
             <StrategyForm 
                 initialStrategy={selectedStrategy}
                 authorId={currentUser?.id || mockAuthorId}
                 onSave={handleSave}
                 onCancel={handleCancelForm}
+                currentUser={currentUser}
             />
         );
     }
