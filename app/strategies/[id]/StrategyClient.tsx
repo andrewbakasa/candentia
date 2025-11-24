@@ -213,68 +213,152 @@ const StrategyClient: React.FC<StrategyClientProps> = ({
     // The single strategy to show is the state variable itself
     const singleStrategyToShow = strategy; 
 
-    return (
-        <div className="min-h-screen bg-gray-50 font-sans p-1 sm:p-4">
-            <Toaster position="top-right" richColors />
-            
-            <header className="max-w-7xl mx-auto mb-8">
-                <h1 className="text-4xl font-black text-gray-900 border-b-4 border-indigo-600 pb-2 inline-block">
-                    Strategy Proposal Review
-                </h1>
-                <p className="text-gray-600 mt-2">
-                    Review and vote on this specific proposal identified by ID. You are currently: 
-                    <span className="text-red-500 font-bold ml-1">
-                        {currentUser ? (hasRequiredRole ? `${currentUser.name} (Authorized)` : `${currentUser.name} (View Only)`) : 'Unauthenticated (View Only)'}
-                    </span>
-                </p>
-            </header>
-            
-            <hr className="my-8"/>
+//     return (
+//         <div className="min-h-screen bg-gray-50 font-sans p-1 sm:p-4">
+//             <Toaster position="top-right" richColors />
+//             
+//             <header className="max-w-7xl mx-auto mb-8">
+//                 <h1 className="text-4xl font-black text-gray-900 border-b-4 border-indigo-600 pb-2 inline-block">
+//                     Strategy Proposal Review
+//                 </h1>
+//                 <p className="text-gray-600 mt-2">
+//                     Review and vote on this specific proposal identified by ID. You are currently: 
+//                     <span className="text-red-500 font-bold ml-1">
+//                         {currentUser ? (hasRequiredRole ? `${currentUser.name} (Authorized)` : `${currentUser.name} (View Only)`) : 'Unauthenticated (View Only)'}
+//                     </span>
+//                 </p>
+//             </header>
+//             
+//             <hr className="my-8"/>
 
-            <main className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-4 gap-8">
-                {/* Sidebar - Retain structure for navigation/notes */}
-                <div className="lg:col-span-1">
-                    <div className="p-4 bg-white rounded-xl shadow border border-gray-100">
-                        <h3 className="font-bold text-gray-800 mb-2">Access Status</h3>
-                        <p className="text-xs text-gray-500">
-                            {hasRequiredRole ? 'You can view, edit, and submit new proposals.' : 'You can only view this proposal.'}
-                        </p>
-                    </div>
-                    
-                    {/* Conditional rendering of the "Submit New Proposal" button */}
-                    {hasRequiredRole ? (
-                        <button 
-                            onClick={() => {
-                                setSelectedStrategy(null); // Clear selected to start new form
-                                setView('form');
-                            }}
-                            className="mt-6 w-full py-3 px-4 bg-indigo-600 hover:bg-indigo-700 rounded-xl text-white font-bold text-base shadow-xl transition duration-300 flex items-center justify-center gap-2"
-                        >
-                            <Plus className="w-5 h-5"/> Submit New Proposal
-                        </button>
-                    ) : (
-                        <div className="mt-6 p-3 w-full border border-gray-300 bg-gray-200 text-gray-700 rounded-xl text-sm text-center font-medium">
-                            Log in as Admin/Executive to Submit or Edit.
-                        </div>
-                    )}
+//             <main className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-4 gap-8">
+//                 {/* Sidebar - Retain structure for navigation/notes */}
+//                 <div className="lg:col-span-1">
+//                     <div className="p-4 bg-white rounded-xl shadow border border-gray-100">
+//                         <h3 className="font-bold text-gray-800 mb-2">Access Status</h3>
+//                         <p className="text-xs text-gray-500">
+//                             {hasRequiredRole ? 'You can view, edit, and submit new proposals.' : 'You can only view this proposal.'}
+//                         </p>
+//                     </div>
+//                     
+//                     {/* Conditional rendering of the "Submit New Proposal" button */}
+//                     {hasRequiredRole ? (
+//                         <button 
+//                             onClick={() => {
+//                                 setSelectedStrategy(null); // Clear selected to start new form
+//                                 setView('form');
+//                             }}
+//                             className="mt-6 w-full py-3 px-4 bg-indigo-600 hover:bg-indigo-700 rounded-xl text-white font-bold text-base shadow-xl transition duration-300 flex items-center justify-center gap-2"
+//                         >
+//                             <Plus className="w-5 h-5"/> Submit New Proposal
+//                         </button>
+//                     ) : (
+//                         <div className="mt-6 p-3 w-full border border-gray-300 bg-gray-200 text-gray-700 rounded-xl text-sm text-center font-medium">
+//                             Log in as Admin/Executive to Submit or Edit.
+//                         </div>
+//                     )}
 
-                    {/* Policy Note */}
-                    <div className="mt-6 p-4 bg-yellow-50 border border-yellow-200 rounded-lg text-sm text-yellow-800">
-                        <p className="font-semibold flex items-center gap-1"><Zap className='w-4 h-4'/> Policy Note</p>
-                        <p className='mt-1 text-xs'>
-                            All submissions are assessed against **Guideline 1 of 2025 (Business Model Requirements)** before moving to the VOTING\_OPEN status, as per the rules dated 14 September 2025.
-                        </p>
-                    </div>
-                </div>
-                
-                {/* Proposal Detail */}
-                <div className="lg:col-span-3">
-                    <h2 className="text-2xl font-bold text-gray-800 mb-6">
-                        {singleStrategyToShow ? `Proposal: ${singleStrategyToShow.title}` : "Loading Proposal"}
-                    </h2>
+//                     {/* Policy Note */}
+//                     <div className="mt-6 p-4 bg-yellow-50 border border-yellow-200 rounded-lg text-sm text-yellow-800">
+//                         <p className="font-semibold flex items-center gap-1"><Zap className='w-4 h-4'/> Policy Note</p>
+//                         <p className='mt-1 text-xs'>
+//                             All submissions are assessed against **Guideline 1 of 2025 (Business Model Requirements)** before moving to the VOTING\_OPEN status, as per the rules dated 14 September 2025.
+//                         </p>
+//                     </div>
+//                 </div>
+//                 
+//                 {/* Proposal Detail */}
+//                 <div className="lg:col-span-3">
+//                     <h2 className="text-2xl font-bold text-gray-800 mb-6">
+//                         {singleStrategyToShow ? `Proposal: ${singleStrategyToShow.title}` : "Loading Proposal"}
+//                     </h2>
 
-                    <div className="grid grid-cols-1 gap-6">
-                        {singleStrategyToShow ? (
+//                     <div className="grid grid-cols-1 gap-6">
+//                         {singleStrategyToShow ? (
+//                             <StrategyCard
+//                                 key={singleStrategyToShow.id}
+//                                 strategy={singleStrategyToShow}
+//                                 onStrategyClick={handleStrategyClick}
+//                                 onVote={handleVote}
+//                                 onCancelVote={handleCancelVote} // <-- CORRECTED: PASS THE NEW HANDLER
+//                                 currentUser={currentUser}
+//                                 counter={1} 
+//                             />
+//                         ) : (
+//                             <div className="p-8 text-center bg-white rounded-xl shadow-lg border border-gray-200">
+//                                 <AlertTriangle className="w-10 h-10 text-yellow-500 mx-auto mb-3"/>
+//                                 <p className="text-lg font-semibold text-gray-700">Proposal Not Found</p>
+//                                 <p className="text-sm text-gray-500 mt-1">The strategy ID you requested may be invalid.</p>
+//                             </div>
+//                         )}
+//                     </div>
+//                 </div>
+//             </main>
+//         </div>
+//     );
+
+     return (
+         <div className="min-h-screen bg-gray-50 font-sans p-1 sm:p-4">
+             <Toaster position="top-right" richColors />
+            
+             <header className="max-w-7xl mx-auto mb-8">
+                 <h1 className="text-4xl font-black text-gray-900 border-b-4 border-indigo-600 pb-2 inline-block">
+                     Strategy Proposal Review
+                 </h1>
+                 <p className="text-gray-600 mt-2">
+                     Review and vote on this specific proposal identified by ID. You are currently: 
+                     <span className="text-red-500 font-bold ml-1">
+                         {currentUser ? (hasRequiredRole ? `${currentUser.name} (Authorized)` : `${currentUser.name} (View Only)`) : 'Unauthenticated (View Only)'}
+                     </span>
+                 </p>
+             </header>
+            
+             <hr className="my-8"/>
+
+             <main className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-4 gap-8">
+                 {/* Sidebar - Retain structure for navigation/notes */}
+                 <div className="lg:col-span-1">
+                     <div className="p-4 bg-white rounded-xl shadow border border-gray-100">
+                         <h3 className="font-bold text-gray-800 mb-2">Access Status</h3>
+                         <p className="text-xs text-gray-500">
+                             {hasRequiredRole ? 'You can view, edit, and submit new proposals.' : 'You can only view this proposal.'}
+                         </p>
+                     </div>
+                    
+                     {/* Conditional rendering of the "Submit New Proposal" button */}
+                     {hasRequiredRole ? (
+                         <button 
+                             onClick={() => {
+                                 setSelectedStrategy(null); // Clear selected to start new form
+                                 setView('form');
+                             }}
+                             className="mt-6 w-full py-3 px-4 bg-indigo-600 hover:bg-indigo-700 rounded-xl text-white font-bold text-base shadow-xl transition duration-300 flex items-center justify-center gap-2"
+                         >
+                             <Plus className="w-5 h-5"/> Submit New Proposal
+                         </button>
+                     ) : (
+                         <div className="mt-6 p-3 w-full border border-gray-300 bg-gray-200 text-gray-700 rounded-xl text-sm text-center font-medium">
+                             Log in as Admin/Executive to Submit or Edit.
+                         </div>
+                     )}
+
+                     {/* Policy Note */}
+                     <div className="mt-6 p-4 bg-yellow-50 border border-yellow-200 rounded-lg text-sm text-yellow-800">
+                         <p className="font-semibold flex items-center gap-1"><Zap className='w-4 h-4'/> Policy Note</p>
+                         <p className='mt-1 text-xs'>
+                             All submissions are assessed against **Guideline 1 of 2025 (Business Model Requirements)** before moving to the VOTING\_OPEN status, as per the rules dated 14 September 2025.
+                         </p>
+                     </div>
+                 </div>
+                
+                 {/* Proposal Detail */}
+                 <div className="lg:col-span-3">
+                     <h2 className="text-2xl font-bold text-gray-800 mb-6">
+                         {singleStrategyToShow ? `Proposal: ${singleStrategyToShow.title}` : "Loading Proposal"}
+                     </h2>
+
+                     <div className="grid grid-cols-1 gap-6">
+                         {singleStrategyToShow ? (
                             <StrategyCard
                                 key={singleStrategyToShow.id}
                                 strategy={singleStrategyToShow}
@@ -291,11 +375,11 @@ const StrategyClient: React.FC<StrategyClientProps> = ({
                                 <p className="text-sm text-gray-500 mt-1">The strategy ID you requested may be invalid.</p>
                             </div>
                         )}
-                    </div>
-                </div>
-            </main>
-        </div>
-    );
+                     </div>
+                 </div>
+             </main>
+         </div>
+     );
 };
 
 export default StrategyClient;
