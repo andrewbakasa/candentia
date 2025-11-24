@@ -1,9 +1,7 @@
 import { NextResponse } from 'next/server';
 import prisma from '../../../libs/prismadb';
 import { ProposalStatus, PrismaClient } from '@prisma/client';
-
-// Define the required structure for the incoming PUT request body (Goal structure updated)
-interface StrategyOutput {
+import { transformStrategy } from '@/app/actions/getStrategies'; interface StrategyOutput {
     id?: string;
     title: string;
     responsible: string;
@@ -21,7 +19,7 @@ interface StrategyGoal {
     id?: string;
     title: string;
     targetYear: number;
-    outcomes: StrategyOutcome[]; // Nested Outcomes added
+    outcomes: StrategyOutcome[];
 }
 
 export interface PutBody {
@@ -29,8 +27,8 @@ export interface PutBody {
     content: string;
     year: string;
     authorId: string;
-    goals: StrategyGoal[]; // Now contains nested outcomes/outputs
-    status: string
+    goals: StrategyGoal[];
+    status: ProposalStatus | 'VOTING_OPEN_AMENDED'; // Explicitly allow the signal
 }
 
 // Client-side signal for an amended strategy, which implies a vote reset
@@ -53,9 +51,6 @@ export async function manageOutcomesAndOutputs(
     goalId: string, 
     incomingOutcomes: StrategyOutcome[]
 ) {
-    // TEMPORARY DEBUG LOG
-    console.log(`[RBM Management] Starting for Goal ID: ${goalId}. Incoming Outcomes count: ${incomingOutcomes.length}`);
-    
     // --- 1. Manage Outcomes ---
     const currentOutcomes = await tx.strategyOutcome.findMany({
         where: { goalId: goalId },
@@ -69,8 +64,6 @@ export async function manageOutcomesAndOutputs(
 
     // Delete outcomes removed by the user (Prisma will automatically cascade delete related outputs)
     if (outcomesToDelete.length > 0) {
-        // TEMPORARY DEBUG LOG
-        console.log(`[RBM Management] Deleting Outcomes IDs: ${outcomesToDelete.join(', ')}`);
         await tx.strategyOutcome.deleteMany({
             where: { id: { in: outcomesToDelete } },
         });
@@ -82,8 +75,8 @@ export async function manageOutcomesAndOutputs(
 
         // CRITICAL VALIDATION: Ensure required fields are present
         if (!outcome.title || !outcome.kpi) {
-             console.error(`[RBM Management] Skipping Outcome due to missing title or KPI:`, outcome);
-             continue; // Skip invalid outcome data to prevent DB error
+             // In a real application, you might throw an error here. Skipping is safer for large form data.
+             continue; 
         }
 
         if (outcome.id) {
@@ -96,8 +89,6 @@ export async function manageOutcomesAndOutputs(
                 },
             });
             currentOutcomeId = updated.id;
-            // TEMPORARY DEBUG LOG
-            console.log(`[RBM Management] Updated Outcome ID: ${currentOutcomeId}`);
         } else {
             // Create new outcome
             const created = await tx.strategyOutcome.create({
@@ -108,8 +99,6 @@ export async function manageOutcomesAndOutputs(
                 },
             });
             currentOutcomeId = created.id;
-            // TEMPORARY DEBUG LOG
-            console.log(`[RBM Management] Created new Outcome ID: ${currentOutcomeId}`);
         }
 
         // --- 2. Manage Outputs for the current Outcome ---
@@ -124,8 +113,6 @@ export async function manageOutcomesAndOutputs(
             .map(p => p.id);
 
         if (outputsToDelete.length > 0) {
-            // TEMPORARY DEBUG LOG
-            console.log(`[RBM Management] Deleting Outputs IDs: ${outputsToDelete.join(', ')} for Outcome ID: ${currentOutcomeId}`);
             await tx.strategyOutput.deleteMany({
                 where: { id: { in: outputsToDelete } },
             });
@@ -135,8 +122,7 @@ export async function manageOutcomesAndOutputs(
         for (const output of outcome.outputs) {
              // CRITICAL VALIDATION: Ensure required fields are present
              if (!output.title || !output.responsible) {
-                 console.error(`[RBM Management] Skipping Output due to missing title or responsible:`, output);
-                 continue; // Skip invalid output data to prevent DB error
+                 continue; // Skip invalid output data
              }
 
             if (output.id) {
@@ -173,7 +159,7 @@ export async function PUT(
 ) {
     const strategyId = params.id;
     let body: PutBody;
-    console.log("her:body ")
+
     try {
         body = await request.json();
     } catch (error) {
@@ -181,47 +167,47 @@ export async function PUT(
     }
     
     const { title, content, year, authorId, status, goals } = body; 
-    console.log("her:body ", body)
-    // --- Authorization & Edit Check (Omitted for brevity, assuming your logic works) ---
+
+    // --- Authorization & Pre-Check ---
     try {
         const existingStrategy = await prisma.strategy.findUnique({
             where: { id: strategyId },
             select: { authorId: true, status: true },
         });
-       // console.log("her:existingStrategy ", existingStrategy)
+
         if (!existingStrategy) {
             return NextResponse.json({ message: 'Strategy not found.' }, { status: 404 });
         }
-
-        //  if (existingStrategy.authorId==) {
-        //     return NextResponse.json({ message: 'Strategy not found.' }, { status: 404 });
-        // }
         
-        // Removed commented-out authorization logic for cleanliness
+        // You would typically verify the authorId here against the authenticated user's ID
+        // if (existingStrategy.authorId !== authenticatedUserId) { ... }
+        
     } catch (error) {
-        console.error('Error during authorization check:', error);
-        return NextResponse.json({ message: 'Failed authorization check.' }, { status: 500 });
+        return NextResponse.json({ message: 'Failed pre-check or authorization.' }, { status: 500 });
     }
+
+    // Determine the actual status to save and if a vote reset is required
+    const isAmendedSignal = status === AMENDED_STATUS_SIGNAL;
+    const finalStatus = isAmendedSignal ? ProposalStatus.VOTING_OPEN : (status as ProposalStatus);
 
     // --------------------------------------------------
     // 🏛️ TRANSACTION: Update Strategy and Nested RBM Chain
     // --------------------------------------------------
     try {
         const updatedStrategyWithRBM = await prisma.$transaction(async (tx) => {
-            
-            // 1. Update the main Strategy record
+           
             await tx.strategy.update({
                 where: { id: strategyId },
                 data: {
                     title,
                     content,
                     year,
-                    status: status as ProposalStatus, 
+                    status: finalStatus, // Use the resolved status
                     updatedAt: new Date(),
                 },
             });
             
-            // 2. Manage Goals (Delete, Create/Update)
+            // 3. Manage Goals (Delete, Create/Update)
             const currentGoals = await tx.strategyGoal.findMany({
                 where: { strategyId: strategyId },
                 select: { id: true },
@@ -232,10 +218,8 @@ export async function PUT(
                 .filter(g => !incomingGoalIds.includes(g.id))
                 .map(g => g.id);
 
-            // Delete goals that were removed by the user (Outcomes/Outputs will cascade if schema is configured)
+            // Delete goals (Outcomes/Outputs will cascade via schema configuration)
             if (goalsToDelete.length > 0) {
-                 // TEMPORARY DEBUG LOG
-                console.log(`[RBM Management - Goal] Deleting Goals IDs: ${goalsToDelete.join(', ')}`);
                 await tx.strategyGoal.deleteMany({
                     where: { id: { in: goalsToDelete } },
                 });
@@ -245,12 +229,10 @@ export async function PUT(
             for (const goal of goals) {
                 let currentGoalId: string;
                 
-                // CRITICAL VALIDATION: Ensure required fields are present
+                // CRITICAL VALIDATION
                 if (!goal.title || goal.targetYear === undefined || goal.targetYear === null) {
-                    console.error(`[RBM Management - Goal] Skipping Goal due to missing title or targetYear:`, goal);
-                    continue; // Skip invalid goal data to prevent DB error
+                    continue; // Skip invalid goal data
                 }
-
 
                 if (goal.id) {
                     // Update existing goal
@@ -262,8 +244,6 @@ export async function PUT(
                         },
                     });
                     currentGoalId = updated.id;
-                     // TEMPORARY DEBUG LOG
-                    console.log(`[RBM Management - Goal] Updated Goal ID: ${currentGoalId}`);
                 } else {
                     // Create new goal
                     const created = await tx.strategyGoal.create({
@@ -271,22 +251,21 @@ export async function PUT(
                             strategyId: strategyId,
                             title: goal.title,
                             targetYear: goal.targetYear,
-                            // Ensure the strategyId field is populated correctly
                         },
                     });
                     currentGoalId = created.id;
-                     // TEMPORARY DEBUG LOG
-                    console.log(`[RBM Management - Goal] Created new Goal ID: ${currentGoalId}`);
                 }
                 
-                // 3. Recursive call to manage Outcomes and Outputs for this Goal
+                // 4. Recursive call to manage Outcomes and Outputs for this Goal
                 await manageOutcomesAndOutputs(tx, currentGoalId, goal.outcomes);
             }
             
-            // 4. FINAL STEP: Fetch the fully updated Strategy with all its related RBM chain
+            // 5. FINAL STEP: Fetch the fully updated Strategy with all its related RBM chain
             const finalStrategy = await tx.strategy.findUnique({
                 where: { id: strategyId },
                 include: {
+                    author: true,
+                    votes: true, 
                     goals: {
                         include: {
                             outcomes: {
@@ -298,33 +277,31 @@ export async function PUT(
                     },
                 },
             });
+    
+            // 6. Transform the fetched data for the client
+            const safeStrategy = transformStrategy(finalStrategy);
 
-            if (!finalStrategy) {
+            if (!safeStrategy) {
                 throw new Error("Failed to retrieve updated strategy after transaction.");
             }
             
-            return finalStrategy; // Return the fully populated object
+            return safeStrategy; 
         }, 
-        // 🎯 NEW: Set the interactive transaction timeout to 15000ms (15 seconds)
+        // Set the interactive transaction timeout to 15 seconds (Good for complex RBM saves)
         {
             timeout: 15000, 
         });
-       
+        
         // Send the fully updated object (including goals, outcomes, and outputs) to the client
         return NextResponse.json(updatedStrategyWithRBM);
 
     } catch (error) {
-        // TEMPORARY DEBUGGING STEP 3: Log the detailed error object
         console.error('--- DETAILED PRISMA TRANSACTION ERROR DURING PUT ---');
-        // @ts-ignore - error might not be a standard Error object
-        console.error('Error Code (Pxxxx):', error.code); 
-        // @ts-ignore
-        console.error('Error Message:', error.message);
-        // @ts-ignore
-        console.error('Error Stack:', error.stack);
-        console.error('Error Object:', JSON.stringify(error, Object.getOwnPropertyNames(error), 2));
-        console.error('-----------------------------------------');
-     // @ts-ignore
-        return NextResponse.json({ message: `Failed to update strategy and goals due to a database error.${error.code}` }, { status: 500 });
+        // Log detailed error and return a general 500 response
+        console.error(error);
+        return NextResponse.json(
+            { message: `Failed to update strategy and goals due to a database error.` }, 
+            { status: 500 }
+        );
     }
 }

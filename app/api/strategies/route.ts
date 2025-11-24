@@ -4,6 +4,7 @@ import prisma from "../../libs/prismadb";
 import { PrismaClient, ProposalStatus } from '@prisma/client'; // Import the enums from Prisma
 // Note: Assuming manageOutcomesAndOutputs and PutBody are correctly imported from the sibling [id] route file
 import { manageOutcomesAndOutputs, PutBody } from './[id]/route'; 
+import { transformStrategy } from '@/app/actions/getStrategies';
 
 // Utility type for Prisma transaction context (used by manageOutcomesAndOutputs)
 type PrismaTransaction = Omit<PrismaClient, '$connect' | '$disconnect' | '$on' | '$transaction' | '$use' | '$extends'>;
@@ -97,6 +98,8 @@ export async function POST(request: Request) {
           const finalStrategy = await tx.strategy.findUnique({
               where: { id: newStrategy.id },
               include: {
+                 author: true,
+                    votes: true, // 
                   goals: {
                       include: {
                           outcomes: {
@@ -108,13 +111,14 @@ export async function POST(request: Request) {
                   },
               },
           });
+          const safeStrategy = transformStrategy(finalStrategy);
 
-          if (!finalStrategy) {
+          if (!safeStrategy) {
               // This is a safety check: if the final fetch fails, the entire transaction rolls back.
               throw new Error("Failed to retrieve created strategy after transaction.");
           }
           
-          return finalStrategy; // Return the fully populated object
+          return safeStrategy; // Return the fully populated object
         
       }, 
       // 🎯 NEW: Set the interactive transaction timeout to 15000ms (15 seconds)

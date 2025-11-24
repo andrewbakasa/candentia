@@ -3,6 +3,7 @@ import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { BookOpen, Flag, Loader2, Plus, Save, Trash2, AlertTriangle, ArrowLeft } from 'lucide-react';
 import { toast, Toaster } from 'sonner';
 import { SafeUser } from '@/app/types';
+import { StrategyWithUserVotes } from './StrategyCard';
 //import { StrategyWithRBM } from './StrategyCard'; 
 
 // interface SafeUser {
@@ -331,10 +332,10 @@ interface FormState {
 }
 
 interface StrategyFormProps {
-    initialStrategy: StrategyWithRBMFull | null; 
+    initialStrategy: StrategyWithUserVotes | null; 
     currentUser:SafeUser|null;
     authorId: string | null; 
-    onSave: (data: StrategyWithRBMFull) => void;
+    onSave: (data: StrategyWithUserVotes) => void;
     onCancel: () => void;
 }
 
@@ -633,7 +634,7 @@ export default function StrategyForm({ initialStrategy, currentUser, authorId, o
                 throw new Error(errorMessage);
             }
     
-            const result = await response.json() as StrategyWithRBMFull;
+            const result = await response.json() as StrategyWithUserVotes//StrategyWithRBMFull;
             toast.success(successMessage);
             onSave(result); 
         } catch (error) {
