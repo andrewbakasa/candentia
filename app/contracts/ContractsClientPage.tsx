@@ -18,6 +18,7 @@ import { cn } from '@/lib/utils';
 import { SafeUser } from '../types';
 import { updatePagSize } from '@/actions/update-user-pagesize';
 import { toast } from 'sonner';
+import { redirect } from 'next/navigation';
 
 // --- TYPE DEFINITIONS ---
 type PageSizeOption = '4' | '8' | '16' | '24';
@@ -55,6 +56,28 @@ const ContractsListPage: React.FC<ContractListClientProps> = ({
     const [statusFilter, setStatusFilter] = useState<FilterStatus>('ALL');
     const [pageSize, setPageSize] = useState<number>(DEFAULT_PAGE_SIZE); 
     const [itemOffset, setItemOffset] = useState(0); 
+
+      const allowedRoles: string[] = ['admin', 'executive'];
+
+    const hasRequiredRole = useMemo(() => {
+        if (!currentUser) {
+            return false;
+        }
+
+        // Check 1: Is the user a global system admin?
+        const isGlobalAdmin = currentUser.isAdmin === true;
+
+        // Check 2: Does the user have a required role in their roles array?
+        const hasRoleAccess = currentUser.roles 
+            && currentUser.roles.some(role => 
+                allowedRoles.includes(role.toLowerCase())
+            );
+
+        // Access is granted if they are a global admin OR they have one of the required roles
+        return isGlobalAdmin || hasRoleAccess;
+
+    }, [currentUser]);
+
 
     const { execute } = useAction(updatePagSize, {
         onSuccess: (data) => {
@@ -231,7 +254,12 @@ const ContractsListPage: React.FC<ContractListClientProps> = ({
     }
 
     const contractsToDisplay = paginatedContracts;
-
+   // Redirect unallowed users
+    if (!hasRequiredRole) {
+        // NOTE: Redirect to a 'denied' or 'home' page if access is denied
+        return redirect('/denied'); 
+    }
+    
     return (
         <div className="container mx-auto p-2 sm:p-4 lg:p-6"> {/* Increased container padding for better desktop look */}
             

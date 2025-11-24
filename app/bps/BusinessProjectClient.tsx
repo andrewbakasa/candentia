@@ -15,6 +15,7 @@ import { Hint } from '@/components/hint';
 import { updatePagSize } from '@/actions/update-user-pagesize';
 import { useAction } from '@/hooks/use-action';
 import { toast } from 'sonner';
+import { redirect } from 'next/navigation';
 
 
 // --- Standardized Progress Stages (Aligned with the Prisma Enum) ---
@@ -335,6 +336,28 @@ const ProjectListPage: React.FC<ProjectListClientProps> = ({
     // --- NEW STATE: Tracks the project whose commenters list is open ---
     const [openCommentersProjectId, setOpenCommentersProjectId] = useState<string | null>(null);
 
+    const allowedRoles: string[] = ['admin', 'executive'];
+
+    const hasRequiredRole = useMemo(() => {
+        if (!currentUser) {
+            return false;
+        }
+
+        // Check 1: Is the user a global system admin?
+        const isGlobalAdmin = currentUser.isAdmin === true;
+
+        // Check 2: Does the user have a required role in their roles array?
+        const hasRoleAccess = currentUser.roles 
+            && currentUser.roles.some(role => 
+                allowedRoles.includes(role.toLowerCase())
+            );
+
+        // Access is granted if they are a global admin OR they have one of the required roles
+        return isGlobalAdmin || hasRoleAccess;
+
+    }, [currentUser]);
+
+
     const { execute, fieldErrors } = useAction(updatePagSize, {
         onSuccess: (data) => {
             toast.success(`PageSize for ${data?.email} updated to ${data.pageSize}`);
@@ -580,7 +603,13 @@ const ProjectListPage: React.FC<ProjectListClientProps> = ({
             if (value === null) return 'text-gray-600';
             return value > 0.1 ? 'text-blue-700' : 'text-gray-700';
         };
-
+    
+        // Redirect unallowed users
+    if (!hasRequiredRole) {
+        // NOTE: Redirect to a 'denied' or 'home' page if access is denied
+        return redirect('/denied'); 
+    }
+    
         return (
             <div 
                 key={project.id} 

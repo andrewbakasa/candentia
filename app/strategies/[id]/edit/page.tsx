@@ -72,6 +72,7 @@ const StrategyPage = async ({ params }: { params: IParams }) => {
                 } } onCancel={function (): void {
                     throw new Error("Function not implemented.");
                 } }  
+                currentUser={currentUser}
                 // onSave={handleSave}
                 // onCancel={handleCancelForm}          
                 />
