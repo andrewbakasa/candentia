@@ -332,7 +332,7 @@ interface FormState {
 
 interface StrategyFormProps {
     initialStrategy: StrategyWithRBMFull | null; 
-    currentUser:SafeUser;
+    currentUser:SafeUser|null;
     authorId: string | null; 
     onSave: (data: StrategyWithRBMFull) => void;
     onCancel: () => void;
@@ -347,8 +347,11 @@ export default function StrategyForm({ initialStrategy, currentUser, authorId, o
     
     //allow button to be enable only if user is allowed to edit
     //let AI correct here 
-    const isReady = !!authorId && !(currentUser.id==authorId || currentUser.isAdmin);
-
+   // const isReady = !!authorId 
+   // console.log("isReady",isReady)
+    // console.log("currentUser.id === authorId , currentUser.isAdmin, !!authorId", currentUser.id === authorId , currentUser.isAdmin, !!authorId)
+    const isReady = (!!authorId && (currentUser?.id === authorId || currentUser?.isAdmin));
+    console.log("isReady",isReady)
     // --- State Initialization (using RBM Helpers) ---
     const initialData: FormState = useMemo(() => {
         if (initialStrategy && initialStrategy.goals.length > 0) {
