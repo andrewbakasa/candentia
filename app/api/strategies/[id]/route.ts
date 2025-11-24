@@ -1,7 +1,9 @@
 import { NextResponse } from 'next/server';
 import prisma from '../../../libs/prismadb';
 import { ProposalStatus, PrismaClient } from '@prisma/client';
-import { transformStrategy } from '@/app/actions/getStrategies'; interface StrategyOutput {
+import { transformStrategy } from '@/app/actions/getStrategies';
+
+interface StrategyOutput {
     id?: string;
     title: string;
     responsible: string;
