@@ -267,7 +267,18 @@ export async function PUT(
                 where: { id: strategyId },
                 include: {
                     author: true,
-                    votes: true, 
+                  votes: {
+                    // CRITICAL: Include the voter to get the email/name for the Admin view
+                    include: {
+                        voter: {
+                            select: {
+                                id: true,
+                                name: true,
+                                email: true,
+                            }
+                        }, 
+                    }
+                },
                     goals: {
                         include: {
                             outcomes: {
@@ -281,7 +292,7 @@ export async function PUT(
             });
     
             // 6. Transform the fetched data for the client
-            const safeStrategy = transformStrategy(finalStrategy);
+            const safeStrategy = transformStrategy(finalStrategy as any);
 
             if (!safeStrategy) {
                 throw new Error("Failed to retrieve updated strategy after transaction.");

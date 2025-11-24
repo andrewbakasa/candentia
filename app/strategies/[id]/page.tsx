@@ -41,9 +41,18 @@ export default async function StrategiesDashboard({
                 where: { id:  params.id },
                 include: {
                     author: true,
-                    votes:  {
-                          select: { voterId: true, type: true }
-                   }, 
+                    votes: {
+                    // CRITICAL: Include the voter to get the email/name for the Admin view
+                    include: {
+                        voter: {
+                            select: {
+                                id: true,
+                                name: true,
+                                email: true,
+                            }
+                        }, 
+                    }
+                }, 
                     goals: {
                         include: {
                             outcomes: {
@@ -59,7 +68,7 @@ export default async function StrategiesDashboard({
 
         
                     // 6. Transform the fetched data for the client
-  const safeUpdateStrategy = transformStrategy(updatedStrategy);
+  const safeUpdateStrategy:any = transformStrategy(updatedStrategy as any);
         
 
   return (

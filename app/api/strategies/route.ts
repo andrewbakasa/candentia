@@ -99,7 +99,18 @@ export async function POST(request: Request) {
               where: { id: newStrategy.id },
               include: {
                  author: true,
-                    votes: true, // 
+                   votes: {
+                    // CRITICAL: Include the voter to get the email/name for the Admin view
+                    include: {
+                        voter: {
+                            select: {
+                                id: true,
+                                name: true,
+                                email: true,
+                            }
+                        }, 
+                    }
+                },
                   goals: {
                       include: {
                           outcomes: {
@@ -111,7 +122,7 @@ export async function POST(request: Request) {
                   },
               },
           });
-          const safeStrategy = transformStrategy(finalStrategy);
+          const safeStrategy = transformStrategy(finalStrategy as any);
 
           if (!safeStrategy) {
               // This is a safety check: if the final fetch fails, the entire transaction rolls back.
