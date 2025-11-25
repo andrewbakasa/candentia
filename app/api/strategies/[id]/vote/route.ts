@@ -101,20 +101,7 @@ export async function POST(
             }),
         ]);
         
-        // 5. Fetch the complete, updated strategy object
-        // const updatedStrategy = await prisma.strategy.findUnique({
-        //     where: { id: strategyId },
-        //     include: {
-        //         // IMPORTANT: Ensure the include structure matches client expectation (StrategyWithUserVotes)
-        //         // You likely want the votes associated with the proposal, not complex nested goals/outcomes for this call.
-        //         // Adjusted to include just the RBM relation and simplified votes include for client strategy card.
-        //         // riskBusinessModel: true, 
-        //         votes: {
-        //             select: { voterId: true, type: true }
-        //         }
-        //     }
-        // });
-
+        
         const updatedStrategy =  await prisma.strategy.findUnique({
                 where: { id: strategyId },
                 include: {
@@ -249,21 +236,12 @@ export async function DELETE(
             }),
         ]);
 
-        // 5. Fetch the complete, updated strategy object (similar to POST)
-        // const updatedStrategy = await prisma.strategy.findUnique({
-        //     where: { id: strategyId },
-        //     include: {
-        //         // riskBusinessModel: true,
-        //         votes: {
-        //             select: { voterId: true, type: true }
-        //         }
-        //     }
-        // });
+      
 
         const updatedStrategy =  await prisma.strategy.findUnique({
                 where: { id: strategyId },
                 include: {
-                    author: true,
+                  author: true,
                   votes: {
                     // CRITICAL: Include the voter to get the email/name for the Admin view
                     include: {

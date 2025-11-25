@@ -19,6 +19,7 @@ type StrategyWithVotesAndGoals = Awaited<ReturnType<typeof getStrategies>>[numbe
         id: string;
         voterId: string;
         type: 'YES' | 'NO'; // Matches VoteType enum
+        timestamp:string;
         voter: {
             id: string;
             name: string | null;
@@ -43,6 +44,7 @@ export const transformStrategy = (strategy: StrategyWithVotesAndGoals) => {
         voteType: vote.type, // 'type' is used in the model, 'voteType' is used in the frontend prop
         email: vote.voter.email,
         name: vote.voter.name,
+        timestamp: vote.timestamp
     }));
 
     // Use destructuring to safely exclude the raw `votes` array
