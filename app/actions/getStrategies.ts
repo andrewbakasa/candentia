@@ -73,8 +73,8 @@ type StrategyWithVotesAndGoals = Awaited<ReturnType<typeof getStrategies>>[numbe
         id: string;
         voterId: string;
         type: 'YES' | 'NO'; // Matches VoteType enum
-       // timestamp: string | Date; // Use string | Date to be safe, but it often comes as Date
-       // updatedAt: string | Date; // Use string | Date to be safe, but it often comes as Date
+        timestamp: string | Date; // Use string | Date to be safe, but it often comes as Date
+        updatedAt: string | Date; // Use string | Date to be safe, but it often comes as Date
         voter: {
             id: string;
             name: string | null;
@@ -164,8 +164,8 @@ export const transformStrategy = (strategy: StrategyWithVotesAndGoals) => {
         name: vote.voter?.name || 'Deleted User',
         
         // These fields are already safe strings from the serializeDates step
-        //timestamp: vote.timestamp, 
-        //updatedAt: vote.updatedAt
+        timestamp: vote.timestamp, 
+        updatedAt: vote.updatedAt
     }));
 
     // Step 3: Use destructuring on the *original* raw strategy to get the rest of the fields
