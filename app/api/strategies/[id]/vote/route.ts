@@ -146,6 +146,161 @@ export async function POST(
     }
 }
 
+export async function PUT(
+    request: Request,
+    { params }: { params: { id: string } } // strategyId
+) {
+    const strategyId = params.id;
+
+    try {
+        const { voterId, voteType  } = await request.json(); // voteType will be 'YES' or 'NO'
+
+       // console.log(voterId, voteType)
+
+        if (!voterId || !voteType) {
+            return NextResponse.json(
+                { message: 'Missing voterId or voteType in request body.' },
+                { status: 400 }
+            );
+        }
+
+        // 1. Fetch current strategy data and existing vote
+        const [currentStrategy, existingVote] = await prisma.$transaction([
+            prisma.strategy.findUnique({
+                where: { id: strategyId },
+                select: { 
+                    status: true,
+                    totalVotesYes: true,
+                    totalVotesNo: true,
+                    // Note: If you have a custom field for the score, include it here
+                }
+            }),
+            prisma.strategyVote.findFirst({
+                where: {
+                    proposalId: strategyId,
+                    voterId: voterId,
+                }
+            })
+        ]);
+        
+        // Validation Checks
+        if (!currentStrategy || currentStrategy.status !== ProposalStatus.VOTING_OPEN) {
+            return NextResponse.json(
+                { message: 'Voting is not currently open for this strategy.' },
+                { status: 403 }
+            );
+        }
+
+        if (!existingVote) {
+            // If no vote exists, this should probably be a POST request, not a PUT/PATCH.
+            return NextResponse.json(
+                { message: 'No existing vote found for this user/strategy. Use POST to cast a new vote.' },
+                { status: 404 }
+            );
+        }
+
+        const oldVoteType = existingVote.type;
+        const newType = voteType as VoteType;
+
+        if (oldVoteType === newType) {
+            // The user is attempting to switch to the vote they already have
+            return NextResponse.json(
+                { message: `Vote is already set to ${newType}. No change performed.` },
+                { status: 200 }
+            );
+        }
+        
+        // 2. Determine the required vote count adjustments
+        // We will decrement the old type and increment the new type.
+        
+        let decrementField: 'totalVotesYes' | 'totalVotesNo';
+        let incrementField: 'totalVotesYes' | 'totalVotesNo';
+
+        if (oldVoteType === VoteType.YES && newType === VoteType.NO) {
+            decrementField = 'totalVotesYes';
+            incrementField = 'totalVotesNo';
+        } else if (oldVoteType === VoteType.NO && newType === VoteType.YES) {
+            decrementField = 'totalVotesNo';
+            incrementField = 'totalVotesYes';
+        } else {
+            // Should not happen based on the `if (oldVoteType === newType)` check, but safe to include.
+            return NextResponse.json({ message: 'Invalid vote switch scenario.' }, { status: 400 });
+        }
+        
+        // 3. Calculate the NEW scores based on the intended change
+        // Safely check for nulls/undefineds for Prisma fields, though usually numbers are guaranteed.
+        let newYesVotes = currentStrategy.totalVotesYes || 0;
+        let newNoVotes = currentStrategy.totalVotesNo || 0;
+
+        if (decrementField === 'totalVotesYes') {
+            newYesVotes -= 1;
+            newNoVotes += 1;
+        } else { // decrementField === 'totalVotesNo'
+            newNoVotes -= 1;
+            newYesVotes += 1;
+        }
+
+        // Ensure counts don't go below zero (safety check)
+        newYesVotes = Math.max(0, newYesVotes);
+        newNoVotes = Math.max(0, newNoVotes);
+
+        const newScore = calculateScore(newYesVotes, newNoVotes);
+        
+        // 4. Execute the vote update and counter/score update atomically
+        await prisma.$transaction([
+            // A. Update the existing StrategyVote record to the new type
+            prisma.strategyVote.update({
+                where: { id: existingVote.id }, // Use the existing vote's ID
+                data: {
+                    type: newType, // Change the vote type
+                    timestamp: new Date(), // Update the timestamp
+                },
+            }),
+
+            // B. Atomically update the total vote counts AND the score on the Strategy
+            prisma.strategy.update({
+                where: { id: strategyId },
+                data: {
+                    // Decrement the old counter and increment the new counter simultaneously
+                    [decrementField]: { decrement: 1 },
+                    [incrementField]: { increment: 1 },
+                    averageStrategicScore: newScore, // Update the score field
+                },
+            }),
+        ]);
+        
+        // 5. Fetch the full, updated strategy object after the transaction
+        const updatedStrategy = await prisma.strategy.findUnique({
+            where: { id: strategyId },
+            include: {
+                author: true,
+                votes: {
+                    select: { voterId: true, type: true, id: true, timestamp: true }
+                }, 
+                goals: {
+                    include: { outcomes: { include: { outputs: true } } }
+                },
+            },
+        });
+        
+        // 6. Transform and return the data
+        const safeUpdateStrategy = transformStrategy(updatedStrategy as any);
+        
+        if (!safeUpdateStrategy) {
+            return NextResponse.json({ message: 'Vote switched, but could not refetch strategy.' }, { status: 500 });
+        }
+
+        // Revalidate cache paths for fresh data
+        revalidatePath('/strategies');
+        revalidatePath(`/strategies/${strategyId}`);
+
+        return NextResponse.json(safeUpdateStrategy, { status: 200 });
+    } catch (error: any) {
+        console.error('Error during vote switching:', error);
+        return NextResponse.json({ message: 'Failed to switch vote.' }, { status: 500 });
+    }
+}
+
 // ==========================
 // DELETE: CANCEL VOTE HANDLER
 // ==========================

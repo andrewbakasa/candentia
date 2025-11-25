@@ -23,15 +23,17 @@ interface VotingSectionProps {
     strategyId: string;
     // The current user's vote ('YES', 'NO', or null if not voted).
     userCurrentVote: 'YES' | 'NO' | null;
-    // Handler for casting a new vote or changing vote (API: POST or PUT)
-    onVote: (voteType: 'YES' | 'NO') => Promise<void>;
+   // Handler for casting a new vote or changing vote.
+    // The 'action' parameter tells the parent whether to use POST (NEW) or PUT (SWITCH).
+    onVote: (voteType: 'YES' | 'NO', action: 'NEW' | 'SWITCH') => Promise<void>; 
     // Handler for canceling/deleting the existing vote (API: DELETE)
-    onCancelVote: () => Promise<void>; 
-    
+    onCancelVote: () => Promise<void>;
     // --- NEW ADMIN PROPS ---
     isAdmin: boolean; // Flag to check if the current user is an admin
     voterList: Voter[]; // The list of all voters for this strategy
     // --- END NEW ADMIN PROPS ---
+
+  
 }
 
 // --- Helper Component: Confirmation Message (Unchanged) ---
@@ -171,7 +173,9 @@ export default function VotingSection({ strategyId, onVote, onCancelVote, userCu
     // NEW STATE: Toggle visibility for the voter list
     const [showVoterList, setShowVoterList] = useState(false);
 
+    // --- Adjusted handleActionClick function in VotingSection component ---
 
+  
     const handleActionClick = async (type: 'YES' | 'NO' | 'CANCEL') => {
         if (processingAction) return;
 
@@ -182,8 +186,18 @@ export default function VotingSection({ strategyId, onVote, onCancelVote, userCu
             if (type === 'CANCEL') {
                 await onCancelVote();
             } else {
-                await onVote(type); 
+                 // POST or PUT logic
+                const action: 'NEW' | 'SWITCH' = userCurrentVote ? 'SWITCH' : 'NEW';
+                await onVote(type, action); // <-- ADJUSTED CALL
             }
+
+              // Success message logic here (optional, depending on where success is handled)
+            setMessage({ 
+                text: type === 'CANCEL' 
+                    ? 'Vote successfully canceled.' 
+                    : `Vote successfully submitted/switched to ${type}.`, 
+                type: 'success' 
+            });
         } catch (error) {
             console.error('Voting failed:', error);
             // Assuming onVote/onCancelVote throws an error object with a message
@@ -227,8 +241,14 @@ export default function VotingSection({ strategyId, onVote, onCancelVote, userCu
             
             {/* --- CONDITIONAL RENDERING --- */}
             {hasVoted ? (
+                // <ConfirmedVoteDisplay 
+                //     vote={userCurrentVote!} // Use ! since hasVoted is true
+                //     onCancel={() => handleActionClick('CANCEL')} // Pass CANCEL action
+                //     onSwitch={(newVote) => handleActionClick(newVote)} // Pass YES/NO action
+                //     isProcessing={isAnyProcessing}
+                // />
                 <ConfirmedVoteDisplay 
-                    vote={userCurrentVote!} // Use ! since hasVoted is true
+                    vote={userCurrentVote!} 
                     onCancel={() => handleActionClick('CANCEL')} // Pass CANCEL action
                     onSwitch={(newVote) => handleActionClick(newVote)} // Pass YES/NO action
                     isProcessing={isAnyProcessing}

@@ -44,14 +44,66 @@ const StrategyClient: React.FC<StrategyClientProps> = ({
         return isGlobalAdmin || hasRoleAccess;
     }, [currentUser]);
 
-    // **IMPORTANT:** Removed the unconditional redirect based on role. 
-    // Viewing is now permitted regardless of role or login status.
-    
-    // 2. STATE INITIALIZATION: Use a single strategy state (object or null)
+   
     const [strategy, setStrategy] = useState<StrategyWithUserVotes | null>(mockStrategy);
     
     const [view, setView] = useState<'list' | 'form'>('list'); // 'list' or 'form'
     const [selectedStrategy, setSelectedStrategy] = useState<StrategyWithUserVotes | null>(null); 
+
+
+    const handleVoteAction = async (strategyId: string,voteType: 'YES' | 'NO', action: 'NEW' | 'SWITCH') => {
+        const method = action === 'NEW' ? 'POST' : 'PUT';
+        const endpoint = `/api/strategies/${strategyId}/vote`; // Assuming vote API structure
+
+        if (!currentUser?.id) {
+                toast.error("You must be logged in to vote.");            
+                loginModal.onOpen();// CORRECTED: Open the login modal
+                return;
+            }
+
+        const payload = {
+                voterId: currentUser.id,
+                voteType: voteType,
+            };
+
+        console.log(`method: ${method}, voteType: ${voteType}`)
+        try {
+            // Logic to call the API based on method
+            const response = await fetch(endpoint, {
+                method: method,
+                // Mandatory check for user
+                headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(payload),
+                    });
+               
+                
+                
+
+                    if (!response.ok) {
+                        let errorDetail = response.statusText;
+                        try {
+                            const errorBody = await response.json();
+                            errorDetail = errorBody.message || errorDetail;
+                        } catch (e) {
+                            // Ignore if not JSON
+                        }
+                        toast.error(`Vote failed: ${errorDetail}`);
+                        return;
+                    }
+
+                   // Success Path: Use the returned data to update the single state object.
+            const result: StrategyWithUserVotes = await response.json(); 
+            console.log(`result: ${result}`)
+            setStrategy(result); 
+            
+            toast.success(`Your "${voteType}" vote for "${result.title}" was recorded!`);
+                    
+        } catch (error) {
+            console.error("Voting API error:", error);
+            toast.error("An unexpected network error occurred while voting.");
+        }
+    };
+
 
     // 3. Voting Logic - Updates the single strategy state (Requires login, checked inside)
     const handleVote = async (strategyId: string, voteType: 'YES' | 'NO') => {
@@ -280,7 +332,7 @@ const StrategyClient: React.FC<StrategyClientProps> = ({
                                 key={singleStrategyToShow.id}
                                 strategy={singleStrategyToShow}
                                 onStrategyClick={handleStrategyClick}
-                                onVote={handleVote}
+                                onVote={handleVoteAction}
                                 onCancelVote={handleCancelVote} // <-- CORRECTED: PASS THE NEW HANDLER
                                 currentUser={currentUser}
                                 counter={1} 

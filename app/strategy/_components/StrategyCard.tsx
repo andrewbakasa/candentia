@@ -64,14 +64,25 @@ const ProposalStatus = {
 
 
 // 1. UPDATE INTERFACE: Add onCancelVote
+// export interface StrategyCardProps {
+//     strategy: StrategyWithUserVotes;
+//     currentUser: SafeUser | null;
+//     onVote: (strategyId: string, type: 'YES' | 'NO') => Promise<void>; 
+//     // NEW PROP: Handler for deleting a vote
+//     onCancelVote: (strategyId: string) => Promise<void>;
+//     onStrategyClick: (strategy: StrategyWithUserVotes) => void;
+//     counter:number
+// }
+
 export interface StrategyCardProps {
-    strategy: StrategyWithUserVotes;
-    currentUser: SafeUser | null;
-    onVote: (strategyId: string, type: 'YES' | 'NO') => Promise<void>; 
-    // NEW PROP: Handler for deleting a vote
-    onCancelVote: (strategyId: string) => Promise<void>;
-    onStrategyClick: (strategy: StrategyWithUserVotes) => void;
-    counter:number
+    strategy: StrategyWithUserVotes;
+    currentUser: SafeUser | null;
+    // CORRECTION: Add 'action' parameter here.
+    onVote: (strategyId: string, type: 'YES' | 'NO', action: 'NEW' | 'SWITCH') => Promise<void>; 
+    // Handler for deleting a vote
+    onCancelVote: (strategyId: string) => Promise<void>;
+    onStrategyClick: (strategy: StrategyWithUserVotes) => void;
+    counter:number
 }
 const getStatusColor = (status: string) => {
     // ... (unchanged)
@@ -242,10 +253,11 @@ export default function StrategyCard({ strategy, currentUser, onVote, onCancelVo
                     strategyId={strategy.id} 
                     userCurrentVote={userCurrentVote} 
                     // Pass the onVote handler, bound to this strategy's ID
-                    onVote={(type: 'YES' | 'NO') => onVote(strategy.id, type)}
-                    // Pass the new onCancelVote handler, bound to this strategy's ID
-                    onCancelVote={() => onCancelVote(strategy.id)}
-                    
+                   // CORRECTION: Accept 'action' from VotingSection and pass it to the parent onVote handler
+                    onVote={(type: 'YES' | 'NO', action: 'NEW' | 'SWITCH') => onVote(strategy.id, type, action)}
+                    
+                    // Pass the new onCancelVote handler, bound to this strategy's ID
+                    onCancelVote={() => onCancelVote(strategy.id)}
                     // --- NEW PROPS FOR ADMIN VIEW ---
                     isAdmin={isAdmin}
                     voterList={strategy.individualVotes.map(v => ({
