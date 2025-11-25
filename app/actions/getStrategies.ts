@@ -4,32 +4,24 @@ import getCurrentUser from "./getCurrentUser";
 
 // --- Type Definitions (Reflecting the Prisma schema and required output) ---
 
-// Strategy fields that are Date objects in Prisma need to be defined as 'string' for the client
-// This is necessary for safe serialization from Server Component to Client Component.
-
-// Define the structure of an individual vote record required by the client (VoterAudit from frontend)
+// Define the structure of an individual vote record required by the client
 interface ClientVoteAudit {
     id: string;
     voterId: string;
     voteType: 'YES' | 'NO';
     email: string | null;
     name: string | null;
-    timestamp: string; // 💡 CORRECT: Expects the ISO string format
-    updatedAt: string; // 💡 CORRECT: Expects the ISO string format
+    timestamp: string; // Serialized
+    updatedAt: string; // Serialized
 }
 
-// NOTE: This type definition must precisely reflect the full structure returned by prisma.strategy.findMany
-// including all nested includes (author, votes, goals, outcomes, outputs) before transformation.
-// We are leaving the Date fields here as the raw Prisma types (Date objects) since they are the input
-// to `transformStrategy`.
-
-// Define the base types for nested relations (assuming all date fields are raw 'Date' objects from Prisma)
+// Define the base types for nested relations (INPUT: raw Date objects from Prisma)
 interface OutputType {
-    // Assuming these are fields from your Output model
     id: string;
-    createdAt: Date;
+    // Dates from Prisma models: StrategyOutput, StrategyComment, etc. (assuming they have these fields)
+    createdAt: Date; 
     updatedAt: Date;
-    [key: string]: any; // Catch all other fields
+    [key: string]: any; 
 }
 
 interface OutcomeType {
@@ -52,18 +44,21 @@ interface AuthorType {
     id: string;
     name: string | null;
     email: string | null;
-    createdAt: Date;
-    updatedAt: Date;
+    // Dates from the related User model
+    createdAt: Date; 
+    updatedAt: Date; 
     [key: string]: any;
 }
 
 
 // Define the full structure of the Strategy returned from Prisma's findMany with includes
 type StrategyWithVotesAndGoals = Awaited<ReturnType<typeof getStrategies>>[number] & {
-    // Top-level Strategy fields expected to be Date objects from Prisma
-    createdAt: Date; 
+    // Top-level Strategy fields
+    createdAt: Date; // Assuming createdAt exists on Strategy
     updatedAt: Date;
-    submissionDate: Date | null; // Assuming submissionDate can be null
+    submissionDate: Date | null; 
+    votingStart: Date | null; // Added based on model
+    votingEnd: Date | null;   // Added based on model
     
     author: AuthorType;
     goals: GoalType[];
@@ -72,16 +67,17 @@ type StrategyWithVotesAndGoals = Awaited<ReturnType<typeof getStrategies>>[numbe
     votes: {
         id: string;
         voterId: string;
-        type: 'YES' | 'NO'; // Matches VoteType enum
-        timestamp: string | Date; // Use string | Date to be safe, but it often comes as Date
-        updatedAt: string | Date; // Use string | Date to be safe, but it often comes as Date
+        type: 'YES' | 'NO';
+        // Vote dates are required as they are used in safeToISOString inside the transform:
+        timestamp: Date; 
+        updatedAt: Date;
         voter: {
             id: string;
             name: string | null;
             email: string | null;
         } | null;
     }[];
-    [key: string]: any; // Catch all other fields
+    [key: string]: any; 
 };
 
 
@@ -98,7 +94,7 @@ const safeToISOString = (dateValue: any): string => {
         return '';
     }
     
-    // Convert to Date object if it's not one (e.g., if it's already a string)
+    // Convert to Date object if it's not one
     const date = dateValue instanceof Date ? dateValue : new Date(dateValue);
     
     // Check if the constructed Date object is valid before calling toISOString()
@@ -147,19 +143,16 @@ const serializeDates = (obj: any): any => {
  * @returns The transformed strategy object for the client.
  */
 export const transformStrategy = (strategy: StrategyWithVotesAndGoals) => {
-    // Step 1: Serialize all Date objects on the entire structure (strategy, author, goals, etc.)
+    // Step 1: Serialize all Date objects on the entire structure (Strategy, Author, Goals, Outcomes, Outputs, Votes)
     const safeStrategy = serializeDates(strategy);
 
-    // Step 2: Extract the custom fields and map individual votes (which were serialized in Step 1)
-    
-    // votes should already contain serialized strings after `serializeDates` runs, 
-    // but we map them here to fit the specific ClientVoteAudit structure.
+    // Step 2: Extract and map individual votes to the ClientVoteAudit structure
+    // We cast the vote as 'any' to avoid deep type complexity, relying on the runtime serialization.
     const individualVotes: ClientVoteAudit[] = safeStrategy.votes.map((vote: any) => ({
         id: vote.id,
         voterId: vote.voterId,
         voteType: vote.type,
         
-        // Voter details are already serialized and safely accessed
         email: vote.voter?.email || null,
         name: vote.voter?.name || 'Deleted User',
         
@@ -168,27 +161,28 @@ export const transformStrategy = (strategy: StrategyWithVotesAndGoals) => {
         updatedAt: vote.updatedAt
     }));
 
-    // Step 3: Use destructuring on the *original* raw strategy to get the rest of the fields
-    // We then combine the *safe* versions of those fields in the return.
-    // NOTE: We rely on the `safeStrategy` object created in Step 1 to hold the safe string dates.
+    // Step 3: Destructure the raw strategy to isolate the fields *excluding* the raw `votes` array
     const { votes, ...restOfRawStrategy } = strategy;
 
-
     // Step 4: Return the complete, safe strategy object for the client
-    return {
-        // Spread the entire serialized strategy (excluding votes, which is handled below)
-        ...serializeDates(restOfRawStrategy),
+    // We serialize the rest of the raw object again just to ensure any missed fields (if the model types were wrong) are caught, 
+    // though the initial `safeStrategy` contains most of the serialized data.
+    const safeRest = serializeDates(restOfRawStrategy);
 
-        // Leveraging the model's pre-calculated totals
+    return {
+        // Spread the entire serialized strategy (excluding the raw votes array)
+        ...safeRest,
+
+        // Add the pre-calculated totals
         totalVotesYes: safeStrategy.totalVotesYes, 
         totalVotesNo: safeStrategy.totalVotesNo,
         
-        // The detailed list of individual votes (including email/name)
+        // Add the detailed list of individual votes
         individualVotes, 
     };
 };
 
-// ... (getStrategies remains mostly the same, but the function signature is complex)
+// ... (getStrategies remains the same)
 
 /**
  * Fetches all strategies, includes goals, and detailed voter information.
@@ -199,7 +193,6 @@ export default async function getStrategies(): Promise<StrategiesReturnType> {
         const currentUser = await getCurrentUser();
 
         if (!currentUser) {
-            // Return an empty array if no current user is authenticated
             return [];
         }
         
@@ -249,10 +242,264 @@ export default async function getStrategies(): Promise<StrategiesReturnType> {
         
     } catch (error: any) {
         console.error('Error fetching strategies:', error);
-        // Ensure you throw a generic error in production environments
         throw new Error('Failed to fetch strategies.'); 
     }
 }
+// import prisma from "../libs/prismadb";
+// import { StrategiesReturnType } from "../strategy/types/strategy";
+// import getCurrentUser from "./getCurrentUser";
+
+// // --- Type Definitions (Reflecting the Prisma schema and required output) ---
+
+// // Strategy fields that are Date objects in Prisma need to be defined as 'string' for the client
+// // This is necessary for safe serialization from Server Component to Client Component.
+
+// // Define the structure of an individual vote record required by the client (VoterAudit from frontend)
+// interface ClientVoteAudit {
+//     id: string;
+//     voterId: string;
+//     voteType: 'YES' | 'NO';
+//     email: string | null;
+//     name: string | null;
+//     timestamp: string; // 💡 CORRECT: Expects the ISO string format
+//     updatedAt: string; // 💡 CORRECT: Expects the ISO string format
+// }
+
+// // NOTE: This type definition must precisely reflect the full structure returned by prisma.strategy.findMany
+// // including all nested includes (author, votes, goals, outcomes, outputs) before transformation.
+// // We are leaving the Date fields here as the raw Prisma types (Date objects) since they are the input
+// // to `transformStrategy`.
+
+// // Define the base types for nested relations (assuming all date fields are raw 'Date' objects from Prisma)
+// interface OutputType {
+//     // Assuming these are fields from your Output model
+//     id: string;
+//     createdAt: Date;
+//     updatedAt: Date;
+//     [key: string]: any; // Catch all other fields
+// }
+
+// interface OutcomeType {
+//     id: string;
+//     createdAt: Date;
+//     updatedAt: Date;
+//     outputs: OutputType[];
+//     [key: string]: any; 
+// }
+
+// interface GoalType {
+//     id: string;
+//     createdAt: Date;
+//     updatedAt: Date;
+//     outcomes: OutcomeType[];
+//     [key: string]: any; 
+// }
+
+// interface AuthorType {
+//     id: string;
+//     name: string | null;
+//     email: string | null;
+//     createdAt: Date;
+//     updatedAt: Date;
+//     [key: string]: any;
+// }
+
+
+// // Define the full structure of the Strategy returned from Prisma's findMany with includes
+// type StrategyWithVotesAndGoals = Awaited<ReturnType<typeof getStrategies>>[number] & {
+//     // Top-level Strategy fields expected to be Date objects from Prisma
+//     createdAt: Date; 
+//     updatedAt: Date;
+//     submissionDate: Date | null; // Assuming submissionDate can be null
+    
+//     author: AuthorType;
+//     goals: GoalType[];
+    
+//     // Vote structure returned from the query
+//     votes: {
+//         id: string;
+//         voterId: string;
+//         type: 'YES' | 'NO'; // Matches VoteType enum
+//         timestamp: string | Date; // Use string | Date to be safe, but it often comes as Date
+//         updatedAt: string | Date; // Use string | Date to be safe, but it often comes as Date
+//         voter: {
+//             id: string;
+//             name: string | null;
+//             email: string | null;
+//         } | null;
+//     }[];
+//     [key: string]: any; // Catch all other fields
+// };
+
+
+// // -------------------------------------------------------------------------
+
+// /**
+//  * Helper function to safely convert a potentially null/invalid date value to an ISO string.
+//  * This prevents the RangeError: Invalid time value.
+//  * @param dateValue The raw date string or Date object from Prisma.
+//  * @returns The ISO string, or an empty string if the date is invalid or null/undefined.
+//  */
+// const safeToISOString = (dateValue: any): string => {
+//     if (!dateValue) {
+//         return '';
+//     }
+    
+//     // Convert to Date object if it's not one (e.g., if it's already a string)
+//     const date = dateValue instanceof Date ? dateValue : new Date(dateValue);
+    
+//     // Check if the constructed Date object is valid before calling toISOString()
+//     return isNaN(date.getTime()) ? '' : date.toISOString();
+// };
+
+
+// /**
+//  * Recursively transforms a raw object by converting all Date properties into ISO strings.
+//  * This is the safest way to ensure all nested dates are handled for Next.js serialization.
+//  */
+// const serializeDates = (obj: any): any => {
+//     if (obj === null || typeof obj !== 'object') {
+//         return obj;
+//     }
+
+//     if (Array.isArray(obj)) {
+//         return obj.map(item => serializeDates(item));
+//     }
+
+//     const newObj: { [key: string]: any } = {};
+
+//     for (const key in obj) {
+//         if (Object.prototype.hasOwnProperty.call(obj, key)) {
+//             const value = obj[key];
+
+//             if (value instanceof Date) {
+//                 // Primary check for Prisma Date objects
+//                 newObj[key] = safeToISOString(value);
+//             } else if (typeof value === 'object' && value !== null) {
+//                 // Recursively handle nested objects and arrays
+//                 newObj[key] = serializeDates(value);
+//             } else {
+//                 newObj[key] = value;
+//             }
+//         }
+//     }
+//     return newObj;
+// };
+
+
+// /**
+//  * Transforms a raw Strategy object (with included votes) into the structure
+//  * required by the client, including aggregated vote counts and detailed individual vote records.
+//  * @param strategy The raw strategy object from Prisma.
+//  * @returns The transformed strategy object for the client.
+//  */
+// export const transformStrategy = (strategy: StrategyWithVotesAndGoals) => {
+//     // Step 1: Serialize all Date objects on the entire structure (strategy, author, goals, etc.)
+//     const safeStrategy = serializeDates(strategy);
+
+//     // Step 2: Extract the custom fields and map individual votes (which were serialized in Step 1)
+    
+//     // votes should already contain serialized strings after `serializeDates` runs, 
+//     // but we map them here to fit the specific ClientVoteAudit structure.
+//     const individualVotes: ClientVoteAudit[] = safeStrategy.votes.map((vote: any) => ({
+//         id: vote.id,
+//         voterId: vote.voterId,
+//         voteType: vote.type,
+        
+//         // Voter details are already serialized and safely accessed
+//         email: vote.voter?.email || null,
+//         name: vote.voter?.name || 'Deleted User',
+        
+//         // These fields are already safe strings from the serializeDates step
+//         timestamp: vote.timestamp, 
+//         updatedAt: vote.updatedAt
+//     }));
+
+//     // Step 3: Use destructuring on the *original* raw strategy to get the rest of the fields
+//     // We then combine the *safe* versions of those fields in the return.
+//     // NOTE: We rely on the `safeStrategy` object created in Step 1 to hold the safe string dates.
+//     const { votes, ...restOfRawStrategy } = strategy;
+
+
+//     // Step 4: Return the complete, safe strategy object for the client
+//     return {
+//         // Spread the entire serialized strategy (excluding votes, which is handled below)
+//         ...serializeDates(restOfRawStrategy),
+
+//         // Leveraging the model's pre-calculated totals
+//         totalVotesYes: safeStrategy.totalVotesYes, 
+//         totalVotesNo: safeStrategy.totalVotesNo,
+        
+//         // The detailed list of individual votes (including email/name)
+//         individualVotes, 
+//     };
+// };
+
+// // ... (getStrategies remains mostly the same, but the function signature is complex)
+
+// /**
+//  * Fetches all strategies, includes goals, and detailed voter information.
+//  * @returns A promise resolving to the list of strategies for the client.
+//  */
+// export default async function getStrategies(): Promise<StrategiesReturnType> { 
+//     try {
+//         const currentUser = await getCurrentUser();
+
+//         if (!currentUser) {
+//             // Return an empty array if no current user is authenticated
+//             return [];
+//         }
+        
+//         // 1. Fetch all strategies, ensuring all relationships are included.
+//         const strategies = await prisma.strategy.findMany({
+//             include: {
+//                 author: true,
+//                 votes: {
+//                     include: {
+//                         voter: {
+//                             select: {
+//                                 id: true,
+//                                 name: true,
+//                                 email: true,
+//                             }
+//                         }, 
+//                     }
+//                 },
+//                 goals: {
+//                     include: {
+//                         outcomes: {
+//                             include: {
+//                                 outputs: true,
+//                             },
+//                         },
+//                     },
+//                 },
+//             },
+//             orderBy: [
+//                 {
+//                     averageStrategicScore: 'desc',
+//                 },
+//                 {
+//                     submissionDate: 'desc',
+//                 },
+//             ]
+//         });
+
+//         // Use assertion to ensure the type safety for mapping
+//         const typedStrategies = strategies as unknown as StrategyWithVotesAndGoals[];
+
+//         // 2. Map the strategies to transform the data structure for the client,
+//         // which includes full Date serialization and custom vote audits.
+//         const safeStrategies = typedStrategies.map(transformStrategy);
+
+//         return safeStrategies as StrategiesReturnType;
+        
+//     } catch (error: any) {
+//         console.error('Error fetching strategies:', error);
+//         // Ensure you throw a generic error in production environments
+//         throw new Error('Failed to fetch strategies.'); 
+//     }
+// }
 // import prisma from "../libs/prismadb";
 // import { StrategiesReturnType } from "../strategy/types/strategy";
 // import getCurrentUser from "./getCurrentUser";
