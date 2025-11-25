@@ -3,6 +3,7 @@
 import React, { useState } from 'react';
 import { Loader2, ThumbsUp, ThumbsDown, RefreshCw, XCircle, Users } from 'lucide-react'; // Import Users icon
 import { timeAgo } from '@/app/bp/[id]/_components/utility';
+import { Hint } from '@/app/components/hint';
 
 /**
  * Interface for a simplified Voter object containing display information.
@@ -164,7 +165,10 @@ const VoterListDisplay: React.FC<{ voterList: Voter[] }> = ({ voterList }) => {
                         {yesVoters.map(voter => (
                             <li key={voter.id} className='truncate'>
                                 {/* Use name first, fall back to email if name is null */}
-                                <span className='font-medium'>{voter.name || voter.email}</span> - 
+                                
+                                 <Hint sideOffset={2} description={voter.email}>
+                                    <span className='font-medium'>{voter.name || voter.email}</span>
+                                </Hint> - 
                                 <span className='text-blue-500 ml-1'>({getDisplayTimeFull(voter)})</span>
                             </li>
                         ))}
@@ -180,7 +184,9 @@ const VoterListDisplay: React.FC<{ voterList: Voter[] }> = ({ voterList }) => {
                         {noVoters.map(voter => (
                             <li key={voter.id} className='truncate'>
                                 {/* Use name first, fall back to email if name is null */}
-                                <span className='font-medium'>{voter.name || voter.email}</span> - 
+                                <Hint sideOffset={2} description={voter.email}>
+                                    <span className='font-medium'>{voter.name || voter.email}</span>
+                                </Hint> - 
                                 <span className='text-blue-500 ml-1'>({getDisplayTimeFull(voter)})</span>
                             </li>
                         ))}
