@@ -16,26 +16,6 @@ export default async function StrategiesDashboard({
 }: StrategyIdPageProps) {
   const currentUser = await getCurrentUser(); // Authenticated user data
   
-  // // Fetch the unique strategy using the ID from params
-  // const strategy:any= await prisma.strategy.findUnique({
-  //   where: { 
-  //       // Use the ID from the route parameters
-  //       id: params.id,
-  //   },
-  //   include: {
-  //       author: true,
-  //       votes: true, 
-  //       goals: {
-  //           include: {
-  //               outcomes: {
-  //                   include: {
-  //                       outputs: true,
-  //                   },
-  //               },
-  //           },
-  //       },
-  //   },
-  // });
 
    const updatedStrategy =  await prisma.strategy.findUnique({
                 where: { id:  params.id },

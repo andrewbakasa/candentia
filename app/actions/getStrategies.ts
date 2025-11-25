@@ -12,6 +12,7 @@ interface ClientVoteAudit {
     email: string | null;
     name: string | null;
     timestamp: string; // Ensure this is also present if used in the transformation
+    updatedAt:string
 }
 
 // Define the full structure of the Strategy returned from Prisma's findMany with includes
@@ -21,6 +22,7 @@ type StrategyWithVotesAndGoals = Awaited<ReturnType<typeof getStrategies>>[numbe
         voterId: string;
         type: 'YES' | 'NO'; // Matches VoteType enum
         timestamp:string;
+        updatedAt:string;
         voter: {
             id: string;
             name: string | null;
@@ -49,7 +51,8 @@ export const transformStrategy = (strategy: StrategyWithVotesAndGoals) => {
         // if the voter is missing.
         email: vote.voter?.email || null,
         name: vote.voter?.name || 'Deleted User',
-        timestamp: vote.timestamp
+        timestamp: vote.timestamp,
+        updatedAt:vote.updatedAt
     }));
 
     // Use destructuring to safely exclude the raw `votes` array

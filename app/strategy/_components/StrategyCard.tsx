@@ -15,7 +15,8 @@ export type StrategyWithUserVotes = StrategyWithRBMFull & {
     id: string,
     email: string,
     name: string,
-    timestamp: string
+    timestamp: string,
+    updatedAt:string
 
   }[];
  };
@@ -265,7 +266,8 @@ export default function StrategyCard({ strategy, currentUser, onVote, onCancelVo
                         email: v.email,
                         name: v.name,
                         voteType: v.voteType,
-                        timestamp: v.timestamp
+                        timestamp: v.timestamp,
+                        updatedAt:v.updatedAt
                     }))}
                     // --- END NEW PROPS ---
                 />

@@ -861,6 +861,7 @@ model StrategyVote {
   type            VoteType
   timestamp       DateTime @default(now())
 
+  updatedAt       DateTime @updatedAt
   // Foreign Keys
   voterId         String   @db.ObjectId
   proposalId      String   @db.ObjectId

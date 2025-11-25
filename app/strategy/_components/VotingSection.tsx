@@ -14,6 +14,7 @@ interface Voter {
     voteType: 'YES' | 'NO';
     name: string | null;
     timestamp: Date | string // Change to allow Date or string 
+    updatedAt: Date | string | null; // Use Date/string/null for updatedAt
 }
 
 /**
@@ -123,6 +124,30 @@ const VoterListDisplay: React.FC<{ voterList: Voter[] }> = ({ voterList }) => {
     
     const yesVoters = voterList.filter(v => v.voteType === 'YES');
     const noVoters = voterList.filter(v => v.voteType === 'NO');
+    // Helper function to determine the time to display
+    const getDisplayTime = (voter: Voter) => {
+        // 🚨 FIX: Use updatedAt if it's not null/undefined, otherwise use timestamp (creation time)
+        const relevantTime = voter.updatedAt ? voter.updatedAt : voter.timestamp;
+        
+        // Ensure the input to timeAgo is a valid Date object or string for conversion
+        // Note: timeAgo usually expects a Date object or ISO string. Assuming timeAgo handles conversion.
+        return timeAgo(new Date(relevantTime).toLocaleDateString());
+    };
+
+    // Helper function to determine the time to display
+    const getDisplayTimeFull = (voter: Voter) => {
+        // 🚨 FIX: Use updatedAt if it's not null/undefined, otherwise use timestamp (creation time)
+        const relevantTime = voter.updatedAt ? voter.updatedAt : voter.timestamp;
+        
+        // This is a common way to ensure the string is treated as UTC/ISO, avoiding browser timezone issues.
+        const dateObj = new Date(relevantTime);
+        
+        // Decide label based on which field was used
+        const label = voter.updatedAt ? 'Switched' : 'Voted';
+        
+        // Use timeAgo for relative display
+        return `${label} ${timeAgo(dateObj.toISOString())}`; 
+    };
 
     return (
         <div className="mt-4 p-6 bg-indigo-50 border-t-4 border-indigo-300 rounded-xl shadow-inner animate-in fade-in duration-500">
@@ -138,8 +163,9 @@ const VoterListDisplay: React.FC<{ voterList: Voter[] }> = ({ voterList }) => {
                     <ul className='space-y-1 text-sm text-gray-700 max-h-40 overflow-y-auto'>
                         {yesVoters.map(voter => (
                             <li key={voter.id} className='truncate'>
-                                 {/* <span className='text-[9px] text-bold text-yellow-500'>{voter.name || 'N/A'}</span>  */}
-                                 {voter.email} - <span className='text-blue-500'>{timeAgo(new Date(voter.timestamp).toLocaleDateString())}</span>
+                                {/* Use name first, fall back to email if name is null */}
+                                <span className='font-medium'>{voter.name || voter.email}</span> - 
+                                <span className='text-blue-500 ml-1'>({getDisplayTimeFull(voter)})</span>
                             </li>
                         ))}
                     </ul>
@@ -153,8 +179,9 @@ const VoterListDisplay: React.FC<{ voterList: Voter[] }> = ({ voterList }) => {
                     <ul className='space-y-1 text-sm text-gray-700 max-h-40 overflow-y-auto'>
                         {noVoters.map(voter => (
                             <li key={voter.id} className='truncate'>
-                                {/* <span className='text-[9px] text-bold text-yellow-500'>{voter.name || 'N/A'}</span> */}
-                                 {voter.email} - <span className='text-blue-500'>{timeAgo(new Date(voter.timestamp).toLocaleDateString())}</span>
+                                {/* Use name first, fall back to email if name is null */}
+                                <span className='font-medium'>{voter.name || voter.email}</span> - 
+                                <span className='text-blue-500 ml-1'>({getDisplayTimeFull(voter)})</span>
                             </li>
                         ))}
                     </ul>
@@ -241,12 +268,6 @@ export default function VotingSection({ strategyId, onVote, onCancelVote, userCu
             
             {/* --- CONDITIONAL RENDERING --- */}
             {hasVoted ? (
-                // <ConfirmedVoteDisplay 
-                //     vote={userCurrentVote!} // Use ! since hasVoted is true
-                //     onCancel={() => handleActionClick('CANCEL')} // Pass CANCEL action
-                //     onSwitch={(newVote) => handleActionClick(newVote)} // Pass YES/NO action
-                //     isProcessing={isAnyProcessing}
-                // />
                 <ConfirmedVoteDisplay 
                     vote={userCurrentVote!} 
                     onCancel={() => handleActionClick('CANCEL')} // Pass CANCEL action
