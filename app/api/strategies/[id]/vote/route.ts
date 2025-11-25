@@ -106,9 +106,18 @@ export async function POST(
                 where: { id: strategyId },
                 include: {
                     author: true,
-                    votes:  {
-                          select: { voterId: true, type: true }
-                   }, 
+                    votes: {
+                        // 🚨 FIX HERE: Include the voter to get name and email
+                        include: {
+                            voter: {
+                                select: {
+                                    id: true,
+                                    name: true,
+                                    email: true,
+                                },
+                            },
+                        },
+                    },
                     goals: {
                         include: {
                             outcomes: {
@@ -274,9 +283,18 @@ export async function PUT(
             where: { id: strategyId },
             include: {
                 author: true,
-                votes: {
-                    select: { voterId: true, type: true, id: true, timestamp: true }
-                }, 
+               votes: {
+                    // 🚨 FIX HERE: Include the voter to get name and email
+                    include: {
+                        voter: {
+                            select: {
+                                id: true,
+                                name: true,
+                                email: true,
+                            },
+                        },
+                    },
+                },
                 goals: {
                     include: { outcomes: { include: { outputs: true } } }
                 },
