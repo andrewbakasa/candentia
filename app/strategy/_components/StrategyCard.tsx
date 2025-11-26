@@ -7,6 +7,7 @@ import Link from 'next/link';
 import { ArrowRight, Flag, Zap, Link2, User } from 'lucide-react'; // Added User icon
 import { toast, Toaster } from 'sonner';
 import { StrategyWithRBMFull } from './StrategyForm'; 
+import { Hint } from '@/app/components/hint';
 
 // Assuming the Strategy fetch includes the Author object
 export type StrategyWithUserVotes = StrategyWithRBMFull & {
@@ -164,7 +165,7 @@ export default function StrategyCard({ strategy, currentUser, onVote, onCancelVo
                 <div className="flex justify-between items-center text-sm mb-3 pb-2 border-b border-indigo-200">
                     <span className="flex items-center gap-2 font-semibold text-gray-700">
                         <User className="w-4 h-4 text-indigo-500" />
-                        Author: {strategy.author.name || strategy.author.email || 'N/A'}
+                        <Hint sideOffset={2} description={strategy.author?.email||" No email provided"}>Author: {strategy.author.name || strategy.author.email || 'N/A'}</Hint>
                     </span>
                     {isAuthor && (
                         <span className="px-3 py-1 bg-indigo-500 text-white text-xs font-bold rounded-full shadow-md">
