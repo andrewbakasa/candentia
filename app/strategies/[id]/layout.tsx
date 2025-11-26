@@ -25,7 +25,7 @@ export async function generateMetadata({
   }
     
   return {
-    title: `Proposal: ${strategy?.title || 'Unknown'}` || "Strategy Proposal",
+    title: `Strategy: ${strategy?.title || 'Unknown'}` || "Strategy Proposal",
   };
 }
 
