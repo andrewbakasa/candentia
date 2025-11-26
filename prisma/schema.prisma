@@ -674,7 +674,7 @@ model ContractActivityModel {
   
   // --- Linking to Contract & Responsible Parties ---
   contractId          String           @db.ObjectId // Mandatory link to the parent contract
-  contract            ContractModel    @relation(fields: [contractId], references: [id])
+  contract            ContractModel    @relation(fields: [contractId], references: [id],onDelete: Cascade)
   
   //assignedToId        String           @db.ObjectId // User responsible for this action/follow-up
   //assignedTo          User             @relation(fields: [assignedToId], references: [id])
@@ -789,7 +789,7 @@ model StrategyGoal {
 
   // Relationship to the Strategy
   strategyId      String            @db.ObjectId
-  strategy        Strategy          @relation(fields: [strategyId], references: [id])
+  strategy        Strategy          @relation(fields: [strategyId], references: [id], onDelete: Cascade)
 
   // RBM Relationship: One Goal can have multiple Outcomes
   outcomes        StrategyOutcome[]
@@ -806,7 +806,7 @@ model StrategyOutcome {
 
   // Relationship to the Goal
   goalId          String           @db.ObjectId
-  goal            StrategyGoal     @relation(fields: [goalId], references: [id])
+  goal            StrategyGoal     @relation(fields: [goalId], references: [id],onDelete: Cascade)
 
   // RBM Relationship: One Outcome is achieved through multiple Outputs
   outputs         StrategyOutput[]
@@ -825,7 +825,7 @@ model StrategyOutput {
 
   // Relationship to the Outcome
   outcomeId       String           @db.ObjectId
-  outcome         StrategyOutcome  @relation(fields: [outcomeId], references: [id])
+  outcome         StrategyOutcome  @relation(fields: [outcomeId], references: [id],onDelete: Cascade)
 
   // activities    StrategyActivity[] // New model if you want to track activities granularly
 
@@ -848,7 +848,7 @@ model StrategyComment {
   authorId        String   @db.ObjectId
 
   // Relationships
-  proposal        Strategy @relation(fields: [proposalId], references: [id])
+  proposal        Strategy @relation(fields: [proposalId], references: [id], onDelete: Cascade)
   author          User     @relation(fields: [authorId], references: [id])
 
   @@index([proposalId])
@@ -867,8 +867,8 @@ model StrategyVote {
   proposalId      String   @db.ObjectId
 
   // Relationships
-  voter           User     @relation(fields: [voterId], references: [id])
-  proposal        Strategy @relation(fields: [proposalId], references: [id])
+  voter           User     @relation(fields: [voterId], references: [id],onDelete: Cascade)
+  proposal        Strategy @relation(fields: [proposalId], references: [id],onDelete: Cascade)
 
   // Ensures a user can only vote once per proposal
   @@unique([voterId, proposalId])
@@ -895,7 +895,7 @@ model StrategicAttribute {
 
   // Link to the Criterion
   criterionId            String   @db.ObjectId
-  criterion             StrategyCriterion    @relation(fields: [criterionId], references: [id])
+  criterion             StrategyCriterion    @relation(fields: [criterionId], references: [id],onDelete: Cascade)
 
   scoreValue            ScoreValue          // The score given (e.g., HIGH)
   justification         String              // Detailed comments or justification for the score
@@ -905,7 +905,7 @@ model StrategicAttribute {
 
   // Link to the Proposal
   proposalId             String   @db.ObjectId
-  proposal              Strategy             @relation(fields: [proposalId], references: [id])
+  proposal              Strategy             @relation(fields: [proposalId], references: [id],onDelete: Cascade)
 
   // Ensures only one score for a specific criterion on a specific proposal
   @@unique([proposalId, criterionId])
