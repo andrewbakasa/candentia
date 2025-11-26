@@ -217,7 +217,7 @@ const StrategyClient: React.FC<StrategyClientProps> = ({
                     individualVotes: [], // Default empty array for new strategies
                     authorId: currentUser?.id || mockAuthorId, // Ensure authorId is set
                 };
-                toast.success(`New proposal "${updatedStrategy.title}" submitted for review.`);
+                toast.success(`New strategy "${updatedStrategy.title}" submitted for review.`);
                 return [newStrategyWithDefaults, ...prevStrategies]; // Add to the top
             }
         });
@@ -271,7 +271,7 @@ const StrategyClient: React.FC<StrategyClientProps> = ({
                     Strategy Proposals
                 </h1>
                 <p className="text-gray-600 mt-2">
-                    Review, filter, and vote on current proposals. You are logged in as <span className="text-red-500 font-bold">{currentUser?.name || 'Guest'}</span>
+                    Review, filter, and vote on current strategies. You are logged in as <span className="text-red-500 font-bold">{currentUser?.name || 'Guest'}</span>
                 </p>
             </header>
             
