@@ -586,7 +586,7 @@ export default function StrategyForm({ initialStrategy, currentUser, authorId, o
         }
 
          if (isEditing && ( !(authorId==currentUser.id) || !currentUser?.isAdmin) ) {
-            toast.error(`You dont have the right to change this ,see Admin or Owner ${currentUser.email}.`);
+            toast.error(`You dont have the right to change this ,see Admin or Owner ${currentUser.email}. authoutId:${authorId}== loggedinUserId:${currentUser.id}`);
             return;
         }
 
