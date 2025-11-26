@@ -112,7 +112,7 @@ export default function StrategyCard({ strategy, currentUser, onVote, onCancelVo
     
     // --- CONDITIONAL CARD STYLING ---
     const authorCardStyle = isAuthor 
-        ? "bg-indigo-50 border-indigo-500 shadow-xl ring-2 ring-indigo-300" 
+        ? "bg-white border-yellow-500 shadow-xl ring-2 ring-yellow-300" 
         : "bg-white border-gray-100 shadow-xl";
 
     // 1. DETERMINE CURRENT USER'S VOTE
