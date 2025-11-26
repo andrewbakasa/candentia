@@ -585,7 +585,9 @@ export default function StrategyForm({ initialStrategy, currentUser, authorId, o
             return;
         }
 
-         if (isEditing && ( !(authorId==currentUser.id) || !currentUser?.isAdmin) ) {
+        // Proposed Fix for the comparison part:
+         const isAuthor = authorId?.toString().trim() === currentUser.id?.toString().trim();
+         if (isEditing && ( !isAuthor || !currentUser?.isAdmin) ) {
             toast.error(`You dont have the right to change this ,see Admin or Owner ${currentUser.email}. authoutId:${authorId}== loggedinUserId:${currentUser.id}`);
             return;
         }
