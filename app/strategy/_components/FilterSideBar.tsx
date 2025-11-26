@@ -53,7 +53,7 @@ export default function FilterSidebar({ onFilterChange }: FilterSidebarProps) {
     return (
         <div className="bg-white p-4 lg:p-6 rounded-xl shadow-2xl border border-gray-100 sticky top-4 transition-all duration-300 h-fit">
             <h3 className="text-lg lg:text-xl font-extrabold text-gray-800 mb-4 border-b pb-2 flex items-center gap-2">
-                ⚙️ Proposal Filters
+                ⚙️ Strategies Filters
             </h3>
             
             <div className="space-y-3">
