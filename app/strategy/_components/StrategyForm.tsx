@@ -591,7 +591,7 @@ export default function StrategyForm({ initialStrategy, currentUser, authorId, o
          //I need to block code  when isEditing (in edit mode) and not (either isauthor or isAdmin)
         // All other users cannot update a Strategy except if it’s the one who generate it or  the user is Admin 
         if (isEditing && !( isAuthor || currentUser?.isAdmin) ) {
-            toast.error(`You dont have the right to change this ,see Admin or Owner ${currentUser.email}. authoutId:${authorId}== loggedinUserId:${currentUser.id}`);
+            toast.error(`You dont have the right to change this, see Admin or Owner ${currentUser.email}`);
             return;
         }
 
