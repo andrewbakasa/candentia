@@ -11,7 +11,10 @@ import { StrategyWithRBMFull } from "./StrategyForm";
 
 // Strategy structure used by this list component
 // NOTE: StrategyWithRBM is used from StrategyCard import for consistency
-const initialFilters: StrategyFilters = { status: 'ALL', year: 'ALL', minScore: null };
+const initialFilters: StrategyFilters = {
+    status: 'ALL', year: 'ALL', minScore: null,
+    searchTerm: ""
+};
 
 interface StrategyListProps {
     strategies: StrategyWithUserVotes[];
@@ -209,17 +212,16 @@ const StrategyDashboardList: React.FC<StrategyListProps> = ({ strategies, curren
                         {filteredStrategies.length > 0 ? (
                             filteredStrategies.map((strategy, index) => (
                                 <StrategyCard 
-                                    key={strategy.id}
-                                    strategy={strategy}
-                                    currentUser={currentUser}
-                                    onVote={handleVote}
-                                    onCancelVote={handleCancelVote} 
-                                    onStrategyClick={handleStrategyClick} 
-                                    counter={index}
+                                    key={strategy.id}
+                                    strategy={strategy}
+                                    currentUser={currentUser}
+                                    onVote={handleVote}
+                                    onCancelVote={handleCancelVote}
+                                    onStrategyClick={handleStrategyClick}
+                                    counter={index}
                                     // 💡 NEW: Pass card expansion state and handler
-                                    isExpanded={expandedCardId === strategy.id}
-                                    onToggleExpand={handleToggleExpand}
-                                />
+                                    isExpanded={expandedCardId === strategy.id}
+                                    onToggleExpand={handleToggleExpand} searchText={""}                                />
                             ))
                         ) : (
                             <div className="md:col-span-2 xl:col-span-3 p-8 text-center bg-white rounded-xl shadow-lg border border-gray-200">

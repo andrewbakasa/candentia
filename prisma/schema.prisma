@@ -602,7 +602,11 @@ model ContractModel {
   // ADD RELATION TO PROJECT (Optional 1-to-N relation)
   projectId            String?       @db.ObjectId
   relatedProject       BusinessProjectModel? @relation(fields: [projectId], references: [id])
-  
+
+  //strategy or output....................
+  //create interface to related proposed/planned output.....
+  relatedStrategy      StrategyOutput? @relation(fields: [projectId], references: [id])
+ 
   createdAt            DateTime      @default(now())
   updatedAt            DateTime      @updatedAt
 

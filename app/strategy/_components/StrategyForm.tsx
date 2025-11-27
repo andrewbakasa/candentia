@@ -4,14 +4,6 @@ import { BookOpen, Flag, Loader2, Plus, Save, Trash2, AlertTriangle, ArrowLeft }
 import { toast, Toaster } from 'sonner';
 import { SafeUser } from '@/app/types';
 import { StrategyWithUserVotes } from './StrategyCard';
-//import { StrategyWithRBM } from './StrategyCard'; 
-
-// interface SafeUser {
-//     id: string;
-//     name: string | null;
-//     email: string | null;
-// }
-
 // Full RBM Structure for API submission (without client-side tempId)
 interface StrategyOutput {
     id?: string;
@@ -347,12 +339,7 @@ export default function StrategyForm({ initialStrategy, currentUser, authorId, o
     const isVotingOpen = initialStatus === ProposalStatus.VOTING_OPEN;
     
     //allow button to be enable only if user is allowed to edit
-    //let AI correct here 
-   // const isReady = !!authorId 
-   // console.log("isReady",isReady)
-    // console.log("currentUser.id === authorId , currentUser.isAdmin, !!authorId", currentUser.id === authorId , currentUser.isAdmin, !!authorId)
     const isReady = (!!authorId && (currentUser?.id === authorId || currentUser?.isAdmin));
-    console.log("isReady",isReady)
     // --- State Initialization (using RBM Helpers) ---
     const initialData: FormState = useMemo(() => {
         if (initialStrategy && initialStrategy.goals.length > 0) {

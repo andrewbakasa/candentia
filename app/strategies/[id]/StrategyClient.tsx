@@ -289,18 +289,17 @@ const StrategyClient: React.FC<StrategyClientProps> = ({
                      <div className="grid grid-cols-1 gap-6">
                          {singleStrategyToShow ? (
                             <StrategyCard
-                                 key={singleStrategyToShow.id}
-                                 strategy={singleStrategyToShow}
-                                 onStrategyClick={handleStrategyClick}
-                                 onVote={handleVoteAction}
-                                 onCancelVote={handleCancelVote} 
-                                 currentUser={currentUser}
-                                 counter={0} 
-                                // 💡 NEW: Control expansion state from here
-                                isExpanded={isStrategyExpanded}
-                                // 💡 NEW: Pass the local toggle handler
-                                onToggleExpand={handleToggleExpand}
-                            />
+                                 key={singleStrategyToShow.id}
+                                 strategy={singleStrategyToShow}
+                                 onStrategyClick={handleStrategyClick}
+                                 onVote={handleVoteAction}
+                                 onCancelVote={handleCancelVote}
+                                 currentUser={currentUser}
+                                 counter={0}
+                                 // 💡 NEW: Control expansion state from here
+                                 isExpanded={isStrategyExpanded}
+                                 // 💡 NEW: Pass the local toggle handler
+                                 onToggleExpand={handleToggleExpand} searchText={""}                            />
                         ) : (
                             <div className="p-8 text-center bg-white rounded-xl shadow-lg border border-gray-200">
                                 <AlertTriangle className="w-10 h-10 text-yellow-500 mx-auto mb-3"/>
