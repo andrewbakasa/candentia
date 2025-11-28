@@ -41,35 +41,6 @@ const highlightText = (text: string, search: string): HighlightResult => {
 
 // --- 1. Sub-Component for Output Items (Actionable Tasks) ---
 // Prop change: added searchText
-const OutputItem2: React.FC<{ output: StrategyOutput, searchText: string }> = ({ output, searchText }) => (
-    <li className={`flex items-start gap-2 p-2 rounded-lg transition ${output.isCompleted ? 'bg-green-50' : 'bg-gray-50'}`}>
-        <span className={`flex-shrink-0 ${output.isCompleted ? 'text-green-600' : 'text-gray-400'} mt-1`}>
-            <List className="w-4 h-4" />
-        </span>
-        <div className="text-sm">
-            {/* Highlight Output Title */}
-            <p 
-                className={`font-medium ${output.isCompleted ? 'text-green-800' : 'text-gray-800'}`}
-                dangerouslySetInnerHTML={highlightText(output.title, searchText)}
-            />
-            <div className="flex items-center text-xs text-gray-500 mt-0.5">
-                <User className="w-3 h-3 mr-1" />
-                Responsible: 
-                {/* Highlight Responsible Party */}
-                <strong 
-                    className="ml-1 font-semibold text-gray-700"
-                    dangerouslySetInnerHTML={highlightText(output.responsible, searchText)}
-                />
-            </div>
-            {output.isCompleted && (
-                <div className="text-xs text-green-600 font-bold mt-1 flex items-center">
-                    <CheckCircle className="w-3 h-3 mr-1 fill-green-500 text-white" /> Completed
-                </div>
-            )}
-        </div>
-    </li>
-);
-
 const OutputItem: React.FC<{ output: StrategyOutput, searchText: string }> = ({ output, searchText }) => (
      <li className={`flex items-start gap-2 p-2 rounded-lg transition ${output.isCompleted ? 'bg-green-50' : 'bg-gray-50'}`}>
          <span className={`flex-shrink-0 ${output.isCompleted ? 'text-green-600' : 'text-gray-400'} mt-1`}>

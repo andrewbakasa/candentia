@@ -169,6 +169,14 @@ export default function StrategyCard({ strategy, currentUser, onVote, onCancelVo
         highlightText(strategy.content, searchText), 
     [strategy.content, searchText]);
 
+   const authDesp= strategy.author.name || strategy.author.email || 'N/A'
+    const highlightedAuthorName = useMemo(() => 
+        highlightText(authDesp, searchText), 
+    [authDesp, searchText]);
+
+     
+
+
     // 💡 UPDATED: Use the prop instead of local state
     const isCollapsed = !isExpanded;
 
@@ -257,8 +265,9 @@ export default function StrategyCard({ strategy, currentUser, onVote, onCancelVo
                 <div className="flex justify-between items-center text-sm mb-1 pb-1 border-b border-indigo-200">
                      <span className="flex items-center gap-2 font-semibold text-gray-700">
                          <User className="w-4 h-4 text-indigo-500" />
-                         <Hint sideOffset={2} description={strategy.author?.email||" No email provided"}>Author: {strategy.author.name || strategy.author.email || 'N/A'}</Hint>
+                         <Hint sideOffset={2} description={strategy.author?.email||" No email provided"}>Author: {highlightedAuthorName}</Hint>
                      </span>
+                     
                      {isAuthor && (
                          <span className="px-3 py-1 bg-indigo-500 text-white text-xs font-bold rounded-full shadow-md">
                              YOUR PROPOSAL

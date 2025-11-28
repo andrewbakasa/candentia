@@ -1,22 +1,79 @@
 import * as XLSX from 'xlsx';
-import prisma from '../libs/prismadb';
-import { StrategyWithVotesAndGoals } from './getStrategies'; // Re-enabled type import
+// Removed 'import prisma from '../libs/prismadb';' as the function no longer queries the DB
+
+// ====================================================================
+// 1. TYPE DEFINITIONS (Based on the data array structure you provided)
+// ====================================================================
+
+interface Vote {
+    id: string;
+    voterId: string;
+    voteType: 'YES' | 'NO'; // Uses 'voteType'
+    email: string;
+    name: string;
+    timestamp: string;
+    updatedAt: string;
+}
+
+interface Outcome {
+    id: string;
+    title: string;
+    outputs: any[] | null; // Added null for safety
+}
+
+interface Goal {
+    id: string;
+    title: string;
+    description: string | null;
+    targetYear: number;
+    strategyId: string;
+    outcomes: Outcome[] | null; // Added null for safety
+}
+
+interface StrategyData {
+    id: string;
+    title: string;
+    status: string;
+    averageStrategicScore: number;
+    submissionDate: Date | null;
+    createdAt: Date;
+    author: { name: string | null; email: string | null; };
+    individualVotes: Vote[] | null; // Uses 'individualVotes' property
+    goals: Goal[] | null; // Added null for safety
+    // ... other properties not used in export, but part of the object
+}
+
+
+// ====================================================================
+// 2. HELPER FUNCTION
+// ====================================================================
 
 // Helper function to flatten the complex object into a single row object
-const flattenStrategyData = (strategy: any) => {
+const flattenStrategyData = (strategy: StrategyData) => {
+    
+    // --- Safe Initialization (Prevents "Cannot read properties of undefined") ---
+    const goalsArray = strategy.goals ?? []; 
+    // FIX: Use individualVotes property
+    const votesArray = strategy.individualVotes ?? []; 
     
     // --- 1. Aggregate and Concatenate Nested Data ---
-    const goalTitles = strategy.goals.map((goal: { title: any; }) => goal.title).join(' | ');
+    
+    // Goal Titles
+    const goalTitles = goalsArray.map((goal) => goal.title).join(' | '); 
 
-    const outcomesSummary = strategy.goals.flatMap((goal: { outcomes: any[]; }) => 
-        goal.outcomes.map((outcome: { title: any; outputs: string | any[]; }) => 
-            `${outcome.title} [Outputs: ${outcome.outputs.length}]`
-        )
-    ).join(' | ');
+    // Outcomes Summary
+    const outcomesSummary = goalsArray.flatMap((goal) => {
+        const outcomesArray = goal.outcomes ?? [];
+        return outcomesArray.map((outcome) => 
+            // Ensure outputs is an array before checking length
+            `${outcome.title} [Outputs: ${(outcome.outputs ?? []).length}]`
+        );
+    }).join(' | ');
 
-    // Count Votes
-    const totalVotesYes = strategy.votes.filter((vote: { type: string; }) => vote.type === 'YES').length;
-    const totalVotesNo = strategy.votes.filter((vote: { type: string; }) => vote.type === 'NO').length;
+    // Count Votes 
+    // FIX: Use vote.voteType
+    const totalVotesYes = votesArray.filter((vote) => vote.voteType === 'YES').length;
+    const totalVotesNo = votesArray.filter((vote) => vote.voteType === 'NO').length;
     
     // --- 2. Construct the Flattened Row ---
     return {
@@ -26,7 +83,14 @@ const flattenStrategyData = (strategy: any) => {
         Status: strategy.status,
         Avg_Score: strategy.averageStrategicScore,
         // Safely format Date object
-        Submission_Date: strategy.submissionDate ? strategy?.submissionDate?.toISOString().split('T')[0] : 'N/A',
+        //Submission_Date: strategy.submissionDate ? strategy.submissionDate.toISOString().split('T')[0] : 'N/A',
+
+        // **FIX 1: Handle submissionDate**
+        // Since strategy.submissionDate is an ISO string after JSON transfer, 
+        // we use string methods to extract the date part (YYYY-MM-DD).
+        Submission_Date: strategy.submissionDate 
+            ? strategy.submissionDate.toString().split('T')[0] 
+            : 'N/A',
         
         // Author Details
         Author_Name: strategy.author.name || 'N/A',
@@ -41,31 +105,26 @@ const flattenStrategyData = (strategy: any) => {
         Outcomes_Summary: outcomesSummary,
         
         // Dates
-        Created_At: strategy?.createdAt?.toISOString(),
+        Created_At: strategy.createdAt?.toISOString(),
     };
 };
 
+// ====================================================================
+// 3. EXPORT FUNCTION
+// ====================================================================
+
 /**
- * Executes the query, flattens the data, and generates the Excel file buffer.
+ * Accepts an array of strategies (already fetched and filtered) and generates the Excel file buffer.
+ * @param strategiesToExport - The array of filtered strategies to be exported.
  * @returns A Buffer containing the XLSX file data.
  */
-export const exportStrategiesToExcel = async (): Promise<Buffer> => {
+export const exportStrategiesToExcel = async (strategiesToExport: StrategyData[]): Promise<Buffer> => {
     
-    // Replicating your provided Prisma query and applying the necessary type assertion
-    const rawStrategies = await prisma.strategy.findMany({
-        include: {
-            author: true,
-            votes: { include: { voter: { select: { id: true, name: true, email: true } } } },
-            goals: { include: { outcomes: { include: { outputs: true } } } },
-        },
-        orderBy: [
-            { averageStrategicScore: 'desc' },
-            { submissionDate: 'desc' },
-        ]
-    }) //as StrategyWithVotesAndGoals[]; // <-- Type Assertion Re-enabled
+    // CRITICAL: Function now uses the input argument (strategiesToExport) 
+    // instead of querying the database.
 
     // 1. Flatten the data structure
-    const flattenedData = rawStrategies.map(flattenStrategyData);
+    const flattenedData = strategiesToExport.map(flattenStrategyData);
 
     // 2. Create the Excel workbook
     const workSheet = XLSX.utils.json_to_sheet(flattenedData);
@@ -76,7 +135,7 @@ export const exportStrategiesToExcel = async (): Promise<Buffer> => {
     const excelBuffer = XLSX.write(workBook, { 
         type: 'buffer', 
         bookType: 'xlsx' 
-    }) as Buffer; // <-- FIX: Explicitly cast the result to Buffer to resolve TypeScript error
+    }) as Buffer;
     
     return excelBuffer;
 };

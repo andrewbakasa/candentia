@@ -238,6 +238,8 @@ const StrategyClient: React.FC<StrategyClientProps> = ({
                 // Check primary fields: title and content
                 strategy.title.toLowerCase().includes(lowerSearchTerm) ||
                 strategy.content.toLowerCase().includes(lowerSearchTerm) || 
+                strategy?.author?.name && strategy?.author?.name.toLowerCase().includes(lowerSearchTerm) || 
+                 strategy?.author?.email && strategy?.author?.email.toLowerCase().includes(lowerSearchTerm) || 
                 // Check nested RBM goals
                 strategy.goals?.some(goal => {
                     // Check Goal Title and Description
@@ -256,7 +258,8 @@ const StrategyClient: React.FC<StrategyClientProps> = ({
                         const outputMatch = outcome.outputs?.some(output => 
                             // Check Output Title and Description
                             (output.title && output.title.toLowerCase().includes(lowerSearchTerm)) ||
-                            (output.title && output.title.toLowerCase().includes(lowerSearchTerm))
+                            (output.title && output.title.toLowerCase().includes(lowerSearchTerm)) ||
+                            (output.responsible && output.responsible.toLowerCase().includes(lowerSearchTerm)) 
                         );
 
                         return descriptionMatch || outputMatch;
@@ -323,7 +326,7 @@ const StrategyClient: React.FC<StrategyClientProps> = ({
                     </button>
                     
                     {/* 2. EXPORT BUTTON (New Addition) */}
-                    <StrategiesExportButton />
+                    <StrategiesExportButton strategies= {filteredStrategies}/>
                     
                     {/* Personalized Note referencing Saved Information */}
                     <div className="mt-2 p-2 bg-yellow-50 border border-yellow-200 rounded-lg text-sm text-yellow-800">
