@@ -230,10 +230,13 @@ export default async function getStrategies(): Promise<StrategiesReturnType> {
             },
             orderBy: [
                 {
-                    averageStrategicScore: 'desc',
+                    averageStrategicScore: 'desc',//higher the better
+                },
+                 {
+                    totalVotesYes: 'desc',// higher the better
                 },
                 {
-                    submissionDate: 'desc',
+                    submissionDate: 'desc',//latest first
                 },
             ]
         });
