@@ -794,8 +794,8 @@ model StrategyGoal {
   targetYear      Int               // e.g., 2027
 
   // Relationship to the Strategy
-  strategyId      String            @db.ObjectId
-  strategy        Strategy          @relation(fields: [strategyId], references: [id], onDelete: Cascade)
+  strategyId      String ?           @db.ObjectId
+  strategy        Strategy?          @relation(fields: [strategyId], references: [id], onDelete: Cascade)
 
   // RBM Relationship: One Goal can have multiple Outcomes
   outcomes        StrategyOutcome[]

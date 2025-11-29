@@ -16,8 +16,9 @@ import About from "./components/About";
 
 const Home = async () => {
   
-  const jobs = await getJobOpenings();
-  const  portfolioItems = await getPortifolios();
+  // const jobs = await getJobOpenings();
+  // const  portfolioItems = await getPortifolios();
+  
   
 // Data for Horizon21
 const aboutData = {
@@ -69,4 +70,8 @@ const aboutData = {
 };
 
 export default Home;
+
+function deleteOrphanedStrategyOutputs() {
+  throw new Error("Function not implemented.");
+}
 

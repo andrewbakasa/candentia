@@ -2,6 +2,7 @@
 import React, { useState, useCallback, useEffect } from 'react';
 import { ArrowLeft, Calendar, CheckCircle, Edit2, Plus, User, Zap, MessageSquare, Clipboard, DollarSign, Loader2, XCircle, CornerUpLeft } from 'lucide-react';
 import { useRouter } from 'next/navigation';
+import { Strategy } from '@prisma/client';
 
 // --- INLINED TYPES AND UTILITIES FOR SELF-CONTAINMENT ---
 
@@ -15,42 +16,19 @@ interface StrategyOutcomeModel {
     description: string;
 }
 
-interface StrategyGoalModel {
-    id: string;
-    title: string;
-    description: string;
-    goal?: StrategyOutcomeModel; // Added parent outcome
-}
-
-// interface StrategyOutputModel {
+// interface StrategyModel {
 //     id: string;
-//     title: string;
-//     description: string | null;
-//     responsible: string | null;
-//     costEstimate: number;
-//     isCompleted: boolean;
-//     completionDate: string | null;
-//     createdAt: string;
-//     updatedAt: string;
-//     goal?: StrategyGoalModel; // Added parent goal
-//     activities: StrategyActivityModel[];
-// }
-
-// interface StrategyActivityModel {
-//     id: string;
-//     title: string;
-//     description: string | null;
-//     dueDate: string | null;
-//     status: 'PENDING' | 'IN_PROGRESS' | 'COMPLETED' | 'ON_HOLD';
-//     activityType: string;
-// }
-
-// interface ActivityFormDataType {
 //     title: string;
 //     description: string;
-//     dueDate: string;
-//     status: string;
-//     activityType: string;
+//     strategy:Strategy
+// }
+
+
+// interface StrategyGoalModel {
+//     id: string;
+//     title: string;
+//     description: string;
+//     goal?: StrategyModel; // Added parent outcome
 // }
 
 interface StrategyDetailProps {
@@ -84,8 +62,45 @@ interface StrategyOutputModel {
     // Mock audit fields for display purposes
     createdAt: string;
     updatedAt: string;
-    outcome?: StrategyGoalModel; // Added parent goal
+   // outcome?: StrategyGoalModel; // Added parent goal
+    outcome?: StrategyOutcomeFull | null; // Correct type for the nested outcome
 }
+
+
+// The top-level ancestor: The ACTUAL Strategy (parent of the Goal)
+interface StrategyModel {
+    id: string;
+    title: string;
+    description: string | null;
+    // Assuming the full Strategy object has these fields
+    submissionDate: string; 
+    updatedAt: string;
+}
+
+// The Goal model, which contains the Strategy ancestor
+interface StrategyGoalModel {
+    id: string;
+    title: string;
+    description: string | null;
+    targetYear: number;
+    // The link to the actual Strategy (Backend sends this as goal.strategy)
+    strategy: StrategyModel | null; 
+    createdAt: string;
+    updatedAt: string;
+}
+
+// The Outcome model, which contains the Goal
+interface StrategyOutcomeFull {
+    id: string;
+    title: string;
+    description: string | null;
+    kpi: string | null;
+    goal: StrategyGoalModel | null; // Goal is nested here
+    createdAt: string;
+    updatedAt: string;
+}
+
+// The Output model (the main object), which contains the Outcome
 
 
 // Helper to format date for input[type="date"]
@@ -559,7 +574,7 @@ const MessageBanner: React.FC<{ type: 'success' | 'error', message: string }> = 
     );
 };
 // --- NEW COMPONENT FOR PARENT CONTEXT ---
-const ParentHierarchy: React.FC<{ outcome?: StrategyOutcomeModel; goal?: StrategyGoalModel }> = ({ outcome, goal }) => {
+const ParentHierarchy: React.FC<{ outcome?: StrategyOutcomeFull|null; goal?: StrategyGoalModel|null }> = ({ outcome, goal }) => {
     const router = useRouter();
 
     const handleNavigation = useCallback((type: 'outcome' | 'goal' | 'list', id?: string) => {
@@ -601,7 +616,13 @@ const ParentHierarchy: React.FC<{ outcome?: StrategyOutcomeModel; goal?: Strateg
                 <ParentItem title={outcome.title} linkId={outcome.id} type="outcome">
                     {goal && (
                         <ParentItem title={goal.title} linkId={goal.id} type="goal">
-                            <span className="font-semibold text-gray-700">Current Output</span>
+
+                           {goal.strategy && ( <ParentItem title={goal.strategy?.title|| "Title"} linkId={goal.strategy.id} type="goal">
+                                <span className="font-semibold text-gray-700">Current Output</span>
+                            </ParentItem>
+                           )}
+                            {/* <span className="font-semibold text-gray-700">{goal.goal?.title}</span> */}
+                            {/* <span className="font-semibold text-gray-700">Current Output</span> */}
                         </ParentItem>
                     )}
                 </ParentItem>
@@ -622,7 +643,7 @@ const DetailItem: React.FC<{ label: string, value: React.ReactNode, icon: React.
 );
 
 // --- PARENT DETAIL BLOCK COMPONENT ---
-const ParentDetailBlock: React.FC<{ title: string; description: string; linkId: string; type: 'outcome' | 'goal' }> = ({ title, description, linkId, type }) => {
+const ParentDetailBlock: React.FC<{ title: string; description: string|null; linkId: string; type: 'outcome' | 'goal' }> = ({ title, description, linkId, type }) => {
     const router = useRouter();
     const Icon = type === 'outcome' ? CheckCircle : User; // Use relevant icon
 
@@ -647,16 +668,11 @@ const ParentDetailBlock: React.FC<{ title: string; description: string; linkId: 
 };
 // --- IMPROVED StrategyOutputDetailView COMPONENT ---
 function StrategyOutputDetailView({ strategyOutput: initialStrategy }: StrategyDetailProps) {
-    // --- Mock Parent Data Injection ---
-    // This part ensures the StrategyOutput has goal and outcome data for display
-    // const defaultGoal: StrategyGoalModel = { id: 'g1', title: 'Achieve 20% Growth in Q3', description: 'This is the overarching goal tied to the outcome.' };
-    // const defaultOutcome: StrategyOutcomeModel = { id: 'o1', title: 'Expand Market Share', description: 'The main long-term outcome desired by the shareholders.' };
-    
-    const mergedStrategy: StrategyOutputModel = { 
+      const mergedStrategy: StrategyOutputModel = { 
         ...initialStrategy, 
-        outcome: initialStrategy.outcome //|| { ...defaultGoal, outcome: initialStrategy.goal?.outcome || defaultOutcome }, 
+        outcome: initialStrategy.outcome 
     };
-
+    console.log("mergedStrategy",initialStrategy)
     const [strategy, setStrategy] = useState<StrategyOutputModel>(mergedStrategy);
     const [isEditing, setIsEditing] = useState(false);
     const [isAddingActivity, setIsAddingActivity] = useState(false);
@@ -682,7 +698,7 @@ function StrategyOutputDetailView({ strategyOutput: initialStrategy }: StrategyD
         console.log('Updating activity:', activityId, updatedData);
 
         try {
-            // Mock success response
+          
             const updatedActivity: StrategyActivityModel = {
                 ...strategy.activities.find(a => a.id === activityId)!, 
                 ...updatedData as StrategyActivityModel, 
@@ -743,7 +759,6 @@ function StrategyOutputDetailView({ strategyOutput: initialStrategy }: StrategyD
         }
         
         try {
-            // API route changed to reflect new structure: /api/outputs/activity
             const response = await fetch('/api/outputs/activity', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -751,15 +766,11 @@ function StrategyOutputDetailView({ strategyOutput: initialStrategy }: StrategyD
             });
 
             const result = await response.json();
-
             if (!response.ok) {
                 setError(result.message || 'Failed to create strategy activity.');
                 return;
             }
-
             const createdActivity: StrategyActivityModel = result; 
-            
-            // Update the local state (activities)
             setStrategy((prevStrategy: StrategyOutputModel) => ({
                 ...prevStrategy,
                 activities: [createdActivity, ...(prevStrategy.activities || [])], // CORRECTED: `activities`
