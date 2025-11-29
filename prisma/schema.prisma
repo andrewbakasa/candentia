@@ -66,6 +66,8 @@ model User {
   strategyComments StrategyComment[]
 
   strategyVotes StrategyVote[]
+  //strategyOutputs StrategyOutput[]  
+  //strategyActivities StrategyActivity[]
 }
 
 
@@ -819,23 +821,77 @@ model StrategyOutcome {
 }
 
 // 3. StrategyOutput (Short-Term/Tangible Deliverable)
+// model StrategyOutput {
+//   id              String           @id @default(auto()) @map("_id") @db.ObjectId
+//   title           String           // e.g., "NRZ Vendor Registration Complete"
+//   description     String?
+//   responsible     String?          // Name or ID of the person responsible for this specific output
+//   costEstimate    Float?
+//   isCompleted     Boolean          @default(false)
+
+//   // Relationship to the Outcome
+//   outcomeId       String           @db.ObjectId
+//   outcome         StrategyOutcome  @relation(fields: [outcomeId], references: [id],onDelete: Cascade)
+
+//   // activities    StrategyActivity[] // New model if you want to track activities granularly
+
+//   @@index([outcomeId])
+// }
+
+// 3. StrategyOutput (The Deliverable)
 model StrategyOutput {
-  id              String           @id @default(auto()) @map("_id") @db.ObjectId
-  title           String           // e.g., "NRZ Vendor Registration Complete"
+  id              String             @id @default(auto()) @map("_id") @db.ObjectId
+  title           String             // e.g., "NRZ Vendor Registration Complete"
   description     String?
-  responsible     String?          // Name or ID of the person responsible for this specific output
+
+  
+  responsible     String? 
+ // responsibleId   String?            @db.ObjectId // ID of the User primarily responsible for this deliverable
+ // responsibleUser     User?              @relation("OutputResponsible", fields: [responsibleId], references: [id])
   costEstimate    Float?
-  isCompleted     Boolean          @default(false)
+  isCompleted     Boolean            @default(false)
+  completionDate  DateTime?          // Date the Output was finalized
 
   // Relationship to the Outcome
-  outcomeId       String           @db.ObjectId
-  outcome         StrategyOutcome  @relation(fields: [outcomeId], references: [id],onDelete: Cascade)
+  outcomeId       String             @db.ObjectId
+  outcome         StrategyOutcome    @relation(fields: [outcomeId], references: [id], onDelete: Cascade)
 
-  // activities    StrategyActivity[] // New model if you want to track activities granularly
+  // NEW: Relationship to the activities/action plan needed to achieve this output
+  activities      StrategyActivity[]
 
   @@index([outcomeId])
+ // @@index([responsibleId])
 }
+// ----------------------------------------------------
+// 4. IMPLEMENTATION MANAGEMENT (Action Plan, Timeline, Progress)
+// StrategyOutput -> StrategyActivity
+// ----------------------------------------------------
 
+// StrategyActivity (The Action Plan / Rollout Task)
+// Represents a granular step or task required to complete a StrategyOutput (deliverable).
+model StrategyActivity {
+  id                String           @id @default(auto()) @map("_id") @db.ObjectId
+  title             String           // e.g., "Draft RFP for NRZ Vendor Registration"
+  description       String?
+  startDate         DateTime?
+  dueDate           DateTime?        // Scheduled completion time (important for DUE/OVERDUE tracking)
+  completionDate    DateTime?
+  status            ActivityStatus   @default(SCHEDULED)
+  progressPercent   Int              @default(0) @map("progress_percent") // 0-100
+
+  // --- Activity Details ---
+  activityType                ActivityType     @default(FOLLOW_UP)
+  
+
+  // Relationship to the StrategyOutput (Deliverable)
+  outputId          String           @db.ObjectId
+  output            StrategyOutput   @relation(fields: [outputId], references: [id], onDelete: Cascade)
+  createdAt           DateTime         @default(now())
+  updatedAt       DateTime @updatedAt
+  @@index([outputId])
+  //@@index([responsibleUserId])
+  @@index([status]) // Allows for easy querying of TO_DO, IN_PROGRESS, OVERDUE tasks
+}
 // ----------------------------------------------------
 // SUPPORT MODELS (Comments, Votes, Criteria)
 // ----------------------------------------------------

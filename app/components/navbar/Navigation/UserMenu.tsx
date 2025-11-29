@@ -150,6 +150,14 @@ const UserMenu: React.FC<UserMenuProps> = ({ currentUser, handleNavigate }) => {
                     onClick={() => handleMenuItemClickWithNav("/contracts")} 
                   />
                 )}
+
+                {/* --- Contracts (Roles Conditional) --- */}
+                {isAuthorizedContracts && (
+                  <MenuItem 
+                    label="Strategic Outputs" 
+                    onClick={() => handleMenuItemClickWithNav("/outputs")} 
+                  />
+                )}
                 
                 <hr className="my-1" />
                 
