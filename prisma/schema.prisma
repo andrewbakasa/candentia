@@ -859,6 +859,9 @@ model StrategyOutput {
   // NEW: Relationship to the activities/action plan needed to achieve this output
   activities      StrategyActivity[]
 
+  createdAt           DateTime         @default(now())
+  updatedAt       DateTime @updatedAt
+
   @@index([outcomeId])
  // @@index([responsibleId])
 }
