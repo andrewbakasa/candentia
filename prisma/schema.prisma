@@ -820,24 +820,6 @@ model StrategyOutcome {
   @@index([goalId])
 }
 
-// 3. StrategyOutput (Short-Term/Tangible Deliverable)
-// model StrategyOutput {
-//   id              String           @id @default(auto()) @map("_id") @db.ObjectId
-//   title           String           // e.g., "NRZ Vendor Registration Complete"
-//   description     String?
-//   responsible     String?          // Name or ID of the person responsible for this specific output
-//   costEstimate    Float?
-//   isCompleted     Boolean          @default(false)
-
-//   // Relationship to the Outcome
-//   outcomeId       String           @db.ObjectId
-//   outcome         StrategyOutcome  @relation(fields: [outcomeId], references: [id],onDelete: Cascade)
-
-//   // activities    StrategyActivity[] // New model if you want to track activities granularly
-
-//   @@index([outcomeId])
-// }
-
 // 3. StrategyOutput (The Deliverable)
 model StrategyOutput {
   id              String             @id @default(auto()) @map("_id") @db.ObjectId
