@@ -1,8 +1,9 @@
 'use client'
-import React, { useState, useCallback, useEffect } from 'react';
+import React, { useState, useCallback, useEffect, useMemo } from 'react';
 import { ArrowLeft, Calendar, CheckCircle, Edit2, Plus, User, Zap, MessageSquare, Clipboard, DollarSign, Loader2, XCircle, CornerUpLeft } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { Strategy } from '@prisma/client';
+import { SafeUser } from '@/app/types';
 
 // --- INLINED TYPES AND UTILITIES FOR SELF-CONTAINMENT ---
 
@@ -33,6 +34,7 @@ interface StrategyOutcomeModel {
 
 interface StrategyDetailProps {
     strategyOutput: StrategyOutputModel;
+    currentUser:SafeUser|null
 }
 interface StrategyActivityModel {
     id: string;
@@ -118,6 +120,7 @@ const formatDateForInput = (dateString: string | null): string => {
 
 interface StrategyDetailProps {
     strategyOutput: StrategyOutputModel;
+    currentUser:SafeUser|null
 }
 
 interface ActivityFormDataType {
@@ -165,7 +168,7 @@ const getStatusClasses = (status: string): string => {
 // NOTE: StrategyOutputModel definition is assumed to be available
 
 
-const StrategyOutputUpdateForm: React.FC<{ strategy: StrategyOutputModel; onUpdateSuccess: (data: StrategyOutputModel) => void; }> = ({ strategy, onUpdateSuccess }) => {
+const StrategyOutputUpdateForm: React.FC<{ strategy: StrategyOutputModel; onUpdateSuccess: (data: StrategyOutputModel) => void; isEditable:boolean}> = ({ strategy, onUpdateSuccess,isEditable }) => {
     // --- State Initialization (UPDATED) ---
     const [title, setTitle] = useState(strategy.title);
     const [description, setDescription] = useState(strategy.description || '');
@@ -362,7 +365,7 @@ const StrategyOutputUpdateForm: React.FC<{ strategy: StrategyOutputModel; onUpda
                 <button
                     type="submit"
                     className="px-4 py-2 text-sm font-medium text-white bg-indigo-600 rounded-lg shadow-md hover:bg-indigo-700 transition disabled:bg-indigo-400"
-                    disabled={isLoading || !title.trim() || (isCompleted && !completionDate)} // Disable if completed but date is missing
+                    disabled={!isEditable || isLoading || !title.trim() || (isCompleted && !completionDate)} // Disable if completed but date is missing
                 >
                     {isLoading ? (<span className="flex items-center"><Loader2 className="w-4 h-4 mr-2 animate-spin" /> Saving...</span>) : 'Save Changes'}
                 </button>
@@ -372,7 +375,7 @@ const StrategyOutputUpdateForm: React.FC<{ strategy: StrategyOutputModel; onUpda
 };
 
 // Simplified AddActivityForm
-const AddActivityForm: React.FC<{ onAdd: (data: ActivityFormDataType) => void; onCancel: () => void; isLoading: boolean; error: string | null }> = ({ onAdd, onCancel, isLoading, error }) => {
+const AddActivityForm: React.FC<{ onAdd: (data: ActivityFormDataType) => void; onCancel: () => void; isLoading: boolean; error: string | null,isEditable:boolean }> = ({ onAdd, onCancel, isLoading, error,isEditable }) => {
     const [title, setTitle] = useState('');
     const [description, setDescription] = useState('');
     const [dueDate, setDueDate] = useState('');
@@ -449,7 +452,7 @@ const AddActivityForm: React.FC<{ onAdd: (data: ActivityFormDataType) => void; o
                     <button type="button" onClick={onCancel} disabled={isLoading} className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition">
                         Cancel
                     </button>
-                    <button type="submit" disabled={isLoading || !title.trim() || !dueDate.trim()} className="px-4 py-2 text-sm font-medium text-white bg-indigo-600 rounded-lg shadow-md hover:bg-indigo-700 transition disabled:bg-indigo-400">
+                    <button type="submit" disabled={!isEditable || isLoading || !title.trim() || !dueDate.trim()} className="px-4 py-2 text-sm font-medium text-white bg-indigo-600 rounded-lg shadow-md hover:bg-indigo-700 transition disabled:bg-indigo-400">
                         {isLoading ? 'Adding...' : 'Add Activity'}
                     </button>
                 </div>
@@ -459,7 +462,7 @@ const AddActivityForm: React.FC<{ onAdd: (data: ActivityFormDataType) => void; o
 };
 
 // Simplified EditActivityForm
-const EditActivityForm: React.FC<{ activity: StrategyActivityModel; onUpdate: (id: string, data: ActivityFormDataType) => void; onCancel: () => void; isLoading: boolean; error: string | null }> = ({ activity, onUpdate, onCancel, isLoading, error }) => {
+const EditActivityForm: React.FC<{ activity: StrategyActivityModel; onUpdate: (id: string, data: ActivityFormDataType) => void; onCancel: () => void; isLoading: boolean; error: string | null,isEditable:boolean }> = ({ activity, onUpdate, onCancel, isLoading, error, isEditable }) => {
     
     const formatInputDate = (isoDate: string | null) => isoDate ? isoDate.slice(0, 10) : '';
 
@@ -539,7 +542,7 @@ const EditActivityForm: React.FC<{ activity: StrategyActivityModel; onUpdate: (i
                     <button type="button" onClick={onCancel} disabled={isLoading} className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition">
                         Cancel
                     </button>
-                    <button type="submit" disabled={isLoading || !title.trim() || !dueDate.trim()} className="px-4 py-2 text-sm font-medium text-white bg-indigo-600 rounded-lg shadow-md hover:bg-indigo-700 transition disabled:bg-indigo-400">
+                    <button type="submit" disabled={!isEditable || isLoading || !title.trim() || !dueDate.trim()} className="px-4 py-2 text-sm font-medium text-white bg-indigo-600 rounded-lg shadow-md hover:bg-indigo-700 transition disabled:bg-indigo-400">
                         {isLoading ? 'Saving...' : 'Save Changes'}
                     </button>
                 </div>
@@ -667,12 +670,34 @@ const ParentDetailBlock: React.FC<{ title: string; description: string|null; lin
     );
 };
 // --- IMPROVED StrategyOutputDetailView COMPONENT ---
-function StrategyOutputDetailView({ strategyOutput: initialStrategy }: StrategyDetailProps) {
+function StrategyOutputDetailView({ strategyOutput: initialStrategy, currentUser }: StrategyDetailProps) {
       const mergedStrategy: StrategyOutputModel = { 
         ...initialStrategy, 
         outcome: initialStrategy.outcome 
     };
-    console.log("mergedStrategy",initialStrategy)
+   // console.log("currentUser",currentUser)
+     const allowedRoles: string[] = ['admin', 'executive'];
+    
+        const hasRequiredRole = useMemo(() => {
+            if (!currentUser) {
+                return false;
+            }
+    
+            // Check 1: Is the user a global system admin?
+            const isGlobalAdmin = currentUser.isAdmin === true;
+    
+            // Check 2: Does the user have a required role in their roles array?
+            const hasRoleAccess = currentUser.roles 
+                && currentUser.roles.some(role => 
+                    allowedRoles.includes(role.toLowerCase())
+                );
+    
+            // Access is granted if they are a global admin OR they have one of the required roles
+            return isGlobalAdmin || hasRoleAccess;
+    
+        }, [currentUser]);
+    
+    //console.log("mergedStrategy",initialStrategy)
     const [strategy, setStrategy] = useState<StrategyOutputModel>(mergedStrategy);
     const [isEditing, setIsEditing] = useState(false);
     const [isAddingActivity, setIsAddingActivity] = useState(false);
@@ -828,7 +853,7 @@ function StrategyOutputDetailView({ strategyOutput: initialStrategy }: StrategyD
                             <span className="hidden sm:inline">{copied ? 'Link Copied!' : 'Share Link'}</span>
                             <span className="sm:hidden">{copied ? 'Copied' : 'Share'}</span>
                         </button>
-                        <button
+                      { hasRequiredRole && <button
                             onClick={() => {
                                 setIsEditing(!isEditing);
                                 clearMessages();
@@ -840,12 +865,13 @@ function StrategyOutputDetailView({ strategyOutput: initialStrategy }: StrategyD
                             <span className="hidden sm:inline">{isEditing ? 'Cancel Edit' : 'Edit Output'}</span>
                             <span className="sm:hidden">{isEditing ? 'Cancel' : 'Edit'}</span>
                         </button>
+                        }
                     </div>
                 </div>
             </div>
 
             {isEditing ? (
-                <StrategyOutputUpdateForm strategy={strategy} onUpdateSuccess={handleUpdate} />
+                <StrategyOutputUpdateForm strategy={strategy} onUpdateSuccess={handleUpdate} isEditable={hasRequiredRole} />
             ) : (
                 <div className="space-y-8">
                     
@@ -939,18 +965,19 @@ function StrategyOutputDetailView({ strategyOutput: initialStrategy }: StrategyD
                             <h3 className="text-xl font-bold text-indigo-800 mb-2 sm:mb-0">
                                 Related Activities/Plans ({strategy?.activities?.length || 0})
                             </h3>
-                            <button
+                            {hasRequiredRole && <button
                                 onClick={() => {
                                     setIsAddingActivity(!isAddingActivity);
                                     clearMessages();
                                     setEditingActivityId(null);
                                 }}
                                 className="flex items-center justify-center text-sm font-semibold text-indigo-600 bg-white px-3 py-1.5 rounded-lg border border-indigo-300 shadow-sm hover:bg-indigo-50 transition focus:outline-none focus:ring-2 focus:ring-indigo-500 ml-auto sm:ml-0"
-                                disabled={isLoading}
+                                disabled={isLoading || !hasRequiredRole}
                             >
                                 <Plus className="w-4 h-4 mr-1" />
                                 {isAddingActivity ? 'Close Form' : 'Add Activity'}
                             </button>
+                            }
                         </div>
 
                         {/* --- New Activity Form --- */}
@@ -964,6 +991,7 @@ function StrategyOutputDetailView({ strategyOutput: initialStrategy }: StrategyD
                                     }}
                                     isLoading={isLoading}
                                     error={error}
+                                    isEditable={hasRequiredRole}
                                 />
                             </div>
                         )}
@@ -985,6 +1013,7 @@ function StrategyOutputDetailView({ strategyOutput: initialStrategy }: StrategyD
                                                 }}
                                                 isLoading={isLoading}
                                                 error={error}
+                                                isEditable={hasRequiredRole}
                                             />
                                         ) : (
                                             <>
@@ -998,17 +1027,18 @@ function StrategyOutputDetailView({ strategyOutput: initialStrategy }: StrategyD
                                                             {activity?.status?.replace('_', ' ')}
                                                         </span>
                                                         {/* NEW EDIT BUTTON */}
-                                                        <button
+                                                       {hasRequiredRole&& <button
                                                             onClick={() => {
                                                                 setEditingActivityId(activity.id);
                                                                 setIsAddingActivity(false); 
                                                                 clearMessages();
                                                             }}
                                                             className="p-1 text-gray-500 hover:text-indigo-600 transition rounded-full hover:bg-gray-200"
-                                                            disabled={isLoading}
+                                                            disabled={isLoading||!hasRequiredRole}
                                                         >
                                                             <Edit2 className="w-4 h-4" />
                                                         </button>
+                                                       }
                                                     </div>
                                                 </div>
                                                 <div className="text-sm text-gray-600 mt-2 flex flex-col sm:flex-row sm:space-x-4">

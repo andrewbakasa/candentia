@@ -99,7 +99,7 @@ const StrategyPage = async ({ params }: { params: IParams }) => {
     // 2. Fetch the Strategy Output, including related goals (nested under outcome), outcomes, and activities
     // NOTE: The result type will be the full Prisma Model, which is a superset of StrategyOutputModel
 
-   
+    const currentUser= await getCurrentUser()
     const result = await prisma.strategyOutput.findUnique({
         where: {
           id: strategyId,
@@ -190,6 +190,7 @@ const StrategyPage = async ({ params }: { params: IParams }) => {
     <Container>
       <StrategyDetailView
         // Pass the properly serialized data structure
+        currentUser={currentUser}
         strategyOutput={safeStrategyOutput as any}
       // currentUser={currentUser} // Uncomment if needed in the client component
       />
