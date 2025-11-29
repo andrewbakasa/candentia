@@ -375,7 +375,7 @@ const StrategyOutputUpdateForm: React.FC<{ strategy: StrategyOutputModel; onUpda
 };
 
 // Simplified AddActivityForm
-const AddActivityForm: React.FC<{ onAdd: (data: ActivityFormDataType) => void; onCancel: () => void; isLoading: boolean; error: string | null,isEditable:boolean }> = ({ onAdd, onCancel, isLoading, error,isEditable }) => {
+const AddActivityForm2: React.FC<{ onAdd: (data: ActivityFormDataType) => void; onCancel: () => void; isLoading: boolean; error: string | null,isEditable:boolean }> = ({ onAdd, onCancel, isLoading, error,isEditable }) => {
     const [title, setTitle] = useState('');
     const [description, setDescription] = useState('');
     const [dueDate, setDueDate] = useState('');
@@ -461,10 +461,121 @@ const AddActivityForm: React.FC<{ onAdd: (data: ActivityFormDataType) => void; o
     );
 };
 
+
+// Assuming ActivityFormDataType, ActivityStatus, and ActivityType are imported or defined here
+// interface ActivityFormDataType { ... outputId: string; ... } 
+
+// 🚨 UPDATED PROPS: The parent component must now provide the outputId.
+const AddActivityForm: React.FC<{ 
+    outputId: string; // <-- NEW REQUIRED PROP
+    onAdd: (data: ActivityFormDataType & { outputId: string }) => void; 
+    onCancel: () => void; 
+    isLoading: boolean; 
+    error: string | null;
+    isEditable: boolean 
+}> = ({ outputId, onAdd, onCancel, isLoading, error, isEditable }) => {
+// Note: Changed the onAdd signature to explicitly show outputId being passed
+
+    const [title, setTitle] = useState('');
+    const [description, setDescription] = useState('');
+    const [dueDate, setDueDate] = useState('');
+    const [activityType, setActivityType] = useState('TASK');
+    const [status, setStatus] = useState('SCHEDULED');
+    const [localError, setLocalError] = useState<string | null>(null);
+
+    // Assuming these types are correctly imported
+    const activityTypes: string[] = ['TASK', 'MEETING', 'FOLLOW_UP', 'REVIEW'];
+    const statuses: string[] = ['SCHEDULED', 'IN_PROGRESS', 'COMPLETED', 'OVERDUE', 'CANCELLED'];
+
+    const handleSubmit = (e: React.FormEvent) => {
+        e.preventDefault();
+        setLocalError(null);
+        
+        // 🚨 CRITICAL FIX: The API requires description to be non-empty/null
+        if (!title.trim() || !dueDate.trim() || !description.trim()) {
+            setLocalError('Title, Due Date, and Description are required.');
+            return;
+        }
+
+        const newActivity = {
+            title: title.trim(),
+            description: description.trim(), // Now required and non-null
+            startDate: new Date().toISOString().slice(0, 10) + 'T00:00:00.000Z', // Send full ISO string
+            dueDate: dueDate.trim() + 'T00:00:00.000Z',
+            completionDate: status === 'COMPLETED' ? new Date().toISOString() : null,
+            status,
+            activityType,
+            outputId, // 🚨 Pass the required outputId
+        };
+
+        // Note: The parent component's onAdd handler will need to accept this object
+        onAdd(newActivity as any); // Cast as 'any' if ActivityFormDataType doesn't yet include outputId
+    };
+
+    return (
+        <div className="bg-indigo-50 p-6 rounded-xl border border-indigo-200 mb-6">
+            <h4 className="text-lg font-bold text-indigo-800 mb-4">Add New Activity/Task</h4>
+            <form onSubmit={handleSubmit} className="space-y-4">
+                
+                {/* Title and Type */}
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                    <div className="sm:col-span-2">
+                        <label className="block text-sm font-medium text-gray-700">Title <span className="text-red-500">*</span></label>
+                        <input type="text" value={title} onChange={(e) => setTitle(e.target.value)} required className="mt-1 block w-full rounded-lg border-gray-300 shadow-sm p-2 border" />
+                    </div>
+                    <div>
+                        <label className="block text-sm font-medium text-gray-700">Activity Type</label>
+                        <select value={activityType} onChange={(e) => setActivityType(e.target.value)} className="mt-1 block w-full rounded-lg border-gray-300 shadow-sm p-2 border">
+                            {activityTypes.map(type => <option key={type} value={type}>{type.replace('_', ' ')}</option>)}
+                        </select>
+                    </div>
+                </div>
+
+                {/* Due Date and Status */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                        <label className="block text-sm font-medium text-gray-700">Due Date <span className="text-red-500">*</span></label>
+                        <input type="date" value={dueDate} onChange={(e) => setDueDate(e.target.value)} required className="mt-1 block w-full rounded-lg border-gray-300 shadow-sm p-2 border" />
+                    </div>
+                    <div>
+                        <label className="block text-sm font-medium text-gray-700">Status</label>
+                        <select value={status} onChange={(e) => setStatus(e.target.value)} className="mt-1 block w-full rounded-lg border-gray-300 shadow-sm p-2 border">
+                            {statuses.map(s => <option key={s} value={s}>{s.replace('_', ' ')}</option>)}
+                        </select>
+                    </div>
+                </div>
+
+                {/* Description */}
+                <div>
+                    {/* 🚨 REQUIRED FIELD: Updated label and logic to enforce this */}
+                    <label className="block text-sm font-medium text-gray-700">Description <span className="text-red-500">*</span></label>
+                    <textarea rows={2} value={description} onChange={(e) => setDescription(e.target.value)} required className="mt-1 block w-full rounded-lg border-gray-300 shadow-sm p-2 border"></textarea>
+                </div>
+                
+                {(error || localError) && <p className="text-sm text-red-600">{error || localError}</p>}
+                
+                <div className="flex justify-end space-x-3 pt-2">
+                    <button type="button" onClick={onCancel} disabled={isLoading} className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition">
+                        Cancel
+                    </button>
+                    <button type="submit" disabled={!isEditable || isLoading || !title.trim() || !dueDate.trim() || !description.trim()} className="px-4 py-2 text-sm font-medium text-white bg-indigo-600 rounded-lg shadow-md hover:bg-indigo-700 transition disabled:bg-indigo-400">
+                        {isLoading ? 'Adding...' : 'Add Activity'}
+                    </button>
+                </div>
+            </form>
+        </div>
+    );
+};
+
 // Simplified EditActivityForm
 const EditActivityForm: React.FC<{ activity: StrategyActivityModel; onUpdate: (id: string, data: ActivityFormDataType) => void; onCancel: () => void; isLoading: boolean; error: string | null,isEditable:boolean }> = ({ activity, onUpdate, onCancel, isLoading, error, isEditable }) => {
     
-    const formatInputDate = (isoDate: string | null) => isoDate ? isoDate.slice(0, 10) : '';
+    const formatInputDate = (isoDate: string | null | undefined): string => {
+        // Explicitly check for type string before calling .slice()
+        return (isoDate && typeof isoDate === 'string' && isoDate.length >= 10) 
+            ? isoDate.slice(0, 10) 
+            : '';
+    };
 
     const [title, setTitle] = useState(activity.title);
     const [description, setDescription] = useState(activity.description || '');
@@ -493,7 +604,7 @@ const EditActivityForm: React.FC<{ activity: StrategyActivityModel; onUpdate: (i
             status,
             activityType,
         };
-
+        ////// adddd api here
         onUpdate(activity.id, updatedData);
     };
 
@@ -698,7 +809,7 @@ function StrategyOutputDetailView({ strategyOutput: initialStrategy, currentUser
         }, [currentUser]);
     
     //console.log("mergedStrategy",initialStrategy)
-    const [strategy, setStrategy] = useState<StrategyOutputModel>(mergedStrategy);
+    const [strategyOutput, setStrategyOutput] = useState<StrategyOutputModel>(mergedStrategy);
     const [isEditing, setIsEditing] = useState(false);
     const [isAddingActivity, setIsAddingActivity] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
@@ -715,36 +826,132 @@ function StrategyOutputDetailView({ strategyOutput: initialStrategy, currentUser
     
     // --- API HANDLERS (Simplified for display) ---
 
-    const handleUpdateActivity = async (activityId: string, updatedData: ActivityFormDataType) => {
-        setIsLoading(true);
-        clearMessages();
+    // const handleUpdateActivity2 = async (activityId: string, updatedData: ActivityFormDataType) => {
+    //     setIsLoading(true);
+    //     clearMessages();
         
-        // Mock API call...
-        console.log('Updating activity:', activityId, updatedData);
+    //     // Mock API call...
+    //     console.log('Updating activity:', activityId, updatedData);
+
+    //     try {
+          
+    //         const response = await fetch(`/api/outputs/activity/${activityId}`, {
+    //             method: 'PUT',
+    //             headers: { 'Content-Type': 'application/json' },
+    //             body: JSON.stringify(updatedData),
+    //         });
+
+    //         const result = await response.json();
+    //         if (!response.ok) {
+    //             setError(result.message || 'Failed to update strategy Output activity.');
+    //             return;
+    //         }
+    //         const createdActivity: StrategyActivityModel = result; 
+    //         const updatedActivity: StrategyActivityModel = {
+    //             ...strategy.activities.find(a => a.id === activityId)!, 
+    //             ...updatedData as StrategyActivityModel, 
+    //             status: (updatedData.status || 'PENDING').toUpperCase() as StrategyActivityModel['status'],
+    //             activityType: (updatedData.activityType || '').toUpperCase(),
+    //         };
+    //         //api here
+            
+    //         setStrategy((prevStrategy: StrategyOutputModel) => ({
+    //             ...prevStrategy,
+    //             activities: prevStrategy.activities.map(activity => 
+    //                 activity.id === activityId ? updatedActivity : activity
+    //             ),
+    //         }));
+
+    //         setEditingActivityId(null); 
+    //         setSuccessMessage('Activity updated successfully!'); 
+    //         setTimeout(() => setSuccessMessage(null), 3000); 
+
+    //     } catch (e) {
+    //         setError('A network error occurred during update. Please try again.');
+    //     } finally {
+    //         setIsLoading(false);
+    //     }
+    // };
+    // Assuming setStrategy, setEditingActivityId, setIsLoading, 
+// clearMessages, setError, setSuccessMessage are available from the component scope.
+
+    const handleUpdateActivity = async (
+        activityId: string, 
+        updatedData: ActivityFormDataType
+    ) => {
+        // 1. Initial State & Cleanup
+        setIsLoading(true);
+        clearMessages(); // Ensure this clears both error and success messages
+
+        console.log('Attempting to update activity:', activityId, updatedData);
 
         try {
-          
-            const updatedActivity: StrategyActivityModel = {
-                ...strategy.activities.find(a => a.id === activityId)!, 
-                ...updatedData as StrategyActivityModel, 
-                status: (updatedData.status || 'PENDING').toUpperCase() as StrategyActivityModel['status'],
-                activityType: (updatedData.activityType || '').toUpperCase(),
-            };
-            
-            setStrategy((prevStrategy: StrategyOutputModel) => ({
-                ...prevStrategy,
-                activities: prevStrategy.activities.map(activity => 
-                    activity.id === activityId ? updatedActivity : activity
-                ),
-            }));
+                // 2. API Call with Resource Check
+            const response = await fetch(`/api/outputs/activity/${activityId}`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(updatedData),
+            });
 
-            setEditingActivityId(null); 
-            setSuccessMessage('Activity updated successfully!'); 
-            setTimeout(() => setSuccessMessage(null), 3000); 
+            // 3. Error Handling - HTTP Status Check
+            if (!response.ok) {
+                let errorDetail = 'Failed to update activity.';
+                try {
+                    // Try to parse JSON error message if available
+                    const errorResult = await response.json();
+                    errorDetail = errorResult.message || `${response.statusText} (${response.status})`;
+                } catch {
+                    // Handle case where response is not JSON
+                    errorDetail = `${response.status} ${response.statusText || 'Unknown Error'}`;
+                }
+                setError(errorDetail);
+                return;
+            }
+
+            // 4. Success Handling - Parse the Actual Updated Model
+            // It is best practice for a PUT/PATCH endpoint to return the complete, 
+            // updated resource object (StrategyActivityModel).
+            const updatedActivityFromServer: StrategyActivityModel = await response.json(); 
+
+            // 5. State Update - Use the Model from the Server (Most Reliable)
+            setStrategyOutput((prevStrategy: StrategyOutputModel) => {
+                // Find the index to ensure we are updating the correct item immutably
+                const activityIndex = prevStrategy.activities.findIndex(a => a.id === activityId);
+                
+                if (activityIndex === -1) {
+                    // Handle the case where the activity is not found in local state
+                    console.error(`Activity with ID ${activityId} not found in local strategy list.`);
+                    // You might choose to re-fetch the entire strategy here instead of returning prevStrategy
+                    return prevStrategy; 
+                }
+
+                // Create a new array with the updated activity
+                const newActivities = [
+                    ...prevStrategy.activities.slice(0, activityIndex),
+                    updatedActivityFromServer, // Use the server's authoritative data
+                    ...prevStrategy.activities.slice(activityIndex + 1),
+                ];
+
+                return {
+                    ...prevStrategy,
+                    activities: newActivities,
+                };
+            });
+
+            // 6. UI Feedback
+            setEditingActivityId(null);
+            setSuccessMessage('Activity updated successfully!');
+            setTimeout(() => setSuccessMessage(null), 3000);
 
         } catch (e) {
-            setError('A network error occurred during update. Please try again.');
+            // 7. Network/Parsing Error Handling
+            console.error('Update activity error:', e);
+            // Use an explicit type guard if 'e' is not automatically typed as Error
+            const errorMessage = e instanceof Error ? e.message : 'A network error occurred during update. Please try again.';
+            setError(errorMessage);
+
         } finally {
+            // 8. Final Cleanup
             setIsLoading(false);
         }
     };
@@ -763,7 +970,7 @@ function StrategyOutputDetailView({ strategyOutput: initialStrategy, currentUser
 
         // 1. Initialize payload, including the outputId foreign key.
         const payload: Partial<ActivityFormDataType> & { outputId: string } = { 
-            outputId: strategy.id,
+            outputId: strategyOutput.id,
         };
 
         for (const key in newActivityData) {
@@ -796,7 +1003,7 @@ function StrategyOutputDetailView({ strategyOutput: initialStrategy, currentUser
                 return;
             }
             const createdActivity: StrategyActivityModel = result; 
-            setStrategy((prevStrategy: StrategyOutputModel) => ({
+            setStrategyOutput((prevStrategy: StrategyOutputModel) => ({
                 ...prevStrategy,
                 activities: [createdActivity, ...(prevStrategy.activities || [])], // CORRECTED: `activities`
             }));
@@ -814,7 +1021,7 @@ function StrategyOutputDetailView({ strategyOutput: initialStrategy, currentUser
     };
 
     const handleUpdate = (updatedData: StrategyOutputModel) => { 
-        setStrategy(updatedData);
+        setStrategyOutput(updatedData);
         setIsEditing(false);
         setSuccessMessage('Strategy details updated successfully!');
         setTimeout(() => setSuccessMessage(null), 3000);
@@ -834,13 +1041,13 @@ function StrategyOutputDetailView({ strategyOutput: initialStrategy, currentUser
                 
                 {/* 1. Enhanced Hierarchy Display (Outcome > Goal > Output) */}
                 <ParentHierarchy 
-                    outcome={strategy.outcome} 
-                    goal={strategy?.outcome?.goal} 
+                    outcome={strategyOutput.outcome} 
+                    goal={strategyOutput?.outcome?.goal} 
                 />
 
                 <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center pb-4 border-b border-gray-200">
                     <h1 className="text-xl sm:text-2xl font-extrabold text-gray-800 flex items-center gap-3">
-                        <span className="text-indigo-600">🎯</span> {strategy.title}
+                        <span className="text-indigo-600">🎯</span> {strategyOutput.title}
                     </h1>
                     <div className="flex flex-row gap-3 mt-4 sm:mt-0 justify-end w-full sm:w-auto">
                         {/* Action Buttons */}
@@ -871,25 +1078,25 @@ function StrategyOutputDetailView({ strategyOutput: initialStrategy, currentUser
             </div>
 
             {isEditing ? (
-                <StrategyOutputUpdateForm strategy={strategy} onUpdateSuccess={handleUpdate} isEditable={hasRequiredRole} />
+                <StrategyOutputUpdateForm strategy={strategyOutput} onUpdateSuccess={handleUpdate} isEditable={hasRequiredRole} />
             ) : (
                 <div className="space-y-8">
                     
                     {/* 2. PARENT HIERARCHY DETAILS BLOCK */}
                     <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                        {strategy?.outcome && (
+                        {strategyOutput?.outcome && (
                             <ParentDetailBlock 
-                                title={strategy.outcome.title} 
-                                description={strategy.outcome.description}
-                                linkId={strategy.outcome.id}
+                                title={strategyOutput.outcome.title} 
+                                description={strategyOutput.outcome.description}
+                                linkId={strategyOutput.outcome.id}
                                 type="outcome"
                             />
                         )}
-                        {strategy.outcome?.goal && (
+                        {strategyOutput.outcome?.goal && (
                             <ParentDetailBlock 
-                                title={strategy.outcome?.goal.title} 
-                                description={strategy.outcome?.goal.description}
-                                linkId={strategy.outcome?.goal.id}
+                                title={strategyOutput.outcome?.goal.title} 
+                                description={strategyOutput.outcome?.goal.description}
+                                linkId={strategyOutput.outcome?.goal.id}
                                 type="goal"
                             />
                         )}
@@ -909,19 +1116,19 @@ function StrategyOutputDetailView({ strategyOutput: initialStrategy, currentUser
                             <DetailItem 
                                 label="Responsible Party" 
                                 icon={User}
-                                value={strategy.responsible || 'Unassigned'} 
+                                value={strategyOutput.responsible || 'Unassigned'} 
                             /> 
                             
                             <DetailItem 
                                 label="Estimated Cost" 
                                 icon={DollarSign}
-                                value={formatCurrency(strategy.costEstimate)} 
+                                value={formatCurrency(strategyOutput.costEstimate)} 
                             />
                             
                             <DetailItem
                                 label="Status"
                                 icon={CheckCircle}
-                                value={strategy.isCompleted ? 
+                                value={strategyOutput.isCompleted ? 
                                     <span className="bg-green-100 text-green-800 px-2.5 py-0.5 rounded-full font-medium flex items-center w-fit">
                                         COMPLETED
                                     </span>
@@ -935,15 +1142,15 @@ function StrategyOutputDetailView({ strategyOutput: initialStrategy, currentUser
                             <DetailItem 
                                 label="Completion Date" 
                                 icon={Calendar}
-                                value={strategy.isCompleted ? formatDate(strategy.completionDate) : 'Not Yet Finalized'} 
+                                value={strategyOutput.isCompleted ? formatDate(strategyOutput.completionDate) : 'Not Yet Finalized'} 
                             />
                             
                         </dl>
 
                         {/* Audit/Date Stamps - Below main grid */}
                         <div className="grid grid-cols-1 sm:grid-cols-2 divide-y sm:divide-y-0 sm:divide-x border-t border-gray-200 bg-gray-50">
-                            <DetailItem label="Created On" icon={Calendar} value={formatDate(strategy.createdAt)} />
-                            <DetailItem label="Last Updated" icon={Calendar} value={formatDate(strategy.updatedAt)} />
+                            <DetailItem label="Created On" icon={Calendar} value={formatDate(strategyOutput.createdAt)} />
+                            <DetailItem label="Last Updated" icon={Calendar} value={formatDate(strategyOutput.updatedAt)} />
                         </div>
                         
                         {/* --- Description / Summary (Full Width) --- */}
@@ -952,7 +1159,7 @@ function StrategyOutputDetailView({ strategyOutput: initialStrategy, currentUser
                                 <MessageSquare className="w-5 h-5 mr-2 text-indigo-600" /> Output Summary
                             </h3>
                             <div className="text-gray-700 bg-gray-50 p-4 rounded-lg">
-                                <p className="whitespace-pre-wrap leading-relaxed">{strategy.description || 'No detailed summary provided.'}</p>
+                                <p className="whitespace-pre-wrap leading-relaxed">{strategyOutput.description || 'No detailed summary provided.'}</p>
                             </div>
                         </div>
 
@@ -963,7 +1170,7 @@ function StrategyOutputDetailView({ strategyOutput: initialStrategy, currentUser
                     <div className="bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden">
                         <div className="px-6 py-4 bg-indigo-50/50 flex flex-col sm:flex-row justify-between items-start sm:items-center border-b border-gray-200">
                             <h3 className="text-xl font-bold text-indigo-800 mb-2 sm:mb-0">
-                                Related Activities/Plans ({strategy?.activities?.length || 0})
+                                Related Activities/Plans ({strategyOutput?.activities?.length || 0})
                             </h3>
                             {hasRequiredRole && <button
                                 onClick={() => {
@@ -984,6 +1191,7 @@ function StrategyOutputDetailView({ strategyOutput: initialStrategy, currentUser
                         {isAddingActivity && (
                             <div className="p-4 bg-gray-50 border-b border-gray-200">
                                 <AddActivityForm
+                                    outputId={strategyOutput.id}
                                     onAdd={handleAddActivity}
                                     onCancel={() => {
                                         setIsAddingActivity(false);
@@ -998,8 +1206,8 @@ function StrategyOutputDetailView({ strategyOutput: initialStrategy, currentUser
 
 
                         <ul className="divide-y divide-gray-200">
-                            {strategy.activities && strategy?.activities?.length > 0 ? (
-                                strategy?.activities?.map((activity: StrategyActivityModel, index: number) => (
+                            {strategyOutput.activities && strategyOutput?.activities?.length > 0 ? (
+                                strategyOutput?.activities?.map((activity: StrategyActivityModel, index: number) => (
                                     <li key={activity.id} className="p-4 sm:p-6 hover:bg-gray-50 transition">
                                         
                                         {/* CONDITIONAL RENDERING: Show Edit Form or Activity Details */}
