@@ -8,6 +8,19 @@ export async function generateMetadata({
   params: { id: string; };
 }) {
   
+  // Assuming 'prisma' is your Prisma Client instance
+// await prisma.strategyOutput.updateMany({
+//   where: {
+//     // Corresponds to: WHERE "createdAt" IS NULL
+//     createdAt: null,
+//   },
+//   data: {
+//     // Corresponds to: SET "createdAt" = NOW()
+//     // Prisma automatically uses the database's NOW() function 
+//     // when you set a DateTime field to a new Date() object.
+//     createdAt: new Date(), 
+//   },
+// });
   // Fetch the strategy output model from the database using the ID provided in the URL params.
   const strategyOutput = await prisma.strategyOutput.findUnique({
     where: {
