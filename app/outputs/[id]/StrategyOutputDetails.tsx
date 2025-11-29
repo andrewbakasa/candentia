@@ -839,7 +839,7 @@ function StrategyOutputDetailView({ strategyOutput: initialStrategy, currentUser
                 />
 
                 <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center pb-4 border-b border-gray-200">
-                    <h1 className="text-2xl sm:text-4xl font-extrabold text-gray-800 flex items-center gap-3">
+                    <h1 className="text-xl sm:text-2xl font-extrabold text-gray-800 flex items-center gap-3">
                         <span className="text-indigo-600">🎯</span> {strategy.title}
                     </h1>
                     <div className="flex flex-row gap-3 mt-4 sm:mt-0 justify-end w-full sm:w-auto">
