@@ -1,9 +1,11 @@
 'use client'
 import React, { useState, useCallback, useEffect, useMemo } from 'react';
-import { ArrowLeft, Calendar, CheckCircle, Edit2, Plus, User, Zap, MessageSquare, Clipboard, DollarSign, Loader2, XCircle, CornerUpLeft } from 'lucide-react';
+import { ArrowLeft, Calendar, CheckCircle, Edit2, Plus, User, Zap, MessageSquare, Clipboard, DollarSign, Loader2, XCircle, CornerUpLeft, X, Send, Save, PlusCircle, Trash2 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { Strategy } from '@prisma/client';
 import { SafeUser } from '@/app/types';
+import { toast } from 'sonner';
+import { Button } from '@/components/ui/button';
 
 // --- INLINED TYPES AND UTILITIES FOR SELF-CONTAINMENT ---
 
@@ -16,21 +18,6 @@ interface StrategyOutcomeModel {
     title: string;
     description: string;
 }
-
-// interface StrategyModel {
-//     id: string;
-//     title: string;
-//     description: string;
-//     strategy:Strategy
-// }
-
-
-// interface StrategyGoalModel {
-//     id: string;
-//     title: string;
-//     description: string;
-//     goal?: StrategyModel; // Added parent outcome
-// }
 
 interface StrategyDetailProps {
     strategyOutput: StrategyOutputModel;
@@ -49,6 +36,19 @@ interface StrategyActivityModel {
     outputId: string;
     createdAt: string;
     updatedAt: string;
+    // NEW: Include the Comments array with the relevant fields (similar to the Prisma model)
+    comments?: {
+        id: string;
+        content: string;
+        createdAt: Date;
+        likesCount: number;
+        authorId: string;
+        author: { // Assuming you also want author details when fetching
+            id: string;
+            name: string;
+            // ... other user details
+        };
+    }[];
 }
 
 interface StrategyOutputModel {
@@ -780,6 +780,360 @@ const ParentDetailBlock: React.FC<{ title: string; description: string|null; lin
         </div>
     );
 };
+
+
+
+// interface EditCommentFormProps {
+//     comment: Comment;
+//     onUpdateSuccess: () => void;
+//     onCancel: () => void;
+// }
+
+interface EditCommentFormProps {
+    comment: CommentModel;
+    // UPDATED: Now expects the updated comment object to be passed back.
+    onUpdateSuccess: (updatedComment: CommentModel) => void; 
+    onCancel: () => void;
+}
+
+interface AddCommentFormProps {
+    activityId: string;
+    currentUser: SafeUser | null;
+    // UPDATED: Now expects the newly created comment object to be passed back.
+    onCommentAdded: (newComment: CommentModel) => void;
+    onCancel: () => void;
+}
+
+
+interface Comment { // Re-define model for local use
+    id: string;
+    content: string;
+}
+interface AuthorModel { 
+    id: string;
+    name: string;
+}
+
+interface CommentModel {
+    id: string;
+    content: string;
+    createdAt:  string;
+    likesCount: number;
+    author: AuthorModel; 
+    authorId: string;
+}
+
+
+// Models (Simplified for display)
+
+// Placeholder for the Add Comment Form
+export const AddActivityCommentForm: React.FC<AddCommentFormProps> = ({
+    activityId,
+    currentUser,
+    onCommentAdded,
+    onCancel,
+}) => {
+    const [content, setContent] = useState('');
+    const [isLoading, setIsLoading] = useState(false);
+
+    const handleSubmit = async (e: React.FormEvent) => {
+        e.preventDefault();
+        const trimmedContent = content.trim();
+        if (!trimmedContent) return;
+
+        setIsLoading(true);
+        try {
+            const response = await fetch(`/api/outputs/activity/comment`, { 
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ activityId, content: trimmedContent }),
+            });
+
+            if (!response.ok) {
+                throw new Error('Failed to add comment.');
+            }
+            
+            // Assuming the POST endpoint returns the newly created comment object
+            const newComment = await response.json() as CommentModel; 
+            
+            toast.success('Comment added successfully!');
+            onCommentAdded(newComment); // Pass the new comment back
+            setContent('');
+        } catch (error: any) {
+            console.error('Comment addition error:', error);
+            toast.error(error.message || 'An unexpected error occurred.');
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
+    return (
+        <form onSubmit={handleSubmit} className="space-y-2 p-3 bg-indigo-50/50 rounded-lg border border-indigo-200 mb-4">
+            {/* Form elements for adding comment */}
+            <textarea
+                value={content}
+                onChange={(e) => setContent(e.target.value)}
+                rows={2}
+                placeholder="Add a new comment..."
+                className="w-full p-2 text-sm border border-indigo-400 rounded-lg focus:ring-indigo-500 focus:border-indigo-500 transition"
+                required
+                disabled={isLoading}
+            />
+            <div className="flex justify-end space-x-2">
+                <Button type="button" onClick={onCancel} variant="ghost" disabled={isLoading}>Cancel</Button>
+                <Button type="submit" disabled={isLoading || !content.trim()} className="bg-indigo-600 text-white hover:bg-indigo-700">
+                    {isLoading ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <PlusCircle className="w-4 h-4 mr-1" />}
+                    Post Comment
+                </Button>
+            </div>
+        </form>
+    );
+};
+
+export const EditActivityCommentForm: React.FC<EditCommentFormProps> = ({
+    comment,
+    onUpdateSuccess,
+    onCancel,
+}) => {
+    const [content, setContent] = useState(comment.content);
+    const [isLoading, setIsLoading] = useState(false);
+
+    const handleSubmit = async (e: React.FormEvent) => {
+        e.preventDefault();
+        const trimmedContent = content.trim();
+        if (!trimmedContent || trimmedContent === comment.content.trim()) {
+            onCancel(); // Close if no change
+            return;
+        }
+
+        setIsLoading(true);
+        try {
+            const response = await fetch(`/api/outputs/activity/comment/${comment.id}`, { 
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ content: trimmedContent }),
+            });
+
+            if (!response.ok) {
+                const errorResult = await response.json();
+                throw new Error(errorResult.message || 'Failed to update comment.');
+            }
+            
+            // *** KEY CHANGE: Parse the updated comment from the response body ***
+            // Assuming the PUT/PATCH endpoint returns the updated comment object.
+            const updatedComment = await response.json() as CommentModel; 
+
+            toast.success('Comment updated successfully!');
+            onUpdateSuccess(updatedComment); // Pass the updated comment back
+        } catch (error: any) {
+            console.error('Comment update error:', error);
+            toast.error(error.message || 'An unexpected error occurred.');
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
+    return (
+        <form onSubmit={handleSubmit} className="space-y-2 p-3 bg-yellow-50/50 rounded-lg border border-yellow-200">
+            <textarea
+                value={content}
+                onChange={(e) => setContent(e.target.value)}
+                rows={2}
+                className="w-full p-2 text-sm border border-yellow-400 rounded-lg focus:ring-yellow-500 focus:border-yellow-500 transition"
+                required
+                disabled={isLoading}
+            />
+            <div className="flex justify-end space-x-2">
+                <Button
+                    type="button"
+                    onClick={onCancel}
+                    variant="ghost"
+                    className="flex items-center text-sm text-gray-500 hover:bg-gray-200"
+                    disabled={isLoading}
+                >
+                    <X className="w-4 h-4 mr-1" />
+                    Cancel
+                </Button>
+                <Button
+                    type="submit"
+                    className="flex items-center bg-yellow-600 text-white hover:bg-yellow-700 text-sm"
+                    disabled={isLoading || !content.trim() || content.trim() === comment.content.trim()} // Also disable if content is unchanged
+                >
+                    {isLoading ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Save className="w-4 h-4 mr-1" />}
+                    Save Changes
+                </Button>
+            </div>
+        </form>
+    );
+};
+interface ActivityCommentSectionProps {
+    activityId: string;
+    comments: any[];//CommentModel[];
+    currentUser: SafeUser|null;
+    onCommentAction: () => void; // Callback to tell parent (StrategyOutputDetailView) to refresh its state/comments
+}
+
+function ActivityCommentSection({ 
+    activityId, 
+    comments, 
+    currentUser, 
+    onCommentAction 
+}: ActivityCommentSectionProps) {
+
+    // 1. Initialize local state with comments prop
+    const [commentsList, setCommentsList] = useState(comments);
+    const [showAddForm, setShowAddForm] = useState(false);
+    const [editingCommentId, setEditingCommentId] = useState<string | null>(null);
+
+    // 2. Sync local state when the comments prop changes (i.e., when parent finishes refetching)
+    useEffect(() => {
+        setCommentsList(comments);
+    }, [comments]);
+    
+    // --- Handlers for Comment Actions ---
+
+    // Handler for successful ADDITION
+    const handleAddSuccess = (newComment: CommentModel) => {
+        setShowAddForm(false);
+        // Optimistic update for addition: add new comment to the list
+        // Note: For complex apps, relying on onCommentAction() might be safer if the backend 
+        // applies pre-processing (like calculating the final timestamp or relationships).
+        setCommentsList(prevList => [...prevList, newComment]);
+        
+        // Trigger parent refetch anyway for eventual consistency (if required by parent view)
+        // If the parent only uses `comments` prop, this will trigger the useEffect above.
+        onCommentAction(); 
+    }
+    
+    // Handler for successful EDIT (Optimistic Update)
+    const handleEditSuccess = (updatedComment: CommentModel) => {
+        setEditingCommentId(null); 
+        // Update the list optimistically with the new content
+        setCommentsList(prevList =>
+            prevList.map(c => (c.id === updatedComment.id ? updatedComment : c))
+        );
+        // Optional: onCommentAction(); // Could be called for eventual consistency/side effects
+    }
+
+    // Handler for DELETE (Optimistic Update)
+    const handleDeleteComment = async (commentId: string) => {   
+        const apiRoute = `/api/outputs/activity/comment/${commentId}`;
+        console.log(`Attempting to delete comment: ${commentId}`);
+
+        try {
+            const response = await fetch(apiRoute, {
+                method: 'DELETE',
+                headers: { 'Content-Type': 'application/json' },
+            });
+
+            if (response.status === 204) {
+                console.log(`Comment ${commentId} successfully deleted.`);
+                
+                // *** OPTIMISTIC STATE UPDATE: Remove the comment from the list ***
+                setCommentsList(prevList => prevList.filter(c => c.id !== commentId));
+                
+                // onCommentAction() is still called for the parent to update any other state or data it manages
+                onCommentAction();
+            } else if (response.status === 401 || response.status === 403 || response.status === 404) {
+                const errorData = await response.json();
+                console.error('Deletion failed:', errorData.message);
+                toast.error(errorData.message || 'Deletion failed.');
+            } else {
+                throw new Error(`Server responded with status: ${response.status}`);
+            }
+        } catch (error) {
+            console.error(`Network or unexpected error while deleting comment ${commentId}:`, error);
+            toast.error(`Error deleting comment: ${error instanceof Error ? error.message : 'Unknown error'}`);
+        }
+    };
+    
+    return (
+        <div className="mt-4 pt-4 border-t border-gray-100">
+            <div className="flex justify-between items-center mb-3">
+                <h4 className="text-sm font-semibold text-gray-700 flex items-center">
+                    <MessageSquare className="w-4 h-4 mr-1.5 text-indigo-500" />
+                    Activity Comments ({commentsList?.length || 0})
+                </h4>
+                <Button 
+                    onClick={() => {
+                        setShowAddForm(prev => !prev);
+                        setEditingCommentId(null);
+                    }}
+                    variant="outline"
+                    size="sm"
+                    className="text-xs text-indigo-600 border-indigo-300 hover:bg-indigo-50"
+                >
+                    <PlusCircle className="w-3.5 h-3.5 mr-1" />
+                    {showAddForm ? 'Close Form' : 'Add Comment'}
+                </Button>
+            </div>
+            
+            {showAddForm && (
+                <AddActivityCommentForm
+                    activityId={activityId}
+                    currentUser={currentUser}
+                    onCommentAdded={handleAddSuccess} // Use the new handler
+                    onCancel={() => setShowAddForm(false)}
+                />
+            )}
+            
+            {/* Render Comments using the local commentsList state */}
+            <div className={`space-y-3 ${commentsList?.length > 0 ? 'mt-3' : ''}`}>
+                {commentsList && commentsList.length > 0 ? (
+                    commentsList
+                        .sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()) // Sort by oldest first
+                        .map((comment) => (
+                        <div key={comment.id} className="p-3 bg-white border border-gray-200 rounded-lg text-sm shadow-sm">
+                            
+                            {editingCommentId === comment.id ? (
+                                // Show Edit Form
+                                <EditActivityCommentForm
+                                    comment={comment}
+                                    onUpdateSuccess={handleEditSuccess} // Use the new handler
+                                    onCancel={() => setEditingCommentId(null)}
+                                />
+                            ) : (
+                                // Show Comment Content
+                                <>
+                                    <p className="text-gray-800 whitespace-pre-wrap">{comment.content}</p>
+                                    <div className="mt-1 pt-1 border-t border-gray-100 flex justify-between items-center">
+                                        <p className="text-xs text-gray-500">
+                                            by <span className="font-medium text-indigo-600">{comment?.author?.name}</span> on {formatDate(comment.createdAt)}
+                                        </p>
+                                        
+                                        {/* Action Buttons (Only for the author) */}
+                                        {currentUser?.id === comment.authorId && (
+                                            <div className="flex space-x-1">
+                                                <Button 
+                                                    variant="ghost" 
+                                                    size="icon" 
+                                                    className="w-6 h-6 text-gray-400 hover:text-indigo-600"
+                                                    onClick={() => setEditingCommentId(comment.id)}
+                                                >
+                                                    <Edit2 className="w-3 h-3" />
+                                                </Button>
+                                                <Button 
+                                                    variant="ghost" 
+                                                    size="icon" 
+                                                    className="w-6 h-6 text-gray-400 hover:text-red-600"
+                                                    onClick={() => handleDeleteComment(comment.id)}
+                                                >
+                                                    <Trash2 className="w-3 h-3" />
+                                                </Button>
+                                            </div>
+                                        )}
+                                    </div>
+                                </>
+                            )}
+                        </div>
+                    ))
+                ) : (
+                    <p className="text-xs text-gray-500 italic ml-6">No comments yet. Be the first!</p>
+                )}
+            </div>
+        </div>
+    );
+}
 // --- IMPROVED StrategyOutputDetailView COMPONENT ---
 function StrategyOutputDetailView({ strategyOutput: initialStrategy, currentUser }: StrategyDetailProps) {
       const mergedStrategy: StrategyOutputModel = { 
@@ -907,14 +1261,9 @@ function StrategyOutputDetailView({ strategyOutput: initialStrategy, currentUser
         }
     };
     
-    const copyToClipboard2 = () => {
-        // Your existing copy logic...
-        setCopied(true);
-        setSuccessMessage('Link copied to clipboard!'); 
-        setTimeout(() => {setCopied(false); setSuccessMessage(null);}, 2000); 
-    };
+   
 
-        const copyToClipboard = () => {
+    const copyToClipboard = () => {
         if (typeof window !== 'undefined') {
             const currentUrl = window.location.href;
             navigator.clipboard.writeText(currentUrl)
@@ -993,6 +1342,10 @@ function StrategyOutputDetailView({ strategyOutput: initialStrategy, currentUser
         setSuccessMessage('Strategy details updated successfully!');
         setTimeout(() => setSuccessMessage(null), 3000);
     };
+
+    function onCommentAction(): void {
+       // throw new Error('Function not implemented.');
+    }
 
     // --- RENDER ---
     return (
@@ -1234,6 +1587,14 @@ function StrategyOutputDetailView({ strategyOutput: initialStrategy, currentUser
                                                         <span className='font-semibold text-gray-600'>Description</span>: {activity.description}
                                                     </p>
                                                 )}
+                                            {/* !!! INSERT COMMENT MODULE HERE !!! */}
+                                            <ActivityCommentSection
+                                                        activityId={activity.id}
+                                                        comments={activity.comments || []} // Pass the comments array
+                                                        currentUser={currentUser} // Pass the current user for form/permissions
+                                                        onCommentAction={onCommentAction }                                            />
+                                           
+                                           
                                             </>
                                         )}
                                     </li>

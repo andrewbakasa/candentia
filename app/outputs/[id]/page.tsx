@@ -105,7 +105,12 @@ const StrategyPage = async ({ params }: { params: IParams }) => {
           id: strategyId,
         },
         include: {
-          activities: true, // MANDATORY: Include the activities relation
+          activities: {
+            include: {
+              comments:true
+            }
+          }, // MANDATORY: Include the activities relation
+         
           outcome: {
             include: {
               goal: { 
@@ -118,7 +123,7 @@ const StrategyPage = async ({ params }: { params: IParams }) => {
           }
         },
     });
-    console.log("Backend:result", result)
+    //console.log("Backend:result", result)
     // Safely assign the result. We trust the runtime structure based on the 'include'.
     strategyOutput = result as unknown as StrategyOutputModel | null;
 

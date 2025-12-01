@@ -11,45 +11,45 @@ datasource db {
 }
 
 model User {
-  id              String @id @default(auto()) @map("_id") @db.ObjectId
-  name            String?
-  email           String?   @unique
-  emailVerified   DateTime?
-  image           String?
-  hashedPassword  String?
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
-  favoriteIds     String[] @db.ObjectId
-  taggedInboxIds  String[] @db.ObjectId
-  isAdmin         Boolean  @default(false)
-  cardReadMode    Boolean  @default(true)
-  showBGImage     Boolean  @default(false)
-  cardYscroll     Boolean  @default(true)
-  cardShowTitle   Boolean  @default(true)
-  roles           String[] 
-  pageSize        Int  @default(8)
-  recentDays      Int @default(7)
-  notificationToaster Boolean @default(true)  
-  showMobileView Boolean @default(true)
-  togglePendingTasksOrAll Boolean @default(true)
-  toggleRecentTaskorAll Boolean @default(true)
-  toggleOverdueorAll Boolean @default(false)  
-  toggleInverse Boolean @default(false)
-  toggleInverseTable Boolean @default(false)
-  emptyListShow Boolean @default(false)
-  showMyProjectsOnLoad Boolean @default(true)
-  collapseBoards Boolean@default(true)
-  accounts Account[] 
-  boards Board[]
-  lists List[]
-  cards Card[]
-  cardImages CardImage[]
-  taggedCards CardToUser[]
-  comments Comment[]
-  boardIds  String[] @db.ObjectId
-  boadViews BoardView[]   @relation(fields: [boardIds], references: [id])
+  id                      String       @id @default(auto()) @map("_id") @db.ObjectId
+  name                    String?
+  email                   String?      @unique
+  emailVerified           DateTime?
+  image                   String?
+  hashedPassword          String?
+  createdAt               DateTime     @default(now())
+  updatedAt               DateTime     @updatedAt
+  favoriteIds             String[]     @db.ObjectId
+  taggedInboxIds          String[]     @db.ObjectId
+  isAdmin                 Boolean      @default(false)
+  cardReadMode            Boolean      @default(true)
+  showBGImage             Boolean      @default(false)
+  cardYscroll             Boolean      @default(true)
+  cardShowTitle           Boolean      @default(true)
+  roles                   String[]
+  pageSize                Int          @default(8)
+  recentDays              Int          @default(7)
+  notificationToaster     Boolean      @default(true)
+  showMobileView          Boolean      @default(true)
+  togglePendingTasksOrAll Boolean      @default(true)
+  toggleRecentTaskorAll   Boolean      @default(true)
+  toggleOverdueorAll      Boolean      @default(false)
+  toggleInverse           Boolean      @default(false)
+  toggleInverseTable      Boolean      @default(false)
+  emptyListShow           Boolean      @default(false)
+  showMyProjectsOnLoad    Boolean      @default(true)
+  collapseBoards          Boolean      @default(true)
+  accounts                Account[]
+  boards                  Board[]
+  lists                   List[]
+  cards                   Card[]
+  cardImages              CardImage[]
+  taggedCards             CardToUser[]
+  comments                Comment[]
+  boardIds                String[]     @db.ObjectId
+  boadViews               BoardView[]  @relation(fields: [boardIds], references: [id])
 
- // Membership Membership[]
+  // Membership Membership[]
 
   JobAttachment JobAttachment[]
 
@@ -65,310 +65,305 @@ model User {
 
   strategyComments StrategyComment[]
 
-  strategyVotes StrategyVote[]
+  strategyVotes           StrategyVote[]
   //strategyOutputs StrategyOutput[]  
   //strategyActivities StrategyActivity[]
+  StrategyActivityComment StrategyActivityComment[]
 }
 
-
 model Account {
-  id String @id @default(auto()) @map("_id") @db.ObjectId
-  userId             String   @db.ObjectId
-  type               String
-  provider           String
-  providerAccountId  String
-  refresh_token      String?  @db.String
-  access_token       String?  @db.String
-  expires_at         Int?
-  token_type         String?
-  scope              String?
-  id_token           String?  @db.String
-  session_state      String?
+  id                String  @id @default(auto()) @map("_id") @db.ObjectId
+  userId            String  @db.ObjectId
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String? @db.String
+  access_token      String? @db.String
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String? @db.String
+  session_state     String?
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([provider, providerAccountId])
 }
 
-
-
-
 model Board {
-  id            String @id @default(auto()) @map("_id") @db.ObjectId
+  id            String      @id @default(auto()) @map("_id") @db.ObjectId
   orgId         String?
   title         String
-  imageId       String  @db.String
-  imageThumbUrl String  @db.String
-  imageFullUrl  String  @db.String
-  imageUserName String  @db.String
-  imageLinkHTML String  @db.String
+  imageId       String      @db.String
+  imageThumbUrl String      @db.String
+  imageFullUrl  String      @db.String
+  imageUserName String      @db.String
+  imageLinkHTML String      @db.String
   lists         List[]
-  views        BoardView[]
+  views         BoardView[]
 
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
-  active        Boolean  @default(true)
-  public        Boolean  @default(false)
-  userId        String? @db.ObjectId
-  percent       Int @default(0)
-  progressStatus String @default("no value given")
-  dragMode      Boolean  @default(true)
-  user          User? @relation(fields: [userId], references: [id], onDelete: Cascade) // onDelete: Cascade here
-
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+  active         Boolean  @default(true)
+  public         Boolean  @default(false)
+  userId         String?  @db.ObjectId
+  percent        Int      @default(0)
+  progressStatus String   @default("no value given")
+  dragMode       Boolean  @default(true)
+  user           User?    @relation(fields: [userId], references: [id], onDelete: Cascade) // onDelete: Cascade here
 }
 
 model List {
-  id        String @id @default(auto()) @map("_id") @db.ObjectId
-  title     String
-  order     Int
+  id    String @id @default(auto()) @map("_id") @db.ObjectId
+  title String
+  order Int
 
-  boardId   String //  @db.ObjectId //added to remove swiggles...
-  board     Board @relation(fields: [boardId], references: [id], onDelete: Cascade)
+  boardId String //  @db.ObjectId //added to remove swiggles...
+  board   Board  @relation(fields: [boardId], references: [id], onDelete: Cascade)
 
-  cards     Card[]
-  
+  cards Card[]
+
   visible   Boolean  @default(true) //some cards carry senstivity information, user need to protect it
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
   active    Boolean  @default(true)
-  userId    String  @db.ObjectId
-  user      User @relation(fields: [userId], references: [id], onDelete: Cascade)
-  percent   Int @default(0)
+  userId    String   @db.ObjectId
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  percent   Int      @default(0)
+
   @@index([boardId])
   @@index([userId])
 }
 
 model Card {
-  id          String @id @default(auto()) @map("_id") @db.ObjectId
-  title       String
-  order       Int
-  description String? @db.String
-  progress    String  @db.String @default("not_started")
-  listId      String // @db.ObjectId//added to remove swiggles.....
-  list        List  @relation(fields: [listId], references: [id], onDelete: Cascade)  
-  visible     Boolean  @default(false) //some cards carry senstivity information, user need to protect it
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-  active      Boolean  @default(true)
-  userId      String  @db.ObjectId
-  dueDate     DateTime?  
-  completedDate     DateTime?  
-  tagIDs      String[]  @db.ObjectId
-  tags        Tag[] @relation(fields: [tagIDs], references: [id])
-  user        User @relation(fields: [userId], references: [id], onDelete: Cascade)
-  taggedUsers CardToUser[]
-  comments   Comment[]
-  cardImages   CardImage[] // Store URLs or IDs of the images
+  id            String       @id @default(auto()) @map("_id") @db.ObjectId
+  title         String
+  order         Int
+  description   String?      @db.String
+  progress      String       @default("not_started") @db.String
+  listId        String // @db.ObjectId//added to remove swiggles.....
+  list          List         @relation(fields: [listId], references: [id], onDelete: Cascade)
+  visible       Boolean      @default(false) //some cards carry senstivity information, user need to protect it
+  createdAt     DateTime     @default(now())
+  updatedAt     DateTime     @updatedAt
+  active        Boolean      @default(true)
+  userId        String       @db.ObjectId
+  dueDate       DateTime?
+  completedDate DateTime?
+  tagIDs        String[]     @db.ObjectId
+  tags          Tag[]        @relation(fields: [tagIDs], references: [id])
+  user          User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  taggedUsers   CardToUser[]
+  comments      Comment[]
+  cardImages    CardImage[] // Store URLs or IDs of the images
 
-  viewCount  Int? @default(0)
+  viewCount Int? @default(0)
+
   @@index([listId])
   @@index([userId])
   @@index([tagIDs])
-
 }
 
 model CardImage {
-  id          String @id @default(auto()) @map("_id") @db.ObjectId
-  cardId      String  @db.ObjectId
-  url         String
-  card        Card @relation(fields: [cardId], references: [id], onDelete: Cascade)
-  type        String @default("image")
-  userId      String?  @db.ObjectId
-  user        User? @relation(fields: [userId], references: [id], onDelete: Cascade) // onDelete: Cascade here
+  id     String  @id @default(auto()) @map("_id") @db.ObjectId
+  cardId String  @db.ObjectId
+  url    String
+  card   Card    @relation(fields: [cardId], references: [id], onDelete: Cascade)
+  type   String  @default("image")
+  userId String? @db.ObjectId
+  user   User?   @relation(fields: [userId], references: [id], onDelete: Cascade) // onDelete: Cascade here
 
- 
   description String?
   fileName    String?
   createdAt   DateTime? @default(now())
-  order       Float    @default(0.0) // Using Float for flexible reordering (LexoRank/Fractional Indexing)
+  order       Float     @default(0.0) // Using Float for flexible reordering (LexoRank/Fractional Indexing)
 
   viewCount  Int? @default(0)
-  shareCount  Int? @default(0)
+  shareCount Int? @default(0)
+
   @@index([cardId])
 }
-model CardToUser {
-  id          String @id @default(auto()) @map("_id") @db.ObjectId
-  cardId      String  @db.ObjectId
-  card        Card @relation(fields: [cardId], references: [id], onDelete: Cascade)
-  userId      String @db.ObjectId
-  userEmail   String? // copy for ready search overheads
-  //user        User @relation(fields: [userId], references: [id])   
-  user        User? @relation(fields: [userId], references: [id], onDelete: Cascade) // onDelete: Cascade here
 
-  @@index([cardId,userId])
+model CardToUser {
+  id        String  @id @default(auto()) @map("_id") @db.ObjectId
+  cardId    String  @db.ObjectId
+  card      Card    @relation(fields: [cardId], references: [id], onDelete: Cascade)
+  userId    String  @db.ObjectId
+  userEmail String? // copy for ready search overheads
+  //user        User @relation(fields: [userId], references: [id])   
+  user      User?   @relation(fields: [userId], references: [id], onDelete: Cascade) // onDelete: Cascade here
+
+  @@index([cardId, userId])
 }
+
 model Tag {
-  id        String @id @default(auto()) @map("_id") @db.ObjectId  
-  name      String // @unique 
-  description String? @db.String
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt  
-  cardIDs  String[] @db.ObjectId
-  cards    Card[]   @relation(fields: [cardIDs], references: [id])
+  id          String   @id @default(auto()) @map("_id") @db.ObjectId
+  name        String // @unique 
+  description String?  @db.String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  cardIDs     String[] @db.ObjectId
+  cards       Card[]   @relation(fields: [cardIDs], references: [id])
 
   @@unique([name])
-
 }
 
-model Comment{
-  id        String @id @default(auto()) @map("_id") @db.ObjectId 
-  cardId    String  @db.ObjectId
-  comment   String? @db.String  
-  imageThumbUrl       String? //copy duplicate to reduce fetch overheads
-  ownerEmail String?// copy to reduce overheads
-  card      Card @relation(fields: [cardId], references: [id], onDelete: Cascade)
-  userId    String @db.ObjectId
-  user      User @relation(fields: [userId], references: [id], onDelete: Cascade)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt 
+model Comment {
+  id            String   @id @default(auto()) @map("_id") @db.ObjectId
+  cardId        String   @db.ObjectId
+  comment       String?  @db.String
+  imageThumbUrl String? //copy duplicate to reduce fetch overheads
+  ownerEmail    String? // copy to reduce overheads
+  card          Card     @relation(fields: [cardId], references: [id], onDelete: Cascade)
+  userId        String   @db.ObjectId
+  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
   @@index([cardId])
   @@index([userId])
 }
 
- 
-
 model Career {
-  id             String   @id @default(auto()) @map("_id") @db.ObjectId
-  title          String?  // Main job title
-  listingTitle   String?  // Optional: Shorter title for listings (if different)
+  id               String   @id @default(auto()) @map("_id") @db.ObjectId
+  title            String? // Main job title
+  listingTitle     String? // Optional: Shorter title for listings (if different)
   shortDescription String?
-  fullDescription String
-  slug           String   @unique // Add unique index for efficient lookup
-  active         Boolean  @default(true)
-  createdAt      DateTime @default(now())
-  updatedAt      DateTime @updatedAt
+  fullDescription  String
+  slug             String   @unique // Add unique index for efficient lookup
+  active           Boolean  @default(true)
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
 
   location       String
   type           String
-  department       String
-  
-  @@map("careers") // Explicitly map the collection name (optional but good practice)
+  department     String
   jobApplication JobApplication[]
+
+  @@map("careers") // Explicitly map the collection name (optional but good practice)
 }
 
 model JobApplication {
-  id               String      @id @default(auto()) @map("_id") @db.ObjectId
-  careerId         String?      @db.ObjectId // Foreign key to the Career model
-  career           Career?      @relation(fields: [careerId], references: [id], onDelete: Cascade) // Relation field
-  applicantName    String
-  applicantEmail   String
-  applicantPhone   String?
-  resumeUrl        String?      // URL to the uploaded resume (e.g., S3, Cloudinary)
-  coverLetterText  String?     // Optional: Text of the cover letter
-  status           String      @default("Pending") // e.g., "Pending", "Reviewed", "Interviewed", "Rejected", "Hired"
-  createdAt        DateTime    @default(now())
-  updatedAt        DateTime    @updatedAt
-  jobAttachment JobAttachment[]
+  id              String          @id @default(auto()) @map("_id") @db.ObjectId
+  careerId        String?         @db.ObjectId // Foreign key to the Career model
+  career          Career?         @relation(fields: [careerId], references: [id], onDelete: Cascade) // Relation field
+  applicantName   String
+  applicantEmail  String
+  applicantPhone  String?
+  resumeUrl       String? // URL to the uploaded resume (e.g., S3, Cloudinary)
+  coverLetterText String? // Optional: Text of the cover letter
+  status          String          @default("Pending") // e.g., "Pending", "Reviewed", "Interviewed", "Rejected", "Hired"
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @updatedAt
+  jobAttachment   JobAttachment[]
 
   @@map("applications") // Explicitly map the collection name
- 
 }
 
 model JobAttachment {
-  id          String @id @default(auto()) @map("_id") @db.ObjectId
-  url         String
-  type        String @default("image")
-  userId      String?  @db.ObjectId
-  user        User? @relation(fields: [userId], references: [id], onDelete: Cascade) // onDelete: Cascade here
+  id     String  @id @default(auto()) @map("_id") @db.ObjectId
+  url    String
+  type   String  @default("image")
+  userId String? @db.ObjectId
+  user   User?   @relation(fields: [userId], references: [id], onDelete: Cascade) // onDelete: Cascade here
 
-  jobAppId      String  @db.ObjectId
-  JobApplication        JobApplication @relation(fields: [jobAppId], references: [id], onDelete: Cascade) // onDelete: Cascade here
+  jobAppId       String         @db.ObjectId
+  JobApplication JobApplication @relation(fields: [jobAppId], references: [id], onDelete: Cascade) // onDelete: Cascade here
 
   description String?
   fileName    String?
   createdAt   DateTime? @default(now())
-  order       Float    @default(0.0) // Using Float for flexible reordering (LexoRank/Fractional Indexing)
+  order       Float     @default(0.0) // Using Float for flexible reordering (LexoRank/Fractional Indexing)
 
   @@index([jobAppId])
 }
 
-model Enquiry{
-  id          String   @id @default(auto()) @map("_id") @db.ObjectId
-  first_name  String?  //copy duplicate to reduce fetch overheads
-  last_name   String?  // copy to reduce overheads
-  email       String
-  phone_number String?
-  message       String
-  active         Boolean  @default(true)
-  isRead         Boolean  @default(false)
-  category String[] @default([]) // Added default empty array
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-  status      String   @default("active") // "active", "inactive", "pending_delete"
+model Enquiry {
+  id                String    @id @default(auto()) @map("_id") @db.ObjectId
+  first_name        String? //copy duplicate to reduce fetch overheads
+  last_name         String? // copy to reduce overheads
+  email             String
+  phone_number      String?
+  message           String
+  active            Boolean   @default(true)
+  isRead            Boolean   @default(false)
+  category          String[]  @default([]) // Added default empty array
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+  status            String    @default("active") // "active", "inactive", "pending_delete"
   scheduledDeleteAt DateTime?
 }
 
-model ProductEnquiry{
-  id          String   @id @default(auto()) @map("_id") @db.ObjectId
-  first_name  String?  //copy duplicate to reduce fetch overheads
-  last_name   String?  // copy to reduce overheads
-  email       String
+model ProductEnquiry {
+  id           String   @id @default(auto()) @map("_id") @db.ObjectId
+  first_name   String? //copy duplicate to reduce fetch overheads
+  last_name    String? // copy to reduce overheads
+  email        String
   phone_number String?
-  message       String
-  active         Boolean  @default(true)  
-  isRead         Boolean  @default(false)
+  message      String
+  active       Boolean  @default(true)
+  isRead       Boolean  @default(false)
   demoproducts String[] @default([]) // Added default empty array
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
 }
+
 model InvestmentPortfolio {
-    id          String               @id @default(auto()) @map("_id") @db.ObjectId
-    title       String
-    description String
-    type        String
-    country     String
-    active     Boolean @default(true)
-    targetAmount  Int
-    raisedAmount  Int                  @default(0)
-    imageUrl    String
-    expectedReturn String?
-    investments InvestorInvestment[] // Removed onDelete here
-    createdAt   DateTime             @default(now())
-    updatedAt   DateTime             @updatedAt
+  id             String               @id @default(auto()) @map("_id") @db.ObjectId
+  title          String
+  description    String
+  type           String
+  country        String
+  active         Boolean              @default(true)
+  targetAmount   Int
+  raisedAmount   Int                  @default(0)
+  imageUrl       String
+  expectedReturn String?
+  investments    InvestorInvestment[] // Removed onDelete here
+  createdAt      DateTime             @default(now())
+  updatedAt      DateTime             @updatedAt
 }
 
 model Investor {
-    id          String               @id @default(auto()) @map("_id") @db.ObjectId
-    name        String
-    country     String
-    email       String
-    active     Boolean @default(true)
-    investments InvestorInvestment[] // Removed onDelete here
-    createdAt   DateTime             @default(now())
-    updatedAt   DateTime             @updatedAt
+  id          String               @id @default(auto()) @map("_id") @db.ObjectId
+  name        String
+  country     String
+  email       String
+  active      Boolean              @default(true)
+  investments InvestorInvestment[] // Removed onDelete here
+  createdAt   DateTime             @default(now())
+  updatedAt   DateTime             @updatedAt
 }
 
 model InvestorInvestment {
-    id          String               @id @default(auto()) @map("_id") @db.ObjectId
-    investor    Investor             @relation(fields: [investorId], references: [id])
-    investorId  String               @db.ObjectId
-    portfolio   InvestmentPortfolio @relation(fields: [portfolioId], references: [id], onDelete: Cascade) // Keep onDelete here
-    portfolioId String               @db.ObjectId
-    amount      Int
-    active     Boolean @default(true)
-    investedAt  DateTime             @default(now())
-    createdAt   DateTime             @default(now())
-    updatedAt   DateTime             @updatedAt
+  id          String              @id @default(auto()) @map("_id") @db.ObjectId
+  investor    Investor            @relation(fields: [investorId], references: [id])
+  investorId  String              @db.ObjectId
+  portfolio   InvestmentPortfolio @relation(fields: [portfolioId], references: [id], onDelete: Cascade) // Keep onDelete here
+  portfolioId String              @db.ObjectId
+  amount      Int
+  active      Boolean             @default(true)
+  investedAt  DateTime            @default(now())
+  createdAt   DateTime            @default(now())
+  updatedAt   DateTime            @updatedAt
 
-    @@index([investorId])
-    @@index([portfolioId])
+  @@index([investorId])
+  @@index([portfolioId])
 }
 
-
-model BoardView{// per user
-  id        String @id @default(auto()) @map("_id") @db.ObjectId 
-  boardId    String  @db.ObjectId
-  board      Board @relation(fields: [boardId], references: [id], onDelete: Cascade)
+model BoardView {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  boardId   String   @db.ObjectId
+  board     Board    @relation(fields: [boardId], references: [id], onDelete: Cascade)
   createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt 
-  viewCount  Int? @default(0)
-   // 0n 21 January 2025 Test the code if there are multiple user per boardView but none
-  userID  String[] @db.ObjectId
-  users    User[]   @relation(fields: [userID], references: [id])
+  updatedAt DateTime @updatedAt
+  viewCount Int?     @default(0)
+  // 0n 21 January 2025 Test the code if there are multiple user per boardView but none
+  userID    String[] @db.ObjectId
+  users     User[]   @relation(fields: [userID], references: [id])
 
   @@index([boardId])
 }
- 
 
 enum ACTION {
   CREATE
@@ -384,42 +379,41 @@ enum ENTITY_TYPE {
   LIST
   CARD
   ASSET
-  WORKORDER  
+  WORKORDER
 }
 
 model AuditLog {
-  id          String @id @default(auto()) @map("_id") @db.ObjectId
+  id          String      @id @default(auto()) @map("_id") @db.ObjectId
   orgId       String
   action      ACTION
   entityId    String
   entityType  ENTITY_TYPE
   entityTitle String
   userId      String?
-  userImage   String @db.String
-  userName    String @db.String
+  userImage   String      @db.String
+  userName    String      @db.String
 
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime  @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
 
 model OrgLimit {
-  id          String @id @default(auto()) @map("_id") @db.ObjectId
-  orgId       String @unique
-  count       Int @default(0)
+  id    String @id @default(auto()) @map("_id") @db.ObjectId
+  orgId String @unique
+  count Int    @default(0)
 
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime  @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
 
 model OrgSubscription {
-  id                String @id @default(auto()) @map("_id") @db.ObjectId
-  orgId             String @unique
-  stripeCustomerId  String? @unique @map(name: "stripe_customer_id")
-  stripeSubscriptionId String? @unique @map(name: "stripe_subscription_id")
-  stripePriceId        String? @map(name: "stripe_price_id")
+  id                     String    @id @default(auto()) @map("_id") @db.ObjectId
+  orgId                  String    @unique
+  stripeCustomerId       String?   @unique @map(name: "stripe_customer_id")
+  stripeSubscriptionId   String?   @unique @map(name: "stripe_subscription_id")
+  stripePriceId          String?   @map(name: "stripe_price_id")
   stripeCurrentPeriodEnd DateTime? @map(name: "stripe_current_period_end")
 }
-
 
 // Define enums for specific fields
 enum MembershipCategory {
@@ -435,32 +429,30 @@ enum Sex {
   PREFER_NOT_TO_SAY
 }
 
-
-
 model Membership {
-  id                 String             @id @default(auto()) @map("_id") @db.ObjectId
+  id                     String             @id @default(auto()) @map("_id") @db.ObjectId
   // userId             String             @db.ObjectId // Commented out as per your input
-  userEmail          String            @unique // Added @unique to prevent duplicate entries
+  userEmail              String             @unique // Added @unique to prevent duplicate entries
   // user               User?              @relation(fields: [userId], references: [id], onDelete: Cascade) // Commented out as per your input
-  lastName           String
-  firstName          String
-  membershipCategory MembershipCategory
-  sex                Sex
-  country            String?
-  profession         String?
-  age                Int?
-  nextOfKin          String? // Changed to String for simplicity
-  interests          String?//[]
+  lastName               String
+  firstName              String
+  membershipCategory     MembershipCategory
+  sex                    Sex
+  country                String?
+  profession             String?
+  age                    Int?
+  nextOfKin              String? // Changed to String for simplicity
+  interests              String? //[]
   //paymentDetails     Json? // Use Json to store structured data like fees and payment status
-  memberExpectations String?
-  pledge             String?
-  shares             Int?
+  memberExpectations     String?
+  pledge                 String?
+  shares                 Int?
   experienceOrBackground String? // Added new field for experience or background
-  role String?
-  subcommittees      String[]           // New field: Array of strings for subcommittees
-  teamCode String?
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime  @updatedAt
+  role                   String?
+  subcommittees          String[] // New field: Array of strings for subcommittees
+  teamCode               String?
+  createdAt              DateTime           @default(now())
+  updatedAt              DateTime           @updatedAt
 }
 
 // --- Location Model ---
@@ -486,12 +478,12 @@ model Membership {
 // }
 
 model Visit {
-  id         String    @id @default(auto()) @map("_id") @db.ObjectId
-  visitorId  String?   // Now optional. Use String? to allow null in MongoDB.
-  locationId String?   //@db.ObjectId
- // location   Location  @relation(fields: [locationId], references: [id])
-  timestamp  DateTime  @default(now())
-  ipAddress  String    // New field to store the visitor's IP address
+  id         String   @id @default(auto()) @map("_id") @db.ObjectId
+  visitorId  String? // Now optional. Use String? to allow null in MongoDB.
+  locationId String? //@db.ObjectId
+  // location   Location  @relation(fields: [locationId], references: [id])
+  timestamp  DateTime @default(now())
+  ipAddress  String // New field to store the visitor's IP address
   notes      String?
 
   // You might consider a unique constraint for authenticated users, 
@@ -499,169 +491,171 @@ model Visit {
 
   @@index([ipAddress, timestamp]) // Index for fast daily lookups
 }
+
 // Define a clear set of stages for a business project's lifecycle
 enum ProjectProgress {
-  PROPOSAL       // Initial idea submission (Section 3: Methodology for Teams)
-  REVIEW         // Under Executive Committee Review (Section 4: Executive Committee and Shareholder Action)
-  ADOPTED        // Approved for implementation
-  DEVELOPMENT    // Currently being developed/piloted
+  PROPOSAL // Initial idea submission (Section 3: Methodology for Teams)
+  REVIEW // Under Executive Committee Review (Section 4: Executive Committee and Shareholder Action)
+  ADOPTED // Approved for implementation
+  DEVELOPMENT // Currently being developed/piloted
   IMPLEMENTATION // Full rollout (Section 4: Implementation)
-  COMPLETED      // Project finished
-  SHELVED        // Put on hold indefinitely
-  ABORTED        // Failed/cancelled
+  COMPLETED // Project finished
+  SHELVED // Put on hold indefinitely
+  ABORTED // Failed/cancelled
 }
+
 model BusinessProjectModel {
   // --- Core Identification & Timestamps ---
-  id                   String            @id @default(auto()) @map("_id") @db.ObjectId
-  title                String
-  description          String?           @db.String
-  userId               String            @db.ObjectId // Proposer ID
+  id          String   @id @default(auto()) @map("_id") @db.ObjectId
+  title       String
+  description String?  @db.String
+  userId      String   @db.ObjectId // Proposer ID
   // ADD THIS RELATION FIELD (1-to-N relation):
-  proposer             User              @relation(fields: [userId], references: [id])
-  createdAt            DateTime          @default(now())
-  updatedAt            DateTime          @updatedAt
+  proposer    User     @relation(fields: [userId], references: [id])
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
 
   // --- Status & Visibility (Now using Enum for Progress) ---
-  progress             ProjectProgress   @default(PROPOSAL) // proposal, review, adopted, implementation, etc.
-  visible              Boolean           @default(false)    // Should this be publicly visible?
-  active               Boolean           @default(true)     // Is this an active project?
-  order                Int?                                 // For manual sorting/display order
+  progress ProjectProgress @default(PROPOSAL) // proposal, review, adopted, implementation, etc.
+  visible  Boolean         @default(false) // Should this be publicly visible?
+  active   Boolean         @default(true) // Is this an active project?
+  order    Int? // For manual sorting/display order
 
   // --- Rating & Engagement ---
-  rating               Float?            // Calculated Average User Rating
-  viewCount            Int               @default(0)
+  rating               Float? // Calculated Average User Rating
+  viewCount            Int                   @default(0)
   projectToUserRatings ProjectToUserRating[]
   comments             ProjectComment[]
 
   // --- Financial & Evaluation Metrics (Key for Guideline Sections 2 & 5) ---
   // Financial Performance (Section 5: Financial Performance)
-  irr                  Float?            // Internal Rate of Return (e.g., 0.15 for 15%)
-  npv                  Float?            // Net Present Value ($)
-  paybackPeriodYears   Float?            // Expected time until initial investment is recovered
-  
+  irr                Float? // Internal Rate of Return (e.g., 0.15 for 15%)
+  npv                Float? // Net Present Value ($)
+  paybackPeriodYears Float? // Expected time until initial investment is recovered
+
   // Risk & Compliance (Section 2 & 5: Resources & Risk, Risk & Compliance)
-  riskScore            Float?            // Risk assessment score (e.g., 1-5 scale)
-  complianceStatus     String?           // E.g., 'Pending', 'Compliant', 'Non-Compliant'
-  
+  riskScore        Float? // Risk assessment score (e.g., 1-5 scale)
+  complianceStatus String? // E.g., 'Pending', 'Compliant', 'Non-Compliant'
+
   // Resources & Costing (Section 2: Resources & Risk, Section 6: Costing Examples)
-  initialInvestmentUsd Float?          // Total projected upfront cost
-  monthlyOpexUsd       Float?          // Projected ongoing operating expenses
-  resourceRequirements String?           // Details on human resources, infra needed
-  
+  initialInvestmentUsd Float? // Total projected upfront cost
+  monthlyOpexUsd       Float? // Projected ongoing operating expenses
+  resourceRequirements String? // Details on human resources, infra needed
+
   // Strategy & Ranking (Section 5: Feasibility and Strategy, Section 3: Project Ranking)
-  marketViabilityScore Float?            // Score reflecting market potential (e.g., 1-100)
-  projectRanking       Int?              // Final determined rank based on composite evaluation
+  marketViabilityScore Float? // Score reflecting market potential (e.g., 1-100)
+  projectRanking       Int? // Final determined rank based on composite evaluation
 
   // --- Scheduling & Operational Notes ---
-  proposedStartDate    DateTime?
+  proposedStartDate       DateTime?
   projectedCompletionDate DateTime?
-  notes                String?           // Internal/Operational notes
-  
+  notes                   String? // Internal/Operational notes
 
   contractModels ContractModel[]
 }
 
 model ProjectToUserRating {
-  id                  String               @id @default(auto()) @map("_id") @db.ObjectId
-  rate                Int
-  projectId           String               @db.ObjectId
-  project             BusinessProjectModel @relation(fields: [projectId], references: [id], onDelete: Cascade)
-  userId              String               @db.ObjectId
-  user                User                 @relation(fields: [userId], references: [id])
-  createdAt           DateTime             @default(now())
-  updatedAt           DateTime             @updatedAt
+  id        String               @id @default(auto()) @map("_id") @db.ObjectId
+  rate      Int
+  projectId String               @db.ObjectId
+  project   BusinessProjectModel @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  userId    String               @db.ObjectId
+  user      User                 @relation(fields: [userId], references: [id])
+  createdAt DateTime             @default(now())
+  updatedAt DateTime             @updatedAt
+
   @@unique([projectId, userId]) // Enforce one rating per user per project
 }
 
 model ProjectComment {
-  id                  String               @id @default(auto()) @map("_id") @db.ObjectId
-  projectId           String               @db.ObjectId
-  project             BusinessProjectModel @relation(fields: [projectId], references: [id], onDelete: Cascade)
-  userId              String               @db.ObjectId // Commenter ID
-  user                User                 @relation(fields: [userId], references: [id])
-  content             String               @db.String // Added content for the comment
-  timestamp           DateTime             @default(now())
+  id        String               @id @default(auto()) @map("_id") @db.ObjectId
+  projectId String               @db.ObjectId
+  project   BusinessProjectModel @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  userId    String               @db.ObjectId // Commenter ID
+  user      User                 @relation(fields: [userId], references: [id])
+  content   String               @db.String // Added content for the comment
+  timestamp DateTime             @default(now())
   // rate removed as rating is tracked in ProjectToUserRating
 }
 
 enum ContractStatus {
-  DRAFT            // Initial internal creation
-  INTERNAL_REVIEW  // Legal/Internal review phase (Relates to Section 4: Executive Committee Review)
-  NEGOTIATION      // In discussion with Counterparty
-  ACTIVE           // Fully executed and in force (Relates to Section 4: Implementation)
-  EXPIRED          // End date reached
-  TERMINATED       // Ended early (e.g., due to Section 5: Risk & Compliance failure)
-  ARCHIVED         // Completed or permanently inactive
+  DRAFT // Initial internal creation
+  INTERNAL_REVIEW // Legal/Internal review phase (Relates to Section 4: Executive Committee Review)
+  NEGOTIATION // In discussion with Counterparty
+  ACTIVE // Fully executed and in force (Relates to Section 4: Implementation)
+  EXPIRED // End date reached
+  TERMINATED // Ended early (e.g., due to Section 5: Risk & Compliance failure)
+  ARCHIVED // Completed or permanently inactive
 }
 
 model ContractModel {
   // --- Core Identification & Timestamps ---
-  id                   String        @id @default(auto()) @map("_id") @db.ObjectId
-  title                String
-  contractType         String        // E.g., 'Vendor Agreement', 'Partnership', 'Employment', 'Lease'
-  description          String?       @db.String
-  
+  id           String  @id @default(auto()) @map("_id") @db.ObjectId
+  title        String
+  contractType String // E.g., 'Vendor Agreement', 'Partnership', 'Employment', 'Lease'
+  description  String? @db.String
+
   // ADD RELATION TO PROJECT (Optional 1-to-N relation)
-  projectId            String?       @db.ObjectId
-  relatedProject       BusinessProjectModel? @relation(fields: [projectId], references: [id])
+  projectId      String?               @db.ObjectId
+  relatedProject BusinessProjectModel? @relation(fields: [projectId], references: [id])
 
   //strategy or output....................
   //create interface to related proposed/planned output.....
   //relatedStrategy      StrategyOutput? @relation(fields: [projectId], references: [id])
- 
-  createdAt            DateTime      @default(now())
-  updatedAt            DateTime      @updatedAt
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   // --- Status & Visibility (Lifecycle Management) ---
-  status               ContractStatus @default(DRAFT)
-  version              String        @default("1.0") // Tracking version number
-  
+  status  ContractStatus @default(DRAFT)
+  version String         @default("1.0") // Tracking version number
+
   // --- Dates & Duration ---
-  effectiveDate        DateTime?     // When the contract legally starts
-  expirationDate       DateTime?     // When the contract automatically ends
-  autoRenew            Boolean       @default(false) // Does it auto-renew?
-  
+  effectiveDate  DateTime? // When the contract legally starts
+  expirationDate DateTime? // When the contract automatically ends
+  autoRenew      Boolean   @default(false) // Does it auto-renew?
+
   // --- Counterparties & Signatures ---
-  internalOwnerId      String        @db.ObjectId // User ID of the internal manager/owner
-  internalOwner        User          @relation("OwnedContracts", fields: [internalOwnerId], references: [id])
-  
-  counterpartyName     String        // Name of the external organization/person
-  counterpartyContact  String?       // Key contact person at the counterparty
-  signedDocumentUrl    String?       // Link to the final signed contract document (Section 3: Standardized Documentation)
+  internalOwnerId String @db.ObjectId // User ID of the internal manager/owner
+  internalOwner   User   @relation("OwnedContracts", fields: [internalOwnerId], references: [id])
+
+  counterpartyName    String // Name of the external organization/person
+  counterpartyContact String? // Key contact person at the counterparty
+  signedDocumentUrl   String? // Link to the final signed contract document (Section 3: Standardized Documentation)
 
   // --- Financial & Compensation ---
-  totalValueUsd        Float?        // Total contract value or ceiling amount (Section 2: Financials)
-  paymentTerms         String?       // E.g., 'Net 30', 'Quarterly in Advance'
-  annualizedCostUsd    Float?        // Recurring annual cost or revenue (Relates to monthlyOpexUsd/annualRevenueEstimateUsd in ProjectModel)
+  totalValueUsd     Float? // Total contract value or ceiling amount (Section 2: Financials)
+  paymentTerms      String? // E.g., 'Net 30', 'Quarterly in Advance'
+  annualizedCostUsd Float? // Recurring annual cost or revenue (Relates to monthlyOpexUsd/annualRevenueEstimateUsd in ProjectModel)
 
-// ADDITIONS FOR REVENUE & PROFIT
-  annualRevenueUsd       Float?       // Projected/Actual recurring annual revenue from this contract
-  totalContractValueUsd  Float?       // Total aggregate revenue over the full contract term
-  profitMarginPercent    Float?       // Calculated Gross Profit Margin (e.g., 0.25 for 25%)
-  costAllocationDetails  Json?        // Structured data for detailed cost breakdown
+  // ADDITIONS FOR REVENUE & PROFIT
+  annualRevenueUsd       Float? // Projected/Actual recurring annual revenue from this contract
+  totalContractValueUsd  Float? // Total aggregate revenue over the full contract term
+  profitMarginPercent    Float? // Calculated Gross Profit Margin (e.g., 0.25 for 25%)
+  costAllocationDetails  Json? // Structured data for detailed cost breakdown
   // --- Risk & Compliance (Aligned with Guidelines Section 5) ---
-  riskRating           Float?        // Contract-specific risk score (e.g., 1-5 scale) (Section 5: Risk & Compliance)
-  complianceJurisdiction String?     // Governing Law/Jurisdiction
-  breachOfContractClause String?     // Summary or reference to breach terms
-  
+  riskRating             Float? // Contract-specific risk score (e.g., 1-5 scale) (Section 5: Risk & Compliance)
+  complianceJurisdiction String? // Governing Law/Jurisdiction
+  breachOfContractClause String? // Summary or reference to breach terms
+
   // --- Obligations & Reminders ---
-  obligationsJson      Json?         // Structured data detailing required actions (deliverables, reports, etc.)
-  nextReviewDate       DateTime?     // Date for the next internal review (Section 6: Ad-Hoc Meetings)
+  obligationsJson Json? // Structured data detailing required actions (deliverables, reports, etc.)
+  nextReviewDate  DateTime? // Date for the next internal review (Section 6: Ad-Hoc Meetings)
 
   // --- Attachments and Notes ---
-  notes                String?       @db.String
+  notes String? @db.String
 
   contractActivityModels ContractActivityModel[]
 }
 
 enum ActivityType {
-  MEETING          // Formal scheduled discussion (e.g., Kick-off, Review)
-  FOLLOW_UP        // Action item resulting from a meeting or review
+  MEETING // Formal scheduled discussion (e.g., Kick-off, Review)
+  FOLLOW_UP // Action item resulting from a meeting or review
   DRAWING_APPROVAL // Submission or approval of technical/design documentation
   RESOURCE_ALLOCATION // Action to secure specific resources (equipment, staff)
   SUPPLIER_ENGAGEMENT // Contact or negotiation with an external party (OEM/vendor)
   DOCUMENT_SUBMISSION // Sending a formal document (e.g., Invoice, Report)
-  OTHER            // For general, unclassified tasks
+  OTHER // For general, unclassified tasks
 }
 
 enum ActivityStatus {
@@ -674,42 +668,41 @@ enum ActivityStatus {
 
 model ContractActivityModel {
   // --- Core Identification & Timestamps ---
-  id                  String           @id @default(auto()) @map("_id") @db.ObjectId
-  title               String
-  description         String?          @db.String
-  
+  id          String  @id @default(auto()) @map("_id") @db.ObjectId
+  title       String
+  description String? @db.String
+
   // --- Linking to Contract & Responsible Parties ---
-  contractId          String           @db.ObjectId // Mandatory link to the parent contract
-  contract            ContractModel    @relation(fields: [contractId], references: [id],onDelete: Cascade)
-  
+  contractId String        @db.ObjectId // Mandatory link to the parent contract
+  contract   ContractModel @relation(fields: [contractId], references: [id], onDelete: Cascade)
+
   //assignedToId        String           @db.ObjectId // User responsible for this action/follow-up
   //assignedTo          User             @relation(fields: [assignedToId], references: [id])
   responsiblePersons String
-  
-  createdByUserId     String           @db.ObjectId // User who created the activity record
-  
-  createdAt           DateTime         @default(now())
-  updatedAt           DateTime         @updatedAt
+
+  createdByUserId String @db.ObjectId // User who created the activity record
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   // --- Activity Details ---
-  activityType                ActivityType     @default(FOLLOW_UP)
-  status              ActivityStatus   @default(SCHEDULED)
-  
+  activityType ActivityType   @default(FOLLOW_UP)
+  status       ActivityStatus @default(SCHEDULED)
+
   // --- Scheduling & Deadlines ---
-  dueDate             DateTime         // Target completion date for the activity
-  completedAt         DateTime?        // Actual completion date
-  
+  dueDate     DateTime // Target completion date for the activity
+  completedAt DateTime? // Actual completion date
+
   // --- Resources & Documentation ---
   // Tracks resources committed or allocated by this activity
-  resourceDetails     String?          // E.g., "3 engineers for 40 hours," "Purchase Order #1234"
-  
+  resourceDetails String? // E.g., "3 engineers for 40 hours," "Purchase Order #1234"
+
   // Tracks specific documentation related to the activity (e.g., meeting minutes, drawing file reference)
-  documentReferenceUrl String?          // Link to the specific document (Minutes, Drawing file)
+  documentReferenceUrl String? // Link to the specific document (Minutes, Drawing file)
 
   // --- Source/Outcome Notes ---
-  outcomeNotes        String?          @db.String // Summary of the outcome or what was agreed upon
+  outcomeNotes String? @db.String // Summary of the outcome or what was agreed upon
 }
-
 
 // ----------------------------------------------------
 // ENUMS (Status, Roles, Scores)
@@ -724,13 +717,13 @@ enum ScoreValue {
 
 // Defines the status of a proposal (Milestones M1, M2, M3)
 enum ProposalStatus {
-  DRAFT          // M1.1: Concept Submission (Editable)
-  REVIEW_PENDING   // M1.2: Leadership Review
-  COMMENT_OPEN     // M1.3: Collaborative Input
-  VOTING_OPEN      // M2.2: Voting Opens
-  VOTING_CLOSED    // M2.4: Voting Closes & Tally
-  APPROVED       // M3.2: Formal Decision Communication
-  REJECTED       // M3.2: Formal Decision Communication
+  DRAFT // M1.1: Concept Submission (Editable)
+  REVIEW_PENDING // M1.2: Leadership Review
+  COMMENT_OPEN // M1.3: Collaborative Input
+  VOTING_OPEN // M2.2: Voting Opens
+  VOTING_CLOSED // M2.4: Voting Closes & Tally
+  APPROVED // M3.2: Formal Decision Communication
+  REJECTED // M3.2: Formal Decision Communication
 }
 
 // Defines the possible vote outcomes
@@ -742,9 +735,9 @@ enum VoteType {
 
 // Defines user roles based on Guideline 1 of 2025
 enum UserRole {
-  SHAREHOLDER       // Can vote on final proposals (M2.2)
+  SHAREHOLDER // Can vote on final proposals (M2.2)
   EXECUTIVE_COMMITTEE // Reviews proposals (M1.2, M3.1)
-  TEAM_MEMBER       // Can submit proposals and provide comments
+  TEAM_MEMBER // Can submit proposals and provide comments
 }
 
 // ----------------------------------------------------
@@ -752,30 +745,30 @@ enum UserRole {
 // ----------------------------------------------------
 
 model Strategy {
-  id                    String             @id @default(auto()) @map("_id") @db.ObjectId
-  title                 String
-  content               String          // Detailed analysis, financials, operations, etc.
-  year                  String?         // Added the 'year' field from your updated model
-  status                ProposalStatus   @default(DRAFT)
-  submissionDate        DateTime         @default(now())
-  updatedAt             DateTime         @updatedAt
+  id             String         @id @default(auto()) @map("_id") @db.ObjectId
+  title          String
+  content        String // Detailed analysis, financials, operations, etc.
+  year           String? // Added the 'year' field from your updated model
+  status         ProposalStatus @default(DRAFT)
+  submissionDate DateTime       @default(now())
+  updatedAt      DateTime       @updatedAt
 
   // Voting period details
-  votingStart           DateTime?
-  votingEnd             DateTime?
- 
+  votingStart DateTime?
+  votingEnd   DateTime?
+
   // Results
-  totalVotesYes         Int              @default(0)
-  totalVotesNo          Int              @default(0)
-  averageStrategicScore Float?          // Calculated score based on StrategicAttributes and Criteria weights
+  totalVotesYes         Int    @default(0)
+  totalVotesNo          Int    @default(0)
+  averageStrategicScore Float? // Calculated score based on StrategicAttributes and Criteria weights
 
   // Relationships
-  authorId              String           @db.ObjectId
-  author                User             @relation(fields: [authorId], references: [id])
-  comments              StrategyComment[]
-  votes                 StrategyVote[]
-  strategicAttributes   StrategicAttribute[]
-  goals                 StrategyGoal[]    // RBM Relationship: One Strategy can have multiple Goals
+  authorId            String               @db.ObjectId
+  author              User                 @relation(fields: [authorId], references: [id])
+  comments            StrategyComment[]
+  votes               StrategyVote[]
+  strategicAttributes StrategicAttribute[]
+  goals               StrategyGoal[] // RBM Relationship: One Strategy can have multiple Goals
 
   @@index([authorId])
   @@index([status]) // Optimize lookup by status
@@ -788,65 +781,65 @@ model Strategy {
 
 // 1. StrategyGoal (Long-Term/High-Level Impact)
 model StrategyGoal {
-  id              String            @id @default(auto()) @map("_id") @db.ObjectId
-  title           String            // e.g., "Achieve significant market share in the B2G sector"
-  description     String?
-  targetYear      Int               // e.g., 2027
+  id          String  @id @default(auto()) @map("_id") @db.ObjectId
+  title       String // e.g., "Achieve significant market share in the B2G sector"
+  description String?
+  targetYear  Int // e.g., 2027
 
   // Relationship to the Strategy
-  strategyId      String ?           @db.ObjectId
-  strategy        Strategy?          @relation(fields: [strategyId], references: [id], onDelete: Cascade)
+  strategyId String?   @db.ObjectId
+  strategy   Strategy? @relation(fields: [strategyId], references: [id], onDelete: Cascade)
 
   // RBM Relationship: One Goal can have multiple Outcomes
-  outcomes        StrategyOutcome[]
+  outcomes StrategyOutcome[]
 
   @@index([strategyId])
 }
 
 // 2. StrategyOutcome (Medium-Term/Behavioral Change or Effect)
 model StrategyOutcome {
-  id              String           @id @default(auto()) @map("_id") @db.ObjectId
-  title           String           // e.g., "Improve supplier relationship and perception"
-  description     String?
-  kpi             String?          // Key Performance Indicator (KPI) to track success, e.g., "Number of unsolicited RFQs received per quarter"
+  id          String  @id @default(auto()) @map("_id") @db.ObjectId
+  title       String // e.g., "Improve supplier relationship and perception"
+  description String?
+  kpi         String? // Key Performance Indicator (KPI) to track success, e.g., "Number of unsolicited RFQs received per quarter"
 
   // Relationship to the Goal
-  goalId          String           @db.ObjectId
-  goal            StrategyGoal     @relation(fields: [goalId], references: [id],onDelete: Cascade)
+  goalId String       @db.ObjectId
+  goal   StrategyGoal @relation(fields: [goalId], references: [id], onDelete: Cascade)
 
   // RBM Relationship: One Outcome is achieved through multiple Outputs
-  outputs         StrategyOutput[]
+  outputs StrategyOutput[]
 
   @@index([goalId])
 }
 
 // 3. StrategyOutput (The Deliverable)
 model StrategyOutput {
-  id              String             @id @default(auto()) @map("_id") @db.ObjectId
-  title           String             // e.g., "NRZ Vendor Registration Complete"
-  description     String?
+  id          String  @id @default(auto()) @map("_id") @db.ObjectId
+  title       String // e.g., "NRZ Vendor Registration Complete"
+  description String?
 
-  
-  responsible     String? 
- // responsibleId   String?            @db.ObjectId // ID of the User primarily responsible for this deliverable
- // responsibleUser     User?              @relation("OutputResponsible", fields: [responsibleId], references: [id])
-  costEstimate    Float?
-  isCompleted     Boolean            @default(false)
-  completionDate  DateTime?          // Date the Output was finalized
+  responsible    String?
+  // responsibleId   String?            @db.ObjectId // ID of the User primarily responsible for this deliverable
+  // responsibleUser     User?              @relation("OutputResponsible", fields: [responsibleId], references: [id])
+  costEstimate   Float?
+  isCompleted    Boolean   @default(false)
+  completionDate DateTime? // Date the Output was finalized
 
   // Relationship to the Outcome
-  outcomeId       String             @db.ObjectId
-  outcome         StrategyOutcome    @relation(fields: [outcomeId], references: [id], onDelete: Cascade)
+  outcomeId String          @db.ObjectId
+  outcome   StrategyOutcome @relation(fields: [outcomeId], references: [id], onDelete: Cascade)
 
   // NEW: Relationship to the activities/action plan needed to achieve this output
-  activities      StrategyActivity[]
+  activities StrategyActivity[]
 
-  createdAt           DateTime?         @default(now())
-  updatedAt       DateTime @updatedAt
+  createdAt DateTime? @default(now())
+  updatedAt DateTime  @updatedAt
+  // @@index([responsibleId])
 
   @@index([outcomeId])
- // @@index([responsibleId])
 }
+
 // ----------------------------------------------------
 // 4. IMPLEMENTATION MANAGEMENT (Action Plan, Timeline, Progress)
 // StrategyOutput -> StrategyActivity
@@ -855,46 +848,69 @@ model StrategyOutput {
 // StrategyActivity (The Action Plan / Rollout Task)
 // Represents a granular step or task required to complete a StrategyOutput (deliverable).
 model StrategyActivity {
-  id                String           @id @default(auto()) @map("_id") @db.ObjectId
-  title             String           // e.g., "Draft RFP for NRZ Vendor Registration"
-  description       String?
-  startDate         DateTime?
-  dueDate           DateTime?        // Scheduled completion time (important for DUE/OVERDUE tracking)
-  completionDate    DateTime?
-  status            ActivityStatus   @default(SCHEDULED)
-  progressPercent   Int              @default(0) @map("progress_percent") // 0-100
+  id              String         @id @default(auto()) @map("_id") @db.ObjectId
+  title           String // e.g., "Draft RFP for NRZ Vendor Registration"
+  description     String?
+  startDate       DateTime?
+  dueDate         DateTime? // Scheduled completion time (important for DUE/OVERDUE tracking)
+  completionDate  DateTime?
+  status          ActivityStatus @default(SCHEDULED)
+  progressPercent Int            @default(0) @map("progress_percent") // 0-100
 
   // --- Activity Details ---
-  activityType                ActivityType     @default(FOLLOW_UP)
-  
+  activityType ActivityType @default(FOLLOW_UP)
 
   // Relationship to the StrategyOutput (Deliverable)
-  outputId          String           @db.ObjectId
-  output            StrategyOutput   @relation(fields: [outputId], references: [id], onDelete: Cascade)
-  createdAt           DateTime         @default(now())
-  updatedAt       DateTime @updatedAt
+  outputId  String         @db.ObjectId
+  output    StrategyOutput @relation(fields: [outputId], references: [id], onDelete: Cascade)
+  createdAt DateTime       @default(now())
+  updatedAt DateTime       @updatedAt
+
+  comments StrategyActivityComment[]
+
   @@index([outputId])
   //@@index([responsibleUserId])
   @@index([status]) // Allows for easy querying of TO_DO, IN_PROGRESS, OVERDUE tasks
 }
+
+model StrategyActivityComment {
+  id         String   @id @default(auto()) @map("_id") @db.ObjectId
+  content    String
+  createdAt  DateTime @default(now())
+  likesCount Int      @default(0)
+
+  // Foreign Keys
+  activityId String @db.ObjectId
+  authorId  String @db.ObjectId
+   
+
+  updatedAt DateTime  @updatedAt
+  // Relationships
+  outputActivity StrategyActivity @relation(fields: [activityId], references: [id], onDelete: Cascade)
+  author         User             @relation(fields: [authorId], references: [id])
+
+  @@index([activityId])
+  @@index([authorId])
+}
+
 // ----------------------------------------------------
 // SUPPORT MODELS (Comments, Votes, Criteria)
 // ----------------------------------------------------
 
 // 3. COMMENTS AND SUGGESTIONS (M1.3)
 model StrategyComment {
-  id              String   @id @default(auto()) @map("_id") @db.ObjectId
-  content         String
-  createdAt       DateTime @default(now())
-  likesCount      Int      @default(0)
+  id         String   @id @default(auto()) @map("_id") @db.ObjectId
+  content    String
+  createdAt  DateTime @default(now())
+  likesCount Int      @default(0)
 
   // Foreign Keys
-  proposalId      String   @db.ObjectId
-  authorId        String   @db.ObjectId
+  proposalId String @db.ObjectId
+  authorId   String @db.ObjectId
 
   // Relationships
-  proposal        Strategy @relation(fields: [proposalId], references: [id], onDelete: Cascade)
-  author          User     @relation(fields: [authorId], references: [id])
+  proposal Strategy @relation(fields: [proposalId], references: [id], onDelete: Cascade)
+  author   User     @relation(fields: [authorId], references: [id])
 
   @@index([proposalId])
   @@index([authorId])
@@ -902,18 +918,18 @@ model StrategyComment {
 
 // 4. VOTING MECHANISM (M2.2)
 model StrategyVote {
-  id              String   @id @default(auto()) @map("_id") @db.ObjectId
-  type            VoteType
-  timestamp       DateTime @default(now())
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  type      VoteType
+  timestamp DateTime @default(now())
 
-  updatedAt       DateTime @updatedAt
+  updatedAt  DateTime @updatedAt
   // Foreign Keys
-  voterId         String   @db.ObjectId
-  proposalId      String   @db.ObjectId
+  voterId    String   @db.ObjectId
+  proposalId String   @db.ObjectId
 
   // Relationships
-  voter           User     @relation(fields: [voterId], references: [id],onDelete: Cascade)
-  proposal        Strategy @relation(fields: [proposalId], references: [id],onDelete: Cascade)
+  voter    User     @relation(fields: [voterId], references: [id], onDelete: Cascade)
+  proposal Strategy @relation(fields: [proposalId], references: [id], onDelete: Cascade)
 
   // Ensures a user can only vote once per proposal
   @@unique([voterId, proposalId])
@@ -925,32 +941,32 @@ model StrategyVote {
 // Model for the criteria themselves (e.g., Financial Performance, Risk)
 // Allows for dynamic criteria management and weighting
 model StrategyCriterion {
-  id                    String               @id @default(auto()) @map("_id") @db.ObjectId
-  name                  String               @unique // e.g., "Financial Performance"
-  description           String?              // Guidance on evaluation
-  weight                Int                  @default(1) // Allows for weighted scoring (e.g., Financials weight 3)
+  id          String  @id @default(auto()) @map("_id") @db.ObjectId
+  name        String  @unique // e.g., "Financial Performance"
+  description String? // Guidance on evaluation
+  weight      Int     @default(1) // Allows for weighted scoring (e.g., Financials weight 3)
 
   // Relationship to link to the evaluations
-  strategicAttributes   StrategicAttribute[]
+  strategicAttributes StrategicAttribute[]
 }
 
 // Model for the actual evaluation score of a proposal against a criterion
 model StrategicAttribute {
-  id                    String               @id @default(auto()) @map("_id") @db.ObjectId
+  id String @id @default(auto()) @map("_id") @db.ObjectId
 
   // Link to the Criterion
-  criterionId            String   @db.ObjectId
-  criterion             StrategyCriterion    @relation(fields: [criterionId], references: [id],onDelete: Cascade)
+  criterionId String            @db.ObjectId
+  criterion   StrategyCriterion @relation(fields: [criterionId], references: [id], onDelete: Cascade)
 
-  scoreValue            ScoreValue          // The score given (e.g., HIGH)
-  justification         String              // Detailed comments or justification for the score
+  scoreValue    ScoreValue // The score given (e.g., HIGH)
+  justification String // Detailed comments or justification for the score
 
   // Who performed the evaluation?
-  evaluatorId           String?             // This could link back to User.id for audit purposes
+  evaluatorId String? // This could link back to User.id for audit purposes
 
   // Link to the Proposal
-  proposalId             String   @db.ObjectId
-  proposal              Strategy             @relation(fields: [proposalId], references: [id],onDelete: Cascade)
+  proposalId String   @db.ObjectId
+  proposal   Strategy @relation(fields: [proposalId], references: [id], onDelete: Cascade)
 
   // Ensures only one score for a specific criterion on a specific proposal
   @@unique([proposalId, criterionId])
