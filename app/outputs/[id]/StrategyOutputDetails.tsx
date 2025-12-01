@@ -907,11 +907,27 @@ function StrategyOutputDetailView({ strategyOutput: initialStrategy, currentUser
         }
     };
     
-    const copyToClipboard = () => {
+    const copyToClipboard2 = () => {
         // Your existing copy logic...
         setCopied(true);
         setSuccessMessage('Link copied to clipboard!'); 
         setTimeout(() => {setCopied(false); setSuccessMessage(null);}, 2000); 
+    };
+
+        const copyToClipboard = () => {
+        if (typeof window !== 'undefined') {
+            const currentUrl = window.location.href;
+            navigator.clipboard.writeText(currentUrl)
+                .then(() => {
+                    setCopied(true);
+                    setSuccessMessage('Link copied to clipboard!'); // Show success message for copy
+                    setTimeout(() => {setCopied(false); setSuccessMessage(null);}, 2000); 
+                })
+                .catch(err => {
+                    console.error('Failed to copy: ', err);
+                    setError('Failed to copy link.');
+                });
+        }
     };
     
     

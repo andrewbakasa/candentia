@@ -202,13 +202,7 @@ const MobileCardView: React.FC<{outputsToDisplay: StrategyOutputListModel[]; ite
                     title={output.description || output.title}
                 >
                     {/* Header Row: Title & Status Badge */}
-                    
-                    {/* <div className="flex justify-between items-start mb-2">
-                        <h3 className="text-base font-semibold text-indigo-700 pr-6 max-w-[70%] truncate">
-                            {itemOffset + index+1}. {output.title}
-                        </h3>
-                        <StatusCategoryBadge category={category} /> 
-                    </div> */}
+                   
                     <div className="flex flex-col justify-between items-start mb-2 ">
                         <h3 className="text-base font-semibold text-indigo-700 pr-6 max-w-[calc(100%-0px)] truncate">
                             {itemOffset + index+1}. {output.title}
