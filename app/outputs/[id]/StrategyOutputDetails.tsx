@@ -6,6 +6,7 @@ import { Strategy } from '@prisma/client';
 import { SafeUser } from '@/app/types';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
+import ConfirmAction from '../_components/ConfirmAction';
 
 // --- INLINED TYPES AND UTILITIES FOR SELF-CONTAINMENT ---
 
@@ -1112,14 +1113,24 @@ function ActivityCommentSection({
                                                 >
                                                     <Edit2 className="w-3 h-3" />
                                                 </Button>
-                                                <Button 
+                                                {/* <Button 
                                                     variant="ghost" 
                                                     size="icon" 
                                                     className="w-6 h-6 text-gray-400 hover:text-red-600"
                                                     onClick={() => handleDeleteComment(comment.id)}
                                                 >
                                                     <Trash2 className="w-3 h-3" />
-                                                </Button>
+                                                </Button> */}
+
+                                                <ConfirmAction 
+                                                    onConfirm={handleDeleteComment} 
+                                                    itemId={comment.id}
+                                                    action="Delete" 
+                                                    disabled={false} // Opposite of the main state
+                                                    heading="Delete Comment"
+                                                    description="This action will delete this comment. Press the Delete button to continue."
+                                                    showHint={true}
+                                                />
                                             </div>
                                         )}
                                     </div>
