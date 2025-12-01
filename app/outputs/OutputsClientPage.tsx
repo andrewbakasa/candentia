@@ -202,11 +202,20 @@ const MobileCardView: React.FC<{outputsToDisplay: StrategyOutputListModel[]; ite
                     title={output.description || output.title}
                 >
                     {/* Header Row: Title & Status Badge */}
-                    <div className="flex justify-between items-start mb-2">
+                    
+                    {/* <div className="flex justify-between items-start mb-2">
                         <h3 className="text-base font-semibold text-indigo-700 pr-6 max-w-[70%] truncate">
                             {itemOffset + index+1}. {output.title}
                         </h3>
-                        <StatusCategoryBadge category={category} /> {/* Added Status Badge */}
+                        <StatusCategoryBadge category={category} /> 
+                    </div> */}
+                    <div className="flex flex-col justify-between items-start mb-2 ">
+                        <h3 className="text-base font-semibold text-indigo-700 pr-6 max-w-[calc(100%-0px)] truncate">
+                            {itemOffset + index+1}. {output.title}
+                        </h3>
+                         <div className="flex items-center space-x-3 mt-2 sm:mt-0 ml-auto sm:ml-0 flex-shrink-0">                                                
+                            <StatusCategoryBadge category={category} /> {/* Added Status Badge */}
+                        </div>
                     </div>
 
                     {/* Responsible & Type */}
@@ -229,7 +238,7 @@ const MobileCardView: React.FC<{outputsToDisplay: StrategyOutputListModel[]; ite
                     </div>
 
                     {/* Activity Count Badge/View Icon */}
-                    <div className="absolute top-4 right-4 text-indigo-400 group-hover:text-indigo-600 transition">
+                    <div className="absolute ml-auto top-4 right-4 text-indigo-400 group-hover:text-indigo-600 transition">
                         {output._count.activities > 0 && (
                         <sup className="-top-3 -right-3 text-xs bg-indigo-100 text-indigo-700 rounded-full px-1 py-0.5 font-bold absolute shadow-sm">
                             {output._count.activities}

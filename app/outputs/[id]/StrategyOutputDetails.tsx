@@ -826,55 +826,6 @@ function StrategyOutputDetailView({ strategyOutput: initialStrategy, currentUser
     
     // --- API HANDLERS (Simplified for display) ---
 
-    // const handleUpdateActivity2 = async (activityId: string, updatedData: ActivityFormDataType) => {
-    //     setIsLoading(true);
-    //     clearMessages();
-        
-    //     // Mock API call...
-    //     console.log('Updating activity:', activityId, updatedData);
-
-    //     try {
-          
-    //         const response = await fetch(`/api/outputs/activity/${activityId}`, {
-    //             method: 'PUT',
-    //             headers: { 'Content-Type': 'application/json' },
-    //             body: JSON.stringify(updatedData),
-    //         });
-
-    //         const result = await response.json();
-    //         if (!response.ok) {
-    //             setError(result.message || 'Failed to update strategy Output activity.');
-    //             return;
-    //         }
-    //         const createdActivity: StrategyActivityModel = result; 
-    //         const updatedActivity: StrategyActivityModel = {
-    //             ...strategy.activities.find(a => a.id === activityId)!, 
-    //             ...updatedData as StrategyActivityModel, 
-    //             status: (updatedData.status || 'PENDING').toUpperCase() as StrategyActivityModel['status'],
-    //             activityType: (updatedData.activityType || '').toUpperCase(),
-    //         };
-    //         //api here
-            
-    //         setStrategy((prevStrategy: StrategyOutputModel) => ({
-    //             ...prevStrategy,
-    //             activities: prevStrategy.activities.map(activity => 
-    //                 activity.id === activityId ? updatedActivity : activity
-    //             ),
-    //         }));
-
-    //         setEditingActivityId(null); 
-    //         setSuccessMessage('Activity updated successfully!'); 
-    //         setTimeout(() => setSuccessMessage(null), 3000); 
-
-    //     } catch (e) {
-    //         setError('A network error occurred during update. Please try again.');
-    //     } finally {
-    //         setIsLoading(false);
-    //     }
-    // };
-    // Assuming setStrategy, setEditingActivityId, setIsLoading, 
-// clearMessages, setError, setSuccessMessage are available from the component scope.
-
     const handleUpdateActivity = async (
         activityId: string, 
         updatedData: ActivityFormDataType
@@ -883,7 +834,7 @@ function StrategyOutputDetailView({ strategyOutput: initialStrategy, currentUser
         setIsLoading(true);
         clearMessages(); // Ensure this clears both error and success messages
 
-        console.log('Attempting to update activity:', activityId, updatedData);
+        //console.log('Attempting to update activity:', activityId, updatedData);
 
         try {
                 // 2. API Call with Resource Check
