@@ -107,7 +107,11 @@ const StrategyPage = async ({ params }: { params: IParams }) => {
         include: {
           activities: {
             include: {
-              comments:true
+              comments:{
+                include:{
+                    author:true
+                }
+              }
             }
           }, // MANDATORY: Include the activities relation
          

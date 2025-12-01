@@ -7,6 +7,7 @@ import { SafeUser } from '@/app/types';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import ConfirmAction from '../_components/ConfirmAction';
+import { timeAgo } from '@/app/bp/[id]/_components/utility';
 
 // --- INLINED TYPES AND UTILITIES FOR SELF-CONTAINMENT ---
 
@@ -47,6 +48,7 @@ interface StrategyActivityModel {
         author: { // Assuming you also want author details when fetching
             id: string;
             name: string;
+            email: string;
             // ... other user details
         };
     }[];
@@ -813,6 +815,7 @@ interface Comment { // Re-define model for local use
 interface AuthorModel { 
     id: string;
     name: string;
+    email: string;
 }
 
 interface CommentModel {
@@ -1099,7 +1102,7 @@ function ActivityCommentSection({
                                     <p className="text-gray-800 whitespace-pre-wrap">{comment.content}</p>
                                     <div className="mt-1 pt-1 border-t border-gray-100 flex justify-between items-center">
                                         <p className="text-xs text-gray-500">
-                                            by <span className="font-medium text-indigo-600">{comment?.author?.name}</span> on {formatDate(comment.createdAt)}
+                                            by <span className="font-medium text-indigo-600">{comment?.author?.name || comment?.author.email}</span> on {timeAgo(comment.createdAt)}
                                         </p>
                                         
                                         {/* Action Buttons (Only for the author) */}
