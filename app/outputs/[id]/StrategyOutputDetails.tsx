@@ -54,7 +54,7 @@ interface StrategyActivityModel {
     }[];
 }
 
-interface StrategyOutputModel {
+export interface StrategyOutputModel {
     id: string;
     title: string;
     description: string | null;

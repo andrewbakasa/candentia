@@ -24,12 +24,28 @@ interface ClientVoteAudit {
 // to `transformStrategy`.
 
 // Define the base types for nested relations (assuming all date fields are raw 'Date' objects from Prisma)
-interface OutputType {
-    // Assuming these are fields from your Output model
+// interface OutputType {
+//     // Assuming these are fields from your Output model
+//     id: string;
+//     createdAt: Date;
+//     updatedAt: Date;
+//     [key: string]: any; // Catch all other fields
+// }
+// 💡 NEW/UPDATED TYPE: Define the structure for Activity
+interface ActivityType {
     id: string;
     createdAt: Date;
     updatedAt: Date;
-    [key: string]: any; // Catch all other fields
+    // Add any other specific Activity fields here if needed
+    [key: string]: any;
+}
+// 💡 NEW/UPDATED TYPE: OutputType must now include activities
+interface OutputType {
+    id: string;
+    createdAt: Date;
+    updatedAt: Date;
+    activities: ActivityType[]; // 👈 NEW: Activities added here
+    [key: string]: any; 
 }
 
 interface OutcomeType {
@@ -222,7 +238,11 @@ export default async function getStrategies(): Promise<StrategiesReturnType> {
                     include: {
                         outcomes: {
                             include: {
-                                outputs: true,
+                                outputs: {
+                                    include:{
+                                        activities:true
+                                    }
+                                },
                             },
                         },
                     },

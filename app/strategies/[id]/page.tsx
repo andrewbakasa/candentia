@@ -37,7 +37,11 @@ export default async function StrategiesDashboard({
                         include: {
                             outcomes: {
                                 include: {
-                                    outputs: true,
+                                    outputs: {
+                                      include:{
+                                        activities:true
+                                      }
+                                    },
                                 }
                             }
                         }

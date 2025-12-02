@@ -1,10 +1,35 @@
 'use client'
 import React from 'react';
 import { Target, ArrowRight, CheckCircle, User, Zap, List } from 'lucide-react';
-import { StrategyGoal, StrategyOutcome, StrategyOutput } from './StrategyCard';
+import { StrategyGoal, StrategyOutcome, 
+   // StrategyOutput
+ } from './StrategyCard';
 import { useRouter } from 'next/navigation';
+import { StrategyActivityModel } from '@/app/outputs/_components/types/strategy';
 
-
+export interface StrategyOutput {
+    id: string;
+    title: string;
+    responsible: string;
+    isCompleted: boolean;
+    activities: StrategyActivityModel[]; 
+}
+export interface StrategyOutputModel {
+    id: string;
+    title: string;
+    description: string | null;
+    responsible: string | null;
+    costEstimate: number | null;
+    isCompleted: boolean;
+    completionDate: string | null;
+    outcomeId: string;
+    activities: StrategyActivityModel[]; // Corrected property name
+    // Mock audit fields for display purposes
+    createdAt: string;
+    updatedAt: string;
+   // outcome?: StrategyGoalModel; // Added parent goal
+   // outcome?: StrategyOutcomeFull | null; // Correct type for the nested outcome
+}
 // --- Helper Function for Highlighting (New Addition) ---
 interface HighlightResult {
     __html: string;
@@ -46,10 +71,72 @@ const highlightText = (text: string, search: string): HighlightResult => {
 
 // --- 1. Sub-Component for Output Items (Actionable Tasks) ---
 // Prop change: added searchText
-const OutputItem: React.FC<{ output: StrategyOutput, searchText: string }> = ({ output, searchText }) => {
+const OutputItem: React.FC<{ output: any, searchText: string }> = ({ output, searchText }) => {
+    // 1. Initialize useRouter
+    const router = useRouter();
+    
+    // Check if activities exists and has a length (must be included in the 'output' data)
+    const activityCount = output.activities?.length || 0; 
+    
+    // 2. Define the click handler
+    const handleClick = () => {
+        router.push(`/outputs/${output.id}`);
+    };
+
+    /**
+     * Helper to conditionally add a superscript count after the highlighted text.
+     */
+    const getSuperscriptTitle = (title: string, search: string, count: number) => {
+        // 1. Get the base highlighted HTML content
+        const baseHtml = highlightText(title, search).__html;
+
+        if (count > 0) {
+            // 2. Append the <sup> tag with the count
+            const superscriptHtml = `<sup class="ml-1 text-[10px] text-blue-600 font-bold leading-none">${count}</sup>`;
+            return {
+                __html: baseHtml + superscriptHtml
+            };
+        }
+        
+        // 3. Return the base HTML if count is zero
+        return {
+            __html: baseHtml
+        };
+    };
+
+    return (
+        // The rest of your JSX remains the same
+        <li className={`flex items-start gap-2 p-2 rounded-lg transition ${output.isCompleted ? 'bg-green-50' : 'bg-gray-50'}`}>
+            <span className={`flex-shrink-0 ${output.isCompleted ? 'text-green-600' : 'text-gray-400'} mt-1`}>
+                <List className="w-4 h-4" />
+            </span>
+            <div className="text-sm">
+                {/* 3. Use the new helper function for dangerouslySetInnerHTML */}
+                <p 
+                    onClick={handleClick} 
+                    className={`font-medium cursor-pointer hover:underline ${output.isCompleted ? 'text-green-800' : 'text-gray-800'}`}
+                    dangerouslySetInnerHTML={getSuperscriptTitle(output.title, searchText, activityCount)} // 👈 NEW IMPLEMENTATION
+                />
+
+                <div className="flex items-center text-xs text-gray-500 mt-0.5">
+                    <User className="w-3 h-3 mr-1" />
+                    Responsible: <strong className="ml-1 font-semibold text-gray-700" dangerouslySetInnerHTML={highlightText(output.responsible, searchText)} />
+                </div>
+                {output.isCompleted && (
+                    <div className="text-xs text-green-600 font-bold mt-1 flex items-center">
+                        <CheckCircle className="w-3 h-3 mr-1 fill-green-500 text-white" /> Completed
+                    </div>
+                )}
+            </div>
+        </li>
+    );
+};
+const OutputItem1: React.FC<{ output: any, searchText: string }> = ({ output, searchText }) => {
     // 1. Initialize useRouter
     // Assuming you are using Next.js 13+ App Router
-    const router = useRouter(); 
+    const router = useRouter();
+    
+    console.log("output inspect:", output)
 
     // 2. Define the click handler
     const handleClick = () => {
