@@ -19,8 +19,8 @@ const Home = async () => {
   
   // const jobs = await getJobOpenings();
   // const  portfolioItems = await getPortifolios();
-const  defectTimestamps = await  migrateDefectTimestamps()
-  console.log("defectTimestamps",defectTimestamps)
+//const  defectTimestamps = await  migrateDefectTimestamps()
+//  console.log("defectTimestamps",defectTimestamps)
 // Data for .Horizon21
 const aboutData = {
   headingH1: "Horizon21: Excellence in ",

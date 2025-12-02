@@ -11,7 +11,7 @@ import getCurrentUser from './actions/getCurrentUser';
 import { Toaster } from "sonner";
 import { cn } from '@/lib/utils';
 import NavBar from './components/navbar/Navigation/NavBar';
-import getEnquiries from './actions/getEnquiries';
+//import getEnquiries from './actions/getEnquiries';
 export const metadata = {
   title: 'Horizon21: Illuminating Solutions',
   description: 'Building the Future today, together',
@@ -49,7 +49,7 @@ export default async function RootLayout({
   
 
   const currentUser = await getCurrentUser();
-  const enquiries =await getEnquiries();
+  //const enquiries =await getEnquiries();
    
   let paddingState='pt-28';
   return (
@@ -63,7 +63,7 @@ export default async function RootLayout({
               <LoginModal />
               <RegisterModal />
               <ModalProvider />
-              <NavBar currentUser={currentUser} enquiries={enquiries}/>
+              <NavBar currentUser={currentUser} enquiries={[]}/>
               <div className={cn("pb-5 h-full",paddingState)}>
                   {children}
               </div>

@@ -57,8 +57,21 @@ interface DefectListModel {
 
 // Data options for the Form
 const SEVERITY_OPTIONS: Priority[] = ['CRITICAL', 'HIGH', 'MEDIUM', 'LOW'];
-const TYPE_OPTIONS = ['UI/UX', 'Backend', 'Content', 'Security', 'Performance', 'Accessibility', 'Integration', 'Refactor', 'Other'];
-const ASSIGNEE_OPTIONS = ['Unassigned', 'Alice', 'Bob', 'Charlie', 'David', 'Eve'];
+
+
+//export type Priority = 'CRITICAL' | 'HIGH' | 'MEDIUM' | 'LOW';
+export type DefectType = 'MECHANICAL' | 'ELECTRICAL' | 'SOFTWARE' | 'PROCESS' | 'OTHER';
+export type DefectStatus = 'IDENTIFIED' | 'IN_PROGRESS' | 'RESOLVED' | 'CLOSED';
+export type Assignee = 'Maintenance' | 'Engineering' | 'Operations' | 'Unassigned';
+
+// Constants
+//const PRIORITY_OPTIONS: Priority[] = ['CRITICAL', 'HIGH', 'MEDIUM', 'LOW'];
+const TYPE_OPTIONS: DefectType[] = ['MECHANICAL', 'ELECTRICAL', 'SOFTWARE', 'PROCESS', 'OTHER'];
+//const STATUS_OPTIONS: DefectStatus[] = ['IDENTIFIED', 'IN_PROGRESS', 'RESOLVED', 'CLOSED'];
+const ASSIGNEE_OPTIONS: Assignee[] = ['Maintenance', 'Engineering', 'Operations', 'Unassigned'];
+
+//const TYPE_OPTIONS = ['UI/UX', 'Backend', 'Content', 'Security', 'Performance', 'Accessibility', 'Integration', 'Refactor', 'Other'];
+//const ASSIGNEE_OPTIONS = ['Unassigned', 'Alice', 'Bob', 'Charlie', 'David', 'Eve'];
 const STATUS_OPTIONS: DatabaseDefectStatus[] = ['IDENTIFIED', 'IN_ANALYSIS', 'ACTION_DEFINED', 'ACTION_IMPLEMENTED', 'CLOSED_VERIFIED'];
 
 const DEFAULT_PAGE_SIZE = 8;
@@ -354,6 +367,7 @@ const DefectForm: React.FC<DefectFormProps> = ({ initialData, onSubmit, onCancel
         </div>
     );
 }
+
 
 // --- DESKTOP TABLE ROW COMPONENT ---
 
@@ -685,43 +699,150 @@ const DefectListClient: React.FC<DefectListClientProps> = ({ currentUser }) => {
         setEditingDefect(undefined);
         setShowForm(false);
     };
-
+    // ✅ CORRECT Implementation: Wrapper for the API function (handleCreateOrUpdate)
+// // This function is what should be passed to the <DefectForm onSubmit> prop.
     const handleSubmitDefect = (data: DefectFormData & { id?: string }) => {
-        if (data.id) {
-            // Edit existing defect
-            setDefects(prev => prev.map(d => d.id === data.id ? ({
-                ...d,
-                title: data.title,
-                description: data.description || null,
-                assignee: data.assignee === 'Unassigned' ? null : data.assignee,
-                defectType: data.defectType,
-                priority: data.severity, // Map severity from form to priority in model
-                status: data.status,
-                // Update closed state for simplicity, normally handled by status transition logic
-                isClosed: data.status === 'CLOSED_VERIFIED',
-                closedDate: data.status === 'CLOSED_VERIFIED' ? (d.closedDate || new Date().toISOString().split('T')[0]) : null,
-            }) : d));
-            toast.success(`Defect ${data.id} updated successfully.`);
-        } else {
-            // Create new defect
-            const newId = `DE-${String(defects.length + 1).padStart(3, '0')}`;
-            const newDefect: DefectListModel = {
-                id: newId,
-                title: data.title,
-                description: data.description || null,
-                assignee: data.assignee === 'Unassigned' ? null : data.assignee,
-                defectType: data.defectType,
-                priority: data.severity, // Map severity from form to priority in model
-                isClosed: false,
-                closedDate: null,
-                targetResolutionDate: null, // Placeholder
-                status: 'IDENTIFIED', // New defects start as IDENTIFIED
-                _count: { comments: 0 }
-            };
-            setDefects(prev => [newDefect, ...prev]);
-            toast.success(`Defect ${newId} reported successfully!`);
+        // 1. Call the API-driven function with the form data.
+        // This function already handles:
+        // - API communication (POST for create, PUT/PATCH for update)
+        // - Local state update (setDefects) with the server response
+        // - Loading/Error/Toast states (setShowToast, setIsLoading)
+        // - Closing the form (handleCancelForm)
+        handleCreateOrUpdate(data);
+    };
+
+// // (Your new API-driven function)
+// const handleCreateOrUpdate = async (data: DefectFormData & { id?: string }) => {
+//     const isUpdate = !!data.id;
+    
+//     // Note: Assuming 'handleCancelForm' is the same as 'handleCloseForm' for cleanup
+//     const handleCancelForm = handleCloseForm; 
+    
+//     // Assuming setShowToast, setIsLoading, handleCancelForm, and setDefects are available in scope.
+//     setIsLoading(true); 
+//     setShowToast(null);
+
+//     // 1. Prepare the payload (data to send to API)
+//     // NOTE: Changed status check from 'CLOSED' to 'CLOSED_VERIFIED' to match original logic
+//     const statusForClosedCheck = data.status === 'CLOSED_VERIFIED'; 
+
+//     const defectDataToSave: DefectFormData & { isClosed: boolean, closedDate: string | null } = {
+//         ...data,
+//         // Calculate status-dependent fields for the payload
+//         isClosed: statusForClosedCheck,
+//         // Send closedDate if closed, otherwise null. Use existing date for update if present.
+//         closedDate: statusForClosedCheck ? (isUpdate && editingDefect?.closedDate) || new Date().toISOString() : null, 
+//     };
+    
+//     const method = isUpdate ? 'PUT' : 'POST';
+//     const endpoint = isUpdate ? `/api/defects/${data.id}` : '/api/defects';
+    
+//     try {
+//         const response = await fetch(endpoint, {
+//             method: method,
+//             headers: { 'Content-Type': 'application/json' },
+//             // Note: The backend must handle mapping 'severity' back to 'priority' and 'Unassigned' to null.
+//             body: JSON.stringify(defectDataToSave),
+//         });
+
+//         // Assuming the API returns the full updated/created object (DefectListModel)
+//         const result: DefectListModel = await response.json(); 
+
+//         if (!response.ok) {
+//             const errorMessage = (result as any).message || `Failed to ${isUpdate ? 'update' : 'create'} defect.`;
+//             throw new Error(errorMessage);
+//         }
+
+//         // 2. Successful API Call - Update Local State with Server Response
+//         if (isUpdate) {
+//             // Update the existing defect in the list
+//             setDefects(prev => prev.map(d => (d.id === result.id ? result : d)));
+//             setShowToast(`SUCCESS: Defect ${result.id} updated.`);
+//         } else {
+//             // Creation: Add the new defect returned by the server to the list
+//             setDefects(prev => [result, ...prev]);
+//             setShowToast(`SUCCESS: New defect ${result.id} reported successfully!`);
+//         }
+        
+//     } catch (e: any) {
+//         console.error('API Error:', e);
+//         setShowToast(`ERROR: ${e.message || 'A network error occurred.'}`); 
+//     } finally {
+//         // 3. Cleanup (runs regardless of success or failure)
+//         setIsLoading(false);
+//         handleCancelForm(); // Calls handleCloseForm
+//         setTimeout(() => setShowToast(null), 3000);
+//     }
+// };
+    // (Your new API-driven function)
+    const handleCreateOrUpdate = async (data: DefectFormData & { id?: string }) => {
+        const isUpdate = !!data.id;
+        
+        // NOTE: Assuming 'toast' is globally imported or passed down (e.g., react-hot-toast)
+        // NOTE: Assuming 'handleCancelForm' is the same as 'handleCloseForm'
+        const handleCancelForm = handleCloseForm; 
+        
+        // Assuming setShowToast, setIsLoading, handleCancelForm, and setDefects are available in scope.
+        setIsLoading(true); 
+        // You can remove setShowToast(null) if you rely solely on toast.success/error
+        setShowToast(null); 
+
+        // 1. Prepare the payload (data to send to API)
+        const statusForClosedCheck = data.status === 'CLOSED_VERIFIED'; 
+
+        const defectDataToSave: DefectFormData & { isClosed: boolean, closedDate: string | null } = {
+            ...data,
+            isClosed: statusForClosedCheck,
+            closedDate: statusForClosedCheck ? (isUpdate && editingDefect?.closedDate) || new Date().toISOString() : null, 
+        };
+        
+        const method = isUpdate ? 'PUT' : 'POST';
+        const endpoint = isUpdate ? `/api/defects/${data.id}` : '/api/defects';
+        
+        try {
+            const response = await fetch(endpoint, {
+                method: method,
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(defectDataToSave),
+            });
+
+            const result: DefectListModel = await response.json(); 
+
+            if (!response.ok) {
+                const errorMessage = (result as any).message || `Failed to ${isUpdate ? 'update' : 'create'} defect.`;
+                throw new Error(errorMessage);
+            }
+
+            // 2. Successful API Call - Update Local State with Server Response
+            if (isUpdate) {
+                // Update the existing defect in the list
+                setDefects(prev => prev.map(d => (d.id === result.id ? result : d)));
+                
+                // ✅ CORRECTED: Use external toast library for success
+                toast.success(`Defect ${result.id} updated successfully.`);
+                
+            } else {
+                // Creation: Add the new defect returned by the server to the list
+                setDefects(prev => [result, ...prev]);
+                
+                // ✅ CORRECTED: Use external toast library for success
+                toast.success(`New defect ${result.id} reported successfully!`);
+            }
+            
+        } catch (e: any) {
+            console.error('API Error:', e);
+            // Keep setShowToast here if this state drives a custom error UI, 
+            // or replace it with toast.error() if you prefer the external library.
+            setShowToast(`ERROR: ${e.message || 'A network error occurred.'}`); 
+            // OR: toast.error(e.message || 'A network error occurred.'); 
+
+        } finally {
+            // 3. Cleanup (runs regardless of success or failure)
+            setIsLoading(false);
+            handleCancelForm(); // Calls handleCloseForm
+            // Remove this if you stop using setShowToast for errors
+            // setTimeout(() => setShowToast(null), 3000); 
         }
-        handleCloseForm();
     };
 
     // --- Render Content ---

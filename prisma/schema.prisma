@@ -1011,33 +1011,71 @@ enum ActionStatus {
   OVERDUE
   CANCELLED
 }
+
+// 1. Define the Enum for Defect Types
+enum DefectType {
+  MECHANICAL
+  ELECTRICAL
+  SOFTWARE
+  CONFIGURATION
+  OTHER
+}
+
 model Defect {
-  id                 String       @id @default(auto()) @map("_id") @db.ObjectId
-  identificationDate DateTime     @default(now())
-  title              String
-  description        String
-  area               String?
-  equipmentTag       String?       @unique
-  priority           Priority     @default(MEDIUM)
-  status             DefectStatus @default(IDENTIFIED)
-  breakdownRelated   Boolean      @default(false)
-  breakdownId        String?      @db.ObjectId
+  id                    String            @id @default(auto()) @map("_id") @db.ObjectId
+  identificationDate    DateTime          @default(now())
+  title                 String
+  description           String
+  area                  String?
+  equipmentTag          String?           @unique
+  
+  // ✅ ADDED FIELD: Defect Type
+  type                  DefectType        @default(MECHANICAL) // Set a sensible default
+
+  priority              Priority          @default(MEDIUM)
+  status                DefectStatus      @default(IDENTIFIED)
+  breakdownRelated      Boolean           @default(false)
+  breakdownId           String?           @db.ObjectId
 
   // Relationships
   breakdown Breakdown? @relation(fields: [breakdownId], references: [id])
 
-  // NOTE: Cyclic references (analysis/action IDs) removed. 
-  // The links are now one-way from the dependent models back to Defect.
-  eliminationRecord DefectElimination? // 1-to-1 link from Elimination back to Defect
-  analyses          AnalysisRecord[] // 1-to-many link from Analysis back to Defect
-  actions           CorrectiveAction[] // 1-to-many link from CorrectiveAction back to Defect
-
+  eliminationRecord DefectElimination?
+  analyses          AnalysisRecord[]
+  actions           CorrectiveAction[]
   
-  createdAt               DateTime     @default(now())
-  updatedAt               DateTime     @updatedAt
+  createdAt             DateTime          @default(now())
+  updatedAt             DateTime          @updatedAt
 
   @@index([status])
 }
+// model Defect {
+//   id                 String       @id @default(auto()) @map("_id") @db.ObjectId
+//   identificationDate DateTime     @default(now())
+//   title              String
+//   description        String
+//   area               String?
+//   equipmentTag       String?       @unique
+//   priority           Priority     @default(MEDIUM)
+//   status             DefectStatus @default(IDENTIFIED)
+//   breakdownRelated   Boolean      @default(false)
+//   breakdownId        String?      @db.ObjectId
+
+//   // Relationships
+//   breakdown Breakdown? @relation(fields: [breakdownId], references: [id])
+
+//   // NOTE: Cyclic references (analysis/action IDs) removed. 
+//   // The links are now one-way from the dependent models back to Defect.
+//   eliminationRecord DefectElimination? // 1-to-1 link from Elimination back to Defect
+//   analyses          AnalysisRecord[] // 1-to-many link from Analysis back to Defect
+//   actions           CorrectiveAction[] // 1-to-many link from CorrectiveAction back to Defect
+
+  
+//   createdAt               DateTime     @default(now())
+//   updatedAt               DateTime     @updatedAt
+
+//   @@index([status])
+// }
 
 //## Defect Elimination Module (Dependent on Defect)
 model DefectElimination {
