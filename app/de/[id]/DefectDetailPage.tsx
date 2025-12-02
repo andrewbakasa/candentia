@@ -320,12 +320,13 @@ const DefectDetailView: React.FC<DefectDetailViewProps> = ({ defect, allDefectsH
                             <p className="text-gray-600">{defect.description}</p>
                             
                             {/* Detailed Metadata Grid */}
-                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-4 border-t border-gray-100">
+                            <div className="flex flex-col sm:flex-row gap-1 pt-2 border-t border-gray-100">
                                 <DetailItem icon={Calendar} label="Identified Date" value={new Date(defect.identificationDate).toLocaleDateString()} />
                                 <DetailItem icon={User} label="Reported By" value={defect?.reportedBy || 'Unknown'} />
                                 <DetailItem icon={FileText} label="Equipment Tag" value={defect.equipmentTag || 'N/A'} />
                                 <DetailItem icon={Target} label="Area/Location" value={defect.area || 'N/A'} />
                             </div>
+
 
                             {defect.breakdown && renderBreakdown(defect.breakdown)}
                             
@@ -365,7 +366,7 @@ const DefectDetailView: React.FC<DefectDetailViewProps> = ({ defect, allDefectsH
                     {/* --- TAB CONTENT: ACTIONS --- */}
                     {activeTab === 'actions' && (
                         <div className="space-y-2">
-                            <h3 className="text-xl font-semibold mb-4 border-b pb-2 flex justify-between items-center text-blue-700">
+{/*                             <h3 className="text-xl font-semibold mb-4 border-b pb-2 flex justify-between items-center text-blue-700">
                                 Defined Corrective Actions ({defect.actions.length})
                                 <button 
                                     onClick={() => setShowActionForm(!showActionForm)}
@@ -373,7 +374,42 @@ const DefectDetailView: React.FC<DefectDetailViewProps> = ({ defect, allDefectsH
                                 >
                                     <PlusCircle className="w-4 h-4 mr-1"/> Define Action
                                 </button>
-                            </h3>
+                            </h3> */}
+
+                            <div className="flex justify-between items-center pb-3 border-b border-gray-200 mb-4">
+                                
+                                {/* Title: Uses text-lg on mobile, text-xl on larger screens (sm:) */}
+                                <h3 className="text-lg sm:text-xl font-semibold text-blue-700 leading-tight flex items-center">
+                                    Defined Corrective Actions 
+                                    {/* Count: Styled as a clean, distinctive badge */}
+                                    <span className="ml-2 px-2 py-0.5 text-sm bg-blue-100 text-blue-800 rounded-full font-medium flex-shrink-0">
+                                        ({defect.actions.length})
+                                    </span>
+                                </h3>
+                                
+                                {/* Action Button: Compact on mobile (icon-only), full text on desktop */}
+                                <button 
+                                    onClick={() => setShowActionForm(!showActionForm)}
+                                    // Button Styling: Consistent shadow, rounded-lg, responsive padding
+                                    className="
+                                        bg-blue-600 text-white 
+                                        px-3 py-1 sm:px-4 sm:py-2 rounded-lg 
+                                        flex items-center 
+                                        hover:bg-blue-700 transition duration-150 
+                                        shadow-md
+                                    "
+                                    aria-label="Define New Corrective Action" 
+                                >
+                                    {/* Icon: Always visible and slightly larger (w-5 h-5) */}
+                                    <PlusCircle className="w-5 h-5 flex-shrink-0" />
+                                    
+                                    {/* Text: Hidden on mobile (default), visible on desktop (sm:inline) */}
+                                    <span className="hidden sm:inline ml-2 text-sm font-medium">
+                                        Define Action
+                                    </span>
+                                </button>
+                                
+                            </div>
 
                             {/* Progress Bar for Actions */}
                             <div className="p-4 bg-gray-100 rounded-lg shadow-inner">
@@ -396,15 +432,37 @@ const DefectDetailView: React.FC<DefectDetailViewProps> = ({ defect, allDefectsH
                     {/* --- TAB CONTENT: IMPROVEMENT --- */}
                     {activeTab === 'improvement' && (
                         <div className="space-y-2">
-                            <h3 className="text-xl font-semibold mb-4 border-b pb-2 flex justify-between items-center text-green-700">
-                                Continuous Improvement Opportunities
-                                <button 
-                                    onClick={() => setShowImprovementForm(!showImprovementForm)}
-                                    className="bg-green-600 text-white text-sm px-3 py-1 rounded-full flex items-center hover:bg-green-700 transition"
-                                >
-                                    <PlusCircle className="w-4 h-4 mr-1"/> New Opportunity
-                                </button>
-                            </h3>
+{/*                             Improved Heading for Continuous Improvement Opportunities */}
+                            <div className="flex justify-between items-center pb-3 border-b border-gray-200 mb-4">
+                                
+                                {/* Title: Smaller on mobile, larger on desktop, clear primary color */}
+                                <h3 className="text-lg sm:text-xl font-semibold text-green-700">
+                                    Continuous Improvement Opportunities
+                                </h3>
+                                
+                                {/* Button: Highly optimized for mobile */}
+                                <button 
+                                    onClick={() => setShowImprovementForm(!showImprovementForm)}
+                                    // Compact styling for mobile: only show icon + subtle text
+                                    className="
+                                        bg-green-600 text-white 
+                                        px-3 py-1 sm:px-4 sm:py-2 rounded-lg 
+                                        flex items-center 
+                                        hover:bg-green-700 transition duration-150 
+                                        shadow-md
+                                    "
+                                    aria-label="Add New Continuous Improvement Opportunity" // Accessibility Improvement
+                                >
+                                    {/* Icon: Always visible and central */}
+                                    <PlusCircle className="w-5 h-5" />
+                                    
+                                    {/* Text: Hidden on smaller screens (below 'sm' breakpoint), only visible on desktop */}
+                                    <span className="hidden sm:inline ml-2 text-sm font-medium">
+                                        New Opportunity
+                                    </span>
+                                </button>
+                                
+                            </div>
                             <p className="text-gray-600 p-3 bg-gray-50 rounded">Use this section to log systematic process or CI opportunities identified during the defect resolution process.</p>
                             {/* Placeholder for listing existing opportunities */}
                             <div className="p-4 bg-yellow-50 rounded-xl border border-yellow-200 text-gray-700">
