@@ -18,20 +18,20 @@ export interface DefectDetail extends PrismaDefect {
 // These types and enums must be consistent with your Prisma schema
 // Note: These definitions are often used when the Prisma client itself isn't directly available in front-end code.
 
-export enum Priority {
-    LOW = 'LOW',
-    MEDIUM = 'MEDIUM',
-    HIGH = 'HIGH',
-    CRITICAL = 'CRITICAL',
-}
+// export enum Priority {
+//     LOW = 'LOW',
+//     MEDIUM = 'MEDIUM',
+//     HIGH = 'HIGH',
+//     CRITICAL = 'CRITICAL',
+// }
 
-export enum DefectStatus {
-    IDENTIFIED = 'IDENTIFIED',
-    IN_ANALYSIS = 'IN_ANALYSIS',
-    ACTION_DEFINED = 'ACTION_DEFINED',
-    ACTION_IMPLEMENTED = 'ACTION_IMPLEMENTED',
-    CLOSED_VERIFIED = 'CLOSED_VERIFIED',
-}
+// export enum DefectStatus {
+//     IDENTIFIED = 'IDENTIFIED',
+//     IN_ANALYSIS = 'IN_ANALYSIS',
+//     ACTION_DEFINED = 'ACTION_DEFINED',
+//     ACTION_IMPLEMENTED = 'ACTION_IMPLEMENTED',
+//     CLOSED_VERIFIED = 'CLOSED_VERIFIED',
+// }
 
 // Interface for the data sent to the POST API for creating a new Defect
 export interface NewDefectPayload {
@@ -64,54 +64,84 @@ export interface DefectResponse {
     status: DefectStatus;
 }
 
+// --- 1. NEW TYPESCRIPT INTERFACES FOR DEFECT MODULE ---
 
-// // Imports from Prisma Client (automatically generated)
-// // import { Priority, DefectStatus, AnalysisMethod, ActionStatus } from '@prisma/client';
+// Define the enums used in the Defect model
+enum Priority {
+  LOW = 'LOW',
+  MEDIUM = 'MEDIUM',
+  HIGH = 'HIGH',
+  CRITICAL = 'CRITICAL'
+}
 
-// export interface Defect {
-//     id: string;
-//     identificationDate: Date;
-//     title: string;
-//     description: string;
-//     area: string | null;
-//     equipmentTag: string;
-//     priority: 'LOW' | 'MEDIUM' | 'HIGH' | 'CRITICAL';
-//     status: 'IDENTIFIED' | 'IN_ANALYSIS' | 'ACTION_DEFINED' | 'ACTION_IMPLEMENTED' | 'CLOSED_VERIFIED';
-//     breakdownRelated: boolean;
-//     breakdownId: string | null;
-    
-//     // Optional/Nested Data for Display
-//     breakdown?: Breakdown;
-//     eliminationRecord?: DefectElimination;
-//     analysis?: AnalysisRecord;
-//     action?: CorrectiveAction;
-// }
+enum DefectStatus {
+  IDENTIFIED = 'IDENTIFIED',
+  IN_ANALYSIS = 'IN_ANALYSIS',
+  ACTION_DEFINED = 'ACTION_DEFINED',
+  ACTION_IMPLEMENTED = 'ACTION_IMPLEMENTED',
+  CLOSED_VERIFIED = 'CLOSED_VERIFIED'
+}
 
-// export interface RootCause {
-//     id: string;
-//     rootCauseText: string;
-//     analysisRecordId: string | null;
-//     criticalityScore: number | null;
-    
-//     // Optional/Nested Data for Display
-//     analysisRecord?: AnalysisRecord;
-//     actions?: CorrectiveAction[];
-// }
+enum ActionStatus {
+  PENDING = 'PENDING',
+  IN_PROGRESS = 'IN_PROGRESS',
+  COMPLETE = 'COMPLETE',
+  OVERDUE = 'OVERDUE',
+  CANCELLED = 'CANCELLED'
+}
 
-// export interface CorrectiveAction {
-//     id: string;
-//     defectId: string | null;
-//     rootCauseId: string | null;
-//     description: string;
-//     responsible: string;
-//     dueDate: Date;
-//     completionDate: Date | null;
-//     status: 'PENDING' | 'IN_PROGRESS' | 'COMPLETE' | 'OVERDUE' | 'CANCELLED';
+// Minimal models for nested relations for type safety during serialization
+interface CorrectiveActionModel {
+  id: string;
+  description: string;
+  responsible: string;
+  dueDate: string; // Serialized date string
+  completionDate: string | null; // Serialized date string or null
+  status: ActionStatus;
+}
 
-//     // Optional/Nested Data for Display
-//     defect?: Defect;
-//     rootCause?: RootCause;
-// }
+interface AnalysisRecordModel {
+  id: string;
+  analystName: string;
+  analysisDate: string; // Serialized date string
+  methodUsed: string; // AnalysisMethod enum will be a string
+  summaryOfFindings: string;
+}
 
-// // Add interfaces for Breakdown, FMEA, WorkOrder, etc., following the Prisma model structure.
-// // This standardization across the stack is the primary benefit of using Prisma with TypeScript.
+interface DefectEliminationModel {
+  id: string;
+  dateClosed: string | null; // Serialized date string or null
+  // ... other fields if needed, like rootCause relation
+}
+
+interface BreakdownModel {
+  id: string;
+  startTime: string; // Serialized date string
+  endTime: string | null; // Serialized date string or null
+  durationMinutes: number | null;
+  isClosed: boolean;
+}
+
+/**
+ * @interface DefectModel
+ * The core model for a Defect record, including nested relations.
+ * Dates are defined as strings for the client component (after serialization).
+ */
+export interface DefectModel {
+  id: string;
+  identificationDate: string; // Serialized date string
+  title: string;
+  description: string;
+  area: string | null;
+  equipmentTag: string | null;
+  priority: Priority;
+  status: DefectStatus;
+  breakdownRelated: boolean;
+  breakdownId: string | null;
+
+  // Relationships (will be included via Prisma)
+  breakdown: BreakdownModel | null;
+  eliminationRecord: DefectEliminationModel | null;
+  analyses: AnalysisRecordModel[];
+  actions: CorrectiveActionModel[];
+}
