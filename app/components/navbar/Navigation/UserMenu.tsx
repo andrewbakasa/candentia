@@ -134,9 +134,9 @@ const UserMenu: React.FC<UserMenuProps> = ({ currentUser, handleNavigate }) => {
                 <hr className="my-1" />
                 
                 {/* --- Admin Careers Link --- */}
-                {/* {currentUser?.isAdmin && (
-                  <MenuItem label="Careers" onClick={() => handleMenuItemClickWithNav("/edit-jobs")} />
-                )} */}
+                {currentUser?.isAdmin && (
+                  <MenuItem label="Defects" onClick={() => handleMenuItemClickWithNav("/de")} />
+                )}
 
                  {isAuthorizedContracts && (<MenuItem label="Business Proposals" onClick={() => handleMenuItemClickWithNav("/bps")} />)} 
 

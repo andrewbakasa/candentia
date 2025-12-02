@@ -881,10 +881,9 @@ model StrategyActivityComment {
 
   // Foreign Keys
   activityId String @db.ObjectId
-  authorId  String @db.ObjectId
-   
+  authorId   String @db.ObjectId
 
-  updatedAt DateTime  @updatedAt
+  updatedAt      DateTime         @updatedAt
   // Relationships
   outputActivity StrategyActivity @relation(fields: [activityId], references: [id], onDelete: Cascade)
   author         User             @relation(fields: [authorId], references: [id])
@@ -973,3 +972,249 @@ model StrategicAttribute {
   @@index([proposalId])
   @@index([criterionId])
 }
+
+// schema.prisma
+
+// --- Core Entities ---
+
+// ## Defect Identification Module (Core Entity)
+
+// --- Enums for Standardization ---
+enum Priority {
+  LOW
+  MEDIUM
+  HIGH
+  CRITICAL
+}
+
+enum DefectStatus {
+  IDENTIFIED
+  IN_ANALYSIS
+  ACTION_DEFINED
+  ACTION_IMPLEMENTED
+  CLOSED_VERIFIED
+}
+
+enum AnalysisMethod {
+  APOLLO
+  FIVE_WHYS
+  FAULT_TREE
+  TAPROOT
+  FMECA
+  OTHER
+}
+
+enum ActionStatus {
+  PENDING
+  IN_PROGRESS
+  COMPLETE
+  OVERDUE
+  CANCELLED
+}
+model Defect {
+  id                 String       @id @default(auto()) @map("_id") @db.ObjectId
+  identificationDate DateTime     @default(now())
+  title              String
+  description        String
+  area               String?
+  equipmentTag       String?       @unique
+  priority           Priority     @default(MEDIUM)
+  status             DefectStatus @default(IDENTIFIED)
+  breakdownRelated   Boolean      @default(false)
+  breakdownId        String?      @db.ObjectId
+
+  // Relationships
+  breakdown Breakdown? @relation(fields: [breakdownId], references: [id])
+
+  // NOTE: Cyclic references (analysis/action IDs) removed. 
+  // The links are now one-way from the dependent models back to Defect.
+  eliminationRecord DefectElimination? // 1-to-1 link from Elimination back to Defect
+  analyses          AnalysisRecord[] // 1-to-many link from Analysis back to Defect
+  actions           CorrectiveAction[] // 1-to-many link from CorrectiveAction back to Defect
+
+  @@index([status])
+}
+
+//## Defect Elimination Module (Dependent on Defect)
+model DefectElimination {
+  id          String    @id @default(auto()) @map("_id") @db.ObjectId
+  defectId    String    @unique @db.ObjectId
+  dateClosed  DateTime?
+  rootCauseId String?   @db.ObjectId // Link to the determined Root Cause
+
+  // Relationships
+  // If Defect is deleted, DefectElimination should be deleted (CASCADE).
+  defect    Defect     @relation(fields: [defectId], references: [id], onDelete: Cascade)
+  rootCause RootCause? @relation(fields: [rootCauseId], references: [id])
+
+  followUpRecords FollowUp[] // DefectElimination is parent to FollowUp
+
+  @@index([dateClosed])
+}
+
+//## Closing the Breakdown Module (Parent to Defect)
+model Breakdown {
+  id              String    @id @default(auto()) @map("_id") @db.ObjectId
+  startTime       DateTime
+  endTime         DateTime?
+  durationMinutes Int?
+  causeCategory   String?
+  isClosed        Boolean   @default(false)
+  workOrderId     String?   @db.ObjectId
+
+  // Relationships
+  defects   Defect[]
+  workOrder WorkOrder? @relation(fields: [workOrderId], references: [id]) // Link to the associated Maintenance Work Order
+
+  @@index([startTime, isClosed])
+}
+
+//## Continuous Improvement (CI) Module
+model ImprovementOpportunity {
+  id                 String    @id @default(auto()) @map("_id") @db.ObjectId
+  dateIdentified     DateTime  @default(now())
+  description        String
+  targetArea         String?
+  sourceModule       String?
+  proposedAction     String
+  implementationDate DateTime?
+  isImplemented      Boolean   @default(false)
+
+  // Relationships
+  actions CorrectiveAction[] // CI can result in many corrective actions
+
+  @@index([isImplemented, dateIdentified])
+}
+
+//## Analysis Module (Dependent on Defect)
+model AnalysisRecord {
+  id                String         @id @default(auto()) @map("_id") @db.ObjectId
+  defectId          String         @unique @db.ObjectId // 1-to-1 with Defect: one defect has one analysis (initially)
+  analystName       String
+  analysisDate      DateTime       @default(now())
+  methodUsed        AnalysisMethod @default(FIVE_WHYS)
+  summaryOfFindings String
+  rootCauseId       String?        @db.ObjectId // Foreign key to the determined Root Cause
+
+  // Relationships
+  // If Defect is deleted, AnalysisRecord should be deleted (CASCADE).
+  defect    Defect     @relation(fields: [defectId], references: [id], onDelete: Cascade)
+  rootCause RootCause? @relation(fields: [rootCauseId], references: [id])
+
+  @@index([methodUsed])
+}
+
+//## Critical Analysis (Root Cause Determination)
+model RootCause {
+  id               String  @id @default(auto()) @map("_id") @db.ObjectId
+  rootCauseText    String
+  analysisRecordId String? @unique @db.ObjectId // 1-to-1 link to the analysis record
+  criticalityScore Int?
+  fmeaRecordId     String? @unique @db.ObjectId
+
+  // Relationships
+  // If AnalysisRecord is deleted, RootCause should be deleted (CASCADE).
+  //analysisRecord     AnalysisRecord? @relation(fields: [analysisRecordId], references: [id], onDelete: Cascade)
+  eliminationRecord DefectElimination[] // 1-to-many, Root Cause can be linked to multiple eliminations
+  actions           CorrectiveAction[]
+  fmeaRecord        FMEA?               @relation(fields: [fmeaRecordId], references: [id])
+  AnalysisRecord    AnalysisRecord[]
+
+  @@index([criticalityScore])
+}
+
+//## Correct Module (Defining and Implementing Actions)
+model CorrectiveAction {
+  id             String       @id @default(auto()) @map("_id") @db.ObjectId
+  defectId       String?      @db.ObjectId
+  rootCauseId    String?      @db.ObjectId
+  improvementId  String?      @db.ObjectId
+  description    String
+  responsible    String
+  dueDate        DateTime
+  completionDate DateTime?
+  status         ActionStatus @default(PENDING)
+
+  // Relationships
+  // If Defect/RootCause is deleted, the Action remains, but the foreign key is set to null (SetNull).
+  // This allows tracking what action was taken even if the source defect is archived/removed.
+  defect                 Defect?                 @relation(fields: [defectId], references: [id], onDelete: SetNull)
+  rootCause              RootCause?              @relation(fields: [rootCauseId], references: [id], onDelete: SetNull)
+  improvementOpportunity ImprovementOpportunity? @relation(fields: [improvementId], references: [id], onDelete: SetNull)
+
+  @@index([status, dueDate])
+}
+
+//## Follow Up Module (Dependent on Defect Elimination)
+model FollowUp {
+  id                  String   @id @default(auto()) @map("_id") @db.ObjectId
+  eliminationId       String   @db.ObjectId
+  followUpDate        DateTime @default(now())
+  reviewPeriodDays    Int?
+  effectivenessRating Int?
+  observations        String?
+
+  // Relationships
+  // If DefectElimination is deleted, FollowUp should be deleted (CASCADE).
+  eliminationRecord DefectElimination @relation(fields: [eliminationId], references: [id], onDelete: Cascade)
+
+  @@index([followUpDate])
+}
+
+//## FMEA (Failure Mode and Effects Analysis)
+model FMEA {
+  id                 String @id @default(auto()) @map("_id") @db.ObjectId // Using ObjectId for consistency
+  equipmentTag       String
+  failureMode        String
+  failureEffect      String
+  potentialCause     String
+  riskPriorityNumber Int
+  mitigationAction   String
+
+  // Relationships
+  rootCause RootCause[]
+
+  @@index([equipmentTag, riskPriorityNumber])
+}
+
+//## Reliability Modeling
+model ReliabilityModel {
+  id                   String @id @default(auto()) @map("_id") @db.ObjectId
+  equipmentTag         String @unique
+  modelType            String
+  MTBF_hours           Float?
+  MTTR_hours           Float?
+  predictedReliability Float?
+
+  // @@unique([equipmentTag])
+}
+
+//## Work Management Module
+model WorkOrder {
+  id              String    @id @default(auto()) @map("_id") @db.ObjectId
+  workOrderNumber String    @unique
+  dateCreated     DateTime  @default(now())
+  dateCompleted   DateTime?
+  isOutstanding   Boolean   @default(true)
+  priority        Priority  @default(MEDIUM)
+  estimatedHours  Float?
+  actualHours     Float?
+  description     String
+
+  // Relationships
+  breakdown Breakdown[] // WorkOrder is parent to Breakdown
+
+  @@index([isOutstanding, dateCreated])
+}
+
+//## Measure Module
+model MetricRecord {
+  id                String   @id @default(auto()) @map("_id") @db.ObjectId
+  dateOfMeasurement DateTime @default(now())
+  metricName        String
+  value             Float
+  equipmentTag      String?
+
+  @@index([metricName, dateOfMeasurement])
+}
+
