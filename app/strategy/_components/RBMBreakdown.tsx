@@ -1,6 +1,8 @@
+'use client'
 import React from 'react';
 import { Target, ArrowRight, CheckCircle, User, Zap, List } from 'lucide-react';
 import { StrategyGoal, StrategyOutcome, StrategyOutput } from './StrategyCard';
+import { useRouter } from 'next/navigation';
 
 
 // --- Helper Function for Highlighting (New Addition) ---
@@ -41,13 +43,56 @@ const highlightText = (text: string, search: string): HighlightResult => {
 
 // --- 1. Sub-Component for Output Items (Actionable Tasks) ---
 // Prop change: added searchText
-const OutputItem: React.FC<{ output: StrategyOutput, searchText: string }> = ({ output, searchText }) => (
+
+// --- 1. Sub-Component for Output Items (Actionable Tasks) ---
+// Prop change: added searchText
+const OutputItem: React.FC<{ output: StrategyOutput, searchText: string }> = ({ output, searchText }) => {
+    // 1. Initialize useRouter
+    // Assuming you are using Next.js 13+ App Router
+    const router = useRouter(); 
+
+    // 2. Define the click handler
+    const handleClick = () => {
+        // Use router.push() to navigate
+        router.push(`/outputs/${output.id}`);
+    };
+
+    return (
+        // The rest of your JSX remains the same
+        <li className={`flex items-start gap-2 p-2 rounded-lg transition ${output.isCompleted ? 'bg-green-50' : 'bg-gray-50'}`}>
+            <span className={`flex-shrink-0 ${output.isCompleted ? 'text-green-600' : 'text-gray-400'} mt-1`}>
+                <List className="w-4 h-4" />
+            </span>
+            <div className="text-sm">
+                {/* 3. Attach the click handler to the element */}
+                <p 
+                    onClick={handleClick} 
+                    className={`font-medium cursor-pointer hover:underline ${output.isCompleted ? 'text-green-800' : 'text-gray-800'}`}
+                    dangerouslySetInnerHTML={highlightText(output.title, searchText)}
+                />
+
+                 <div className="flex items-center text-xs text-gray-500 mt-0.5">
+                 <User className="w-3 h-3 mr-1" />
+                 Responsible: <strong  className="ml-1 font-semibold text-gray-700"  dangerouslySetInnerHTML={highlightText(output.responsible, searchText)}
+                />
+             </div>
+             {output.isCompleted && (
+                 <div className="text-xs text-green-600 font-bold mt-1 flex items-center">
+                     <CheckCircle className="w-3 h-3 mr-1 fill-green-500 text-white" /> Completed
+                 </div>
+             )}
+            </div>
+        </li>
+    );
+};
+const OutputItem2: React.FC<{ output: StrategyOutput, searchText: string }> = ({ output, searchText }) => (
+    
      <li className={`flex items-start gap-2 p-2 rounded-lg transition ${output.isCompleted ? 'bg-green-50' : 'bg-gray-50'}`}>
          <span className={`flex-shrink-0 ${output.isCompleted ? 'text-green-600' : 'text-gray-400'} mt-1`}>
              <List className="w-4 h-4" />
          </span>
          <div className="text-sm">
-             <p className={`font-medium ${output.isCompleted ? 'text-green-800' : 'text-gray-800'}`}
+             <p  className={`font-medium ${output.isCompleted ? 'text-green-800' : 'text-gray-800'}`}
                 dangerouslySetInnerHTML={highlightText(output.title, searchText)}/>
 
              <div className="flex items-center text-xs text-gray-500 mt-0.5">

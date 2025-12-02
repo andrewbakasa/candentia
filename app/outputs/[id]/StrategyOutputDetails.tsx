@@ -707,7 +707,8 @@ const ParentHierarchy: React.FC<{ outcome?: StrategyOutcomeFull|null; goal?: Str
     const ParentItem: React.FC<{ title: string; linkId: string; type: 'outcome' | 'goal', children?: React.ReactNode }> = ({ title, linkId, type, children }) => (
         <>
             <button
-                onClick={() => handleNavigation(type, linkId)}
+                //onClick={() => handleNavigation(type, linkId)}
+                onClick={() =>  router.push(`/strategies/${linkId}`)}
                 className="text-sm font-medium text-gray-500 hover:text-indigo-600 transition truncate max-w-[150px] sm:max-w-none"
                 title={title}
             >
@@ -729,7 +730,15 @@ const ParentHierarchy: React.FC<{ outcome?: StrategyOutcomeFull|null; goal?: Str
             <span className="text-gray-400 mx-2">/</span>
 
             {/* Check if Outcome and Goal exist before rendering the hierarchy */}
-            {outcome && (
+            {outcome && goal && (                           
+                <ParentItem title={goal.strategy?.title|| "Title"} 
+                    linkId={goal?.strategy?.id||""} type="goal"
+                >
+                    <span className="font-semibold text-gray-700">Current Output</span>
+                </ParentItem>                         
+            )}
+              {/* Check if Outcome and Goal exist before rendering the hierarchy */}
+            {/* {outcome && (
                 <ParentItem title={outcome.title} linkId={outcome.id} type="outcome">
                     {goal && (
                         <ParentItem title={goal.title} linkId={goal.id} type="goal">
@@ -738,12 +747,10 @@ const ParentHierarchy: React.FC<{ outcome?: StrategyOutcomeFull|null; goal?: Str
                                 <span className="font-semibold text-gray-700">Current Output</span>
                             </ParentItem>
                            )}
-                            {/* <span className="font-semibold text-gray-700">{goal.goal?.title}</span> */}
-                            {/* <span className="font-semibold text-gray-700">Current Output</span> */}
                         </ParentItem>
                     )}
                 </ParentItem>
-            )}
+            )} */}
         </div>
     );
 };
@@ -763,7 +770,7 @@ const DetailItem: React.FC<{ label: string, value: React.ReactNode, icon: React.
 const ParentDetailBlock: React.FC<{ title: string; description: string|null; linkId: string; type: 'outcome' | 'goal' }> = ({ title, description, linkId, type }) => {
     const router = useRouter();
     const Icon = type === 'outcome' ? CheckCircle : User; // Use relevant icon
-
+    //const Icon = type === 'outcome' ? CheckCircle : User; // Use relevant icon
     return (
         <div className="p-4 border border-gray-200 rounded-lg shadow-md hover:shadow-lg transition duration-300 bg-white">
             <div className='flex justify-between items-start'>
@@ -773,6 +780,9 @@ const ParentDetailBlock: React.FC<{ title: string; description: string|null; lin
                 </h4>
                 <button 
                     //  onClick={() => router.push(`/${type}s/${linkId}`)}
+                   //  onClick={() => { if (type !== 'goal'){ router.push(`/${type}s/${linkId}`)} else{router.push(`/strategies/${linkId}`)}}}
+                      onClick={() => { router.push(`/strategies/${linkId}`)}}
+                 
                      className="text-sm text-indigo-600 hover:text-indigo-800 font-semibold"
                 >
                     View Details
@@ -1422,7 +1432,8 @@ function StrategyOutputDetailView({ strategyOutput: initialStrategy, currentUser
                             <ParentDetailBlock 
                                 title={strategyOutput.outcome.title} 
                                 description={strategyOutput.outcome.description}
-                                linkId={strategyOutput.outcome.id}
+                                //linkId={strategyOutput.outcome.id}
+                                linkId={strategyOutput?.outcome?.goal?.strategy?.id||""}
                                 type="outcome"
                             />
                         )}
@@ -1430,7 +1441,8 @@ function StrategyOutputDetailView({ strategyOutput: initialStrategy, currentUser
                             <ParentDetailBlock 
                                 title={strategyOutput.outcome?.goal.title} 
                                 description={strategyOutput.outcome?.goal.description}
-                                linkId={strategyOutput.outcome?.goal.id}
+                                // linkId={strategyOutput.outcome?.goal.id}
+                                linkId={strategyOutput.outcome?.goal.strategy?.id||""}
                                 type="goal"
                             />
                         )}
