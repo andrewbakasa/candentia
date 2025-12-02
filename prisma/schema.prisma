@@ -1032,6 +1032,10 @@ model Defect {
   analyses          AnalysisRecord[] // 1-to-many link from Analysis back to Defect
   actions           CorrectiveAction[] // 1-to-many link from CorrectiveAction back to Defect
 
+  
+  createdAt               DateTime     @default(now())
+  updatedAt               DateTime     @updatedAt
+
   @@index([status])
 }
 

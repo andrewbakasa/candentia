@@ -10,6 +10,7 @@ import getJobOpenings from "./actions/getJobOpenings"; // Keep the import
 import Investments from "./components/Investments";
 import getPortifolios from "./actions/getPortFolios";
 import About from "./components/About";
+import { migrateDefectTimestamps } from "./actions/updateCreatedAtUpdatedAt";
 
 //import { saveInitialJobs } from "./job/[jobId]/_components/initialDB";
 //import { saveseedPortfolios } from "./financing/data/saveInvestmentPortfolios";
@@ -18,9 +19,9 @@ const Home = async () => {
   
   // const jobs = await getJobOpenings();
   // const  portfolioItems = await getPortifolios();
-  
-  
-// Data for Horizon21
+const  defectTimestamps = await  migrateDefectTimestamps()
+  console.log("defectTimestamps",defectTimestamps)
+// Data for .Horizon21
 const aboutData = {
   headingH1: "Horizon21: Excellence in ",
   span: "Innovation",
@@ -71,7 +72,4 @@ const aboutData = {
 
 export default Home;
 
-function deleteOrphanedStrategyOutputs() {
-  throw new Error("Function not implemented.");
-}
 
