@@ -75,6 +75,7 @@ export interface CorrectiveActionModel {
  * The final, serializable structure for the single Defect view.
  */
 export interface DefectDetailModel {
+  improvementOpportunities: any[];
   reportedBy: string;
   id: string;
   identificationDate: string; // Serialized Date

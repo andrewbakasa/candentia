@@ -1,7 +1,14 @@
 'use client';
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useMemo } from 'react';
 import { 
-    Bug, AlertTriangle, Clock, Target, User, Calendar, LucideIcon, FileText, Zap, Aperture, CheckCircle, Package, PlusCircle, ListTodo, Layers, ArrowLeft
+    Bug, AlertTriangle, Clock, Target, User, Calendar, LucideIcon, FileText, Zap, Aperture, CheckCircle, Package, PlusCircle, ListTodo, Layers, ArrowLeft,
+    XCircle,
+    Trophy,
+    ChevronUp,
+    ChevronDown,
+    Trash2,
+    Edit,
+    Save
 } from 'lucide-react';
 import toast from 'react-hot-toast'; // Recommended for better user feedback
 
@@ -11,15 +18,44 @@ import {
     BreakdownModel, 
     CorrectiveActionModel, 
     DefectDetailModel, 
-    DefectStatus, 
+    //DefectStatus, 
     Priority, 
     AnalysisRecordModel, 
     AnalysisMethod 
 } from "../_components/types/types";
+import { formatDate } from '@/app/contracts/_components/utils';
+import ConfirmAction from '../_components/ConfirmAction';
 
+// --- Type Definitions (Assuming these are available) ---
+interface ImprovementOpportunity {
+    id: string;
+    dateIdentified: string;
+    description: string;
+    targetArea: string;
+    sourceModule: string | null;
+    proposedAction: string;
+    implementationDate: string | null;
+    isImplemented: boolean;
+}
 
+enum DefectStatus {
+    IDENTIFIED = 'IDENTIFIED',
+    IN_ANALYSIS = 'IN_ANALYSIS',
+    ACTION_DEFINED = 'ACTION_DEFINED',
+    ACTION_IMPLEMENTED = 'ACTION_IMPLEMENTED',
+    CLOSED_VERIFIED = 'CLOSED_VERIFIED',
+}
+
+interface Defect {
+    id: string;
+    title: string;
+    status: DefectStatus;
+    area: string | null;
+    improvementOpportunities: ImprovementOpportunity[];
+    // Include other necessary defect fields here
+}
 // --- UTILITY COMPONENTS ---
-
+ const API_BASE_URL = '/api/defects/io'; // Assuming API path
 // Utility function to get priority color classes for styling
 const getPriorityClasses = (priority: Priority | DefectStatus): string => {
   switch (priority) {
@@ -59,67 +95,7 @@ const DetailItem: React.FC<DetailItemProps> = ({ icon: Icon, label, value, span 
     </div>
   </div>
 );
-
-// --- MAIN COMPONENT INTERFACE & IMPLEMENTATION ---
-
-interface DefectDetailViewProps {
-  currentUser: any; // Type your user model correctly
-  defect: DefectDetailModel;
-  allDefectsHref: string; // NEW PROP for the back link target
-}
-
-const DefectDetailView: React.FC<DefectDetailViewProps> = ({ defect, allDefectsHref }) => {
-
-    const [activeTab, setActiveTab] = useState<'details' | 'analysis' | 'actions' | 'improvement'>('details');
-    // New state for toggling form visibility
-    const [showActionForm, setShowActionForm] = useState(false);
-    const [showAnalysisForm, setShowAnalysisForm] = useState(false);
-    const [showImprovementForm, setShowImprovementForm] = useState(false);
-
-    const getActionProgress = (actions: CorrectiveActionModel[]) => {
-        if (actions.length === 0) return 0;
-        const completed = actions.filter(a => a.status === ActionStatus.COMPLETE).length;
-        return Math.round((completed / actions.length) * 100);
-    };
-
-    const actionProgress = getActionProgress(defect.actions);
-
-    // --- RENDER FUNCTIONS ---
-
-    const renderAction = (action: CorrectiveActionModel) => {
-        const isComplete = action.status === ActionStatus.COMPLETE;
-        const statusClasses = isComplete ? 'bg-green-100 text-green-700 border-green-500' : 'bg-yellow-100 text-yellow-700 border-yellow-500';
-
-        return (
-            <div key={action.id} className="border-l-4 border-blue-500 pl-4 py-3 mb-4 bg-white rounded shadow hover:shadow-md transition">
-                <div className="flex justify-between items-start">
-                    <p className={`font-semibold text-gray-800 text-base ${isComplete ? 'line-through text-gray-500' : ''}`}>{action.description}</p>
-                    <span className={`text-xs font-medium px-2 py-0.5 rounded-full whitespace-nowrap border ${statusClasses}`}>
-                        {action.status}
-                    </span>
-                </div>
-                <p className="text-sm text-gray-700 mt-1">Responsible: **{action.responsible}**</p>
-                <p className="text-xs text-gray-500 mt-1">Due: **{new Date(action.dueDate).toLocaleDateString()}**</p>
-            </div>
-        );
-    };
-
-    const renderBreakdown = (breakdown: BreakdownModel) => (
-        <div className="bg-red-50 p-4 rounded-xl border-l-4 border-red-500 shadow-md">
-            <h4 className="font-bold text-lg text-red-700 flex items-center"><Package className="w-5 h-5 mr-2"/> Breakdown Event</h4>
-            <p className="mt-2 text-sm text-gray-700"><strong>Start Time:</strong> {new Date(breakdown.startTime).toLocaleString()}</p>
-            <p className="text-sm text-gray-700"><strong>Duration:</strong> <span className="font-bold">{breakdown.durationMinutes || 'N/A'}</span> minutes</p>
-        </div>
-    );
-
-    const renderAnalysis = (analysis: AnalysisRecordModel) => (
-        <div key={analysis.id} className="mb-4 p-4 bg-indigo-50 rounded-xl border-l-4 border-indigo-500 shadow-sm hover:bg-indigo-100 transition">
-            <p className="text-sm text-indigo-800 font-medium">**{analysis.methodUsed}** Analysis by **{analysis.analystName}** on {new Date(analysis.analysisDate).toLocaleDateString()}</p>
-            <p className="mt-2 text-gray-700 text-sm italic border-t border-indigo-200 pt-2">Findings: {analysis.summaryOfFindings}</p>
-        </div>
-    );
-
-    // --- PLACEHOLDER FORM COMPONENTS (Wrapped for desktop) ---
+  // --- PLACEHOLDER FORM COMPONENTS (Wrapped for desktop) ---
     // Forms use an 'onClose' prop to allow the parent to hide them
     const BaseFormCard = ({ title, icon: Icon, children, color, onClose }: { title: string, icon: LucideIcon, children: React.ReactNode, color: string, onClose: () => void }) => (
         <div className={`p-4 border-2 border-dashed ${color} bg-white rounded-xl shadow-lg mt-6`}>
@@ -240,19 +216,312 @@ const DefectDetailView: React.FC<DefectDetailViewProps> = ({ defect, allDefectsH
             </BaseFormCard>
         );
     };
-    // --- END OF UPDATED COMPONENT ---
+// --- MAIN COMPONENT INTERFACE & IMPLEMENTATION ---
+// --- ImprovementOpportunityForm Component (CREATE/EDIT) ---
+// We make the form reusable by checking if 'initialData' is passed (for editing).
+interface OpportunityFormProps {
+    sourceId: string;
+    onClose: () => void;
+    onSuccess: (io: ImprovementOpportunity, mode: 'create' | 'edit') => void;
+    initialData?: ImprovementOpportunity; // Optional prop for editing
+}
+
+const ImprovementOpportunityForm: React.FC<OpportunityFormProps> = ({ sourceId, onClose, onSuccess, initialData }) => {
+    const isEditMode = !!initialData;
+    const [proposedAction, setProposedAction] = useState(initialData?.proposedAction || '');
+    const [targetArea, setTargetArea] = useState(initialData?.targetArea || '');
+    const [description, setDescription] = useState(initialData?.description || '');
+    const [isImplemented, setIsImplemented] = useState(initialData?.isImplemented || false);
+    const [isSubmitting, setIsSubmitting] = useState(false);
+
+    const handleSubmitOpportunity = useCallback(async (e: React.FormEvent) => {
+        e.preventDefault();
+        if (!proposedAction.trim() || !targetArea.trim()) {
+            toast.error('Proposed Action and Target Area are required.');
+            return;
+        }
+
+        setIsSubmitting(true);
+
+        const payload = {
+            id: initialData?.id, // Only sent in edit mode
+            description: description.trim(),
+            targetArea: targetArea.trim(),
+            proposedAction: proposedAction.trim(),
+            isImplemented: isImplemented,
+            // Source ID is only needed for creation
+            sourceId: !isEditMode ? sourceId : undefined, 
+        };
+       
+
+        const method = isEditMode ? 'PUT' : 'POST';
+        const url = isEditMode ? `${API_BASE_URL}/${initialData!.id}` : API_BASE_URL;
+
+        try {
+            const response = await fetch(url, {
+                method: method,
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload),
+            });
+
+            if (!response.ok) {
+                const errorResult = await response.json();
+                throw new Error(errorResult.message || `Failed to ${method === 'PUT' ? 'update' : 'create'} opportunity.`);
+            }
+
+            const result: ImprovementOpportunity = await response.json();
+            
+            toast.success(`Opportunity ${isEditMode ? 'updated' : 'submitted'} successfully!`);
+            onSuccess(result, isEditMode ? 'edit' : 'create'); 
+            onClose();
+
+        } catch (error: any) {
+            console.error('Submission Error:', error);
+            toast.error(`Error: ${error.message || 'Network error.'}`);
+        } finally {
+            setIsSubmitting(false);
+        }
+    }, [sourceId, proposedAction, targetArea, description, isImplemented, isEditMode, initialData, onClose, onSuccess]);
+
+    return (
+        <form onSubmit={handleSubmitOpportunity} className="p-4 mt-4 border border-green-300 bg-green-50 rounded-lg shadow-inner space-y-3">
+            <h4 className="text-lg font-semibold text-green-700">
+                {isEditMode ? `Edit Opportunity ${initialData?.id.substring(0, 8)}` : `New Opportunity for Defect ${sourceId.substring(0, 8)}`}
+            </h4>
+            
+            <input 
+                type="text" 
+                placeholder="Target Area (e.g., Maintenance SOPs)" 
+                value={targetArea}
+                onChange={(e) => setTargetArea(e.target.value)}
+                className="w-full p-2 border rounded"
+                disabled={isSubmitting}
+            />
+
+            <input 
+                type="text" 
+                placeholder="Proposed Action (Required)" 
+                value={proposedAction}
+                onChange={(e) => setProposedAction(e.target.value)}
+                className="w-full p-2 border rounded"
+                disabled={isSubmitting}
+            />
+            
+            <textarea
+                placeholder="Detailed Description (Optional)"
+                value={description}
+                onChange={(e) => setDescription(e.target.value)}
+                className="w-full p-2 border rounded"
+                rows={2}
+                disabled={isSubmitting}
+            />
+
+            {isEditMode && (
+                <div className="flex items-center space-x-2">
+                    <input
+                        id="isImplemented"
+                        type="checkbox"
+                        checked={isImplemented}
+                        onChange={(e) => setIsImplemented(e.target.checked)}
+                        className="rounded text-green-600 focus:ring-green-500"
+                        disabled={isSubmitting}
+                    />
+                    <label htmlFor="isImplemented" className="text-sm font-medium text-gray-700">
+                        Mark as Implemented
+                    </label>
+                </div>
+            )}
+
+            <div className="flex justify-end space-x-2">
+                <button 
+                    type="button" 
+                    onClick={onClose} 
+                    className="text-sm font-medium px-3 py-1 rounded bg-gray-200 hover:bg-gray-300"
+                    disabled={isSubmitting}
+                >
+                    Cancel
+                </button>
+                <button 
+                    type="submit" 
+                    className="text-sm font-medium text-white bg-green-600 hover:bg-green-700 px-3 py-1 rounded disabled:opacity-50 flex items-center"
+                    disabled={isSubmitting}
+                >
+                    {isSubmitting ? 'Saving...' : (isEditMode ? 'Update Opportunity' : 'Submit Opportunity')}
+                    {!isSubmitting && <Save className="w-4 h-4 ml-2" />}
+                </button>
+            </div>
+        </form>
+    );
+};
+
+// --- ImprovementOpportunityCard Component (READ/DELETE/TRIGGER EDIT) ---
+interface OpportunityCardProps {
+    opportunity: ImprovementOpportunity;
+    onEditStart: (io: ImprovementOpportunity) => void;
+    onDelete: (id: string) => Promise<void>;
+}
+
+const ImprovementOpportunityCard: React.FC<OpportunityCardProps> = ({ opportunity, onEditStart, onDelete }) => {
+    const [isDeleting, setIsDeleting] = useState(false);
+    const [isExpanded, setIsExpanded] = useState(false);
+    
+    const handleDelete = async () => {
+       // if (window.confirm('Are you sure you want to permanently delete this Improvement Opportunity?')) {
+            setIsDeleting(true);
+            await onDelete(opportunity.id);
+            setIsDeleting(false);
+        //}
+    };
+
+    const StatusIcon = opportunity.isImplemented ? CheckCircle : Clock;
+    const statusColor = opportunity.isImplemented ? 'text-green-500' : 'text-yellow-500';
+
+    return (
+        <div className="bg-white border border-gray-200 rounded-xl shadow-md overflow-hidden transition-all duration-300">
+            <div className="p-4 flex items-start justify-between">
+                <div className="flex items-center space-x-3 w-full">
+                    <StatusIcon className={`w-5 h-5 flex-shrink-0 ${statusColor}`} />
+                    <div className="flex-1 min-w-0">
+                        <p className="font-semibold text-gray-900 truncate">{opportunity.proposedAction}</p>
+                        <p className="text-xs text-gray-500">
+                            ID: {opportunity.id.substring(0, 8)} | Identified: {formatDate(opportunity.dateIdentified)}
+                        </p>
+                    </div>
+                </div>
+                
+                <div className="flex items-center space-x-2 flex-shrink-0 ml-4">
+                    <button 
+                        onClick={() => setIsExpanded(!isExpanded)}
+                        className="p-1 rounded-full text-gray-500 hover:bg-gray-100 transition"
+                        aria-expanded={isExpanded}
+                        aria-label={isExpanded ? "Collapse Details" : "Expand Details"}
+                    >
+                        {isExpanded ? <ChevronUp className="w-5 h-5" /> : <ChevronDown className="w-5 h-5" />}
+                    </button>
+                    <button 
+                        onClick={() => onEditStart(opportunity)}
+                        className="p-1 rounded-full text-blue-500 hover:bg-blue-100 transition"
+                        aria-label="Edit Opportunity"
+                    >
+                        <Edit className="w-5 h-5" />
+                    </button>
+                    {/* <button 
+                        onClick={handleDelete}
+                        className="p-1 rounded-full text-red-500 hover:bg-red-100 transition disabled:opacity-50"
+                        disabled={isDeleting}
+                        aria-label="Delete Opportunity"
+                    >
+                        {isDeleting ? <Clock className="w-5 h-5 animate-spin" /> : <Trash2 className="w-5 h-5" />}
+                    </button> */}
+                   
+                    <ConfirmAction 
+                            onConfirm={handleDelete} 
+                            itemId={opportunity.id}
+                            action="Delete" 
+                            disabled={false} // Opposite of the main state
+                            heading="Delete Opportunity"
+                            description="This action will delete this comment. Press the Delete button to continue."
+                            showHint={true}
+                        />
+                </div>
+            </div>
+
+            {isExpanded && (
+                <div className="px-4 py-3 bg-gray-50 border-t border-gray-200 space-y-2 text-sm">
+                    <p><strong>Target Area:</strong> {opportunity.targetArea}</p>
+                    <p><strong>Source Module:</strong> {opportunity.sourceModule || 'N/A'}</p>
+                    <p><strong>Description:</strong> {opportunity.description}</p>
+                    <p><strong>Status:</strong> <span className={`font-semibold ${statusColor}`}>{opportunity.isImplemented ? 'Implemented' : 'Pending'}</span></p>
+                    {opportunity.implementationDate && <p><strong>Implemented On:</strong> {formatDate(opportunity.implementationDate)}</p>}
+                </div>
+            )}
+        </div>
+    );
+};
+interface DefectDetailViewProps {
+  currentUser: any; // Type your user model correctly
+  defect: DefectDetailModel;
+  allDefectsHref: string; // NEW PROP for the back link target
+}
 
 
-    const ImprovementOpportunityForm = ({ sourceId, onClose }: { sourceId: string, onClose: () => void }) => (
-        <BaseFormCard title="Identify Improvement Opportunity" icon={Target} color="border-green-300" onClose={onClose}>
-            <p className="text-sm text-gray-600 mb-3">Source Defect: **{sourceId}**</p>
-            <div className="space-y-3">
-                <textarea placeholder="Proposed Process/CI Action" rows={3} className="w-full p-2 border rounded"></textarea>
-                <input type="text" placeholder="Target Area" className="w-full p-2 border rounded" />
-                <button className="w-full py-2 bg-green-600 text-white font-semibold rounded hover:bg-green-700 transition">Submit Opportunity</button>
+
+const DefectDetailView: React.FC<DefectDetailViewProps> = ({ defect, allDefectsHref }) => {
+
+    const [activeTab, setActiveTab] = useState<'details' | 'analysis' | 'actions' | 'improvement'>('details');
+   // 1. INITIALIZE STATE: Use the incoming 'defect' prop to seed the local state.
+    const [localDefect, setLocalDefect] = useState<DefectDetailModel>(defect);
+    // 2. USE MEMO: The memoized value now depends on the local state, NOT the prop.
+    const opportunities: ImprovementOpportunity[] = useMemo(
+        () => localDefect.improvementOpportunities || [], 
+        [localDefect.improvementOpportunities] // Dependency is the LOCAL state array
+    );
+
+  
+    const [opportunityToEdit, setOpportunityToEdit] = useState<ImprovementOpportunity | null>(null);
+
+
+    // New state for toggling form visibility
+    const [showActionForm, setShowActionForm] = useState(false);
+    const [showAnalysisForm, setShowAnalysisForm] = useState(false);
+    const [showImprovementForm, setShowImprovementForm] = useState(false);
+
+ 
+
+    const getActionProgress = (actions: CorrectiveActionModel[]) => {
+        if (actions.length === 0) return 0;
+        const completed = actions.filter(a => a.status === ActionStatus.COMPLETE).length;
+        return Math.round((completed / actions.length) * 100);
+    };
+
+    const actionProgress = getActionProgress(defect.actions);
+
+    // --- RENDER FUNCTIONS ---
+
+    const renderAction = (action: CorrectiveActionModel) => {
+        const isComplete = action.status === ActionStatus.COMPLETE;
+        const statusClasses = isComplete ? 'bg-green-100 text-green-700 border-green-500' : 'bg-yellow-100 text-yellow-700 border-yellow-500';
+
+        return (
+            <div key={action.id} className="border-l-4 border-blue-500 pl-4 py-3 mb-4 bg-white rounded shadow hover:shadow-md transition">
+                <div className="flex justify-between items-start">
+                    <p className={`font-semibold text-gray-800 text-base ${isComplete ? 'line-through text-gray-500' : ''}`}>{action.description}</p>
+                    <span className={`text-xs font-medium px-2 py-0.5 rounded-full whitespace-nowrap border ${statusClasses}`}>
+                        {action.status}
+                    </span>
+                </div>
+                <p className="text-sm text-gray-700 mt-1">Responsible: **{action.responsible}**</p>
+                <p className="text-xs text-gray-500 mt-1">Due: **{new Date(action.dueDate).toLocaleDateString()}**</p>
             </div>
-        </BaseFormCard>
+        );
+    };
+
+    const renderBreakdown = (breakdown: BreakdownModel) => (
+        <div className="bg-red-50 p-4 rounded-xl border-l-4 border-red-500 shadow-md">
+            <h4 className="font-bold text-lg text-red-700 flex items-center"><Package className="w-5 h-5 mr-2"/> Breakdown Event</h4>
+            <p className="mt-2 text-sm text-gray-700"><strong>Start Time:</strong> {new Date(breakdown.startTime).toLocaleString()}</p>
+            <p className="text-sm text-gray-700"><strong>Duration:</strong> <span className="font-bold">{breakdown.durationMinutes || 'N/A'}</span> minutes</p>
+        </div>
     );
+
+    const renderAnalysis = (analysis: AnalysisRecordModel) => (
+        <div key={analysis.id} className="mb-4 p-4 bg-indigo-50 rounded-xl border-l-4 border-indigo-500 shadow-sm hover:bg-indigo-100 transition">
+            <p className="text-sm text-indigo-800 font-medium">**{analysis.methodUsed}** Analysis by **{analysis.analystName}** on {new Date(analysis.analysisDate).toLocaleDateString()}</p>
+            <p className="mt-2 text-gray-700 text-sm italic border-t border-indigo-200 pt-2">Findings: {analysis.summaryOfFindings}</p>
+        </div>
+    );
+
+  
+interface BaseFormCardProps {
+    title: string;
+    icon: React.FC<React.SVGProps<SVGSVGElement>>;
+    color: string;
+    onClose: () => void;
+    children: React.ReactNode;
+}
+
+
+
     
     // Icon mapping for tabs
     const tabIcons: Record<typeof activeTab, LucideIcon> = {
@@ -262,6 +531,81 @@ const DefectDetailView: React.FC<DefectDetailViewProps> = ({ defect, allDefectsH
         improvement: Target,
     };
 
+
+
+    // CREATE Success Handler
+    const handleCreateSuccess = useCallback((newIo: ImprovementOpportunity) => {
+        setLocalDefect(prevDefect => ({
+            ...prevDefect,
+            improvementOpportunities: [newIo, ...prevDefect.improvementOpportunities],
+            // Update defect status to reflect active action definition
+            status: DefectStatus.ACTION_DEFINED, 
+        }));
+        setShowImprovementForm(false);
+    }, []);
+
+    // EDIT Success Handler
+    const handleEditSuccess = useCallback((updatedIo: ImprovementOpportunity) => {
+        setLocalDefect(prevDefect => ({
+            ...prevDefect,
+            improvementOpportunities: prevDefect.improvementOpportunities.map(io => 
+                io.id === updatedIo.id ? updatedIo : io
+            ),
+        }));
+        setOpportunityToEdit(null); // Exit edit mode
+    }, []);
+
+    // DELETE Handler (Called from OpportunityCard)
+    const handleDelete = useCallback(async (id: string) => {
+        try {
+            // API call to delete the opportunity
+            const response = await fetch(`${API_BASE_URL}/${id}`, {
+                method: 'DELETE',
+            });
+
+            if (!response.ok) {
+                const errorResult = await response.json();
+                throw new Error(errorResult.message || 'Failed to delete opportunity.');
+            }
+
+            // Update local state to remove the deleted opportunity
+            setLocalDefect(prevDefect => ({
+                ...prevDefect,
+                improvementOpportunities: prevDefect.improvementOpportunities.filter(io => io.id !== id),
+            }));
+
+            toast.success('Opportunity deleted successfully.');
+
+        } catch (error: any) {
+            console.error('Deletion Error:', error);
+            toast.error(`Error: ${error.message || 'Network error.'}`);
+        }
+    }, []);
+
+
+    const renderForm = () => {
+        if (opportunityToEdit) {
+            return (
+                <ImprovementOpportunityForm 
+                    sourceId={localDefect.id} 
+                    onClose={() => setOpportunityToEdit(null)} 
+                    onSuccess={handleEditSuccess}
+                    initialData={opportunityToEdit}
+                />
+            );
+        }
+
+        if (showImprovementForm) {
+            return (
+                <ImprovementOpportunityForm 
+                    sourceId={localDefect.id} 
+                    onClose={() => setShowImprovementForm(false)} 
+                    onSuccess={handleCreateSuccess}
+                />
+            );
+        }
+        return null;
+    }
 
     return (
         <div className="min-h-screen bg-gray-50 p-1 sm:p-3 lg:p-6">
@@ -366,15 +710,7 @@ const DefectDetailView: React.FC<DefectDetailViewProps> = ({ defect, allDefectsH
                     {/* --- TAB CONTENT: ACTIONS --- */}
                     {activeTab === 'actions' && (
                         <div className="space-y-2">
-{/*                             <h3 className="text-xl font-semibold mb-4 border-b pb-2 flex justify-between items-center text-blue-700">
-                                Defined Corrective Actions ({defect.actions.length})
-                                <button 
-                                    onClick={() => setShowActionForm(!showActionForm)}
-                                    className="bg-blue-600 text-white text-sm px-3 py-1 rounded-full flex items-center hover:bg-blue-700 transition"
-                                >
-                                    <PlusCircle className="w-4 h-4 mr-1"/> Define Action
-                                </button>
-                            </h3> */}
+
 
                             <div className="flex justify-between items-center pb-3 border-b border-gray-200 mb-4">
                                 
@@ -429,48 +765,75 @@ const DefectDetailView: React.FC<DefectDetailViewProps> = ({ defect, allDefectsH
                         </div>
                     )}
                     
-                    {/* --- TAB CONTENT: IMPROVEMENT --- */}
-                    {activeTab === 'improvement' && (
-                        <div className="space-y-2">
-{/*                             Improved Heading for Continuous Improvement Opportunities */}
-                            <div className="flex justify-between items-center pb-3 border-b border-gray-200 mb-4">
-                                
-                                {/* Title: Smaller on mobile, larger on desktop, clear primary color */}
-                                <h3 className="text-lg sm:text-xl font-semibold text-green-700">
-                                    Continuous Improvement Opportunities
-                                </h3>
-                                
-                                {/* Button: Highly optimized for mobile */}
-                                <button 
-                                    onClick={() => setShowImprovementForm(!showImprovementForm)}
-                                    // Compact styling for mobile: only show icon + subtle text
-                                    className="
-                                        bg-green-600 text-white 
-                                        px-3 py-1 sm:px-4 sm:py-2 rounded-lg 
-                                        flex items-center 
-                                        hover:bg-green-700 transition duration-150 
-                                        shadow-md
-                                    "
-                                    aria-label="Add New Continuous Improvement Opportunity" // Accessibility Improvement
-                                >
-                                    {/* Icon: Always visible and central */}
-                                    <PlusCircle className="w-5 h-5" />
-                                    
-                                    {/* Text: Hidden on smaller screens (below 'sm' breakpoint), only visible on desktop */}
-                                    <span className="hidden sm:inline ml-2 text-sm font-medium">
-                                        New Opportunity
-                                    </span>
-                                </button>
-                                
-                            </div>
-                            <p className="text-gray-600 p-3 bg-gray-50 rounded">Use this section to log systematic process or CI opportunities identified during the defect resolution process.</p>
-                            {/* Placeholder for listing existing opportunities */}
-                            <div className="p-4 bg-yellow-50 rounded-xl border border-yellow-200 text-gray-700">
-                                *No logged CI Opportunities for this defect.*
-                            </div>
-                            {showImprovementForm && <ImprovementOpportunityForm sourceId={defect.id} onClose={() => setShowImprovementForm(false)} />}
-                        </div>
-                    )}
+                
+
+            {/* --- TAB CONTENT: IMPROVEMENT --- */}
+                {activeTab === 'improvement' && (
+                    <div className="space-y-4">
+                        
+                        <div className="flex justify-between items-center pb-3 border-b border-gray-200 mb-4">
+                            
+                            {/* Title: Smaller on mobile, larger on desktop, clear primary color */}
+                            <h3 className="text-lg sm:text-xl font-semibold text-green-700">
+                                Continuous Improvement Opportunities
+                            </h3>
+                            
+                            {/* Button: Highly optimized for mobile */}
+                            <button 
+                                onClick={() => setShowImprovementForm(!showImprovementForm)}
+                                className="
+                                    bg-green-600 text-white 
+                                    px-3 py-1 sm:px-4 sm:py-2 rounded-lg 
+                                    flex items-center 
+                                    hover:bg-green-700 transition duration-150 
+                                    shadow-md
+                                "
+                                aria-label="Add New Continuous Improvement Opportunity" 
+                            >
+                                <PlusCircle className="w-5 h-5" />
+                                <span className="hidden sm:inline ml-2 text-sm font-medium">
+                                    New Opportunity
+                                </span>
+                            </button>
+                            
+                        </div>
+                        
+                        <p className="text-gray-600 p-3 bg-gray-50 rounded">
+                            Use this section to log systematic process or CI opportunities identified during the defect resolution process.
+                        </p>
+
+
+
+                         {/* Render the Create or Edit Form */}
+                    {renderForm()}
+
+                    
+                    {/* --- DYNAMIC OPPORTUNITY LISTING --- */}
+                    {opportunities.length > 0 ? (
+                        <div className="space-y-3 pt-4">
+                            {opportunities.map((opportunity) => (
+                                <ImprovementOpportunityCard 
+                                    key={opportunity.id} 
+                                    opportunity={opportunity} 
+                                    onEditStart={setOpportunityToEdit} // Function to start editing
+                                    onDelete={handleDelete} // Function to delete
+                                />
+                            ))}
+                        </div>
+                    ) : (
+                        // Placeholder for when no opportunities exist
+                        <div className="p-4 bg-yellow-50 rounded-xl border border-yellow-200 text-gray-700 flex items-center">
+                            <XCircle className="w-5 h-5 mr-2 flex-shrink-0" />
+                            <span className="text-sm italic">
+                                No logged CI Opportunities for this defect. Use the New Opportunity button to record one.
+                            </span>
+                        </div>
+                    )}
+
+
+                </div>
+                        
+                )}
 
                 </div>
 
