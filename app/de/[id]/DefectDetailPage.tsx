@@ -9,21 +9,108 @@ import {
     Trash2,
     Edit,
     Save,
-    ClipboardList
+    ClipboardList,
+    Check,
+    ToggleLeft,
+    ToggleRight
 } from 'lucide-react';
 import toast from 'react-hot-toast'; // Recommended for better user feedback
 
 // --- Imports (Adjust paths as necessary) ---
 import { 
-    ActionStatus, 
-    BreakdownModel, 
-    CorrectiveActionModel, 
-    DefectDetailModel, 
-    //DefectStatus, 
-    Priority, 
-    AnalysisRecordModel, 
+   // ActionStatus, 
+   // BreakdownModel, 
+    //CorrectiveActionModel, 
+    //DefectDetailModel, 
+    DefectStatus, 
+   Priority, 
+    //AnalysisRecordModel, 
     AnalysisMethod 
 } from "../_components/types/types";
+
+// Enums
+// enum DefectStatus {
+//     NEW = 'NEW',
+//     ANALYSIS = 'ANALYSIS',
+//     ACTION_DEFINED = 'ACTION_DEFINED',
+//     CLOSED = 'CLOSED',
+// }
+
+// enum Priority {
+//     HIGH = 'HIGH',
+//     MEDIUM = 'MEDIUM',
+//     LOW = 'LOW',
+// }
+
+enum ActionStatus {
+    PENDING = 'PENDING',
+    COMPLETE = 'COMPLETE',
+}
+
+// Data Models
+interface BreakdownModel {
+    startTime: string; // ISO Date String
+    durationMinutes: number | null;
+}
+
+interface AnalysisRecordModel {
+    id: string;
+    methodUsed: string; // e.g., "5 Whys", "Fishbone"
+    summaryOfFindings: string;
+    analystName: string;
+    analysisDate: string; // ISO Date String
+}
+
+interface CorrectiveActionModel {
+    id: string;
+    description: string;
+    responsible: string;
+    dueDate: string; // ISO Date String
+    status: ActionStatus;
+    dateCompleted?: string; // ISO Date String
+    sourceId: string; // The ID of the defect or IO this action addresses
+}
+
+interface ImprovementOpportunity {
+    id: string;
+    title: string;
+    description: string;
+    priority: Priority;
+    type: 'Preventive' | 'Systemic';
+    dateLogged: string;
+}
+
+interface EliminationRecordModel {
+    dateClosed: string;
+    summary: string;
+}
+
+export interface DefectDetailModel {
+    id: string;
+    title: string;
+    description: string;
+    status: DefectStatus;
+    priority: Priority;
+    identificationDate: string;
+    reportedBy: string;
+    equipmentTag: string;
+    area: string;
+    breakdown: BreakdownModel | null;
+    analyses: AnalysisRecordModel[];
+    actions: CorrectiveActionModel[];
+    improvementOpportunities: ImprovementOpportunity[];
+    eliminationRecord: EliminationRecordModel | null;
+}
+
+interface CorrectiveActionModel {
+    id: string;
+    description: string;
+    responsible: string;
+    dueDate: string; // ISO Date String
+    status: ActionStatus;
+    dateCompleted?: string; // ISO Date String
+    sourceId: string; // The ID of the defect or IO this action addresses
+}
 import { formatDate } from '@/app/contracts/_components/utils';
 import ConfirmAction from '../_components/ConfirmAction';
 
@@ -39,15 +126,16 @@ interface ImprovementOpportunity {
     isImplemented: boolean;
 }
 
-enum DefectStatus {
-    IDENTIFIED = 'IDENTIFIED',
-    IN_ANALYSIS = 'IN_ANALYSIS',
-    ACTION_DEFINED = 'ACTION_DEFINED',
-    ACTION_IMPLEMENTED = 'ACTION_IMPLEMENTED',
-    CLOSED_VERIFIED = 'CLOSED_VERIFIED',
-}
+// enum DefectStatus {
+//     IDENTIFIED = 'IDENTIFIED',
+//     IN_ANALYSIS = 'IN_ANALYSIS',
+//     ACTION_DEFINED = 'ACTION_DEFINED',
+//     ACTION_IMPLEMENTED = 'ACTION_IMPLEMENTED',
+//     CLOSED_VERIFIED = 'CLOSED_VERIFIED',
+// }
 // --- UTILITY COMPONENTS ---
- const API_BASE_URL = '/api/defects/io'; // Assuming API path
+ const API_BASE_URL_IO = '/api/defects/io'; // Assuming API path
+ const API_BASE_URL_CA = '/api/defects/ca'; // Assuming API path
 // Utility function to get priority color classes for styling
 const getPriorityClasses = (priority: Priority | DefectStatus): string => {
   switch (priority) {
@@ -101,20 +189,205 @@ const DetailItem: React.FC<DetailItemProps> = ({ icon: Icon, label, value, span 
         </div>
     );
 
-    const CorrectiveActionForm = ({ defectId, onClose }: { defectId: string, onClose: () => void }) => (
-        <BaseFormCard title="Define Corrective Action" icon={Zap} color="border-blue-300" onClose={onClose}>
-            <p className="text-sm text-gray-600 mb-3">Linked to Defect: **{defectId}**</p>
-            <div className="space-y-3">
-                <input type="text" placeholder="Action Description" className="w-full p-2 border rounded" />
-                <input type="text" placeholder="Responsible Person" className="w-full p-2 border rounded" />
-                <input type="date" placeholder="Due Date" className="w-full p-2 border rounded" />
-                <button className="w-full py-2 bg-blue-600 text-white font-semibold rounded hover:bg-blue-700 transition">Submit Action</button>
-            </div>
-        </BaseFormCard>
-    );
+
+
+
+const HeaderHeight = 64; // h-16 (4rem)
+
+// --- FORM TYPE DEFINITIONS ---
+
+// Type for the data structure of a Corrective Action
+type ActionData = {
+    id: string;
+    defectId: string;
+    description: string;
+    responsible: string;
+    dueDate: string;
+    isCompleted: boolean;
+};
+
+// Props for the Corrective Action Form
+type CorrectiveActionProps = {
+    defectId: string;
+    onClose: () => void;
+    onSuccess: (action: ActionData, mode: 'create' | 'edit') => void;
+    initialData?: ActionData; // Used for edit mode
+};
+
+// Form for Corrective Actions
+interface CorrectiveActionFormProps {
+    defectId: string;
+    initialData?: CorrectiveActionModel; // For edit mode
+    onClose: () => void;
+    onSuccess: (action: CorrectiveActionModel, mode: 'create' | 'edit') => void;
+}
+const CorrectiveActionForm: React.FC<CorrectiveActionFormProps> = ({ defectId, initialData, onClose, onSuccess }) => {
+    const isEdit = !!initialData;
+    const [description, setDescription] = useState(initialData?.description || '');
+    const [responsible, setResponsible] = useState(initialData?.responsible || '');
+    const [dueDate, setDueDate] = useState(initialData?.dueDate ? initialData.dueDate.split('T')[0] : '');
+    const [status, setStatus] = useState(initialData?.status || ActionStatus.PENDING);
+    const [isLoading, setIsLoading] = useState(false);
+
+   const handleSubmitCorrectiveAction = async (e: React.FormEvent) => {
+        e.preventDefault();
+        
+        // Basic validation
+        if (!description.trim() || !responsible.trim() || !dueDate) {
+            toast.error('Description, Responsible, and Due Date are required fields.');
+            return;
+        }
+
+        setIsLoading(true);
+
+        // 1. Construct the Corrective Action Payload
+        const payload: Partial<CorrectiveActionModel> = {
+            description: description.trim(),
+            responsible: responsible.trim(),
+            // Keep the date as YYYY-MM-DD for the backend to handle, or convert to ISO if required by API
+            dueDate: new Date(dueDate).toISOString().split('T')[0], 
+            status: status,
+        };
+
+        // Add sourceId only for new creations (POST)
+        if (!isEdit) {
+            payload.sourceId = defectId;
+        } else {
+            // For editing, ensure the ID is included in the payload if needed by the backend 
+            // (or rely only on the URL parameter)
+            payload.id = initialData!.id;
+        }
+
+        // Handle dateCompleted logic for status change
+        if (status === ActionStatus.COMPLETE) {
+            // If completing now and no previous completion date exists, set it to now
+            if (!initialData?.dateCompleted) {
+                 // Use initialData!.id for the ID if it's an edit action.
+                payload.dateCompleted = new Date().toISOString(); 
+            } else {
+                // If editing and already complete, preserve the existing completion date
+                payload.dateCompleted = initialData.dateCompleted; 
+            }
+        } else {
+             // Ensure dateCompleted is not sent or is null/undefined if status is PENDING
+             payload.dateCompleted = undefined; 
+        }
+
+        // 2. Determine Method and URL
+        const method = isEdit ? 'PUT' : 'POST';
+        const url = isEdit ? `${API_BASE_URL_CA}/${initialData!.id}` : API_BASE_URL_CA;
+        
+        try {
+            const response = await fetch(url, {
+                method: method,
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload),
+            });
+
+            if (!response.ok) {
+                // Try to extract a specific error message from the response body
+                const errorResult = await response.json();
+                throw new Error(errorResult.message || `Failed to ${method === 'PUT' ? 'update' : 'create'} corrective action.`);
+            }
+
+            // 3. Process Success
+            const result: CorrectiveActionModel = await response.json();
+            
+            toast.success(`Corrective action ${isEdit ? 'updated' : 'submitted'} successfully!`);
+            onSuccess(result, isEdit ? 'edit' : 'create'); 
+            onClose();
+
+        } catch (error: any) {
+            // 4. Handle Error
+            console.error('Submission Error:', error);
+            // Fallback for network or parsing errors
+            toast.error(`Error: ${error.message || 'A network or server error occurred.'}`);
+        } finally {
+            // 5. Cleanup
+            setIsLoading(false); 
+        }
+    };
+
+    return (
+        <div className="p-4 bg-white border border-blue-300 rounded-xl shadow-lg mb-6">
+            <h3 className="text-xl font-bold text-blue-700 mb-4">{isEdit ? 'Edit Corrective Action' : 'Define New Action'}</h3>
+            <form onSubmit={handleSubmitCorrectiveAction} className="space-y-4">
+                <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Description</label>
+                    <textarea 
+                        value={description}
+                        onChange={(e) => setDescription(e.target.value)}
+                        className="w-full border-gray-300 rounded-lg shadow-sm focus:border-blue-500 focus:ring-blue-500 transition"
+                        rows={3}
+                        placeholder="Detailed steps for the corrective action."
+                        disabled={isLoading}
+                    />
+                </div>
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                    <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">Responsible</label>
+                        <input 
+                            type="text"
+                            value={responsible}
+                            onChange={(e) => setResponsible(e.target.value)}
+                            className="w-full border-gray-300 rounded-lg shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                            placeholder="Assignee Name"
+                            disabled={isLoading}
+                        />
+                    </div>
+                    <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">Due Date</label>
+                        <input 
+                            type="date"
+                            value={dueDate}
+                            onChange={(e) => setDueDate(e.target.value)}
+                            className="w-full border-gray-300 rounded-lg shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                            disabled={isLoading}
+                        />
+                    </div>
+                    <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">Status</label>
+                        <select
+                            value={status}
+                            onChange={(e) => setStatus(e.target.value as ActionStatus)}
+                            className="w-full border-gray-300 rounded-lg shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                            disabled={isLoading}
+                        >
+                            <option value={ActionStatus.PENDING}>Pending</option>
+                            <option value={ActionStatus.COMPLETE}>Complete</option>
+                        </select>
+                    </div>
+                </div>
+                <div className="flex justify-end space-x-3 pt-2">
+                    <button 
+                        type="button" 
+                        onClick={onClose}
+                        className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-200 rounded-lg hover:bg-gray-300 transition"
+                        disabled={isLoading}
+                    >
+                        Cancel
+                    </button>
+                    <button 
+                        type="submit" 
+                        className="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg flex items-center shadow-md hover:bg-blue-700 transition disabled:opacity-50"
+                        disabled={isLoading}
+                    >
+                        {isLoading ? (
+                            <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
+                        ) : (
+                            <Save className="w-4 h-4 mr-1"/>
+                        )}
+                        {isEdit ? 'Save Changes' : 'Create Action'}
+                    </button>
+                </div>
+            </form>
+        </div>
+    );
+};
+
 
     // --- UPDATED COMPONENT: RootCauseAnalysisForm with API Submission Logic ---
-    const RootCauseAnalysisForm = ({ defectId, onClose }: { defectId: string, onClose: () => void }) => {
+ const RootCauseAnalysisForm = ({ defectId, onClose }: { defectId: string, onClose: () => void }) => {
         const [analystName, setAnalystName] = useState('');
         const [methodUsed, setMethodUsed] = useState<AnalysisMethod | ''>('');
         const [summaryOfFindings, setSummaryOfFindings] = useState('');
@@ -207,10 +480,8 @@ const DetailItem: React.FC<DetailItemProps> = ({ icon: Icon, label, value, span 
                 </form>
             </BaseFormCard>
         );
-    };
-// --- MAIN COMPONENT INTERFACE & IMPLEMENTATION ---
-// --- ImprovementOpportunityForm Component (CREATE/EDIT) ---
-// We make the form reusable by checking if 'initialData' is passed (for editing).
+};
+
 interface OpportunityFormProps {
     sourceId: string;
     onClose: () => void;
@@ -247,7 +518,7 @@ const ImprovementOpportunityForm: React.FC<OpportunityFormProps> = ({ sourceId, 
        
 
         const method = isEditMode ? 'PUT' : 'POST';
-        const url = isEditMode ? `${API_BASE_URL}/${initialData!.id}` : API_BASE_URL;
+        const url = isEditMode ? `${API_BASE_URL_IO}/${initialData!.id}` : API_BASE_URL_IO;
 
         try {
             const response = await fetch(url, {
@@ -357,7 +628,7 @@ const ImprovementOpportunityCard: React.FC<OpportunityCardProps> = ({ opportunit
     const [isDeleting, setIsDeleting] = useState(false);
     const [isExpanded, setIsExpanded] = useState(false);
     
-    const handleDelete = async () => {
+    const handleIODelete = async () => {
        // if (window.confirm('Are you sure you want to permanently delete this Improvement Opportunity?')) {
             setIsDeleting(true);
             await onDelete(opportunity.id);
@@ -398,7 +669,7 @@ const ImprovementOpportunityCard: React.FC<OpportunityCardProps> = ({ opportunit
                         <Edit className="w-5 h-5" />
                     </button>
                     <ConfirmAction 
-                            onConfirm={handleDelete} 
+                            onConfirm={handleIODelete} 
                             itemId={opportunity.id}
                             action="Delete" 
                             disabled={false} // Opposite of the main state
@@ -421,6 +692,148 @@ const ImprovementOpportunityCard: React.FC<OpportunityCardProps> = ({ opportunit
         </div>
     );
 };
+
+interface CorrectiveActionCardProps {
+    action: CorrectiveActionModel;
+    onEditStart: (action: CorrectiveActionModel) => void;
+    onDelete: (actionId: string) => Promise<void>;
+    onToggleStatus: (actionId: string, newStatus: ActionStatus) => Promise<void>;
+}
+const CorrectiveActionCard: React.FC<CorrectiveActionCardProps> = ({ 
+    action, 
+    onEditStart, 
+    onDelete,
+    onToggleStatus
+}) => {
+    const [isDeleting, setIsDeleting] = useState(false);
+    const [isToggling, setIsToggling] = useState(false);
+    const [isExpanded, setIsExpanded] = useState(false);
+    
+    const isComplete = action.status === ActionStatus.COMPLETE;
+    const statusClasses = isComplete ? 'bg-green-100 text-green-700 border-green-500' : 'bg-yellow-100 text-yellow-700 border-yellow-500';
+    const StatusIcon = isComplete ? CheckCircle : Clock;
+    const statusColor = isComplete ? 'text-green-500' : 'text-yellow-500';
+
+    const handleActionDelete = async () => {
+        setIsDeleting(true);
+        try {
+            await onDelete(action.id);
+           // toast.message(`Action "${action.description.substring(0, 30)}..." deleted.`);
+           
+        } catch (error) {
+            toast.error('Failed to delete corrective action.');
+            console.error(error);
+        } finally {
+            setIsDeleting(false);
+        }
+    };
+    
+    const handleToggleStatus = async () => {
+        setIsToggling(true);
+        const newStatus = isComplete ? ActionStatus.PENDING : ActionStatus.COMPLETE;
+        try {
+            await onToggleStatus(action.id, newStatus);
+            toast.success(`Action marked as ${newStatus}.`);
+        } catch (error) {
+            toast.error('Failed to update action status.');
+            console.error(error);
+        } finally {
+            setIsToggling(false);
+        }
+    };
+
+    const isPending = isToggling || isDeleting;
+
+    return (
+        <div className="bg-white border border-gray-200 rounded-xl shadow-md overflow-hidden transition-all duration-300 hover:shadow-lg">
+            
+            {/* Header / Summary Section */}
+            <div className="p-4 flex items-start justify-between">
+                <div className="flex items-start space-x-3 w-full">
+                    <StatusIcon className={`w-5 h-5 flex-shrink-0 mt-0.5 ${statusColor}`} />
+                    <div className="flex-1 min-w-0">
+                        <p className={`font-semibold text-gray-900 text-lg ${isComplete ? 'line-through text-gray-500' : ''}`}>
+                            {action.description}
+                        </p>
+                        <p className="text-sm text-gray-600 mt-1">
+                            Responsible: <span className="font-medium text-gray-800">{action.responsible}</span>
+                        </p>
+                        <p className="text-xs text-gray-500 mt-0.5">
+                            Due: {formatDate(action.dueDate)}
+                        </p>
+                        <span className={`text-xs font-medium mt-1 inline-block px-2 py-0.5 rounded-full border ${statusClasses}`}>
+                            {action.status}
+                        </span>
+                    </div>
+                </div>
+                
+                {/* Actions Group */}
+                <div className="flex items-center space-x-1.5 flex-shrink-0 ml-4">
+                    
+                    {/* Toggle Status Button */}
+                    <button 
+                        onClick={handleToggleStatus}
+                        disabled={isPending}
+                        className={`p-1 rounded-full transition ${isPending ? 'opacity-50 cursor-not-allowed' : (isComplete ? 'text-gray-500 hover:bg-gray-100' : 'text-green-500 hover:bg-green-100')}`}
+                        aria-label={isComplete ? "Mark as In Progress" : "Mark as Complete"}
+                    >
+                        {isToggling ? (
+                             <svg className="animate-spin h-5 w-5 text-indigo-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                 <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                                 <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                             </svg>
+                        ) : (
+                            isComplete ? <ToggleLeft className="w-5 h-5" /> : <ToggleRight className="w-5 h-5" />
+                        )}
+                    </button>
+
+                    {/* Edit Button */}
+                    <button 
+                        onClick={(e) => { e.stopPropagation(); onEditStart(action); }}
+                        disabled={isPending}
+                        className="p-1 rounded-full text-blue-500 hover:bg-blue-100 transition disabled:opacity-50"
+                        aria-label="Edit Corrective Action"
+                    >
+                        <Edit className="w-5 h-5" />
+                    </button>
+
+                    {/* Delete Confirmation Button (using Mock) */}
+                    <ConfirmAction 
+                        onConfirm={handleActionDelete} 
+                        itemId={action.id}
+                        action="Delete" 
+                        disabled={isPending || isDeleting}
+                        heading="Delete Action"
+                        description="This action will delete this corrective action permanently."
+                        showHint={false} // Hint is unnecessary for a mock
+                    />
+                    
+                    {/* Expand/Collapse Button */}
+                    <button 
+                        onClick={(e) => { e.stopPropagation(); setIsExpanded(!isExpanded); }}
+                        className="p-1 rounded-full text-gray-500 hover:bg-gray-100 transition"
+                        aria-expanded={isExpanded}
+                        aria-label={isExpanded ? "Collapse Details" : "Expand Details"}
+                    >
+                        {isExpanded ? <ChevronUp className="w-5 h-5" /> : <ChevronDown className="w-5 h-5" />}
+                    </button>
+                </div>
+            </div>
+
+            {/* Expanded Details Section */}
+            {isExpanded && (
+                <div className="px-4 py-3 bg-gray-50 border-t border-gray-200 space-y-2 text-sm">
+                    <p><strong>Date complete:</strong> {action.dateCompleted}</p>
+                    <p><strong>Decritption:</strong> {action.description || 'N/A'}</p>
+                    <p><strong>DueDaten:</strong> {formatDate(action.dueDate)}</p>
+                      <p><strong>Responsible</strong> {action.responsible}</p>
+                    {action.sourceId && <p><strong>Completed On:</strong> {formatDate(action.status)}</p>}
+                </div>
+            )}
+        </div>
+    );
+};
+
 interface DefectDetailViewProps {
   currentUser: any; // Type your user model correctly
   defect: DefectDetailModel;
@@ -441,9 +854,10 @@ type SectionKey = 'details' | 'analysis' | 'actions' | 'improvement';
     // We use a local state initialized from the prop to simulate data mutation (e.g., adding an IO)
     const [localDefect, setLocalDefect] = useState<DefectDetailModel>(defect);
     
-    
+   // const [actions, setActions] = useState<CorrectiveActionModel[]>(initialActions);
      // State to manage quick-jump for mobile (correctly typed using SectionKey)
     const [activeSection, setActiveSection] = useState<SectionKey>('details');
+    const [actionToEdit, setActionToEdit] = useState<CorrectiveActionModel | null>(null); // NEW: State for editing an action
 
 
     const [opportunityToEdit, setOpportunityToEdit] =  useState<ImprovementOpportunity | null>(null);
@@ -521,6 +935,8 @@ type SectionKey = 'details' | 'analysis' | 'actions' | 'improvement';
         );
     };
 
+
+
     const renderBreakdown = (breakdown: BreakdownModel) => (
         <div className="bg-red-50 p-4 rounded-xl border-l-4 border-red-500 shadow-md mt-4">
             <h4 className="font-bold text-lg text-red-700 flex items-center"><Package className="w-5 h-5 mr-2"/> Breakdown Event</h4>
@@ -539,26 +955,28 @@ type SectionKey = 'details' | 'analysis' | 'actions' | 'improvement';
     );
 
     // Success handlers
-    const handleCreateSuccess = useCallback((newIo: ImprovementOpportunity) => {
-        setLocalDefect(prevDefect => ({
-            ...prevDefect,
-            improvementOpportunities: [newIo, ...prevDefect.improvementOpportunities],
-            status: DefectStatus.ACTION_DEFINED, 
-        }));
-        setShowImprovementForm(false);
-    }, []);
 
-    const handleEditSuccess = useCallback((updatedIo: ImprovementOpportunity) => {
-        setLocalDefect(prevDefect => ({
-            ...prevDefect,
-            improvementOpportunities: prevDefect.improvementOpportunities.map(io => 
-                io.id === updatedIo.id ? updatedIo : io
-            ),
-        }));
-        setOpportunityToEdit(null);
-    }, []);
-
-    const handleDelete = useCallback(async (id: string) => {
+    // Handler for successful Action submission (Create or Edit)
+     const handleCreateIOSuccess = useCallback((newIo: ImprovementOpportunity) => {
+            setLocalDefect(prevDefect => ({
+                ...prevDefect,
+                improvementOpportunities: [newIo, ...prevDefect.improvementOpportunities],
+                status: DefectStatus.ACTION_DEFINED, 
+            }));
+            setShowImprovementForm(false);
+        }, []);
+    
+        const handleEditIOSuccess = useCallback((updatedIo: ImprovementOpportunity) => {
+            setLocalDefect(prevDefect => ({
+                ...prevDefect,
+                improvementOpportunities: prevDefect.improvementOpportunities.map(io => 
+                    io.id === updatedIo.id ? updatedIo : io
+                ),
+            }));
+            setOpportunityToEdit(null);
+        }, []);
+  
+    const handleIODelete = useCallback(async (id: string) => {
         // Mock deletion
         setLocalDefect(prevDefect => ({
             ...prevDefect,
@@ -567,13 +985,103 @@ type SectionKey = 'details' | 'analysis' | 'actions' | 'improvement';
         toast.success('Opportunity deleted successfully (mocked).');
     }, []);
 
-    const renderForm = () => {
+
+ // --- HANDLERS FOR CORRECTIVE ACTIONS ---
+    
+    // Handler for successful Action submission (Create or Edit)
+    const handleActionCorrectiveActionSuccess = useCallback((actionData:CorrectiveActionModel, mode:string) => {
+        setLocalDefect(prevDefect => {
+            let newActions;
+            
+            if (mode === 'create') {
+                // Add new action to the beginning of the list for visibility
+                newActions = [actionData, ...prevDefect.actions];
+            } else {
+                // Map over existing actions to find and replace the edited one
+                newActions = prevDefect.actions.map(a => 
+                    a.id === actionData.id ? actionData : a
+                );
+            }
+
+            // Determine new defect status
+            const allComplete = newActions.length > 0 && newActions.every(a => a.status === ActionStatus.COMPLETE);
+            const newStatus = allComplete ? DefectStatus.CLOSED_VERIFIED : DefectStatus.ACTION_DEFINED;
+
+            return {
+                ...prevDefect,
+                actions: newActions,
+                status: newStatus,
+            };
+        });
+
+        // Close forms
+        setShowActionForm(false);
+        setActionToEdit(null);
+        toast.success(`Action ${mode === 'create' ? 'created' : 'updated'} successfully.`);
+    }, []);
+
+    // Function called when the Edit button on a card is pressed
+    const handleEditStartCorrectiveAction = useCallback((action:CorrectiveActionModel) => {
+        setActionToEdit(action); // <--- Sets the state that triggers the Edit Form
+        setShowActionForm(false); // Ensure the New Action form is closed
+       // toast.success(`Editing action: ${action.id}`);
+    }, []);
+
+    // Function to handle the deletion of a corrective action
+    const handleDeleteCorrectiveAction = useCallback(async (id:string) => {
+        setLocalDefect(prevDefect => ({
+            ...prevDefect,
+            actions: prevDefect.actions.filter(a => a.id !== id),
+        }));
+        toast.success('Corrective Action deleted successfully (mocked).');
+    }, []);
+
+    // Function to handle status toggling (not fully implemented in form, but card has prop)
+    const handleToggleStatusCorrectiveAction = useCallback(async (actionId:string, newStatus:ActionStatus) => {
+        // Simulate API delay
+        await new Promise(resolve => setTimeout(resolve, 500)); 
+        setLocalDefect(prevDefect => ({
+            ...prevDefect,
+            actions: prevDefect.actions.map(a => 
+                a.id === actionId ? { 
+                    ...a, 
+                    status: newStatus,
+                    implementationDate: newStatus === ActionStatus.COMPLETE ? new Date().toISOString() : undefined
+                } : a
+            ),
+        }));
+        toast.success(`Action ${actionId} status changed to ${newStatus}.`);
+    }, []);
+
+       const renderActionForm = () => {
+        if (actionToEdit) {
+            return (
+                <CorrectiveActionForm
+                    defectId={localDefect.id}
+                    initialData={actionToEdit}
+                    onClose={() => setActionToEdit(null)}
+                    onSuccess={handleActionCorrectiveActionSuccess}
+                />
+            );
+        }
+        if (showActionForm) {
+             return (
+                <CorrectiveActionForm
+                    defectId={localDefect.id}
+                    onClose={() => setShowActionForm(false)}
+                    onSuccess={handleActionCorrectiveActionSuccess}
+                />
+            );
+        }
+        return null;
+    }
+    const renderIOForm = () => {
         if (opportunityToEdit) {
             return (
                 <ImprovementOpportunityForm 
                     sourceId={localDefect.id} 
                     onClose={() => setOpportunityToEdit(null)} 
-                    onSuccess={handleEditSuccess}
+                    onSuccess={handleEditIOSuccess}
                     initialData={opportunityToEdit}
                 />
             );
@@ -584,7 +1092,7 @@ type SectionKey = 'details' | 'analysis' | 'actions' | 'improvement';
                 <ImprovementOpportunityForm 
                     sourceId={localDefect.id} 
                     onClose={() => setShowImprovementForm(false)} 
-                    onSuccess={handleCreateSuccess}
+                    onSuccess={handleCreateIOSuccess}
                 />
             );
         }
@@ -699,10 +1207,25 @@ type SectionKey = 'details' | 'analysis' | 'actions' | 'improvement';
                                 </div>
                             </div>
                             
-                            {showActionForm && <CorrectiveActionForm defectId={localDefect.id} onClose={() => setShowActionForm(false)} />}
-
-                            <div className="mt-4 space-y-4">
-                                {localDefect.actions.length > 0 ? localDefect.actions.map(renderAction) : <p className="text-gray-500 p-3 bg-gray-50 rounded">No corrective actions defined.</p>}
+                            
+                            {/* Corrective Action Form (handles both create and edit modes) */}
+                            {renderActionForm()}
+                           
+                             <div className="space-y-4">
+                                {localDefect.actions.map(action => (
+                                    <CorrectiveActionCard
+                                        key={action.id}
+                                        action={action}
+                                        onEditStart={handleEditStartCorrectiveAction}
+                                        onDelete={handleDeleteCorrectiveAction}
+                                        onToggleStatus={handleToggleStatusCorrectiveAction}
+                                    />
+                                ))}
+                                {localDefect.actions.length === 0 && (
+                                    <div className="p-6 text-center text-gray-500 bg-white rounded-xl shadow-md">
+                                        No corrective actions found.
+                                    </div>
+                                )}
                             </div>
                         </div>
                         
@@ -722,7 +1245,7 @@ type SectionKey = 'details' | 'analysis' | 'actions' | 'improvement';
                                 Log systematic process or CI opportunities identified during the defect resolution process.
                             </p>
 
-                            {renderForm()}
+                            {renderIOForm()}
                             
                             <div className="mt-4 space-y-3">
                                 {opportunities.length > 0 ? (
@@ -731,7 +1254,7 @@ type SectionKey = 'details' | 'analysis' | 'actions' | 'improvement';
                                             key={opportunity.id} 
                                             opportunity={opportunity} 
                                             onEditStart={setOpportunityToEdit}
-                                            onDelete={handleDelete}
+                                            onDelete={handleIODelete}
                                         />
                                     ))
                                 ) : (
