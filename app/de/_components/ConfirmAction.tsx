@@ -49,9 +49,6 @@ const ConfirmAction: React.FC<ConfirmActionProps> = ({
 
     // --- Dynamic Icon Calculation ---
     const getActionIcon = () => {
-        // NOTE: Dynamic Tailwind classes defined with template literals like `text-[${NAVY_BLUE}]`
-        // should be added to your `tailwind.config.js` safelist or they won't be generated.
-        // For demonstration, we'll keep the template literal usage as in the original code.
         const lucideIconClasses = cn(
             "h-5 w-5 transition duration-150", 
             action === 'Delete' ? "text-red-500 hover:text-red-400" :

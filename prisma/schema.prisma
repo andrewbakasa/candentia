@@ -1131,11 +1131,7 @@ model RootCause {
   rootCauseText    String
   analysisRecordId String? @unique @db.ObjectId // 1-to-1 link to the analysis record
   criticalityScore Int?
-  fmeaRecordId     String? @unique @db.ObjectId
-
-  // Relationships
-  // If AnalysisRecord is deleted, RootCause should be deleted (CASCADE).
-  //analysisRecord     AnalysisRecord? @relation(fields: [analysisRecordId], references: [id], onDelete: Cascade)
+  fmeaRecordId     String? @unique @db.ObjectId  
   eliminationRecord DefectElimination[] // 1-to-many, Root Cause can be linked to multiple eliminations
   actions           CorrectiveAction[]
   fmeaRecord        FMEA?               @relation(fields: [fmeaRecordId], references: [id])
@@ -1155,10 +1151,6 @@ model CorrectiveAction {
   dueDate        DateTime
   completionDate DateTime?
   status         ActionStatus @default(PENDING)
-
-  // Relationships
-  // If Defect/RootCause is deleted, the Action remains, but the foreign key is set to null (SetNull).
-  // This allows tracking what action was taken even if the source defect is archived/removed.
   defect                 Defect?                 @relation(fields: [defectId], references: [id], onDelete: SetNull)
   rootCause              RootCause?              @relation(fields: [rootCauseId], references: [id], onDelete: SetNull)
   improvementOpportunity ImprovementOpportunity? @relation(fields: [improvementId], references: [id], onDelete: SetNull)
