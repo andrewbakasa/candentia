@@ -14,7 +14,8 @@ import {
     ToggleLeft,
     ToggleRight,
     X,
-    Clapperboard
+    Clapperboard, 
+    Clipboard
 } from 'lucide-react';
 import toast from 'react-hot-toast'; // Recommended for better user feedback
 
@@ -1360,35 +1361,51 @@ type SectionKey = 'details' | 'analysis' | 'actions' | 'improvement';
             <div className="max-w-7xl mx-auto">
                 
                 {/* HEADER SECTION: Sticky on mobile, acts as context bar */}
-                <section className="bg-white p-3 rounded-xl shadow-2xl border-t-8 border-indigo-600 mb-4 sticky top-0 z-20">
+                <section className="bg-white p-4 rounded-xl shadow-2xl border-t-8 border-indigo-600 mb-4 sticky top-0 z-20">
                     
-                    <a href={allDefectsHref} className="inline-flex items-center text-indigo-600 hover:text-indigo-800 transition-colors duration-150 mb-3 font-semibold text-sm">
-                        <ArrowLeft className="w-4 h-4 mr-2"/> Back to All Defects
-                    </a>
-                   <button
-                        onClick={copyToClipboard}
-                        className="flex items-center text-indigo-600 bg-indigo-50 px-3 py-2 rounded-xl shadow-md hover:bg-indigo-100 transition transform hover:scale-[1.01] active:scale-95 font-semibold text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 relative whitespace-nowrap"
-                        //disabled={isLoading}
-                    >
-                        <Clapperboard className="w-4 h-4 mr-1"/>
-                        <span className="hidden sm:inline">{copied ? 'Link Copied!' : 'Share Link'}</span>
-                        <span className="sm:hidden">{copied ? 'Copied' : 'Share'}</span>
-                    </button>
+                    {/* TOP ROW: Back Link and Share Button aligned horizontally */}
+                    <div className="flex justify-between items-center mb-3">
+                        {currentUser && (
+                            <a 
+                                href={allDefectsHref} 
+                                className="inline-flex items-center text-indigo-600 hover:text-indigo-800 transition-colors duration-150 font-semibold text-sm"
+                            >
+                                <ArrowLeft className="w-4 h-4 mr-2"/> Back to All Defects
+                            </a>
+                        )}
+                        
+                        <button
+                            onClick={copyToClipboard}
+                            className="flex items-center text-indigo-600 bg-indigo-50 px-3 py-2 rounded-xl shadow-md hover:bg-indigo-100 transition transform hover:scale-[1.01] active:scale-95 font-semibold text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 relative whitespace-nowrap ml-auto"
+                            //disabled={isLoading}
+                        >
+                            <Clipboard className="w-4 h-4 mr-1"/>
+                            <span className="hidden sm:inline">{copied ? 'Link Copied!' : 'Share Link'}</span>
+                            <span className="sm:hidden">{copied ? 'Copied' : 'Share'}</span>
+                        </button>
+                    </div>
                     
-                    <h1 className="text-2xl sm:text-3xl font-extrabold text-gray-900 truncate mb-1">{localDefect.title}</h1>
-                    <p className="text-gray-600 text-sm sm:text-base hidden sm:block">{localDefect.description}</p>
+                    {/* MAIN CONTENT: Title and Description */}
+                    <h1 className="text-2xl sm:text-3xl font-extrabold text-gray-900 truncate mb-1">
+                        {localDefect.title}
+                    </h1>
+                    <p className="text-gray-600 text-sm sm:text-base hidden sm:block mb-3">
+                        {localDefect.description}
+                    </p>
                     
-                    <div className="mt-2 flex flex-wrap gap-2 text-sm items-center">
+                    {/* STATUS AND PRIORITY TAGS */}
+                    <div className="flex flex-wrap gap-2 text-sm items-center">
                         <span className={`px-3 py-1 font-bold uppercase rounded-full text-xs sm:text-sm border-2 ${getPriorityClasses(localDefect.status)}`}>
                             <Clock className="w-4 h-4 inline mr-1"/> {localDefect.status}
                         </span>
                         <span className={`px-3 py-1 font-bold uppercase rounded-full text-xs sm:text-sm border-2 ${getPriorityClasses(localDefect.priority)}`}>
                             <AlertTriangle className="w-4 h-4 inline mr-1"/> Priority: {localDefect.priority}
                         </span>
-                        <span className="text-gray-500 font-medium text-xs sm:text-sm">ID: <span className="font-mono">{localDefect.id}</span></span>
+                        <span className="text-gray-500 font-medium text-xs sm:text-sm">
+                            ID: <span className="font-mono">{localDefect.id}</span>
+                        </span>
                     </div>
                 </section>
-                
                 {/* MAIN CONTENT LAYOUT: Two Columns on Large Screens */}
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                     
