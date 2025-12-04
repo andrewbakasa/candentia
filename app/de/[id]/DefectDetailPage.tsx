@@ -13,7 +13,8 @@ import {
     Check,
     ToggleLeft,
     ToggleRight,
-    X
+    X,
+    Clapperboard
 } from 'lucide-react';
 import toast from 'react-hot-toast'; // Recommended for better user feedback
 
@@ -788,6 +789,8 @@ const CorrectiveActionCard: React.FC<CorrectiveActionCardProps> = ({
     const StatusIcon = isComplete ? CheckCircle : Clock;
     const statusColor = isComplete ? 'text-green-500' : 'text-yellow-500';
 
+    
+
     const handleActionDeleteTrigger = async () => {
         setIsDeleting(true);
         try {
@@ -937,6 +940,26 @@ type SectionKey = 'details' | 'analysis' | 'actions' | 'improvement';
     const [showActionForm, setShowActionForm] = useState(false);
     const [showAnalysisForm, setShowAnalysisForm] = useState(false);
     const [showImprovementForm, setShowImprovementForm] = useState(false);
+
+    const [error, setError] = useState<string | null>(null);
+    const [successMessage, setSuccessMessage] = useState<string | null>(null);
+    const [copied, setCopied] = useState(false);
+
+    const copyToClipboard = () => {
+        if (typeof window !== 'undefined') {
+            const currentUrl = window.location.href;
+            navigator.clipboard.writeText(currentUrl)
+                .then(() => {
+                    setCopied(true);
+                    setSuccessMessage('Link copied to clipboard!'); // Show success message for copy
+                    setTimeout(() => {setCopied(false); setSuccessMessage(null);}, 2000); 
+                })
+                .catch(err => {
+                    console.error('Failed to copy: ', err);
+                    setError('Failed to copy link.');
+                });
+        }
+    };
 
     // NEW STATE FOR ANALYSIS EDITING
     const [analysisToEdit, setAnalysisToEdit] = useState<RootCauseAnalysisModel | null>(null); // <--- NEW
@@ -1336,6 +1359,16 @@ type SectionKey = 'details' | 'analysis' | 'actions' | 'improvement';
                     <a href={allDefectsHref} className="inline-flex items-center text-indigo-600 hover:text-indigo-800 transition-colors duration-150 mb-3 font-semibold text-sm">
                         <ArrowLeft className="w-4 h-4 mr-2"/> Back to All Defects
                     </a>
+                  <button
+                        onClick={copyToClipboard}
+                        className="flex items-center text-indigo-600 bg-indigo-50 px-3 py-2 rounded-xl shadow-md hover:bg-indigo-100 transition transform hover:scale-[1.01] active:scale-95 font-semibold text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 relative whitespace-nowrap"
+                        //disabled={isLoading}
+                    >
+                        
+                        <Clapperboard className="w-4 h-4 mr-1"/>
+                        <span className="hidden sm:inline">{copied ? 'Link Copied!' : 'Share Link'}</span>
+                        <span className="sm:hidden">{copied ? 'Copied' : 'Share'}</span>
+                    </button>
                     
                     <h1 className="text-2xl sm:text-3xl font-extrabold text-gray-900 truncate mb-1">{localDefect.title}</h1>
                     <p className="text-gray-600 text-sm sm:text-base hidden sm:block">{localDefect.description}</p>
