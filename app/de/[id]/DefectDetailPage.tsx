@@ -717,44 +717,48 @@ const ImprovementOpportunityCard: React.FC<OpportunityCardProps> = ({ opportunit
     return (
         <div className="bg-white border border-gray-200 rounded-xl shadow-md overflow-hidden transition-all duration-300">
             <div className="p-4 flex items-start justify-between">
-                <div className="flex items-center space-x-3 w-full">
-                    <StatusIcon className={`w-5 h-5 flex-shrink-0 ${statusColor}`} />
-                    <div className="flex-1 min-w-0">
-                        <p className="font-semibold text-gray-900 truncate">{opportunity.proposedAction}</p>
-                        <p className="text-xs text-gray-500">
-                            ID: {opportunity.id.substring(0, 8)} | Identified: {formatDate(opportunity.dateIdentified)}
-                        </p>
-                    </div>
-                </div>
-                
-                <div className="flex items-center space-x-2 flex-shrink-0 ml-4">
-                    <button 
-                        onClick={() => setIsExpanded(!isExpanded)}
-                        className="p-1 rounded-full text-gray-500 hover:bg-gray-100 transition"
-                        aria-expanded={isExpanded}
-                        aria-label={isExpanded ? "Collapse Details" : "Expand Details"}
-                    >
-                        {isExpanded ? <ChevronUp className="w-5 h-5" /> : <ChevronDown className="w-5 h-5" />}
-                    </button>
-                    <button 
-                        onClick={() => onEditStart(opportunity)}
-                        className="p-1 rounded-full text-blue-500 hover:bg-blue-100 transition"
-                        aria-label="Edit Opportunity"
-                        disabled={!allowEditing}
-                    >
-                        <Edit className="w-5 h-5" />
-                    </button>
-                    <ConfirmAction 
-                            onConfirm={handleIODeleteInternal} 
-                            itemId={opportunity.id}
-                            action="Delete"                            
-                            disabled={!allowEditing}
-                            heading="Delete Opportunity"
-                            description="This action will delete this comment. Press the Delete button to continue."
-                            showHint={true}
-                        />
+    
+            {/* LEFT DIV (Content/Text) - Now uses flex-1 */}
+            <div className="flex items-center space-x-3 flex-1 min-w-0 pr-4"> 
+                <StatusIcon className={`w-5 h-5 flex-shrink-0 ${statusColor}`} />
+                <div className="flex-1 min-w-0">
+                    {/* The inner min-w-0 and truncate ensure the text respects the space given by flex-1 */}
+                    <p className="font-semibold text-gray-900 truncate">{truncateString(opportunity.proposedAction, 150)}</p>
+                    <p className="text-xs text-gray-500">
+                        ID: {opportunity.id.substring(0, 8)} | Identified: {formatDate(opportunity.dateIdentified)}
+                    </p>
                 </div>
             </div>
+            
+            {/* RIGHT DIV (Actions/Buttons) - Stays fixed, claims its space first */}
+            <div className="flex items-center space-x-2 flex-shrink-0">
+                <button 
+                    onClick={() => setIsExpanded(!isExpanded)}
+                    className="p-1 rounded-full text-gray-500 hover:bg-gray-100 transition"
+                    aria-expanded={isExpanded}
+                    aria-label={isExpanded ? "Collapse Details" : "Expand Details"}
+                >
+                    {isExpanded ? <ChevronUp className="w-5 h-5" /> : <ChevronDown className="w-5 h-5" />}
+                </button>
+                <button 
+                    onClick={() => onEditStart(opportunity)}
+                    className="p-1 rounded-full text-blue-500 hover:bg-blue-100 transition"
+                    aria-label="Edit Opportunity"
+                    disabled={!allowEditing}
+                >
+                    <Edit className="w-5 h-5" />
+                </button>
+                <ConfirmAction 
+                    onConfirm={handleIODeleteInternal} 
+                    itemId={opportunity.id}
+                    action="Delete"                            
+                    disabled={!allowEditing}
+                    heading="Delete Opportunity"
+                    description="This action will delete this comment. Press the Delete button to continue."
+                    showHint={true}
+                />
+            </div>
+        </div>
 
             {isExpanded && (
                 <div className="px-4 py-3 bg-gray-50 border-t border-gray-200 space-y-2 text-sm">
@@ -830,78 +834,78 @@ const CorrectiveActionCard: React.FC<CorrectiveActionCardProps> = ({
         <div className="bg-white border border-gray-200 rounded-xl shadow-md overflow-hidden transition-all duration-300 hover:shadow-lg">
             
             {/* Header / Summary Section */}
-            <div className="p-4 flex items-start justify-between">
-                <div className="flex items-start space-x-3 w-full">
-                    <StatusIcon className={`w-5 h-5 flex-shrink-0 mt-0.5 ${statusColor}`} />
-                    <div className="flex-1 min-w-0">
-                        <p className={`font-semibold text-gray-900 text-lg ${isComplete ? 'line-through text-gray-500' : ''}`}>
-                            {truncateString(action.description,truncationLimit)}
-                        </p>
-                        <p className="text-sm text-gray-600 mt-1">
-                            Responsible: <span className="font-medium text-gray-800">{action.responsible}</span>
-                        </p>
-                        <p className="text-xs text-gray-500 mt-0.5">
-                            Due: {formatDate(action.dueDate)}
-                        </p>
-                        <span className={`text-xs font-medium mt-1 inline-block px-2 py-0.5 rounded-full border ${statusClasses}`}>
-                            {action.status}
-                        </span>
-                    </div>
-                </div>
-                
-                {/* Actions Group */}
-                <div className="flex items-center space-x-1.5 flex-shrink-0 ml-4">
-                    
-                    {/* Toggle Status Button */}
-                    <button 
-                        onClick={handleToggleStatus}
-                        disabled={isPending}
-                        className={`p-1 rounded-full transition ${isPending ? 'opacity-50 cursor-not-allowed' : (isComplete ? 'text-gray-500 hover:bg-gray-100' : 'text-green-500 hover:bg-green-100')}`}
-                        aria-label={isComplete ? "Mark as In Progress" : "Mark as Complete"}
-                    >
-                        {isToggling ? (
-                             <svg className="animate-spin h-5 w-5 text-indigo-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                                 <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                                 <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                             </svg>
-                        ) : (
-                            isComplete ? <ToggleLeft className="w-5 h-5" /> : <ToggleRight className="w-5 h-5" />
-                        )}
-                    </button>
+           <div className="p-4 flex items-start justify-between">
+    
+        {/* FIRST DIV (Content/Details) - Use flex-1 to grow and take remaining space */}
+        <div className="flex items-start space-x-3 flex-1 min-w-0 pr-4"> 
+            <StatusIcon className={`w-5 h-5 flex-shrink-0 mt-0.5 ${statusColor}`} />
+            <div className="flex-1 min-w-0">
+                <p className={`font-semibold text-gray-900 text-lg ${isComplete ? 'line-through text-gray-500' : ''}`}>
+                    {truncateString(action.description,truncationLimit)}
+                </p>
+                <p className="text-sm text-gray-600 mt-1">
+                    Responsible: <span className="font-medium text-gray-800">{action.responsible}</span>
+                </p>
+                <p className="text-xs text-gray-500 mt-0.5">
+                    Due: {formatDate(action.dueDate)}
+                </p>
+                <span className={`text-xs font-medium mt-1 inline-block px-2 py-0.5 rounded-full border ${statusClasses}`}>
+                    {action.status}
+                </span>
+            </div>
+        </div>
+    
+    {/* Actions Group (SECOND DIV) - Use flex-shrink-0 to maintain its fixed width */}
+    <div className="flex items-center space-x-1.5 flex-shrink-0"> 
+        
+        {/* Toggle Status Button */}
+        <button 
+            onClick={handleToggleStatus}
+            disabled={isPending}
+            className={`p-1 rounded-full transition ${isPending ? 'opacity-50 cursor-not-allowed' : (isComplete ? 'text-gray-500 hover:bg-gray-100' : 'text-green-500 hover:bg-green-100')}`}
+            aria-label={isComplete ? "Mark as In Progress" : "Mark as Complete"}
+        >
+            {isToggling ? (
+                 <svg className="animate-spin h-5 w-5 text-indigo-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                     <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                     <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                 </svg>
+            ) : (
+                isComplete ? <ToggleLeft className="w-5 h-5" /> : <ToggleRight className="w-5 h-5" />
+            )}
+        </button>
 
-                    {/* Edit Button */}
-                    <button 
-                        
-                        onClick={(e) => { e.stopPropagation(); onEditStart(action); }}
-                        disabled={isPending||!allowEditing}
-                        className="p-1 rounded-full text-blue-500 hover:bg-blue-100 transition disabled:opacity-50"
-                        aria-label="Edit Corrective Action"
-                    >
-                        <Edit className="w-5 h-5" />
-                        
-                    </button>
+        {/* Edit Button */}
+        <button 
+            onClick={(e) => { e.stopPropagation(); onEditStart(action); }}
+            disabled={isPending||!allowEditing}
+            className="p-1 rounded-full text-blue-500 hover:bg-blue-100 transition disabled:opacity-50"
+            aria-label="Edit Corrective Action"
+        >
+            <Edit className="w-5 h-5" />
+        </button>
 
-                    {/* Delete Confirmation Button (using Mock) */}
-                    <ConfirmAction 
-                        onConfirm={handleActionDeleteTrigger} 
-                        itemId={action.id}
-                        action="Delete" 
-                        disabled={isPending || isDeleting||!allowEditing}
-                        heading="Delete Action"
-                        description="This action will delete this corrective action permanently."
-                        showHint={false} // Hint is unnecessary for a mock
-                    />
-                    
-                    {/* Expand/Collapse Button */}
-                    <button 
-                        onClick={(e) => { e.stopPropagation(); setIsExpanded(!isExpanded); }}
-                        className="p-1 rounded-full text-gray-500 hover:bg-gray-100 transition"
-                        aria-expanded={isExpanded}
-                        aria-label={isExpanded ? "Collapse Details" : "Expand Details"}
-                    >
-                        {isExpanded ? <ChevronUp className="w-5 h-5" /> : <ChevronDown className="w-5 h-5" />}
-                    </button>
-                </div>
+        {/* Delete Confirmation Button */}
+        <ConfirmAction 
+            onConfirm={handleActionDeleteTrigger} 
+            itemId={action.id}
+            action="Delete" 
+            disabled={isPending || isDeleting||!allowEditing}
+            heading="Delete Action"
+            description="This action will delete this corrective action permanently."
+            showHint={false} 
+        />
+        
+        {/* Expand/Collapse Button */}
+        <button 
+            onClick={(e) => { e.stopPropagation(); setIsExpanded(!isExpanded); }}
+            className="p-1 rounded-full text-gray-500 hover:bg-gray-100 transition"
+            aria-expanded={isExpanded}
+            aria-label={isExpanded ? "Collapse Details" : "Expand Details"}
+        >
+            {isExpanded ? <ChevronUp className="w-5 h-5" /> : <ChevronDown className="w-5 h-5" />}
+        </button>
+    </div>
             </div>
 
             {/* Expanded Details Section */}
