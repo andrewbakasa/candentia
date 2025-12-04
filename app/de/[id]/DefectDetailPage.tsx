@@ -1620,16 +1620,18 @@ type SectionKey = 'details' | 'analysis' | 'actions' | 'improvement';
                     </div>
                     
                     {/* RIGHT COLUMN: EMPTY (Kept for future sidebar content, currently collapses content into left column) */}
-                  <div className="col-span-3 mb-2">
-                        {/* Delete Warning & Action Button Container */}
-                        <div className="flex items-start justify-end gap-4">
+                  {hasRequiredRole &&<div className="col-span-2 mb-2">
+                        {/* Use flex-col (mobile) and md:flex-row (desktop) to stack/unstack items */}
+                        <div className="flex flex-col gap-2 items-start justify-start md:flex-row md:items-start md:gap-4">
                             
-                            {/* Warning Text */}
-                            <p className="text-sm text-red-600 font-medium text-right max-w-xs flex-1">
-                                WARNING: Deleting this Defect is permanent and cannot be undone. Only proceed if necessary.
-                            </p>
+                            {/* Warning Text Container */}
+                            <div className="flex-1 max-w-xs">
+                                <p className="text-[5px] text-gray-400 text-right">
+                                    WARNING: Deleting this Defect is permanent.
+                                </p>
+                            </div>
 
-                            {/* Delete Button (Pushed to the extreme right via justify-end) */}
+                            {/* Delete Button (Always aligned to the end) */}
                             <ConfirmAction 
                                 onConfirm={handleADefectDeleteExternal} 
                                 itemId={defect.id}
@@ -1641,6 +1643,7 @@ type SectionKey = 'details' | 'analysis' | 'actions' | 'improvement';
                             />
                         </div>
                     </div>
+ }
                 </div>
             </div>
 
