@@ -914,7 +914,7 @@ const CorrectiveActionCard: React.FC<CorrectiveActionCardProps> = ({
 };
 
 interface DefectDetailViewProps {
-  currentUser: SafeUser; // Type your user model correctly
+  currentUser: SafeUser|null; // Type your user model correctly
   defect: DefectDetailModel;
   allDefectsHref: string; // NEW PROP for the back link target
 }
@@ -1359,12 +1359,11 @@ type SectionKey = 'details' | 'analysis' | 'actions' | 'improvement';
                     <a href={allDefectsHref} className="inline-flex items-center text-indigo-600 hover:text-indigo-800 transition-colors duration-150 mb-3 font-semibold text-sm">
                         <ArrowLeft className="w-4 h-4 mr-2"/> Back to All Defects
                     </a>
-                  <button
+                   <button
                         onClick={copyToClipboard}
                         className="flex items-center text-indigo-600 bg-indigo-50 px-3 py-2 rounded-xl shadow-md hover:bg-indigo-100 transition transform hover:scale-[1.01] active:scale-95 font-semibold text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 relative whitespace-nowrap"
                         //disabled={isLoading}
                     >
-                        
                         <Clapperboard className="w-4 h-4 mr-1"/>
                         <span className="hidden sm:inline">{copied ? 'Link Copied!' : 'Share Link'}</span>
                         <span className="sm:hidden">{copied ? 'Copied' : 'Share'}</span>
