@@ -108,6 +108,7 @@ interface CorrectiveActionModel {
 }
 import { formatDate } from '@/app/contracts/_components/utils';
 import ConfirmAction from '../_components/ConfirmAction';
+import { SafeUser } from '@/app/types';
 
 // --- Type Definitions (Assuming these are available) ---
 interface ImprovementOpportunity {
@@ -691,9 +692,10 @@ interface OpportunityCardProps {
     opportunity: ImprovementOpportunity;
     onEditStart: (io: ImprovementOpportunity) => void;
     onDelete: (id: string) => Promise<void>;
+    allowEditing:boolean
 }
 
-const ImprovementOpportunityCard: React.FC<OpportunityCardProps> = ({ opportunity, onEditStart, onDelete }) => {
+const ImprovementOpportunityCard: React.FC<OpportunityCardProps> = ({ opportunity, onEditStart, onDelete,allowEditing }) => {
     const [isDeleting, setIsDeleting] = useState(false);
     const [isExpanded, setIsExpanded] = useState(false);
     
@@ -734,14 +736,15 @@ const ImprovementOpportunityCard: React.FC<OpportunityCardProps> = ({ opportunit
                         onClick={() => onEditStart(opportunity)}
                         className="p-1 rounded-full text-blue-500 hover:bg-blue-100 transition"
                         aria-label="Edit Opportunity"
+                        disabled={!allowEditing}
                     >
                         <Edit className="w-5 h-5" />
                     </button>
                     <ConfirmAction 
                             onConfirm={handleIODeleteInternal} 
                             itemId={opportunity.id}
-                            action="Delete" 
-                            disabled={false} // Opposite of the main state
+                            action="Delete"                            
+                            disabled={!allowEditing}
                             heading="Delete Opportunity"
                             description="This action will delete this comment. Press the Delete button to continue."
                             showHint={true}
@@ -767,12 +770,14 @@ interface CorrectiveActionCardProps {
     onEditStart: (action: CorrectiveActionModel) => void;
     onDelete: (actionId: string) => Promise<void>;
     onToggleStatus: (actionId: string, newStatus: ActionStatus) => Promise<void>;
+    allowEditing:boolean
 }
 const CorrectiveActionCard: React.FC<CorrectiveActionCardProps> = ({ 
     action, 
     onEditStart, 
     onDelete,
-    onToggleStatus
+    onToggleStatus,
+    allowEditing
 }) => {
     const [isDeleting, setIsDeleting] = useState(false);
     const [isToggling, setIsToggling] = useState(false);
@@ -858,12 +863,14 @@ const CorrectiveActionCard: React.FC<CorrectiveActionCardProps> = ({
 
                     {/* Edit Button */}
                     <button 
+                        
                         onClick={(e) => { e.stopPropagation(); onEditStart(action); }}
-                        disabled={isPending}
+                        disabled={isPending||!allowEditing}
                         className="p-1 rounded-full text-blue-500 hover:bg-blue-100 transition disabled:opacity-50"
                         aria-label="Edit Corrective Action"
                     >
                         <Edit className="w-5 h-5" />
+                        
                     </button>
 
                     {/* Delete Confirmation Button (using Mock) */}
@@ -871,7 +878,7 @@ const CorrectiveActionCard: React.FC<CorrectiveActionCardProps> = ({
                         onConfirm={handleActionDeleteTrigger} 
                         itemId={action.id}
                         action="Delete" 
-                        disabled={isPending || isDeleting}
+                        disabled={isPending || isDeleting||!allowEditing}
                         heading="Delete Action"
                         description="This action will delete this corrective action permanently."
                         showHint={false} // Hint is unnecessary for a mock
@@ -904,7 +911,7 @@ const CorrectiveActionCard: React.FC<CorrectiveActionCardProps> = ({
 };
 
 interface DefectDetailViewProps {
-  currentUser: any; // Type your user model correctly
+  currentUser: SafeUser; // Type your user model correctly
   defect: DefectDetailModel;
   allDefectsHref: string; // NEW PROP for the back link target
 }
@@ -919,7 +926,7 @@ type NavItem = {
 /** The type that represents the valid keys for our scroll ref map. */
 type SectionKey = 'details' | 'analysis' | 'actions' | 'improvement';
 
- const DefectDetailView: React.FC<DefectDetailViewProps> = ({ defect, allDefectsHref }) => {
+ const DefectDetailView: React.FC<DefectDetailViewProps> = ({ defect, allDefectsHref, currentUser }) => {
     // We use a local state initialized from the prop to simulate data mutation (e.g., adding an IO)
     const [localDefect, setLocalDefect] = useState<DefectDetailModel>(defect);
     const [activeSection, setActiveSection] = useState<SectionKey>('details');
@@ -939,6 +946,27 @@ type SectionKey = 'details' | 'analysis' | 'actions' | 'improvement';
     const analysisRef = useRef<HTMLDivElement>(null);
     const actionsRef = useRef<HTMLDivElement>(null);
     const improvementRef = useRef<HTMLDivElement>(null);
+
+     const allowedRoles: string[] = ['admin', 'executive'];
+    
+        const hasRequiredRole = useMemo(() => {
+            if (!currentUser) {
+                return false;
+            }
+    
+            // Check 1: Is the user a global system admin?
+            const isGlobalAdmin = currentUser.isAdmin === true;
+    
+            // Check 2: Does the user have a required role in their roles array?
+            const hasRoleAccess = currentUser.roles 
+                && currentUser.roles.some(role => 
+                    allowedRoles.includes(role.toLowerCase())
+                );
+    
+            // Access is granted if they are a global admin OR they have one of the required roles
+            return isGlobalAdmin || hasRoleAccess;
+    
+        }, [currentUser]);
     
     
     // Memoized opportunities list
@@ -1045,7 +1073,7 @@ type SectionKey = 'details' | 'analysis' | 'actions' | 'improvement';
     }, []);
 
     // Analysis Card Renderer with Edit/Delete Controls - UPDATED
-    const renderAnalysis = (analysis: RootCauseAnalysisModel) => (
+    const renderAnalysis = (analysis: RootCauseAnalysisModel,allowEditing:boolean) => (
         <div 
             key={analysis.id} 
             className="mb-4 p-4 bg-indigo-50 rounded-xl border-l-4 border-indigo-500 shadow-sm hover:bg-indigo-100 transition relative" // Added relative for positioning buttons
@@ -1055,6 +1083,7 @@ type SectionKey = 'details' | 'analysis' | 'actions' | 'improvement';
                     onClick={() => handleEditStartAnalysis(analysis)}
                     className="p-1 rounded-full text-indigo-600 hover:bg-indigo-200 transition"
                     title="Edit Analysis"
+                    disabled={!allowEditing}
                 >
                     <Edit className="w-5 h-5"/>
                 </button>                
@@ -1062,7 +1091,7 @@ type SectionKey = 'details' | 'analysis' | 'actions' | 'improvement';
                             onConfirm={handleAnalysisDeleteExternal} 
                             itemId={analysis.id}
                             action="Delete" 
-                            disabled={false} // Opposite of the main state
+                            disabled={!allowEditing} // Opposite of the main state
                             heading="Delete Opportunity"
                             description="This action will delete this comment. Press the Delete button to continue."
                             showHint={true}
@@ -1379,7 +1408,8 @@ type SectionKey = 'details' | 'analysis' | 'actions' | 'improvement';
                             
                             <div className="mt-4 space-y-4">
                                 {localDefect.analyses.length > 0 ? 
-                                    localDefect.analyses.map(renderAnalysis) : // <-- Uses the UPDATED renderAnalysis
+                                    //localDefect.analyses.map(renderAnalysis()) : // <-- Uses the UPDATED renderAnalysis
+                                     localDefect.analyses.map((analysis: RootCauseAnalysisModel) => renderAnalysis(analysis, hasRequiredRole)):
                                     <p className="text-gray-500 p-3 bg-gray-50 rounded">No root cause analysis records found. Start a new one above.</p>
                                 }
                             </div>
@@ -1419,7 +1449,8 @@ type SectionKey = 'details' | 'analysis' | 'actions' | 'improvement';
                                         action={action}
                                         onEditStart={handleEditStartCorrectiveAction}
                                         onDelete={handleDeleteCorrectiveAction}
-                                        onToggleStatus={handleToggleStatusCorrectiveAction}
+                                        onToggleStatus={handleToggleStatusCorrectiveAction} 
+                                        allowEditing={hasRequiredRole}                                    
                                     />
                                 ))}
                                 {localDefect.actions.length === 0 && (
@@ -1456,6 +1487,7 @@ type SectionKey = 'details' | 'analysis' | 'actions' | 'improvement';
                                             opportunity={opportunity} 
                                             onEditStart={setOpportunityToEdit}
                                             onDelete={handleIODeleteExternal}
+                                            allowEditing={hasRequiredRole} 
                                         />
                                     ))
                                 ) : (

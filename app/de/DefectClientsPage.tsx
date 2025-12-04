@@ -787,9 +787,7 @@ const DefectListClient: React.FC<DefectListClientProps> = ({ currentUser }) => {
         setItemOffset(newOffset);
     }, [pageSize, filteredDefects.length]);
 
-    // const handlePageSizeChange = useCallback((newPageSize: string) => {
-    //     setPageSize(parseInt(newPageSize, 10));
-    // }, []);
+   
 
     const { execute } = useAction(updatePagSize, {
             onSuccess: (data) => {
@@ -821,8 +819,6 @@ const DefectListClient: React.FC<DefectListClientProps> = ({ currentUser }) => {
         setEditingDefect(undefined);
         setShowForm(false);
     };
-    // ✅ CORRECT Implementation: Wrapper for the API function (handleCreateOrUpdate)
-// // This function is what should be passed to the <DefectForm onSubmit> prop.
     const handleSubmitDefect = (data: DefectFormData & { id?: string }) => {
         // 1. Call the API-driven function with the form data.
         // This function already handles:
