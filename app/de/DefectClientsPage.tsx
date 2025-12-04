@@ -361,9 +361,10 @@ interface DesktopTableRowProps {
     index: number;
     itemOffset: number;
     onEdit: (defect: DefectListModel) => void;
+    allowEditing:boolean
 }
 
-const DesktopTableRow: React.FC<DesktopTableRowProps> = ({ defect, index, itemOffset, onEdit }) => {
+const DesktopTableRow: React.FC<DesktopTableRowProps> = ({ defect, index, itemOffset, onEdit,allowEditing }) => {
     const statusCategory = getDefectStatusCategory(defect);
 
     return (
@@ -412,6 +413,7 @@ const DesktopTableRow: React.FC<DesktopTableRowProps> = ({ defect, index, itemOf
                         onClick={() => onEdit(defect)}
                         className="text-indigo-600 hover:text-indigo-800 p-1 rounded-full hover:bg-indigo-100 transition duration-150"
                         title="Edit Defect"
+                        disabled={!allowEditing}
                     >
                         <Edit className="w-4 h-4" />
                     </button>
@@ -441,9 +443,10 @@ interface MobileCardViewProps {
     defectsToDisplay: DefectListModel[];
     itemOffset: number;
     onEdit: (defect: DefectListModel) => void;
+    allowEditing:boolean;
 }
 
-const MobileCardView: React.FC<MobileCardViewProps> = ({ defectsToDisplay, itemOffset, onEdit }) => (
+const MobileCardView: React.FC<MobileCardViewProps> = ({ defectsToDisplay, itemOffset, onEdit,allowEditing }) => (
     <div className="md:hidden space-y-4"> 
         {defectsToDisplay.map((defect,index) => {
             const statusCategory = getDefectStatusCategory(defect);
@@ -479,6 +482,7 @@ const MobileCardView: React.FC<MobileCardViewProps> = ({ defectsToDisplay, itemO
                         
                         <div className="flex space-x-2">
                             <button
+                                disabled={!allowEditing}
                                 onClick={() => onEdit(defect)}
                                 className="px-3 py-1 text-xs font-medium rounded-lg text-indigo-600 border border-indigo-200 hover:bg-indigo-100 transition"
                             >
@@ -711,7 +715,28 @@ const DefectListClient: React.FC<DefectListClientProps> = ({ currentUser }) => {
     const [showForm, setShowForm] = useState(false);
     const [editingDefect, setEditingDefect] = useState<DefectListModel | undefined>(undefined);
 
-
+  const allowedRoles: string[] = ['admin', 'executive'];
+    
+        const hasRequiredRole = useMemo(() => {
+            if (!currentUser) {
+                return false;
+            }
+    
+            // Check 1: Is the user a global system admin?
+            const isGlobalAdmin = currentUser.isAdmin === true;
+    
+            // Check 2: Does the user have a required role in their roles array?
+            const hasRoleAccess = currentUser.roles 
+                && currentUser.roles.some(role => 
+                    allowedRoles.includes(role.toLowerCase())
+                );
+    
+            // Access is granted if they are a global admin OR they have one of the required roles
+            return isGlobalAdmin || hasRoleAccess;
+    
+        }, [currentUser]);
+    
+    
     
     const [isLoading, setIsLoading] = useState(true); // Set to false since data is mocked upfront
     const [error, setError] = useState<string | null>(null);
@@ -1008,6 +1033,7 @@ if (isLoading) {
                                         index={index} 
                                         itemOffset={itemOffset}
                                         onEdit={handleOpenForm}
+                                        allowEditing={hasRequiredRole}
                                     />
                                 ))
                             ) : (
@@ -1025,7 +1051,8 @@ if (isLoading) {
                 <MobileCardView 
                     defectsToDisplay={defectsToDisplay} 
                     itemOffset={itemOffset}
-                    onEdit={handleOpenForm} 
+                    onEdit={handleOpenForm}
+                    allowEditing={hasRequiredRole} 
                 />
 
                 {/* Pagination */}
