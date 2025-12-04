@@ -1346,8 +1346,9 @@ type SectionKey = 'details' | 'analysis' | 'actions' | 'improvement';
                             </h2>
                             <p className="text-gray-700 mb-4">{localDefect.description}</p>
                             
-                            {/* Detailed Metadata Grid (using the DetailItem) */}
-                            <div className="flex flex-wrap gap-2 pt-2 border-t border-gray-100">
+                            
+                            <div className="grid grid-cols-1 sm:grid-cols-4 gap-4 border-t border-gray-100"> 
+                            {/* <div className="flex flex-wrap gap-2 pt-2 border-t border-gray-100"> */}
                                 <DetailItem icon={Calendar} label="Identified Date" value={new Date(localDefect.identificationDate).toLocaleDateString()} />
                                 <DetailItem icon={User} label="Reported By" value={localDefect?.reportedBy || 'Unknown'} />
                                 <DetailItem icon={FileText} label="Equipment Tag" value={localDefect.equipmentTag || 'N/A'} />
