@@ -110,6 +110,8 @@ interface CorrectiveActionModel {
 import { formatDate } from '@/app/contracts/_components/utils';
 import ConfirmAction from '../_components/ConfirmAction';
 import { SafeUser } from '@/app/types';
+import { truncateString } from '@/lib/utils';
+import useIsMobile from '@/app/hooks/isMobile';
 
 // --- Type Definitions (Assuming these are available) ---
 interface ImprovementOpportunity {
@@ -771,14 +773,17 @@ interface CorrectiveActionCardProps {
     onEditStart: (action: CorrectiveActionModel) => void;
     onDelete: (actionId: string) => Promise<void>;
     onToggleStatus: (actionId: string, newStatus: ActionStatus) => Promise<void>;
-    allowEditing:boolean
+    allowEditing:boolean;
+    truncationLimit:number
+
 }
 const CorrectiveActionCard: React.FC<CorrectiveActionCardProps> = ({ 
     action, 
     onEditStart, 
     onDelete,
     onToggleStatus,
-    allowEditing
+    allowEditing,
+    truncationLimit
 }) => {
     const [isDeleting, setIsDeleting] = useState(false);
     const [isToggling, setIsToggling] = useState(false);
@@ -789,8 +794,7 @@ const CorrectiveActionCard: React.FC<CorrectiveActionCardProps> = ({
     const StatusIcon = isComplete ? CheckCircle : Clock;
     const statusColor = isComplete ? 'text-green-500' : 'text-yellow-500';
 
-    
-
+ 
     const handleActionDeleteTrigger = async () => {
         setIsDeleting(true);
         try {
@@ -830,7 +834,7 @@ const CorrectiveActionCard: React.FC<CorrectiveActionCardProps> = ({
                     <StatusIcon className={`w-5 h-5 flex-shrink-0 mt-0.5 ${statusColor}`} />
                     <div className="flex-1 min-w-0">
                         <p className={`font-semibold text-gray-900 text-lg ${isComplete ? 'line-through text-gray-500' : ''}`}>
-                            {action.description}
+                            {truncateString(action.description,truncationLimit)}
                         </p>
                         <p className="text-sm text-gray-600 mt-1">
                             Responsible: <span className="font-medium text-gray-800">{action.responsible}</span>
@@ -934,7 +938,9 @@ type SectionKey = 'details' | 'analysis' | 'actions' | 'improvement';
     const [localDefect, setLocalDefect] = useState<DefectDetailModel>(defect);
     const [activeSection, setActiveSection] = useState<SectionKey>('details');
     const [actionToEdit, setActionToEdit] = useState<CorrectiveActionModel | null>(null); // NEW: State for editing an action
-
+    
+    const isMobile = useIsMobile();
+    const truncationLimit = isMobile ? 25 : 70; // Use 20 for mobile, 50 for desktop
 
     const [opportunityToEdit, setOpportunityToEdit] =  useState<ImprovementOpportunity | null>(null);
     const [showActionForm, setShowActionForm] = useState(false);
@@ -1481,8 +1487,9 @@ type SectionKey = 'details' | 'analysis' | 'actions' | 'improvement';
                                         action={action}
                                         onEditStart={handleEditStartCorrectiveAction}
                                         onDelete={handleDeleteCorrectiveAction}
-                                        onToggleStatus={handleToggleStatusCorrectiveAction} 
-                                        allowEditing={hasRequiredRole}                                    
+                                        onToggleStatus={handleToggleStatusCorrectiveAction}
+                                        allowEditing={hasRequiredRole}
+                                         truncationLimit={truncationLimit}                                                                          
                                     />
                                 ))}
                                 {localDefect.actions.length === 0 && (
