@@ -2,8 +2,6 @@ import prisma from "@/app/libs/prismadb";
 import getCurrentUser from "@/app/actions/getCurrentUser";
 import Container from "@/app/components/Container";
 import { notFound } from 'next/navigation';
-//import { DefectDetailModel } from "../_components/types/types";
-// Assuming DefectDetailPage.tsx contains the client component DefectDetailView
 import DefectDetailView, { DefectDetailModel } from "./DefectDetailPage"; 
 
 
