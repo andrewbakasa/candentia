@@ -12,7 +12,8 @@ import {
     ClipboardList,
     Check,
     ToggleLeft,
-    ToggleRight
+    ToggleRight,
+    X
 } from 'lucide-react';
 import toast from 'react-hot-toast'; // Recommended for better user feedback
 
@@ -53,13 +54,7 @@ interface BreakdownModel {
     durationMinutes: number | null;
 }
 
-interface AnalysisRecordModel {
-    id: string;
-    methodUsed: string; // e.g., "5 Whys", "Fishbone"
-    summaryOfFindings: string;
-    analystName: string;
-    analysisDate: string; // ISO Date String
-}
+
 
 interface CorrectiveActionModel {
     id: string;
@@ -96,7 +91,7 @@ export interface DefectDetailModel {
     equipmentTag: string;
     area: string;
     breakdown: BreakdownModel | null;
-    analyses: AnalysisRecordModel[];
+    analyses: RootCauseAnalysisModel[];
     actions: CorrectiveActionModel[];
     improvementOpportunities: ImprovementOpportunity[];
     eliminationRecord: EliminationRecordModel | null;
@@ -126,13 +121,6 @@ interface ImprovementOpportunity {
     isImplemented: boolean;
 }
 
-// enum DefectStatus {
-//     IDENTIFIED = 'IDENTIFIED',
-//     IN_ANALYSIS = 'IN_ANALYSIS',
-//     ACTION_DEFINED = 'ACTION_DEFINED',
-//     ACTION_IMPLEMENTED = 'ACTION_IMPLEMENTED',
-//     CLOSED_VERIFIED = 'CLOSED_VERIFIED',
-// }
 // --- UTILITY COMPONENTS ---
  const API_BASE_URL_IO = '/api/defects/io'; // Assuming API path
  const API_BASE_URL_CA = '/api/defects/ca'; // Assuming API path
@@ -175,23 +163,7 @@ const DetailItem: React.FC<DetailItemProps> = ({ icon: Icon, label, value, span 
     </div>
   </div>
 );
-  // --- PLACEHOLDER FORM COMPONENTS (Wrapped for desktop) ---
-    // Forms use an 'onClose' prop to allow the parent to hide them
-    const BaseFormCard = ({ title, icon: Icon, children, color, onClose }: { title: string, icon: LucideIcon, children: React.ReactNode, color: string, onClose: () => void }) => (
-        <div className={`p-4 border-2 border-dashed ${color} bg-white rounded-xl shadow-lg mt-6`}>
-            <div className="flex justify-between items-center mb-3 border-b pb-2">
-                <h4 className={`text-lg font-bold text-${color.split('-')[1]}-700 flex items-center`}>
-                    <Icon className="w-5 h-5 mr-2"/> {title}
-                </h4>
-                <button onClick={onClose} className="text-gray-500 hover:text-red-500 font-bold text-xl leading-none">&times;</button>
-            </div>
-            {children}
-        </div>
-    );
-
-
-
-
+  
 const HeaderHeight = 64; // h-16 (4rem)
 
 // --- FORM TYPE DEFINITIONS ---
@@ -386,102 +358,199 @@ const CorrectiveActionForm: React.FC<CorrectiveActionFormProps> = ({ defectId, i
 };
 
 
-    // --- UPDATED COMPONENT: RootCauseAnalysisForm with API Submission Logic ---
- const RootCauseAnalysisForm = ({ defectId, onClose }: { defectId: string, onClose: () => void }) => {
-        const [analystName, setAnalystName] = useState('');
-        const [methodUsed, setMethodUsed] = useState<AnalysisMethod | ''>('');
-        const [summaryOfFindings, setSummaryOfFindings] = useState('');
-        const [isLoading, setIsLoading] = useState(false);
-
-        const onSubmit = useCallback(async (e: React.FormEvent) => {
-            e.preventDefault();
-            
-            if (!analystName || !methodUsed || !summaryOfFindings) {
-                toast.error('Please fill out all fields for the analysis.');
-                return;
-            }
-
-            setIsLoading(true);
-            
-            try {
-                const response = await fetch(`/api/defects/rca`, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({
-                        defectId,
-                        analystName,
-                        methodUsed,
-                        summaryOfFindings,
-                        analysisDate: new Date().toISOString(), // Use current date/time
-                    }),
-                });
-
-                if (!response.ok) {
-                    const errorData = await response.json();
-                    throw new Error(errorData.message || 'Failed to create analysis record.');
-                }
-
-                toast.success('Root Cause Analysis submitted successfully!');
-                
-                // Close the form and refresh the page to display the new analysis record
-                onClose();
-                window.location.reload(); 
-
-            } catch (error: any) {
-                console.error('[RCA_SUBMISSION_ERROR]', error);
-                toast.error(error.message || 'An unexpected error occurred during submission.');
-            } finally {
-                setIsLoading(false);
-            }
-        }, [defectId, analystName, methodUsed, summaryOfFindings, onClose]);
+// Define the shape of the data submitted/returned (optional but good practice)
+interface RootCauseAnalysisModel {
+    id: string;
+    defectId: string;
+    analystName: string;
+    methodUsed: AnalysisMethod;
+    summaryOfFindings: string;
+    analysisDate: string; // ISO string format
+}
 
 
-        return (
-            <BaseFormCard title="New Root Cause Analysis" icon={Aperture} color="border-indigo-300" onClose={onClose}>
-                <p className="text-sm text-gray-600 mb-3">Linked to Defect: **{defectId}**</p>
-                <form onSubmit={onSubmit} className="space-y-3">
-                    <input 
-                        type="text" 
-                        placeholder="Analyst Name" 
-                        className="w-full p-2 border rounded" 
-                        value={analystName}
-                        onChange={(e) => setAnalystName(e.target.value)}
-                        disabled={isLoading}
-                    />
-                    <select 
-                        className="w-full p-2 border rounded"
-                        value={methodUsed}
-                        onChange={(e) => setMethodUsed(e.target.value as AnalysisMethod)}
-                        disabled={isLoading}
-                    >
-                        <option value="">Select Method</option>
-                        {/* Ensure keys in AnalysisMethod match the values in the option */}
-                        <option value={AnalysisMethod.FIVE_WHYS}>Five Whys</option>
-                        <option value={AnalysisMethod.APOLLO}>Apollo</option>
-                        <option value={AnalysisMethod.FMECA}>FMECA</option>
-                    </select>
-                    <textarea 
-                        placeholder="Summary of Findings/Root Cause Text" 
-                        rows={3} 
-                        className="w-full p-2 border rounded"
-                        value={summaryOfFindings}
-                        onChange={(e) => setSummaryOfFindings(e.target.value)}
-                        disabled={isLoading}
-                    ></textarea>
-                    <button 
-                        type="submit"
-                        className="w-full py-2 bg-indigo-600 text-white font-semibold rounded hover:bg-indigo-700 transition disabled:bg-indigo-400"
-                        disabled={isLoading}
-                    >
-                        {isLoading ? 'Submitting...' : 'Complete Analysis'}
-                    </button>
-                </form>
-            </BaseFormCard>
-        );
+// Define the component's props
+interface RootCauseAnalysisFormProps {
+    defectId: string;
+    onClose: () => void;
+    initialData?: RootCauseAnalysisModel; // For edit mode
+    // Callback for successful submission, returns the created/updated RCA object and the mode
+    onSuccess: (rca: RootCauseAnalysisModel, mode: 'create' | 'edit') => void; 
+}
+
+const API_BASE_URL_RCA = '/api/defects/rca'; // Define your API endpoint base URL
+
+// --- End of assumed definitions ---
+
+
+const RootCauseAnalysisForm: React.FC<RootCauseAnalysisFormProps> = ({ defectId, initialData, onClose, onSuccess }) => {
+    // Check if we are in edit mode
+    const isEdit = !!initialData;
+
+    // 1. State Initialization: Use initialData for defaults if in edit mode
+    const [analystName, setAnalystName] = useState(initialData?.analystName || '');
+    const [methodUsed, setMethodUsed] = useState<AnalysisMethod | ''>(initialData?.methodUsed || '');
+    const [summaryOfFindings, setSummaryOfFindings] = useState(initialData?.summaryOfFindings || '');
+    const [isLoading, setIsLoading] = useState(false);
+
+    const handleSubmitRCA = useCallback(async (e: React.FormEvent) => {
+        e.preventDefault();
+        
+        // Basic validation
+        if (!analystName.trim() || !methodUsed || !summaryOfFindings.trim()) {
+            toast.error('Please fill out all required fields: Analyst Name, Method, and Summary.');
+            return;
+        }
+
+        setIsLoading(true);
+        
+        // 2. Construct the RCA Payload
+        const payload: Partial<RootCauseAnalysisModel> = {
+            defectId,
+            analystName: analystName.trim(),
+            methodUsed: methodUsed,
+            summaryOfFindings: summaryOfFindings.trim(),
+            // For POST (new), set the date to now. For PUT (edit), preserve the original date.
+            analysisDate: isEdit ? initialData!.analysisDate : new Date().toISOString(), 
+        };
+
+        // 3. Determine Method and URL
+        const method = isEdit ? 'PUT' : 'POST';
+        const url = isEdit ? `${API_BASE_URL_RCA}/${initialData!.id}` : API_BASE_URL_RCA;
+        
+        try {
+            const response = await fetch(url, {
+                method: method,
+                headers: { 
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(payload),
+            });
+
+            if (!response.ok) {
+                const errorResult = await response.json();
+                throw new Error(errorResult.message || `Failed to ${isEdit ? 'update' : 'create'} analysis record.`);
+            }
+
+            // 4. Process Success
+            const result: RootCauseAnalysisModel = await response.json();
+            
+            toast.success(`Root Cause Analysis ${isEdit ? 'updated' : 'submitted'} successfully!`);
+            onSuccess(result, isEdit ? 'edit' : 'create'); 
+            onClose();
+
+        } catch (error: any) {
+            // 5. Handle Error
+            console.error('[RCA_SUBMISSION_ERROR]', error);
+            toast.error(error.message || 'An unexpected error occurred during submission.');
+        } finally {
+            // 6. Cleanup
+            setIsLoading(false);
+        }
+    }, [defectId, analystName, methodUsed, summaryOfFindings, isEdit, initialData, onClose, onSuccess]);
+
+    return (
+        <div className="p-4 bg-white border border-indigo-300 rounded-xl shadow-lg mb-6">
+            <div className="flex justify-between items-center mb-4">
+                <h3 className="text-xl font-bold text-indigo-700">
+                    {isEdit ? 'Edit Root Cause Analysis' : 'New Root Cause Analysis'}
+                </h3>
+                {/* Close button for card/modal */}
+                <button 
+                    onClick={onClose}
+                    className="text-gray-400 hover:text-gray-600 transition"
+                    disabled={isLoading}
+                    aria-label="Close form"
+                >
+                    <X className="w-6 h-6" />
+                </button>
+            </div>
+            <p className="text-sm text-gray-600 mb-4">
+                Linked to Defect: **{defectId}** {isEdit && `(RCA ID: ${initialData!.id})`}
+            </p>
+            
+            <form onSubmit={handleSubmitRCA} className="space-y-4">
+                <div>
+                    <label htmlFor="analystName" className="block text-sm font-medium text-gray-700 mb-1">Analyst Name</label>
+                    <input 
+                        id="analystName"
+                        type="text" 
+                        placeholder="Enter Analyst Name" 
+                        className="w-full p-2 border border-gray-300 rounded-lg shadow-sm focus:border-indigo-500 focus:ring-indigo-500 transition" 
+                        value={analystName}
+                        onChange={(e) => setAnalystName(e.target.value)}
+                        disabled={isLoading}
+                    />
+                </div>
+                
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                        <label htmlFor="methodUsed" className="block text-sm font-medium text-gray-700 mb-1">Analysis Method</label>
+                        <select 
+                            id="methodUsed"
+                            className="w-full p-2 border border-gray-300 rounded-lg shadow-sm focus:border-indigo-500 focus:ring-indigo-500 transition"
+                            value={methodUsed}
+                            onChange={(e) => setMethodUsed(e.target.value as AnalysisMethod)}
+                            disabled={isLoading}
+                        >
+                            <option value="">Select Method</option>
+                            <option value={AnalysisMethod.FIVE_WHYS}>Five Whys</option>
+                            <option value={AnalysisMethod.APOLLO}>Apollo Root Cause Analysis</option>
+                            <option value={AnalysisMethod.FMECA}>FMECA (Failure Mode, Effects, and Criticality Analysis)</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label htmlFor="analysisDate" className="block text-sm font-medium text-gray-700 mb-1">Analysis Date</label>
+                        <input
+                            id="analysisDate"
+                            type="text" 
+                            className="w-full p-2 border border-gray-300 rounded-lg shadow-sm bg-gray-100 text-gray-500" 
+                            // Display the existing date, or a placeholder if creating a new one
+                            value={isEdit ? new Date(initialData!.analysisDate).toLocaleDateString() : 'Set on Submission'}
+                            disabled={true} // Date is auto-managed on submit
+                        />
+                    </div>
+                </div>
+
+                <div>
+                    <label htmlFor="summaryOfFindings" className="block text-sm font-medium text-gray-700 mb-1">Summary of Findings / Root Cause Text</label>
+                    <textarea 
+                        id="summaryOfFindings"
+                        placeholder="Detail the analysis findings and the final determined root cause here." 
+                        rows={5} 
+                        className="w-full p-2 border border-gray-300 rounded-lg shadow-sm focus:border-indigo-500 focus:ring-indigo-500 transition"
+                        value={summaryOfFindings}
+                        onChange={(e) => setSummaryOfFindings(e.target.value)}
+                        disabled={isLoading}
+                    ></textarea>
+                </div>
+                
+                <div className="flex justify-end space-x-3 pt-2">
+                    <button 
+                        type="button" 
+                        onClick={onClose}
+                        className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-200 rounded-lg hover:bg-gray-300 transition"
+                        disabled={isLoading}
+                    >
+                        Cancel
+                    </button>
+                    <button 
+                        type="submit"
+                        className="px-4 py-2 text-sm font-medium text-white bg-indigo-600 rounded-lg flex items-center shadow-md hover:bg-indigo-700 transition disabled:opacity-50"
+                        disabled={isLoading}
+                    >
+                        {isLoading ? (
+                            <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
+                        ) : (
+                            <Save className="w-4 h-4 mr-1"/>
+                        )}
+                        {isEdit ? 'Save Changes' : 'Complete Analysis'}
+                    </button>
+                </div>
+            </form>
+        </div>
+    );
 };
-
 interface OpportunityFormProps {
     sourceId: string;
     onClose: () => void;
@@ -628,7 +697,7 @@ const ImprovementOpportunityCard: React.FC<OpportunityCardProps> = ({ opportunit
     const [isDeleting, setIsDeleting] = useState(false);
     const [isExpanded, setIsExpanded] = useState(false);
     
-    const handleIODelete = async () => {
+    const handleIODeleteInternal = async () => {
        // if (window.confirm('Are you sure you want to permanently delete this Improvement Opportunity?')) {
             setIsDeleting(true);
             await onDelete(opportunity.id);
@@ -669,7 +738,7 @@ const ImprovementOpportunityCard: React.FC<OpportunityCardProps> = ({ opportunit
                         <Edit className="w-5 h-5" />
                     </button>
                     <ConfirmAction 
-                            onConfirm={handleIODelete} 
+                            onConfirm={handleIODeleteInternal} 
                             itemId={opportunity.id}
                             action="Delete" 
                             disabled={false} // Opposite of the main state
@@ -714,12 +783,12 @@ const CorrectiveActionCard: React.FC<CorrectiveActionCardProps> = ({
     const StatusIcon = isComplete ? CheckCircle : Clock;
     const statusColor = isComplete ? 'text-green-500' : 'text-yellow-500';
 
-    const handleActionDelete = async () => {
+    const handleActionDeleteTrigger = async () => {
         setIsDeleting(true);
         try {
+            //call external
             await onDelete(action.id);
-           // toast.message(`Action "${action.description.substring(0, 30)}..." deleted.`);
-           
+                     
         } catch (error) {
             toast.error('Failed to delete corrective action.');
             console.error(error);
@@ -799,7 +868,7 @@ const CorrectiveActionCard: React.FC<CorrectiveActionCardProps> = ({
 
                     {/* Delete Confirmation Button (using Mock) */}
                     <ConfirmAction 
-                        onConfirm={handleActionDelete} 
+                        onConfirm={handleActionDeleteTrigger} 
                         itemId={action.id}
                         action="Delete" 
                         disabled={isPending || isDeleting}
@@ -853,9 +922,6 @@ type SectionKey = 'details' | 'analysis' | 'actions' | 'improvement';
  const DefectDetailView: React.FC<DefectDetailViewProps> = ({ defect, allDefectsHref }) => {
     // We use a local state initialized from the prop to simulate data mutation (e.g., adding an IO)
     const [localDefect, setLocalDefect] = useState<DefectDetailModel>(defect);
-    
-   // const [actions, setActions] = useState<CorrectiveActionModel[]>(initialActions);
-     // State to manage quick-jump for mobile (correctly typed using SectionKey)
     const [activeSection, setActiveSection] = useState<SectionKey>('details');
     const [actionToEdit, setActionToEdit] = useState<CorrectiveActionModel | null>(null); // NEW: State for editing an action
 
@@ -864,6 +930,9 @@ type SectionKey = 'details' | 'analysis' | 'actions' | 'improvement';
     const [showActionForm, setShowActionForm] = useState(false);
     const [showAnalysisForm, setShowAnalysisForm] = useState(false);
     const [showImprovementForm, setShowImprovementForm] = useState(false);
+
+    // NEW STATE FOR ANALYSIS EDITING
+    const [analysisToEdit, setAnalysisToEdit] = useState<RootCauseAnalysisModel | null>(null); // <--- NEW
 
     // Refs for scrolling (using MutableRefObject<HTMLElement | null> for generic DOM element)
     const detailRef = useRef<HTMLDivElement>(null);
@@ -913,30 +982,6 @@ type SectionKey = 'details' | 'analysis' | 'actions' | 'improvement';
         }
     }, []);
 
- 
-
-    // --- RENDER HELPERS (kept from original) ---
-
-    const renderAction = (action: CorrectiveActionModel) => {
-        const isComplete = action.status === ActionStatus.COMPLETE;
-        const statusClasses = isComplete ? 'bg-green-100 text-green-700 border-green-500' : 'bg-yellow-100 text-yellow-700 border-yellow-500';
-
-        return (
-            <div key={action.id} className="border-l-4 border-blue-500 pl-4 py-3 mb-4 bg-white rounded shadow-sm hover:shadow-md transition">
-                <div className="flex justify-between items-start">
-                    <p className={`font-semibold text-gray-800 text-base ${isComplete ? 'line-through text-gray-500' : ''}`}>{action.description}</p>
-                    <span className={`text-xs font-medium px-2 py-0.5 rounded-full whitespace-nowrap border ${statusClasses}`}>
-                        {action.status}
-                    </span>
-                </div>
-                <p className="text-sm text-gray-700 mt-1">Responsible: <span className="font-bold">{action.responsible}</span></p>
-                <p className="text-xs text-gray-500 mt-1">Due: <span className="font-bold">{new Date(action.dueDate).toLocaleDateString()}</span></p>
-            </div>
-        );
-    };
-
-
-
     const renderBreakdown = (breakdown: BreakdownModel) => (
         <div className="bg-red-50 p-4 rounded-xl border-l-4 border-red-500 shadow-md mt-4">
             <h4 className="font-bold text-lg text-red-700 flex items-center"><Package className="w-5 h-5 mr-2"/> Breakdown Event</h4>
@@ -945,16 +990,114 @@ type SectionKey = 'details' | 'analysis' | 'actions' | 'improvement';
         </div>
     );
 
-    const renderAnalysis = (analysis: AnalysisRecordModel) => (
-        <div key={analysis.id} className="mb-4 p-4 bg-indigo-50 rounded-xl border-l-4 border-indigo-500 shadow-sm hover:bg-indigo-100 transition">
-            <p className="text-sm text-indigo-800 font-medium">
+   
+
+   // --- RCA HANDLERS (NEW) ---
+
+    // Handler for successful Analysis submission (Create)
+    const handleCreateAnalysisSuccess = useCallback((newAnalysis: RootCauseAnalysisModel) => {
+        setLocalDefect(prevDefect => ({
+            ...prevDefect,
+            analyses: [newAnalysis, ...prevDefect.analyses],
+        }));
+        setShowAnalysisForm(false);
+        toast.success('Analysis record created successfully.');
+    }, []);
+
+    // Handler for successful Analysis submission (Edit) - NEW
+    const handleEditAnalysisSuccess = useCallback((updatedAnalysis: RootCauseAnalysisModel) => {
+        setLocalDefect(prevDefect => ({
+            ...prevDefect,
+            analyses: prevDefect.analyses.map(a => 
+                a.id === updatedAnalysis.id ? updatedAnalysis : a
+            ),
+        }));
+        setAnalysisToEdit(null); // Close the edit form
+        toast.success('Analysis record updated successfully.');
+    }, []);
+
+    // Function called when the Edit button on an Analysis card is pressed - NEW
+    const handleEditStartAnalysis = useCallback((analysis: RootCauseAnalysisModel) => {
+        setAnalysisToEdit(analysis); // <--- Sets the state that triggers the Edit Form
+        setShowAnalysisForm(false); // Ensure the New Analysis form is closed
+    }, []);
+
+    // Function to handle the deletion of an analysis record - NEW
+    const handleAnalysisDeleteExternal = useCallback(async (id: string) => {
+        
+        const apiRoute = `/api/defects/rca/${id}`;
+        //console.log(`Attempting to delete Analysis record`);
+        try {
+            // Mocking a successful fetch response
+             const response = await fetch(apiRoute, { method: 'DELETE' }); 
+             if (!response.ok) throw new Error('API delete failed');
+           
+            // *** OPTIMISTIC STATE UPDATE: Remove the analysis from the list ***
+            setLocalDefect(prevDefect => ({
+                ...prevDefect,
+                analyses: prevDefect.analyses.filter(a => a.id !== id),
+            }));
+            toast.success('Analysis record deleted successfully.');
+        } catch (error) {
+            console.error(`Error while deleting Analysis ${id}:`, error);
+            toast.error(`Error deleting Analysis: ${error instanceof Error ? error.message : 'Unknown error'}`);
+        }
+    }, []);
+
+    // Analysis Card Renderer with Edit/Delete Controls - UPDATED
+    const renderAnalysis = (analysis: RootCauseAnalysisModel) => (
+        <div 
+            key={analysis.id} 
+            className="mb-4 p-4 bg-indigo-50 rounded-xl border-l-4 border-indigo-500 shadow-sm hover:bg-indigo-100 transition relative" // Added relative for positioning buttons
+        >
+            <div className="absolute top-2 right-2 flex space-x-2">
+                <button
+                    onClick={() => handleEditStartAnalysis(analysis)}
+                    className="p-1 rounded-full text-indigo-600 hover:bg-indigo-200 transition"
+                    title="Edit Analysis"
+                >
+                    <Edit className="w-5 h-5"/>
+                </button>                
+                <ConfirmAction 
+                            onConfirm={handleAnalysisDeleteExternal} 
+                            itemId={analysis.id}
+                            action="Delete" 
+                            disabled={false} // Opposite of the main state
+                            heading="Delete Opportunity"
+                            description="This action will delete this comment. Press the Delete button to continue."
+                            showHint={true}
+                        />
+            </div>
+            <p className="text-sm text-indigo-800 font-medium pr-16">
                 <span className="font-bold">{analysis.methodUsed}</span> Analysis by <span className="font-bold">{analysis.analystName}</span> on {new Date(analysis.analysisDate).toLocaleDateString()}
             </p>
             <p className="mt-2 text-gray-700 text-sm italic border-t border-indigo-200 pt-2">Findings: {analysis.summaryOfFindings}</p>
         </div>
     );
-
-    // Success handlers
+    
+    // Analysis Form Renderer - NEW
+    const renderAnalysisForm = () => {
+        if (analysisToEdit) {
+            return (
+                <RootCauseAnalysisForm
+                    defectId={localDefect.id}
+                    initialData={analysisToEdit}
+                    onClose={() => setAnalysisToEdit(null)}
+                    onSuccess={handleEditAnalysisSuccess} // Uses the new edit success handler
+                />
+            );
+        }
+        if (showAnalysisForm) {
+             return (
+                 <RootCauseAnalysisForm
+                     defectId={localDefect.id}
+                     onClose={() => setShowAnalysisForm(false)}
+                     onSuccess={handleCreateAnalysisSuccess} // Uses the new create success handler
+                 />
+             );
+        }
+        return null;
+    }
 
     // Handler for successful Action submission (Create or Edit)
      const handleCreateIOSuccess = useCallback((newIo: ImprovementOpportunity) => {
@@ -976,13 +1119,36 @@ type SectionKey = 'details' | 'analysis' | 'actions' | 'improvement';
             setOpportunityToEdit(null);
         }, []);
   
-    const handleIODelete = useCallback(async (id: string) => {
-        // Mock deletion
-        setLocalDefect(prevDefect => ({
-            ...prevDefect,
-            improvementOpportunities: prevDefect.improvementOpportunities.filter(io => io.id !== id),
-        }));
-        toast.success('Opportunity deleted successfully (mocked).');
+    const handleIODeleteExternal = useCallback(async (id: string) => {
+        //call api/defect/io method delete....
+        const apiRoute = `/api/defects/io/${id}`;
+        console.log(`Attempting to delete IO`);
+        try {
+            const response = await fetch(apiRoute, {
+                method: 'DELETE',
+                headers: { 'Content-Type': 'application/json' },
+            });
+
+            if (response.ok) {
+                // *** OPTIMISTIC STATE UPDATE: Remove the comment from the list ***
+                setLocalDefect(prevDefect => ({
+                    ...prevDefect,
+                    improvementOpportunities: prevDefect.improvementOpportunities.filter(io => io.id !== id),
+                }));
+                toast.success('IO record deleted successfully.');
+            } else if (response.status === 401 || response.status === 403 || response.status === 404) {
+                const errorData = await response.json();
+                console.error('Deletion failed:', errorData.message);
+                toast.error(errorData.message || 'Deletion failed.');
+            } else {
+                throw new Error(`Server responded with status: ${response.status}`);
+            }
+        } catch (error) {
+            console.error(`Network or unexpected error while deleting IO ${id}:`, error);
+            toast.error(`Error deleting IO: ${error instanceof Error ? error.message : 'Unknown error'}`);
+        }
+        
+        
     }, []);
 
 
@@ -1029,11 +1195,35 @@ type SectionKey = 'details' | 'analysis' | 'actions' | 'improvement';
 
     // Function to handle the deletion of a corrective action
     const handleDeleteCorrectiveAction = useCallback(async (id:string) => {
-        setLocalDefect(prevDefect => ({
-            ...prevDefect,
-            actions: prevDefect.actions.filter(a => a.id !== id),
-        }));
-        toast.success('Corrective Action deleted successfully (mocked).');
+        //call api/defect/ca method Delete
+        const apiRoute = `/api/defects/ca/${id}`;
+        console.log(`Attempting to delete Correct Action`);
+        try {
+            const response = await fetch(apiRoute, {
+                method: 'DELETE',
+                headers: { 'Content-Type': 'application/json' },
+            });
+
+            if (response.ok) {
+                // *** OPTIMISTIC STATE UPDATE: Remove the CA from the list ***
+                setLocalDefect(prevDefect => ({
+                    ...prevDefect,
+                    actions: prevDefect.actions.filter(a => a.id !== id),
+                }));
+                toast.success('Corrective Action deleted successfully.');
+            } else if (response.status === 401 || response.status === 403 || response.status === 404) {
+                const errorData = await response.json();
+                console.error('Deletion failed:', errorData.message);
+                toast.error(errorData.message || 'Deletion failed.');
+            } else {
+                throw new Error(`Server responded with status: ${response.status}`);
+            }
+        } catch (error) {
+            console.error(`Network or unexpected error while deleting CA ${id}:`, error);
+            toast.error(`Error deleting CA: ${error instanceof Error ? error.message : 'Unknown error'}`);
+        }
+
+        
     }, []);
 
     // Function to handle status toggling (not fully implemented in form, but card has prop)
@@ -1167,20 +1357,30 @@ type SectionKey = 'details' | 'analysis' | 'actions' | 'improvement';
                             {localDefect.breakdown && renderBreakdown(localDefect.breakdown)} 
                         </div>
 
-                        {/* 3. ANALYSIS HISTORY (Ref point for navigation) */}
+                        {/* 3. ANALYSIS HISTORY (UPDATED to use renderAnalysisForm) */}
                         <div ref={analysisRef} id="analysis" className="bg-white shadow-xl rounded-xl p-4 sm:p-6 border-l-4 border-indigo-500">
                             <h2 className="text-2xl font-bold text-indigo-700 mb-4 border-b pb-2 flex justify-between items-center">
                                 <span className="flex items-center"><Aperture className="w-6 h-6 mr-2"/> Root Cause Analysis</span>
                                 <button
-                                    onClick={() => setShowAnalysisForm(!showAnalysisForm)}
+                                    // Toggle only the New Analysis form if not editing
+                                    onClick={() => {
+                                        setAnalysisToEdit(null); 
+                                        setShowAnalysisForm(!showAnalysisForm);
+                                    }}
                                     className="bg-indigo-600 text-white text-sm px-3 py-1.5 rounded-lg flex items-center shadow-lg hover:bg-indigo-700 transition transform hover:scale-[1.02] active:scale-95"
                                 >
                                     <PlusCircle className="w-4 h-4 mr-1"/> New
                                 </button>
                             </h2>
-                            {showAnalysisForm && <RootCauseAnalysisForm defectId={localDefect.id} onClose={() => setShowAnalysisForm(false)} />}
+                            
+                            {/* NEW: Render the Analysis Form for create or edit */}
+                            {renderAnalysisForm()}
+                            
                             <div className="mt-4 space-y-4">
-                                {localDefect.analyses.length > 0 ? localDefect.analyses.map(renderAnalysis) : <p className="text-gray-500 p-3 bg-gray-50 rounded">No root cause analysis records found. Start a new one above.</p>}
+                                {localDefect.analyses.length > 0 ? 
+                                    localDefect.analyses.map(renderAnalysis) : // <-- Uses the UPDATED renderAnalysis
+                                    <p className="text-gray-500 p-3 bg-gray-50 rounded">No root cause analysis records found. Start a new one above.</p>
+                                }
                             </div>
                         </div>
                         
@@ -1254,7 +1454,7 @@ type SectionKey = 'details' | 'analysis' | 'actions' | 'improvement';
                                             key={opportunity.id} 
                                             opportunity={opportunity} 
                                             onEditStart={setOpportunityToEdit}
-                                            onDelete={handleIODelete}
+                                            onDelete={handleIODeleteExternal}
                                         />
                                     ))
                                 ) : (

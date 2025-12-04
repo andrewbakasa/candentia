@@ -1032,7 +1032,7 @@ function ActivityCommentSection({
     // Handler for DELETE (Optimistic Update)
     const handleDeleteComment = async (commentId: string) => {   
         const apiRoute = `/api/outputs/activity/comment/${commentId}`;
-        console.log(`Attempting to delete comment: ${commentId}`);
+        //console.log(`Attempting to delete comment: ${commentId}`);
 
         try {
             const response = await fetch(apiRoute, {
