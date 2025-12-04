@@ -113,6 +113,7 @@ import ConfirmAction from '../_components/ConfirmAction';
 import { SafeUser } from '@/app/types';
 import { truncateString } from '@/lib/utils';
 import useIsMobile from '@/app/hooks/isMobile';
+import { useRouter } from 'next/navigation';
 
 // --- Type Definitions (Assuming these are available) ---
 interface ImprovementOpportunity {
@@ -946,7 +947,7 @@ type SectionKey = 'details' | 'analysis' | 'actions' | 'improvement';
     
     const isMobile = useIsMobile();
     const truncationLimit = isMobile ? 25 : 70; // Use 20 for mobile, 50 for desktop
-
+    const router =useRouter()
     const [opportunityToEdit, setOpportunityToEdit] =  useState<ImprovementOpportunity | null>(null);
     const [showActionForm, setShowActionForm] = useState(false);
     const [showAnalysisForm, setShowAnalysisForm] = useState(false);
@@ -955,6 +956,28 @@ type SectionKey = 'details' | 'analysis' | 'actions' | 'improvement';
     const [error, setError] = useState<string | null>(null);
     const [successMessage, setSuccessMessage] = useState<string | null>(null);
     const [copied, setCopied] = useState(false);
+
+
+    const createEmptyDefect = (): DefectDetailModel => ({
+        id: '',
+        title: 'Deleted Defect Placeholder',
+        description: '',
+        // Use an empty array for lists
+        improvementOpportunities: [],
+        // Set a known status
+        status: DefectStatus.ACTION_DEFINED, // Or whatever placeholder status you prefer
+        reportedBy: "",
+        equipmentTag: "",
+        area: "",
+        //breakdown:[] ,
+        analyses: [],
+        actions: [],
+        //improvementOpportunities: [],
+        eliminationRecord: null,
+        priority: Priority.LOW,
+        identificationDate: '',
+        breakdown: null
+    });
 
     const copyToClipboard = () => {
         if (typeof window !== 'undefined') {
@@ -1106,6 +1129,26 @@ type SectionKey = 'details' | 'analysis' | 'actions' | 'improvement';
         }
     }, []);
 
+     const handleADefectDeleteExternal = useCallback(async (id: string) => {
+        
+        const apiRoute = `/api/defects/${id}`;
+        //console.log(`Attempting to delete Analysis record`);
+        try {
+            // Mocking a successful fetch response
+             const response = await fetch(apiRoute, { method: 'DELETE' }); 
+             if (!response.ok) throw new Error('API delete failed');
+           
+            // *** OPTIMISTIC STATE UPDATE: Remove the analysis from the list ***
+           // *** FIX: Set to a valid, empty object instead of null ***
+            setLocalDefect(createEmptyDefect());
+            toast.success('Defect deleted successfully.');
+            router.push('/de')
+        } catch (error) {
+            console.error(`Error while deleting defect ${id}:`, error);
+            toast.error(`Error deleting Analysis: ${error instanceof Error ? error.message : 'Unknown error'}`);
+        }
+    }, []);
+
     // Analysis Card Renderer with Edit/Delete Controls - UPDATED
     const renderAnalysis = (analysis: RootCauseAnalysisModel,allowEditing:boolean) => (
         <div 
@@ -1161,6 +1204,7 @@ type SectionKey = 'details' | 'analysis' | 'actions' | 'improvement';
         }
         return null;
     }
+// Define this helper function or object outside your component
 
     // Handler for successful Action submission (Create or Edit)
      const handleCreateIOSuccess = useCallback((newIo: ImprovementOpportunity) => {
@@ -1576,8 +1620,26 @@ type SectionKey = 'details' | 'analysis' | 'actions' | 'improvement';
                     </div>
                     
                     {/* RIGHT COLUMN: EMPTY (Kept for future sidebar content, currently collapses content into left column) */}
-                    <div className="lg:col-span-1 hidden lg:block">
-                        {/* This column is available for future related data, like document attachments or recent history feed. */}
+                  <div className="col-span-3 mb-2">
+                        {/* Delete Warning & Action Button Container */}
+                        <div className="flex items-start justify-end gap-4">
+                            
+                            {/* Warning Text */}
+                            <p className="text-sm text-red-600 font-medium text-right max-w-xs flex-1">
+                                WARNING: Deleting this Defect is permanent and cannot be undone. Only proceed if necessary.
+                            </p>
+
+                            {/* Delete Button (Pushed to the extreme right via justify-end) */}
+                            <ConfirmAction 
+                                onConfirm={handleADefectDeleteExternal} 
+                                itemId={defect.id}
+                                action="Delete"
+                                disabled={!currentUser?.isAdmin}
+                                heading="Permanently Delete Defect"
+                                description="Are you sure you want to delete this Defect? This action will remove all associated data and cannot be recovered."
+                                showHint={false} 
+                            />
+                        </div>
                     </div>
                 </div>
             </div>

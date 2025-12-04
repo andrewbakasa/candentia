@@ -175,3 +175,59 @@ export async function PUT(
     );
   }
 }
+
+
+// 2. ✅ ADDED: HANDLER FOR HTTP DELETE (DELETE)
+export async function DELETE(
+  request: NextRequest,
+  { params }: { params: { id: string } }
+) {
+  const defectId = params.id;
+  
+  // 1. Authentication and Authorization Check
+  const currUser = await getCurrentUser();
+
+  if (!currUser) {
+    // Return a 401 Unauthorized response if the user is not authenticated.
+    return NextResponse.json(
+      { message: 'Unauthorized: You must be logged in to delete a defect.' },
+      { status: 401 }
+    );
+  }
+
+  // 2. ID Validation
+  if (!defectId) {
+    return NextResponse.json(
+      { message: 'Bad Request: Defect ID is missing from parameters.' },
+      { status: 400 }
+    );
+  }
+
+  try {
+    // 3. Delete the Defect from the Database
+    await prisma.defect.delete({
+      where: {
+        id: defectId,
+      },
+    });
+
+    // 4. Return a 204 No Content response for successful deletion
+    return new NextResponse(null, { status: 204 });
+
+  } catch (error: any) {
+    // Handle specific Prisma errors, especially if the record is not found (P2025)
+    if (error.code === 'P2025') {
+      console.error(`Defect ID ${defectId} not found for deletion.`, error);
+      return NextResponse.json(
+        { message: 'Not Found: Defect ID specified does not exist.' },
+        { status: 404 }
+      );
+    }
+    
+    console.error(`Defect deletion failed for ID ${defectId}:`, error);
+    return NextResponse.json(
+      { message: 'Internal Server Error during defect deletion.' },
+      { status: 500 }
+    );
+  }
+}
