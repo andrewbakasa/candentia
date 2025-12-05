@@ -700,76 +700,122 @@ interface OpportunityCardProps {
     allowEditing:boolean
 }
 
-const ImprovementOpportunityCard: React.FC<OpportunityCardProps> = ({ opportunity, onEditStart, onDelete,allowEditing }) => {
+const ImprovementOpportunityCard: React.FC<OpportunityCardProps> = ({ opportunity, onEditStart, onDelete, allowEditing }) => {
+    // isExpanded state removed
     const [isDeleting, setIsDeleting] = useState(false);
-    const [isExpanded, setIsExpanded] = useState(false);
     
-    const handleIODeleteInternal = async () => {
-       // if (window.confirm('Are you sure you want to permanently delete this Improvement Opportunity?')) {
-            setIsDeleting(true);
-            await onDelete(opportunity.id);
-            setIsDeleting(false);
-        //}
-    };
-
+    // Status logic remains
     const StatusIcon = opportunity.isImplemented ? CheckCircle : Clock;
     const statusColor = opportunity.isImplemented ? 'text-green-500' : 'text-yellow-500';
+    const statusText = opportunity.isImplemented ? 'Implemented' : 'Pending';
+    const statusClasses = opportunity.isImplemented ? 'bg-green-100 text-green-700 border-green-500' : 'bg-yellow-100 text-yellow-700 border-yellow-500';
+
+    const handleIODeleteInternal = async () => {
+        setIsDeleting(true);
+        try {
+            await onDelete(opportunity.id);
+        } catch (error) {
+            console.error(error);
+            // toast.error('Failed to delete opportunity.'); // Assuming toast is available
+        } finally {
+            setIsDeleting(false);
+        }
+    };
+    
+    const isPending = isDeleting; // Only deletion causes a pending state here
 
     return (
-        <div className="bg-white border border-gray-200 rounded-xl shadow-md overflow-hidden transition-all duration-300">
-            <div className="p-4 flex items-start justify-between">
-    
-            {/* LEFT DIV (Content/Text) - Now uses flex-1 */}
-            <div className="flex items-center space-x-3 flex-1 min-w-0 pr-4"> 
-                <StatusIcon className={`w-5 h-5 flex-shrink-0 ${statusColor}`} />
-                <div className="flex-1 min-w-0">
-                    {/* The inner min-w-0 and truncate ensure the text respects the space given by flex-1 */}
-                    <p className="font-semibold text-gray-900 truncate">{truncateString(opportunity.proposedAction, 150)}</p>
-                    <p className="text-xs text-gray-500">
-                        ID: {opportunity.id.substring(0, 8)} | Identified: {formatDate(opportunity.dateIdentified)}
-                    </p>
-                </div>
-            </div>
+        <div className="bg-white border border-gray-200 rounded-xl shadow-md overflow-hidden transition-all duration-300 hover:shadow-lg">
             
-            {/* RIGHT DIV (Actions/Buttons) - Stays fixed, claims its space first */}
-            <div className="flex items-center space-x-2 flex-shrink-0">
-                <button 
-                    onClick={() => setIsExpanded(!isExpanded)}
-                    className="p-1 rounded-full text-gray-500 hover:bg-gray-100 transition"
-                    aria-expanded={isExpanded}
-                    aria-label={isExpanded ? "Collapse Details" : "Expand Details"}
-                >
-                    {isExpanded ? <ChevronUp className="w-5 h-5" /> : <ChevronDown className="w-5 h-5" />}
-                </button>
-                <button 
-                    onClick={() => onEditStart(opportunity)}
-                    className="p-1 rounded-full text-blue-500 hover:bg-blue-100 transition"
-                    aria-label="Edit Opportunity"
-                    disabled={!allowEditing}
-                >
-                    <Edit className="w-5 h-5" />
-                </button>
-                <ConfirmAction 
-                    onConfirm={handleIODeleteInternal} 
-                    itemId={opportunity.id}
-                    action="Delete"                            
-                    disabled={!allowEditing}
-                    heading="Delete Opportunity"
-                    description="This action will delete this comment. Press the Delete button to continue."
-                    showHint={true}
-                />
-            </div>
-        </div>
-
-            {isExpanded && (
-                <div className="px-4 py-3 bg-gray-50 border-t border-gray-200 space-y-2 text-sm">
-                    <p><strong>Target Area:</strong> {opportunity.targetArea}</p>
-                    <p><strong>Source Module:</strong> {opportunity.sourceModule || 'N/A'}</p>
-                    <p><strong>Description:</strong> {opportunity.description}</p>
-                    <p><strong>Status:</strong> <span className={`font-semibold ${statusColor}`}>{opportunity.isImplemented ? 'Implemented' : 'Pending'}</span></p>
-                    {opportunity.implementationDate && <p><strong>Implemented On:</strong> {formatDate(opportunity.implementationDate)}</p>}
+            {/* 1. TOP HEADER ROW: Description/Title and Action Buttons */}
+            <div className="pt-4 px-4 flex items-start justify-between">
+                
+                {/* Title/Description (Takes up most space, forced to single line) */}
+                <div 
+                    className="flex-1 min-w-0 pr-4 font-semibold text-gray-900 text-lg leading-snug 
+                                whitespace-nowrap overflow-hidden text-ellipsis"
+                    title={opportunity.proposedAction} // Tooltip shows full description
+                > 
+                    <span className={opportunity.isImplemented ? 'line-through text-gray-500' : ''}>
+                         {opportunity.proposedAction}
+                    </span>
                 </div>
-            )}
+            
+                {/* Actions Group (Placed horizontally on the right) */}
+                <div className="flex items-center space-x-1.5 flex-shrink-0 mt-[-4px]"> 
+                    
+                    {/* Edit Button */}
+                    <button 
+                        onClick={(e) => { e.stopPropagation(); onEditStart(opportunity); }}
+                        disabled={!allowEditing || isPending}
+                        className="p-1 rounded-full text-blue-500 hover:bg-blue-100 transition disabled:opacity-50"
+                        aria-label="Edit Opportunity"
+                        title="Edit Opportunity"
+                    >
+                        <Edit className="w-5 h-5" />
+                    </button>
+
+                    {/* Delete Confirmation Button (Encapsulated) */}
+                    <ConfirmAction 
+                        onConfirm={handleIODeleteInternal} 
+                        itemId={opportunity.id}
+                        action="Delete" 
+                        disabled={!allowEditing || isPending}
+                        heading="Delete Opportunity"
+                        description="This action will delete this Improvement Opportunity permanently."
+                        showHint={false} 
+                    />
+                </div>
+            </div>
+
+            {/* 2. BOTTOM DETAILS SECTION: Status Icon, Badge, Dates, Details */}
+            <div className="px-4 pb-4 pt-2 text-sm text-gray-600 space-y-1 border-t border-gray-100">
+                <div className="flex items-start space-x-3 pb-3">
+                    {/* Status Icon */}
+                    <StatusIcon className={`w-5 h-5 flex-shrink-0 mt-0.5 ${statusColor}`} />
+
+                    <div className="flex-1 min-w-0">
+                         {/* Main Status Badge */}
+                        <span className={`text-xs font-medium inline-block px-2 py-0.5 rounded-full border ${statusClasses}`}>
+                            {statusText}
+                        </span>
+
+                        <div className="mt-3 space-y-1">
+                            {/* ID and Date Identified */}
+                            
+                              <p>
+                                <strong>Proposed Action:</strong> <span className="font-medium text-gray-800">{opportunity.proposedAction}</span>
+                               
+                            </p>
+                            <p>
+                                <strong>ID:</strong> <span className="font-medium text-gray-800">{opportunity.id.substring(0, 8)}</span> 
+                                <span className="text-gray-500 ml-4">|</span>
+                                <strong className="ml-4">Identified:</strong> <span className="font-medium text-gray-800">{formatDate(opportunity.dateIdentified)}</span>
+                            </p>
+                            
+                            {/* Target Area and Source Module */}
+                            <p>
+                                <strong>Target Area:</strong> <span className="font-medium text-gray-800">{opportunity.targetArea}</span>
+                                <span className="text-gray-500 ml-4">|</span>
+                                <strong className="ml-4">Source Module:</strong> <span className="font-medium text-gray-800">{opportunity.sourceModule || 'N/A'}</span>
+                            </p>
+                            
+                            {/* Implementation Date */}
+                            {opportunity.implementationDate && (
+                                <p>
+                                    <strong>Implemented On:</strong> <span className="font-medium text-gray-800">{formatDate(opportunity.implementationDate)}</span>
+                                </p>
+                            )}
+
+                            {/* Full Description (placed last for readability) */}
+                            <p className="pt-2 border-t border-gray-100 mt-2">
+                                <strong>Details:</strong> <span className="text-gray-800">{opportunity.description}</span>
+                            </p>
+                            
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
     );
 };
@@ -783,6 +829,7 @@ interface CorrectiveActionCardProps {
     truncationLimit:number
 
 }
+
 const CorrectiveActionCard: React.FC<CorrectiveActionCardProps> = ({ 
     action, 
     onEditStart, 
@@ -793,20 +840,17 @@ const CorrectiveActionCard: React.FC<CorrectiveActionCardProps> = ({
 }) => {
     const [isDeleting, setIsDeleting] = useState(false);
     const [isToggling, setIsToggling] = useState(false);
-    const [isExpanded, setIsExpanded] = useState(false);
     
     const isComplete = action.status === ActionStatus.COMPLETE;
     const statusClasses = isComplete ? 'bg-green-100 text-green-700 border-green-500' : 'bg-yellow-100 text-yellow-700 border-yellow-500';
     const StatusIcon = isComplete ? CheckCircle : Clock;
     const statusColor = isComplete ? 'text-green-500' : 'text-yellow-500';
 
- 
     const handleActionDeleteTrigger = async () => {
         setIsDeleting(true);
         try {
             //call external
             await onDelete(action.id);
-                     
         } catch (error) {
             toast.error('Failed to delete corrective action.');
             console.error(error);
@@ -831,98 +875,118 @@ const CorrectiveActionCard: React.FC<CorrectiveActionCardProps> = ({
 
     const isPending = isToggling || isDeleting;
 
-    return (
+   return (
         <div className="bg-white border border-gray-200 rounded-xl shadow-md overflow-hidden transition-all duration-300 hover:shadow-lg">
             
-            {/* Header / Summary Section */}
-           <div className="p-4 flex items-start justify-between">
-    
-        {/* FIRST DIV (Content/Details) - Use flex-1 to grow and take remaining space */}
-        <div className="flex items-start space-x-3 flex-1 min-w-0 pr-4"> 
-            <StatusIcon className={`w-5 h-5 flex-shrink-0 mt-0.5 ${statusColor}`} />
-            <div className="flex-1 min-w-0">
-                <p className={`font-semibold text-gray-900 text-lg ${isComplete ? 'line-through text-gray-500' : ''}`}>
-                    {truncateString(action.description,truncationLimit)}
-                </p>
-                <p className="text-sm text-gray-600 mt-1">
-                    Responsible: <span className="font-medium text-gray-800">{action.responsible}</span>
-                </p>
-                <p className="text-xs text-gray-500 mt-0.5">
-                    Due: {formatDate(action.dueDate)}
-                </p>
-                <span className={`text-xs font-medium mt-1 inline-block px-2 py-0.5 rounded-full border ${statusClasses}`}>
-                    {action.status}
-                </span>
-            </div>
-        </div>
-    
-    {/* Actions Group (SECOND DIV) - Use flex-shrink-0 to maintain its fixed width */}
-    <div className="flex items-center space-x-1.5 flex-shrink-0"> 
-        
-        {/* Toggle Status Button */}
-        <button 
-            onClick={handleToggleStatus}
-            disabled={isPending}
-            className={`p-1 rounded-full transition ${isPending ? 'opacity-50 cursor-not-allowed' : (isComplete ? 'text-gray-500 hover:bg-gray-100' : 'text-green-500 hover:bg-green-100')}`}
-            aria-label={isComplete ? "Mark as In Progress" : "Mark as Complete"}
-        >
-            {isToggling ? (
-                 <svg className="animate-spin h-5 w-5 text-indigo-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                     <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                     <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                 </svg>
-            ) : (
-                isComplete ? <ToggleLeft className="w-5 h-5" /> : <ToggleRight className="w-5 h-5" />
-            )}
-        </button>
-
-        {/* Edit Button */}
-        <button 
-            onClick={(e) => { e.stopPropagation(); onEditStart(action); }}
-            disabled={isPending||!allowEditing}
-            className="p-1 rounded-full text-blue-500 hover:bg-blue-100 transition disabled:opacity-50"
-            aria-label="Edit Corrective Action"
-        >
-            <Edit className="w-5 h-5" />
-        </button>
-
-        {/* Delete Confirmation Button */}
-        <ConfirmAction 
-            onConfirm={handleActionDeleteTrigger} 
-            itemId={action.id}
-            action="Delete" 
-            disabled={isPending || isDeleting||!allowEditing}
-            heading="Delete Action"
-            description="This action will delete this corrective action permanently."
-            showHint={false} 
-        />
-        
-        {/* Expand/Collapse Button */}
-        <button 
-            onClick={(e) => { e.stopPropagation(); setIsExpanded(!isExpanded); }}
-            className="p-1 rounded-full text-gray-500 hover:bg-gray-100 transition"
-            aria-expanded={isExpanded}
-            aria-label={isExpanded ? "Collapse Details" : "Expand Details"}
-        >
-            {isExpanded ? <ChevronUp className="w-5 h-5" /> : <ChevronDown className="w-5 h-5" />}
-        </button>
-    </div>
-            </div>
-
-            {/* Expanded Details Section */}
-            {isExpanded && (
-                <div className="px-4 py-3 bg-gray-50 border-t border-gray-200 space-y-2 text-sm">
-                    <p><strong>Date complete:</strong> {action.dateCompleted}</p>
-                    <p><strong>Decritption:</strong> {action.description || 'N/A'}</p>
-                    <p><strong>DueDaten:</strong> {formatDate(action.dueDate)}</p>
-                      <p><strong>Responsible</strong> {action.responsible}</p>
-                    {action.sourceId && <p><strong>Completed On:</strong> {formatDate(action.status)}</p>}
+            {/* 1. TOP HEADER ROW: Description/Title and Action Buttons */}
+           {/* 1. TOP HEADER ROW: Description/Title and Action Buttons */}
+            <div className="pt-4 px-4 flex items-start justify-between">
+                
+                {/* Title/Description (Takes up most space, forced to single line) */}
+                {/* Removed the <p> tag and applied single-line truncation classes to the outer div */}
+                <div 
+                    className="flex-1 min-w-0 pr-4 font-semibold text-gray-900 text-lg leading-snug 
+                                whitespace-nowrap overflow-hidden text-ellipsis"
+                    title={action.description} // Tooltip shows full description
+                > 
+                    <span className={isComplete ? 'line-through text-gray-500' : ''}>
+                         {action.description}
+                    </span>
                 </div>
-            )}
+            
+                {/* Actions Group (Placed horizontally on the right) */}
+                <div className="flex items-center space-x-1.5 flex-shrink-0 mt-[-4px]"> {/* Negative margin to align with text baseline */}
+                    
+                    {/* Toggle Status Button */}
+                    <button 
+                        onClick={handleToggleStatus}
+                        disabled={isPending}
+                        className={`p-1 rounded-full transition ${isPending ? 'opacity-50 cursor-not-allowed' : (isComplete ? 'text-gray-500 hover:bg-gray-100' : 'text-green-500 hover:bg-green-100')}`}
+                        aria-label={isComplete ? "Mark as In Progress" : "Mark as Complete"}
+                        title={isComplete ? "Mark as In Progress" : "Mark as Complete"}
+                    >
+                        {isToggling ? (
+                             <svg className="animate-spin h-5 w-5 text-indigo-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                            </svg>
+                        ) : (
+                            isComplete ? <ToggleLeft className="w-5 h-5" /> : <ToggleRight className="w-5 h-5" />
+                        )}
+                    </button>
+
+                    {/* Edit Button */}
+                    <button 
+                        onClick={(e) => { e.stopPropagation(); onEditStart(action); }}
+                        disabled={isPending || !allowEditing}
+                        className="p-1 rounded-full text-blue-500 hover:bg-blue-100 transition disabled:opacity-50"
+                        aria-label="Edit Corrective Action"
+                        title="Edit Action"
+                    >
+                        <Edit className="w-5 h-5" />
+                    </button>
+
+                    {/* Delete Confirmation Button (Encapsulated) */}
+                    <ConfirmAction 
+                        onConfirm={handleActionDeleteTrigger} 
+                        itemId={action.id}
+                        action="Delete" 
+                        disabled={isPending || isDeleting || !allowEditing}
+                        heading="Delete Action"
+                        description="This action will delete this corrective action permanently."
+                        showHint={false} 
+                   />
+                </div>
+            </div>
+
+            {/* 2. BOTTOM DETAILS SECTION: Status Icon, Badge, Responsible, Dates, Source ID */}
+            <div className="px-4 pb-4 pt-2 text-sm text-gray-600 space-y-1 border-t border-gray-100">
+                <div className="flex items-start space-x-3 pb-3">
+                    {/* Status Icon (Moved here) */}
+                    <StatusIcon className={`w-5 h-5 flex-shrink-0 mt-0.5 ${statusColor}`} />
+
+                    <div className="flex-1 min-w-0">
+                         {/* Main Status Badge (Moved here) */}
+                        <span className={`text-xs font-medium inline-block px-2 py-0.5 rounded-full border ${statusClasses}`}>
+                            {action.status}
+                        </span>
+
+                        <div className="mt-3 space-y-1">
+
+                            {/* Title */}
+                            <p>
+                                <strong>Title:</strong> <span className="font-medium text-gray-800">{action.description}</span>
+                            </p>
+                            {/* Responsible */}
+                            <p>
+                                <strong>Responsible:</strong> <span className="font-medium text-gray-800">{action.responsible}</span>
+                            </p>
+                            
+                            {/* Due Date */}
+                            <p>
+                                <strong>Due:</strong> <span className="font-medium text-gray-800">{formatDate(action.dueDate)}</span>
+                            </p>
+                            
+                            {/* Date Completed */}
+                            {action.dateCompleted && (
+                                <p>
+                                    <strong>Completed:</strong> <span className="font-medium text-gray-800">{formatDate(action.dateCompleted)}</span>
+                                </p>
+                            )}
+                            
+                            {/* Source ID */}
+                            {action.sourceId && (
+                                <p>
+                                    <strong>Source ID:</strong> <span className="font-medium text-gray-800">{action.sourceId}</span>
+                                </p>
+                            )}
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
     );
 };
-
 interface DefectDetailViewProps {
   currentUser: SafeUser|null; // Type your user model correctly
   defect: DefectDetailModel;
@@ -1074,11 +1138,7 @@ type SectionKey = 'details' | 'analysis' | 'actions' | 'improvement';
             <p className="text-sm text-gray-700"><strong>Duration:</strong> <span className="font-bold">{breakdown.durationMinutes || 'N/A'}</span> minutes</p>
         </div>
     );
-
-   
-
    // --- RCA HANDLERS (NEW) ---
-
     // Handler for successful Analysis submission (Create)
     const handleCreateAnalysisSuccess = useCallback((newAnalysis: RootCauseAnalysisModel) => {
         setLocalDefect(prevDefect => ({
@@ -1088,7 +1148,6 @@ type SectionKey = 'details' | 'analysis' | 'actions' | 'improvement';
         setShowAnalysisForm(false);
         toast.success('Analysis record created successfully.');
     }, []);
-
     // Handler for successful Analysis submission (Edit) - NEW
     const handleEditAnalysisSuccess = useCallback((updatedAnalysis: RootCauseAnalysisModel) => {
         setLocalDefect(prevDefect => ({
@@ -1108,8 +1167,7 @@ type SectionKey = 'details' | 'analysis' | 'actions' | 'improvement';
     }, []);
 
     // Function to handle the deletion of an analysis record - NEW
-    const handleAnalysisDeleteExternal = useCallback(async (id: string) => {
-        
+    const handleAnalysisDeleteExternal = useCallback(async (id: string) => {        
         const apiRoute = `/api/defects/rca/${id}`;
         //console.log(`Attempting to delete Analysis record`);
         try {
@@ -1128,7 +1186,6 @@ type SectionKey = 'details' | 'analysis' | 'actions' | 'improvement';
             toast.error(`Error deleting Analysis: ${error instanceof Error ? error.message : 'Unknown error'}`);
         }
     }, []);
-
      const handleADefectDeleteExternal = useCallback(async (id: string) => {
         
         const apiRoute = `/api/defects/${id}`;
@@ -1148,7 +1205,6 @@ type SectionKey = 'details' | 'analysis' | 'actions' | 'improvement';
             toast.error(`Error deleting Analysis: ${error instanceof Error ? error.message : 'Unknown error'}`);
         }
     }, []);
-
     // Analysis Card Renderer with Edit/Delete Controls - UPDATED
     const renderAnalysis = (analysis: RootCauseAnalysisModel,allowEditing:boolean) => (
         <div 
@@ -1179,8 +1235,7 @@ type SectionKey = 'details' | 'analysis' | 'actions' | 'improvement';
             </p>
             <p className="mt-2 text-gray-700 text-sm italic border-t border-indigo-200 pt-2">Findings: {analysis.summaryOfFindings}</p>
         </div>
-    );
-    
+    );    
     // Analysis Form Renderer - NEW
     const renderAnalysisForm = () => {
         if (analysisToEdit) {
@@ -1204,8 +1259,6 @@ type SectionKey = 'details' | 'analysis' | 'actions' | 'improvement';
         }
         return null;
     }
-// Define this helper function or object outside your component
-
     // Handler for successful Action submission (Create or Edit)
      const handleCreateIOSuccess = useCallback((newIo: ImprovementOpportunity) => {
             setLocalDefect(prevDefect => ({
@@ -1257,10 +1310,7 @@ type SectionKey = 'details' | 'analysis' | 'actions' | 'improvement';
         
         
     }, []);
-
-
- // --- HANDLERS FOR CORRECTIVE ACTIONS ---
-    
+   // --- HANDLERS FOR CORRECTIVE ACTIONS ---    
     // Handler for successful Action submission (Create or Edit)
     const handleActionCorrectiveActionSuccess = useCallback((actionData:CorrectiveActionModel, mode:string) => {
         setLocalDefect(prevDefect => {
@@ -1292,14 +1342,12 @@ type SectionKey = 'details' | 'analysis' | 'actions' | 'improvement';
         setActionToEdit(null);
         toast.success(`Action ${mode === 'create' ? 'created' : 'updated'} successfully.`);
     }, []);
-
     // Function called when the Edit button on a card is pressed
     const handleEditStartCorrectiveAction = useCallback((action:CorrectiveActionModel) => {
         setActionToEdit(action); // <--- Sets the state that triggers the Edit Form
         setShowActionForm(false); // Ensure the New Action form is closed
        // toast.success(`Editing action: ${action.id}`);
     }, []);
-
     // Function to handle the deletion of a corrective action
     const handleDeleteCorrectiveAction = useCallback(async (id:string) => {
         //call api/defect/ca method Delete
@@ -1332,7 +1380,6 @@ type SectionKey = 'details' | 'analysis' | 'actions' | 'improvement';
 
         
     }, []);
-
     // Function to handle status toggling (not fully implemented in form, but card has prop)
     const handleToggleStatusCorrectiveAction = useCallback(async (actionId:string, newStatus:ActionStatus) => {
         // Simulate API delay
@@ -1349,8 +1396,7 @@ type SectionKey = 'details' | 'analysis' | 'actions' | 'improvement';
         }));
         toast.success(`Action ${actionId} status changed to ${newStatus}.`);
     }, []);
-
-       const renderActionForm = () => {
+    const renderActionForm = () => {
         if (actionToEdit) {
             return (
                 <CorrectiveActionForm
@@ -1402,10 +1448,8 @@ type SectionKey = 'details' | 'analysis' | 'actions' | 'improvement';
         { key: 'actions', label: 'Actions', Icon: Zap, ref: actionsRef, color: 'text-blue-600' },
         { key: 'improvement', label: 'Improvement', Icon: Target, ref: improvementRef, color: 'text-green-600' },
     ], []);
-
-
     return (
-        <div className="min-h-screen bg-gray-50 p-2 sm:p-4 lg:p-6">
+        <div className="min-h-screen bg-gray-50">
             <div className="max-w-7xl mx-auto">
                 
                 {/* HEADER SECTION: Sticky on mobile, acts as context bar */}
@@ -1617,21 +1661,15 @@ type SectionKey = 'details' | 'analysis' | 'actions' | 'improvement';
                             )}
                         </div>
 
-                    </div>
-                    
-                    {/* RIGHT COLUMN: EMPTY (Kept for future sidebar content, currently collapses content into left column) */}
-                  {hasRequiredRole &&<div className="col-span-2 mb-2">
-                        {/* Use flex-col (mobile) and md:flex-row (desktop) to stack/unstack items */}
-                        <div className="flex flex-col gap-2 items-start justify-start md:flex-row md:items-start md:gap-4">
-                            
-                            {/* Warning Text Container */}
+
+                         {
+                    hasRequiredRole &&<div className="hidden lg:block col-span-2 mb-8">                    
+                        <div className="flex ">
                             <div className="flex-1 max-w-xs">
-                                <p className="text-[5px] text-gray-400 text-right">
+                                <p className="text-[9px] text-gray-400 text-right">
                                     WARNING: Deleting this Defect is permanent.
                                 </p>
                             </div>
-
-                            {/* Delete Button (Always aligned to the end) */}
                             <ConfirmAction 
                                 onConfirm={handleADefectDeleteExternal} 
                                 itemId={defect.id}
@@ -1643,10 +1681,14 @@ type SectionKey = 'details' | 'analysis' | 'actions' | 'improvement';
                             />
                         </div>
                     </div>
- }
+                  }
+
+                    </div>
+                    
+                    {/* RIGHT COLUMN: EMPTY (Kept for future sidebar content, currently collapses content into left column) */}
+                 
                 </div>
             </div>
-
             {/* FLOATING ACTION NAVIGATION (FAN) - MOBILE ONLY */}
             <nav className="lg:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 shadow-2xl z-50">
                 <div className="flex justify-around items-center h-16 max-w-md mx-auto">
