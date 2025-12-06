@@ -1,5 +1,5 @@
 'use client';
-import React, { useState, useCallback, useMemo, useRef, MutableRefObject } from 'react';
+import React, { useState, useCallback, useMemo, useRef, MutableRefObject, useEffect } from 'react';
 import { 
     Bug, AlertTriangle, Clock, Target, User, Calendar, LucideIcon, FileText, Zap, Aperture, CheckCircle, Package, PlusCircle, ListTodo, Layers, ArrowLeft,
     XCircle,
@@ -1115,6 +1115,48 @@ type SectionKey = 'details' | 'analysis' | 'actions' | 'improvement';
         improvement: improvementRef,
     };
 
+    // --- NEW LOGIC: Intersection Observer ---
+    useEffect(() => {
+        // Create the observer instance
+        const observer = new IntersectionObserver(
+            (entries) => {
+                entries.forEach(entry => {
+                    // Check if the entry is intersecting and moving downwards (or fully visible)
+                    // You can adjust the threshold and logic here.
+                    // We check if it's currently visible and use the rootMargin to create a sticky header effect
+                    // by making the intersection area start below the header.
+                    if (entry.isIntersecting) {
+                        const key = entry.target.id as SectionKey;
+                        // Only set active if the section is currently in the primary viewing area
+                        // (which is defined by the observer's root margin).
+                        setActiveSection(key);
+                    }
+                });
+            },
+            {
+                // Root is the viewport by default.
+                // Threshold of 0.5 means the callback fires when 50% of the element is visible.
+                threshold: 0.5, 
+                // Use a root margin to shrink the visible area from the top, effectively 
+                // ignoring the top 80px (where your sticky header sits).
+                rootMargin: '0px 0px -60% 0px', // Example: adjust this to find a good spot in the center of the screen
+            }
+        );
+
+        // Iterate over the refMap and observe each section
+        Object.keys(refMap).forEach(key => {
+            const ref = refMap[key as SectionKey];
+            if (ref.current) {
+                observer.observe(ref.current);
+            }
+        });
+
+        // Cleanup function: stop observing all elements when the component unmounts
+        return () => {
+            observer.disconnect();
+        };
+    }, [refMap]); // Dependency on refMap is constant, but include for safety
+
 
      // Scroll function for mobile navigation
     const scrollToSection = useCallback((section: SectionKey) => {
@@ -1682,11 +1724,7 @@ type SectionKey = 'details' | 'analysis' | 'actions' | 'improvement';
                         </div>
                     </div>
                   }
-
                     </div>
-                    
-                    {/* RIGHT COLUMN: EMPTY (Kept for future sidebar content, currently collapses content into left column) */}
-                 
                 </div>
             </div>
             {/* FLOATING ACTION NAVIGATION (FAN) - MOBILE ONLY */}
@@ -1704,6 +1742,8 @@ type SectionKey = 'details' | 'analysis' | 'actions' | 'improvement';
                         </button>
                     ))}
                 </div>
+
+                
             </nav>
         </div>
     );
