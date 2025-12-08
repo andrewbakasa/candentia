@@ -19,7 +19,9 @@ import {
     X,
     ShieldCheck,
     TrendingDown,
-    Wrench, // Added for closing form
+    Wrench,
+    Calendar,
+    MapPin, // Added for closing form
 } from 'lucide-react';
 // Assuming SafeUser and cn are imported from external files.
 import { SafeUser } from '../types'; 
@@ -49,7 +51,10 @@ interface DefectListModel {
     title: string;
     description: string | null;
     assignee: string | null; 
-    defectType: string; 
+    area: string;
+    equipmentTag: string;
+    identificationDate: Date;
+    type: string; 
     priority: Priority; // Renamed from severity
     isClosed: boolean; // Retained, often helpful for filtering
     closedDate: string | null; 
@@ -160,13 +165,17 @@ const SeverityDisplay: React.FC<{ priority: Priority }> = ({ priority }) => {
 
 
 // --- DEFECT FORM COMPONENT ---
-interface DefectFormData {
+
+export interface DefectFormData {
     title: string;
-    description: string;
+    description: string | null;
     assignee: string;
-    defectType: string;
-    severity: Priority; // Updated type
-    status: DatabaseDefectStatus; // Updated type
+    area: string | null;
+    equipmentTag: string | null;
+    identificationDate: string; // Changed to string for input compatibility
+    type: string;
+    severity: Priority;
+    status: DatabaseDefectStatus;
 }
 
 interface DefectFormProps {
@@ -175,179 +184,226 @@ interface DefectFormProps {
     onCancel: () => void;
 }
 
+/**
+ * Interface for the payload sent back to the parent component/API.
+ * Converts string types to native objects where required.
+ */
+
+
+
+
 const DefectForm: React.FC<DefectFormProps> = ({ initialData, onSubmit, onCancel }) => {
     const isEditing = !!initialData;
     
-    // Initial state setup
+    // Helper to format Date for input[type="date"]
+    // const formatDateForInput = (date?: Date | string) => {
+    //     if (!date) return new Date().toISOString().split('T')[0];
+    //     return new Date(date).toISOString().split('T')[0];
+    // };
+
+    // const initialFormState: DefectFormData = {
+    //     title: initialData?.title || '',
+    //     description: initialData?.description || '',
+    //     area: initialData?.area || '',
+    //     equipmentTag: initialData?.equipmentTag || '',
+    //     identificationDate: formatDateForInput(initialData?.identificationDate),
+    //     assignee: initialData?.assignee || ASSIGNEE_OPTIONS[0],
+    //     defectType: initialData?.type || TYPE_OPTIONS[0],
+    //     severity: initialData?.priority || 'MEDIUM',
+    //     status: initialData?.status || 'IDENTIFIED',
+    // };
+
+    // Formats Date object or string into YYYY-MM-DD
+    const formatDateForInput = (date?: Date | string) => {
+        const d = date ? new Date(date) : new Date();
+        return d.toISOString().split('T')[0];
+    };
+
     const initialFormState: DefectFormData = {
         title: initialData?.title || '',
         description: initialData?.description || '',
+        area: initialData?.area || '',
+        equipmentTag: initialData?.equipmentTag || '',
+        // This is now a string 'YYYY-MM-DD', resolving the ts(2322) error
+        identificationDate: formatDateForInput(initialData?.identificationDate),
         assignee: initialData?.assignee || ASSIGNEE_OPTIONS[0],
-        defectType: initialData?.defectType || TYPE_OPTIONS[0],
-        severity: initialData?.priority || SEVERITY_OPTIONS[2] as Priority, // Default to MEDIUM (index 2)
-        status: initialData?.status || STATUS_OPTIONS[0], // Default to IDENTIFIED
+        type: initialData?.type || TYPE_OPTIONS[0],
+        severity: initialData?.priority || 'MEDIUM',
+        status: initialData?.status || 'IDENTIFIED',
     };
 
-    const [formData, setFormData] = useState<DefectFormData>(initialFormState);
+    const [formData, setFormData] = useState(initialFormState);
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
         const { name, value } = e.target;
         setFormData(prev => ({ ...prev, [name]: value }));
     };
 
+    // const handleSubmit = (e: React.FormEvent) => {
+    //     e.preventDefault();
+        
+    //     const dataToSubmit = {
+    //         ...formData,
+    //         identificationDate: new Date(formData.identificationDate), // Convert back to Date object
+    //         ...(isEditing && { id: initialData.id }),
+    //         description: formData.description?.trim() || null, 
+    //     };
+        
+    //     onSubmit(dataToSubmit);
+    // };
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
         
+        // Convert the UI string date back to a native Date object for the Database
         const dataToSubmit = {
             ...formData,
-            // Only include ID if editing
+            identificationDate: new Date(formData.identificationDate),
             ...(isEditing && { id: initialData.id }),
-            // Ensure description is not empty string but null if truly empty
-            description: formData.description.trim() || null, 
+            description: formData.description?.trim() || null, 
         };
         
-        onSubmit(dataToSubmit as DefectFormData & { id?: string });
+        // Explicitly cast to the expected submission type if needed
+        onSubmit(dataToSubmit as any); 
     };
 
-    const formTitle = isEditing ? `Edit Defect: ${initialData.id}` : 'Create New Defect';
-    const submitButtonText = isEditing ? 'Save Changes' : 'Report Defect';
-
     return (
-        <div className="fixed inset-0 bg-gray-900 bg-opacity-80 z-40 flex justify-center items-center p-4">
-            <div className="bg-white rounded-xl shadow-2xl w-full max-w-3xl transform scale-100 transition-all duration-300 overflow-hidden max-h-[90vh] overflow-y-auto">
-                <div className="sticky top-0 bg-white p-6 border-b border-gray-100 flex justify-between items-center z-10">
-                    <h2 className="text-xl font-bold text-gray-800">{formTitle}</h2>
-                    <button 
-                        onClick={onCancel} 
-                        className="p-2 rounded-full text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition"
-                        title="Close Form"
-                    >
-                        <X className="w-6 h-6" />
+        <div className="fixed inset-0 bg-gray-900/80 z-40 flex justify-center items-center p-4 backdrop-blur-sm">
+            <div className="bg-white rounded-2xl shadow-2xl w-full max-w-4xl transform transition-all overflow-hidden max-h-[95vh] flex flex-col">
+                {/* Header */}
+                <div className="p-6 border-b border-gray-100 flex justify-between items-center bg-white sticky top-0 z-10">
+                    <div>
+                        <h2 className="text-2xl font-bold text-gray-900">
+                            {isEditing ? `Edit Defect` : 'Report New Defect'}
+                        </h2>
+                        {isEditing && <p className="text-xs text-gray-500 font-mono mt-1">ID: {initialData.id}</p>}
+                    </div>
+                    <button onClick={onCancel} className="p-2 hover:bg-gray-100 rounded-full transition-colors">
+                        <X className="w-6 h-6 text-gray-400" />
                     </button>
                 </div>
                 
-                <form onSubmit={handleSubmit} className="p-6 space-y-6">
-                    {/* Row 1: Title */}
-                    <div>
-                        <label htmlFor="title" className="block text-sm font-medium text-gray-700 mb-1">
-                            Title <span className="text-red-500">*</span>
-                        </label>
-                        <input
-                            type="text"
-                            name="title"
-                            id="title"
-                            value={formData.title}
-                            onChange={handleChange}
-                            required
-                            className="w-full rounded-lg border border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 p-3"
-                            placeholder="A concise summary of the issue"
-                            maxLength={100}
-                        />
-                    </div>
-
-                    {/* Row 2: Description */}
-                    <div>
-                        <label htmlFor="description" className="block text-sm font-medium text-gray-700 mb-1">
-                            Description
-                        </label>
-                        <textarea
-                            name="description"
-                            id="description"
-                            rows={4}
-                            value={formData.description}
-                            onChange={handleChange}
-                            className="w-full rounded-lg border border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 p-3"
-                            placeholder="Detailed steps to reproduce, expected vs. actual behavior..."
-                        />
-                    </div>
-
-                    {/* Row 3: Severity (Priority), Type, Assignee, Status */}
-                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                        
-                        {/* Priority (Severity) */}
-                        <div>
-                            <label htmlFor="severity" className="block text-sm font-medium text-gray-700 mb-1">Priority</label>
-                            <select
-                                name="severity"
-                                id="severity"
-                                value={formData.severity}
+                <form onSubmit={handleSubmit} className="p-8 space-y-6 overflow-y-auto">
+                    {/* Primary Info: Title & Tag */}
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                        <div className="md:col-span-2">
+                            <label className="block text-sm font-semibold text-gray-700 mb-2">Title *</label>
+                            <input
+                                name="title"
+                                value={formData.title}
                                 onChange={handleChange}
-                                className="w-full rounded-lg border border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 p-3 bg-white"
-                            >
-                                {SEVERITY_OPTIONS.map(opt => (
-                                    <option key={opt} value={opt}>{opt}</option>
-                                ))}
-                            </select>
+                                required
+                                className="w-full rounded-xl border-gray-200 focus:ring-2 focus:ring-indigo-500 transition-all p-3 border"
+                                placeholder="Short descriptive title"
+                            />
                         </div>
-                        
-                        {/* Defect Type */}
                         <div>
-                            <label htmlFor="defectType" className="block text-sm font-medium text-gray-700 mb-1">Type</label>
+                            <label className="block text-sm font-semibold text-gray-700 mb-2 flex items-center gap-2">
+                                <Tag className="w-4 h-4" /> Equipment Tag
+                            </label>
+                            <input
+                                name="equipmentTag"
+                                value={formData?.equipmentTag||""}
+                                onChange={handleChange}
+                                className="w-full rounded-xl border-gray-200 focus:ring-2 focus:ring-indigo-500 p-3 border font-mono uppercase"
+                                placeholder="E.g. PUMP-001"
+                            />
+                        </div>
+                    </div>
+
+                    {/* Meta Info: Area, Date, Type */}
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                        <div>
+                            <label className="block text-sm font-semibold text-gray-700 mb-2 flex items-center gap-2">
+                                <MapPin className="w-4 h-4" /> Area / Location
+                            </label>
+                            <input
+                                name="area"
+                                value={formData.area||""}
+                                onChange={handleChange}
+                                className="w-full rounded-xl border-gray-200 focus:ring-2 focus:ring-indigo-500 p-3 border"
+                                placeholder="Section or Room"
+                            />
+                        </div>
+                        <div>
+                            <label className="block text-sm font-semibold text-gray-700 mb-2 flex items-center gap-2">
+                                <Calendar className="w-4 h-4" /> Identified Date
+                            </label>
+                            <input
+                                type="date"
+                                name="identificationDate"
+                                value={formData.identificationDate}
+                                onChange={handleChange}
+                                className="w-full rounded-xl border-gray-200 focus:ring-2 focus:ring-indigo-500 p-3 border"
+                            />
+                        </div>
+                        <div>
+                            <label className="block text-sm font-semibold text-gray-700 mb-2">Defect Type</label>
                             <select
                                 name="defectType"
-                                id="defectType"
-                                value={formData.defectType}
+                                value={formData.type}
                                 onChange={handleChange}
-                                className="w-full rounded-lg border border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 p-3 bg-white"
+                                className="w-full rounded-xl border-gray-200 focus:ring-2 focus:ring-indigo-500 p-3 border bg-white"
                             >
-                                {TYPE_OPTIONS.map(opt => (
-                                    <option key={opt} value={opt}>{opt}</option>
-                                ))}
+                                {TYPE_OPTIONS.map(opt => <option key={opt} value={opt}>{opt}</option>)}
                             </select>
-                        </div>
-
-                        {/* Assignee */}
-                        <div>
-                            <label htmlFor="assignee" className="block text-sm font-medium text-gray-700 mb-1">Assignee</label>
-                            <select
-                                name="assignee"
-                                id="assignee"
-                                value={formData.assignee}
-                                onChange={handleChange}
-                                className="w-full rounded-lg border border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 p-3 bg-white"
-                            >
-                                {ASSIGNEE_OPTIONS.map(opt => (
-                                    <option key={opt} value={opt}>{opt}</option>
-                                ))}
-                            </select>
-                        </div>
-
-                        {/* Status (Only editable when defect exists) */}
-                        <div>
-                            <label htmlFor="status" className="block text-sm font-medium text-gray-700 mb-1">Status</label>
-                            <select
-                                name="status"
-                                id="status"
-                                value={formData.status}
-                                onChange={handleChange}
-                                disabled={!isEditing} // Status is only editable when editing an existing defect
-                                className={cn(
-                                    "w-full rounded-lg border border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 p-3", 
-                                    !isEditing ? 'bg-gray-100 cursor-not-allowed text-gray-500' : 'bg-white'
-                                )}
-                            >
-                                {STATUS_OPTIONS.map(opt => (
-                                    <option key={opt} value={opt}>{opt.replace('_', ' ')}</option>
-                                ))}
-                            </select>
-                            {!isEditing && <p className="text-xs text-gray-500 mt-1">Defaults to IDENTIFIED</p>}
                         </div>
                     </div>
-                    
-                    {/* Actions */}
-                    <div className="flex justify-end space-x-4 pt-4">
+
+                    {/* Description */}
+                    <div>
+                        <label className="block text-sm font-semibold text-gray-700 mb-2">Detailed Description</label>
+                        <textarea
+                            name="description"
+                            rows={4}
+                            value={formData.description||""}
+                            onChange={handleChange}
+                            className="w-full rounded-xl border-gray-200 focus:ring-2 focus:ring-indigo-500 p-3 border"
+                            placeholder="Detail reproduction steps and observed behavior..."
+                        />
+                    </div>
+
+                    {/* Criticality: Priority, Status, Assignee */}
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6 bg-gray-50 p-4 rounded-xl">
+                        <div>
+                            <label className="block text-xs font-bold uppercase tracking-wider text-gray-500 mb-2">Priority</label>
+                            <select name="severity" value={formData.severity} onChange={handleChange} className="w-full rounded-lg border-gray-200 p-2 border">
+                                {SEVERITY_OPTIONS.map(opt => <option key={opt} value={opt}>{opt}</option>)}
+                            </select>
+                        </div>
+                        <div>
+                            <label className="block text-xs font-bold uppercase tracking-wider text-gray-500 mb-2">Current Status</label>
+                            <select 
+                                name="status" 
+                                value={formData.status} 
+                                onChange={handleChange} 
+                                disabled={!isEditing}
+                                className={cn("w-full rounded-lg border-gray-200 p-2 border", !isEditing && "bg-gray-100 opacity-60")}
+                            >
+                                {STATUS_OPTIONS.map(opt => <option key={opt} value={opt}>{opt.replace('_', ' ')}</option>)}
+                            </select>
+                        </div>
+                        <div>
+                            <label className="block text-xs font-bold uppercase tracking-wider text-gray-500 mb-2">Assignee</label>
+                            <select name="assignee" value={formData.assignee} onChange={handleChange} className="w-full rounded-lg border-gray-200 p-2 border">
+                                {ASSIGNEE_OPTIONS.map(opt => <option key={opt} value={opt}>{opt}</option>)}
+                            </select>
+                        </div>
+                    </div>
+
+                    {/* Footer Actions */}
+                    <div className="flex justify-end gap-3 pt-6 border-t border-gray-100 sticky bottom-0 bg-white">
                         <button
                             type="button"
                             onClick={onCancel}
-                            className="px-6 py-3 border border-gray-300 text-sm font-medium rounded-xl shadow-md text-gray-700 bg-white hover:bg-gray-50 transition duration-150"
+                            className="px-6 py-2.5 text-sm font-semibold text-gray-600 hover:bg-gray-50 rounded-xl transition-all"
                         >
                             Cancel
                         </button>
                         <button
                             type="submit"
-                            className="px-6 py-3 border border-transparent text-sm font-medium rounded-xl shadow-lg text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transform transition duration-150 hover:scale-[1.02]"
+                            className="px-8 py-2.5 bg-indigo-600 text-white text-sm font-semibold rounded-xl hover:bg-indigo-700 shadow-md hover:shadow-lg transition-all active:scale-95"
                         >
-                            {submitButtonText}
+                            {isEditing ? 'Update Defect' : 'Submit Report'}
                         </button>
                     </div>
                 </form>
@@ -387,7 +443,7 @@ const DesktopTableRow: React.FC<DesktopTableRowProps> = ({ defect, index, itemOf
                     </div>
                     <div className="text-xs text-gray-500 mt-0.5 flex items-center gap-1">
                         <ClipboardList className="w-3 h-3" />
-                        {defect.defectType}
+                        {defect.type}
                     </div>
                 </a>
             </td>
@@ -480,7 +536,7 @@ const MobileCardView: React.FC<MobileCardViewProps> = ({ defectsToDisplay, itemO
                     <div className="flex justify-between items-center pt-2">
                         <div className="text-xs text-gray-500 flex items-center gap-1">
                             <ClipboardList className="w-3 h-3 text-indigo-400"/> 
-                            <span className="font-semibold text-gray-600">{defect.defectType}</span>
+                            <span className="font-semibold text-gray-600">{defect.type}</span>
                         </div>
                         
                         <div className="flex space-x-2">
@@ -790,7 +846,7 @@ const DefectListClient: React.FC<DefectListClientProps> = ({ currentUser }) => {
                 defect.title.toLowerCase().includes(lowerCaseSearch) ||
                 defect.description?.toLowerCase().includes(lowerCaseSearch) ||
                 defect.assignee?.toLowerCase().includes(lowerCaseSearch) ||
-                defect.defectType?.toLowerCase().includes(lowerCaseSearch)
+                defect.type?.toLowerCase().includes(lowerCaseSearch)
             );
         }
         
