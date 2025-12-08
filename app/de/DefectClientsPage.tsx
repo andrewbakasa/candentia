@@ -16,7 +16,10 @@ import {
     Zap,
     Plus, // Added for Add button
     Edit, // Added for Edit button
-    X, // Added for closing form
+    X,
+    ShieldCheck,
+    TrendingDown,
+    Wrench, // Added for closing form
 } from 'lucide-react';
 // Assuming SafeUser and cn are imported from external files.
 import { SafeUser } from '../types'; 
@@ -962,26 +965,50 @@ if (isLoading) {
                     </button>
                 </div>
                 {/* DE Methodology Overview Section */}
-                <div className="mb-8 p-6 bg-white rounded-xl border border-indigo-100 shadow-sm">
-                    <p className="text-gray-700 font-medium mb-3 text-sm leading-relaxed">
-                        Defect Elimination provides a methodology for systematic identification and elimination of defects in both fixed and mobile plants.
-                    </p>
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 text-xs">
-                        <div className="bg-indigo-50 p-3 rounded-lg border border-indigo-100">
-                            <span className="font-bold text-indigo-900 block mb-1">Safety</span>
-                            <p className="text-indigo-700">Improves site safety standards</p>
+                 <div className="mb-8 overflow-hidden rounded-xl border border-indigo-100 bg-white shadow-sm transition-all">
+                    {/* Methodology Definition - Condensed on mobile */}
+                    <div className="border-l-4 border-indigo-600 bg-indigo-50/30 p-4">
+                        <p className="text-xs font-semibold leading-relaxed text-gray-800 md:text-sm">
+                            <span className="text-indigo-700 font-bold">Defects Elimination (DE) Methodology:</span> Identification and elimination of defects in fixed and mobile plants.
+                        </p>
+                    </div>
+
+                    {/* Aims Grid - Minimal labels on mobile, full text on md+ */}
+                    <div className="grid grid-cols-2 gap-px bg-indigo-100 md:grid-cols-4">
+                        {/* Safety */}
+                        <div className="bg-white p-3 md:p-5 flex flex-col items-center text-center md:items-start md:text-left">
+                            <div className="flex items-center gap-2 text-indigo-700">
+                                <ShieldCheck className="h-4 w-4 md:h-5 md:w-5" />
+                                <span className="text-[10px] font-bold uppercase tracking-wider md:text-xs">Safety</span>
+                            </div>
+                            <p className="hidden md:block mt-1 text-xs text-gray-600 leading-snug">Improves site safety standards.</p>
                         </div>
-                        <div className="bg-indigo-50 p-3 rounded-lg border border-indigo-100">
-                            <span className="font-bold text-indigo-900 block mb-1">Production</span>
-                            <p className="text-indigo-700">Reduced downtime, increased reliability & controlled operations</p>
+
+                        {/* Production */}
+                        <div className="bg-white p-3 md:p-5 flex flex-col items-center text-center md:items-start md:text-left">
+                            <div className="flex items-center gap-2 text-indigo-700">
+                                <Zap className="h-4 w-4 md:h-5 md:w-5" />
+                                <span className="text-[10px] font-bold uppercase tracking-wider md:text-xs">Production</span>
+                            </div>
+                            <p className="hidden md:block mt-1 text-xs text-gray-600 leading-snug">Reduced downtime & reliability.</p>
                         </div>
-                        <div className="bg-indigo-50 p-3 rounded-lg border border-indigo-100">
-                            <span className="font-bold text-indigo-900 block mb-1">Operating Costs</span>
-                            <p className="text-indigo-700">Overall reduction in daily operating costs</p>
+
+                        {/* Operating Costs */}
+                        <div className="bg-white p-3 md:p-5 flex flex-col items-center text-center md:items-start md:text-left">
+                            <div className="flex items-center gap-2 text-indigo-700">
+                                <TrendingDown className="h-4 w-4 md:h-5 md:w-5" />
+                                <span className="text-[10px] font-bold uppercase tracking-wider md:text-xs">Costs</span>
+                            </div>
+                            <p className="hidden md:block mt-1 text-xs text-gray-600 leading-snug">Reduced daily operating costs.</p>
                         </div>
-                        <div className="bg-indigo-50 p-3 rounded-lg border border-indigo-100">
-                            <span className="font-bold text-indigo-900 block mb-1">Maintenance</span>
-                            <p className="text-indigo-700">Reduced breakdowns, labor, and material costs</p>
+
+                        {/* Maintenance */}
+                        <div className="bg-white p-3 md:p-5 flex flex-col items-center text-center md:items-start md:text-left">
+                            <div className="flex items-center gap-2 text-indigo-700">
+                                <Wrench className="h-4 w-4 md:h-5 md:w-5" />
+                                <span className="text-[10px] font-bold uppercase tracking-wider md:text-xs">Maintenance</span>
+                            </div>
+                            <p className="hidden md:block mt-1 text-xs text-gray-600 leading-snug">Reduced labor & material costs.</p>
                         </div>
                     </div>
                 </div>
