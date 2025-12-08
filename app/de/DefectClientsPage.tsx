@@ -1130,7 +1130,7 @@ if (isLoading) {
                 <div className="grid grid-cols-2 gap-px bg-indigo-50/50 md:grid-cols-4">
                     {[
                         { icon: ShieldCheck, label: "Safety", md: "Improves safety" },
-                        { icon: Zap, label: "Production", md: "Increased production- reduced downtime, increased reliability, controlled operations" },
+                        { icon: Zap, label: "Production", md: "Increased production, reduced downtime, increased reliability, controlled operations" },
                         { icon: TrendingDown, label: "Costs", md: "Reduced operating costs" },
                         { icon: Wrench, label: "Maintenance", md: "Reduced breakdown maintenance, labour and material costs" }
                     ].map((aim, idx) => (
