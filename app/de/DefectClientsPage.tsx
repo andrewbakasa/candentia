@@ -940,194 +940,167 @@ if (isLoading) {
     // Return a dedicated loading component
     return <DefectListSkeleton />; 
 }
-    return (
-        <div className="min-h-screen bg-gray-50 p-4 sm:p-8 lg:p-12 font-inter">
-            <style jsx global>{`
-                /* Global styles for better visual */
-                body {
-                    background-color: #f9fafb;
-                }
-            `}</style>
-            
-            <div className="max-w-7xl mx-auto">
-                {/* Header */}
-                <div className="flex justify-between items-center mb-6 sm:mb-8">
-                    <h1 className="text-3xl font-extrabold text-gray-900 flex items-center gap-2">
-                        <Activity className={cn("w-8 h-8", INDIGO_PRIMARY)} />
-                        Defect Elimination
-                    </h1>
-                    <button
-                        onClick={() => handleOpenForm(undefined)}
-                        className="flex items-center px-4 py-2 bg-indigo-600 text-white text-sm font-medium rounded-xl shadow-lg hover:bg-indigo-700 transition duration-150 transform hover:scale-[1.02]"
-                    >
-                        <Plus className="w-5 h-5 mr-1" />
-                        Report New Defect
-                    </button>
-                </div>
-                {/* DE Methodology Overview Section */}
-                 <div className="mb-8 overflow-hidden rounded-xl border border-indigo-100 bg-white shadow-sm transition-all">
-                    {/* Methodology Definition - Condensed on mobile */}
-                    <div className="border-l-4 border-indigo-600 bg-indigo-50/30 p-4">
-                        <p className="text-xs font-semibold leading-relaxed text-gray-800 md:text-sm">
-                            <span className="text-indigo-700 font-bold">Defect Elimination (DE) Methodology:</span> Identification and elimination of defects in fixed and mobile plants.
-                        </p>
+   return (
+    <div className="min-h-screen bg-[#F9FAFB] p-4 sm:p-8 lg:p-12 font-inter">
+        <style jsx global>{`
+            @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+            body { font-family: 'Inter', sans-serif; }
+        `}</style>
+        
+        <div className="max-w-7xl mx-auto space-y-8">
+            {/* 1. Header Area: High contrast, clear hierarchy */}
+            <header className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                <div className="flex items-center gap-3">
+                    <div className="bg-indigo-600 p-2.5 rounded-xl shadow-indigo-200 shadow-lg">
+                        <Activity className="w-7 h-7 text-white" />
                     </div>
-
-                    {/* Aims Grid - Minimal labels on mobile, full text on md+ */}
-                    <div className="grid grid-cols-2 gap-px bg-indigo-100 md:grid-cols-4">
-                        {/* Safety */}
-                        <div className="bg-white p-3 md:p-5 flex flex-col items-center text-center md:items-start md:text-left">
-                            <div className="flex items-center gap-2 text-indigo-700">
-                                <ShieldCheck className="h-4 w-4 md:h-5 md:w-5" />
-                                <span className="text-[10px] font-bold uppercase tracking-wider md:text-xs">Safety</span>
-                            </div>
-                            <p className="hidden md:block mt-1 text-xs text-gray-600 leading-snug">Improves site safety standards.</p>
-                        </div>
-
-                        {/* Production */}
-                        <div className="bg-white p-3 md:p-5 flex flex-col items-center text-center md:items-start md:text-left">
-                            <div className="flex items-center gap-2 text-indigo-700">
-                                <Zap className="h-4 w-4 md:h-5 md:w-5" />
-                                <span className="text-[10px] font-bold uppercase tracking-wider md:text-xs">Production</span>
-                            </div>
-                            <p className="hidden md:block mt-1 text-xs text-gray-600 leading-snug">Reduced downtime & reliability.</p>
-                        </div>
-
-                        {/* Operating Costs */}
-                        <div className="bg-white p-3 md:p-5 flex flex-col items-center text-center md:items-start md:text-left">
-                            <div className="flex items-center gap-2 text-indigo-700">
-                                <TrendingDown className="h-4 w-4 md:h-5 md:w-5" />
-                                <span className="text-[10px] font-bold uppercase tracking-wider md:text-xs">Costs</span>
-                            </div>
-                            <p className="hidden md:block mt-1 text-xs text-gray-600 leading-snug">Reduced daily operating costs.</p>
-                        </div>
-
-                        {/* Maintenance */}
-                        <div className="bg-white p-3 md:p-5 flex flex-col items-center text-center md:items-start md:text-left">
-                            <div className="flex items-center gap-2 text-indigo-700">
-                                <Wrench className="h-4 w-4 md:h-5 md:w-5" />
-                                <span className="text-[10px] font-bold uppercase tracking-wider md:text-xs">Maintenance</span>
-                            </div>
-                            <p className="hidden md:block mt-1 text-xs text-gray-600 leading-snug">Reduced labor & material costs.</p>
-                        </div>
+                    <div>
+                        <h1 className="text-2xl font-extrabold text-gray-900 tracking-tight">Defect Elimination</h1>
+                        <p className="text-sm text-gray-500 font-medium">Systematic Asset Reliability</p>
                     </div>
                 </div>
-                {/* Controls Area */}
-                <div className="bg-white p-4 sm:p-6 rounded-xl shadow-2xl border border-gray-100 mb-6 space-y-4">
-                    
-                    {/* Filter Tabs */}
-                    <div className="flex space-x-2 sm:space-x-3 overflow-x-auto pb-2">
-                        {categoryOptions.map((opt) => (
-                            <button
-                                key={opt.id}
-                                onClick={() => setFilterCategory(opt.id)}
-                                className={cn(
-                                    "flex items-center px-3 py-1.5 text-xs sm:text-sm font-semibold rounded-full whitespace-nowrap transition duration-200",
-                                    filterCategory === opt.id
-                                        ? "bg-indigo-600 text-white shadow-md"
-                                        : "bg-gray-100 text-gray-600 hover:bg-gray-200"
-                                )}
-                            >
-                                {opt.label}
-                                <span className={cn(
-                                    "ml-2 px-2 py-0.5 rounded-full text-[10px] font-bold",
-                                    filterCategory === opt.id ? "bg-indigo-700 text-indigo-100" : "bg-white text-gray-700"
-                                )}>
-                                    {categoryCounts[opt.id] || 0}
-                                </span>
-                            </button>
-                        ))}
-                    </div>
+                <button
+                    onClick={() => handleOpenForm(undefined)}
+                    className="group flex items-center px-5 py-2.5 bg-indigo-600 text-white text-sm font-semibold rounded-xl shadow-lg shadow-indigo-100 hover:bg-indigo-700 transition duration-200 transform hover:-translate-y-0.5"
+                >
+                    <Plus className="w-5 h-5 mr-2 group-hover:rotate-90 transition-transform duration-200" />
+                    Report New Defect
+                </button>
+            </header>
 
-                    {/* Search Input */}
-                    <div className="relative">
-                        <Search className={cn("absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5", GRAY_ACCENT)} />
-                        <input
-                            type="text"
-                            placeholder="Search defects by title, ID, or assignee..."
-                            value={searchTerm}
-                            onChange={(e) => setSearchTerm(e.target.value)}
-                            className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-xl focus:ring-indigo-500 focus:border-indigo-500 shadow-sm"
-                        />
-                    </div>
+            {/* 2. DE Methodology: Information design with minimal mobile toggle */}
+            <section className="overflow-hidden rounded-2xl border border-indigo-100 bg-white shadow-sm ring-1 ring-black/5 transition-all">
+                <div className="border-l-4 border-indigo-600 bg-indigo-50/40 p-5">
+                    <p className="text-sm font-semibold text-gray-800 md:text-base">
+                        <span className="text-indigo-700">Methodology:</span> Identification and elimination of defects in both fixed and mobile plants.
+                    </p>
                 </div>
 
-                {/* Desktop Table View */}
-                <div className="hidden md:block bg-white rounded-xl shadow-2xl border border-gray-100 overflow-hidden">
-                    <table className="min-w-full divide-y divide-gray-200">
-                        <thead className="bg-gray-50">
-                            <tr>
-                                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-2/5">
-                                    Title / Type
-                                </th>
-                                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-1/5">
-                                    Priority
-                                </th>
-                                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-1/5">
-                                    Status Category
-                                </th>
-                                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-1/5">
-                                    Assignee
-                                </th>
-                                <th scope="col" className="relative px-6 py-3">
-                                    <span className="sr-only">Actions</span>
-                                </th>
-                            </tr>
-                        </thead>
-                        <tbody className="bg-white divide-y divide-gray-200">
-                            {defectsToDisplay.length > 0 ? (
-                                defectsToDisplay.map((defect, index) => (
-                                    <DesktopTableRow 
-                                        key={defect.id} 
-                                        defect={defect} 
-                                        index={index} 
-                                        itemOffset={itemOffset}
-                                        onEdit={handleOpenForm}
-                                        allowEditing={hasRequiredRole}
-                                    />
-                                ))
-                            ) : (
-                                <tr>
-                                    <td colSpan={5} className="px-6 py-12 text-center text-gray-500 text-lg">
-                                        No defects match your filters.
-                                    </td>
-                                </tr>
+                <div className="grid grid-cols-2 gap-px bg-indigo-50/50 md:grid-cols-4">
+                    {[
+                        { icon: ShieldCheck, label: "Safety", md: "Safety standards" },
+                        { icon: Zap, label: "Production", md: "Downtime/Reliability" },
+                        { icon: TrendingDown, label: "Costs", md: "Reduced spend" },
+                        { icon: Wrench, label: "Maintenance", md: "Labor/Materials" }
+                    ].map((aim, idx) => (
+                        <div key={idx} className="bg-white p-4 md:p-6 text-center md:text-left hover:bg-gray-50/50 transition-colors">
+                            <div className="flex flex-col md:flex-row items-center gap-2 text-indigo-700">
+                                <aim.icon className="w-5 h-5" />
+                                <span className="text-[11px] font-bold uppercase tracking-widest md:text-xs text-indigo-900">{aim.label}</span>
+                            </div>
+                            <p className="hidden md:block mt-2 text-xs text-gray-500 leading-snug">{aim.md}</p>
+                        </div>
+                    ))}
+                </div>
+            </section>
+
+            {/* 3. Controls Area: Unified search and filtering */}
+            <div className="bg-white p-5 rounded-2xl shadow-sm border border-gray-100 space-y-5">
+                <div className="flex flex-wrap items-center gap-3 border-b border-gray-50 pb-4">
+                    {categoryOptions.map((opt) => (
+                        <button
+                            key={opt.id}
+                            onClick={() => setFilterCategory(opt.id)}
+                            className={cn(
+                                "flex items-center px-4 py-2 text-xs sm:text-sm font-semibold rounded-xl transition-all",
+                                filterCategory === opt.id
+                                    ? "bg-gray-900 text-white shadow-md shadow-gray-200 scale-105"
+                                    : "bg-gray-50 text-gray-500 hover:bg-gray-100 border border-gray-100"
                             )}
-                        </tbody>
-                    </table>
+                        >
+                            {opt.label}
+                            <span className={cn(
+                                "ml-2.5 px-2 py-0.5 rounded-lg text-[10px] font-bold",
+                                filterCategory === opt.id ? "bg-white/20 text-white" : "bg-gray-200 text-gray-600"
+                            )}>
+                                {categoryCounts[opt.id] || 0}
+                            </span>
+                        </button>
+                    ))}
                 </div>
 
-                {/* Mobile Card View */}
-                <MobileCardView 
-                    defectsToDisplay={defectsToDisplay} 
-                    itemOffset={itemOffset}
-                    onEdit={handleOpenForm}
-                    allowEditing={hasRequiredRole} 
-                />
-
-                {/* Pagination */}
-                {filteredDefects.length > 0 && (
-                    <PaginationControls
-                        filteredDefectsLength={filteredDefects.length}
-                        pageSize={pageSize}
-                        itemOffset={itemOffset}
-                        handlePageClick={handlePageClick}
-                        handlePageSizeChange={handlePageSizeChange}
+                <div className="relative">
+                    <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+                    <input
+                        type="text"
+                        placeholder="Search by title, ID, or assignee..."
+                        value={searchTerm}
+                        onChange={(e) => setSearchTerm(e.target.value)}
+                        className="w-full pl-12 pr-4 py-3 bg-gray-50 border-transparent rounded-xl focus:ring-2 focus:ring-indigo-500/20 focus:bg-white focus:border-indigo-300 transition-all text-sm"
                     />
-                )}
+                </div>
+            </div>
 
-                {/* Defect Form Modal */}
-                {showForm && (
+            {/* 4. Desktop Table View: High-density readability */}
+            <div className="hidden md:block bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden ring-1 ring-gray-50">
+                <table className="min-w-full divide-y divide-gray-100">
+                    <thead className="bg-gray-50/50">
+                        <tr>
+                            {["Title / Type", "Priority", "Status", "Assignee"].map((th) => (
+                                <th key={th} scope="col" className="px-6 py-4 text-left text-[11px] font-bold text-gray-500 uppercase tracking-widest">
+                                    {th}
+                                </th>
+                            ))}
+                            <th scope="col" className="relative px-6 py-4"><span className="sr-only">Actions</span></th>
+                        </tr>
+                    </thead>
+                    <tbody className="divide-y divide-gray-50">
+                        {defectsToDisplay.length > 0 ? (
+                            defectsToDisplay.map((defect, index) => (
+                                <DesktopTableRow 
+                                    key={defect.id} 
+                                    defect={defect} 
+                                    index={index} 
+                                    itemOffset={itemOffset}
+                                    onEdit={handleOpenForm}
+                                    allowEditing={hasRequiredRole}
+                                />
+                            ))
+                        ) : (
+                            <tr>
+                                <td colSpan={5} className="px-6 py-20 text-center">
+                                    <div className="flex flex-col items-center opacity-40">
+                                        <Activity className="w-12 h-12 mb-3" />
+                                        <p className="text-gray-500 font-medium">No results match your current filters.</p>
+                                    </div>
+                                </td>
+                            </tr>
+                        )}
+                    </tbody>
+                </table>
+            </div>
+
+            {/* Mobile View & Pagination Components */}
+            <MobileCardView 
+                defectsToDisplay={defectsToDisplay} 
+                itemOffset={itemOffset}
+                onEdit={handleOpenForm}
+                allowEditing={hasRequiredRole} 
+            />
+
+            {filteredDefects.length > 0 && (
+                <PaginationControls
+                    filteredDefectsLength={filteredDefects.length}
+                    pageSize={pageSize}
+                    itemOffset={itemOffset}
+                    handlePageClick={handlePageClick}
+                    handlePageSizeChange={handlePageSizeChange}
+                />
+            )}
+
+            {/* Modal Layer */}
+            {showForm && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-gray-900/40 backdrop-blur-sm">
                     <DefectForm 
                         initialData={editingDefect}
                         onSubmit={handleSubmitDefect}
                         onCancel={handleCloseForm}
                     />
-                )}
-
-            </div>
+                </div>
+            )}
         </div>
-    );
-};
+    </div>
+);
+}
 
 export default DefectListClient;
