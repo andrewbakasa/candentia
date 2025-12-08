@@ -1117,6 +1117,7 @@ type SectionKey = 'details' | 'analysis' | 'actions' | 'improvement';
 
     // --- NEW LOGIC: Intersection Observer ---
     useEffect(() => {
+
         // Create the observer instance
         const observer = new IntersectionObserver(
             (entries) => {
@@ -1125,18 +1126,20 @@ type SectionKey = 'details' | 'analysis' | 'actions' | 'improvement';
                     // You can adjust the threshold and logic here.
                     // We check if it's currently visible and use the rootMargin to create a sticky header effect
                     // by making the intersection area start below the header.
+                   // Only set active if the section is currently in the primary viewing area                    
                     if (entry.isIntersecting) {
                         const key = entry.target.id as SectionKey;
                         // Only set active if the section is currently in the primary viewing area
                         // (which is defined by the observer's root margin).
                         setActiveSection(key);
+                        //toast.success(`${entry.target.id}`)
                     }
                 });
             },
             {
                 // Root is the viewport by default.
-                // Threshold of 0.5 means the callback fires when 50% of the element is visible.
-                threshold: 0.5, 
+                // Threshold of 0.40 means the callback fires when 50% of the element is visible.
+                threshold: 0.40, 
                 // Use a root margin to shrink the visible area from the top, effectively 
                 // ignoring the top 80px (where your sticky header sits).
                 rootMargin: '0px 0px -60% 0px', // Example: adjust this to find a good spot in the center of the screen
@@ -1492,7 +1495,7 @@ type SectionKey = 'details' | 'analysis' | 'actions' | 'improvement';
     ], []);
     return (
         <div className="min-h-screen bg-gray-50">
-            <div className="max-w-7xl mx-auto">
+            <div className="max-w-7xl mx-auto mb-10 lg:mb-0">
                 
                 {/* HEADER SECTION: Sticky on mobile, acts as context bar */}
                 <section className="bg-white p-4 rounded-xl shadow-2xl border-t-8 border-indigo-600 mb-4 sticky top-0 z-20">
