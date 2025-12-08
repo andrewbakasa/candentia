@@ -1139,7 +1139,7 @@ type SectionKey = 'details' | 'analysis' | 'actions' | 'improvement';
             {
                 // Root is the viewport by default.
                 // Threshold of 0.40 means the callback fires when 50% of the element is visible.
-                threshold: 0.40, 
+                threshold: 0.05, 
                 // Use a root margin to shrink the visible area from the top, effectively 
                 // ignoring the top 80px (where your sticky header sits).
                 rootMargin: '0px 0px -60% 0px', // Example: adjust this to find a good spot in the center of the screen
