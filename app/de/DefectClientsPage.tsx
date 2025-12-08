@@ -954,7 +954,7 @@ if (isLoading) {
                 <div className="flex justify-between items-center mb-6 sm:mb-8">
                     <h1 className="text-3xl font-extrabold text-gray-900 flex items-center gap-2">
                         <Activity className={cn("w-8 h-8", INDIGO_PRIMARY)} />
-                        Defect Tracking
+                        Defect Elimination
                     </h1>
                     <button
                         onClick={() => handleOpenForm(undefined)}
@@ -969,7 +969,7 @@ if (isLoading) {
                     {/* Methodology Definition - Condensed on mobile */}
                     <div className="border-l-4 border-indigo-600 bg-indigo-50/30 p-4">
                         <p className="text-xs font-semibold leading-relaxed text-gray-800 md:text-sm">
-                            <span className="text-indigo-700 font-bold">Defects Elimination (DE) Methodology:</span> Identification and elimination of defects in fixed and mobile plants.
+                            <span className="text-indigo-700 font-bold">Defect Elimination (DE) Methodology:</span> Identification and elimination of defects in fixed and mobile plants.
                         </p>
                     </div>
 
