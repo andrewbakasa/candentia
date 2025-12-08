@@ -89,14 +89,25 @@ const teamMembers: TeamMember[] = [
     image: "/images/team/happison-tshuma.jpg", // New Placeholder image path
   },
 
+  {
+    id: 15,
+    name: "Maina Nyoni",
+    role: "Executive Director Digital Marketing and Transformation",
+    description: `B.Eng | MSc specializing in Engineering Project Management and Quality Monitoring & Control. Proven expertise in providing cross-functional oversight for building and construction initiatives | South Africa| Zimbabwe
+`,
+    image: "/images/team/maina-nyoni.jpg", // New Placeholder image path
+  },
+
+
     {
     id: 10,
     name: "Phillip Makaniwa",
-    role: "Non-Executive Director ",
+    role: "Technical Advisor to Digital Marketing and Transformation Executive ",
     description: `B.Eng | MEng | 12yrs+ Cost & Risk Engineering Consultant in the Oil & Gas as well as Nuclear Industry | South Africa, Saudi Arabia, UAE
 `,
     image: "/images/team/phillip-makaniwa.jpg", // New Placeholder image path
   },
+  
     {
     id: 11,
     name: "Kupakwashe Chamakavinga",
@@ -132,14 +143,8 @@ const teamMembers: TeamMember[] = [
 `,
     image: "/images/team/takawira-chikowore.jpg", // New Placeholder image path
   },
-    {
-    id: 15,
-    name: "Maina Nyoni",
-    role: "Non-Executive Director",
-    description: `B.Eng | MSc specializing in Engineering Project Management and Quality Monitoring & Control. Proven expertise in providing cross-functional oversight for building and construction initiatives | South Africa| Zimbabwe
-`,
-    image: "/images/team/maina-nyoni.jpg", // New Placeholder image path
-  },
+    
+  
     
 ];
 // --- End Team Data ---
