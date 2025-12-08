@@ -1028,7 +1028,7 @@ model Defect {
   description        String
   area               String?
   equipmentTag       String?  @unique
-
+  reportedby               String?
   // ✅ ADDED FIELD: Defect Type
   type DefectType @default(MECHANICAL) // Set a sensible default
 

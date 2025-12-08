@@ -89,7 +89,7 @@ export interface DefectDetailModel {
     status: DefectStatus;
     priority: Priority;
     identificationDate: string;
-    reportedBy: string;
+    reportedby: string;
     equipmentTag: string;
     area: string;
     breakdown: BreakdownModel | null;
@@ -114,6 +114,7 @@ import { SafeUser } from '@/app/types';
 import { truncateString } from '@/lib/utils';
 import useIsMobile from '@/app/hooks/isMobile';
 import { useRouter } from 'next/navigation';
+import { timeAgo } from '@/app/bp/[id]/_components/utility';
 
 // --- Type Definitions (Assuming these are available) ---
 interface ImprovementOpportunity {
@@ -1030,7 +1031,7 @@ type SectionKey = 'details' | 'analysis' | 'actions' | 'improvement';
         improvementOpportunities: [],
         // Set a known status
         status: DefectStatus.ACTION_DEFINED, // Or whatever placeholder status you prefer
-        reportedBy: "",
+        reportedby: "",
         equipmentTag: "",
         area: "",
         //breakdown:[] ,
@@ -1570,8 +1571,31 @@ type SectionKey = 'details' | 'analysis' | 'actions' | 'improvement';
                             
                             <div className="grid grid-cols-1 sm:grid-cols-4 gap-4 border-t border-gray-100"> 
                             {/* <div className="flex flex-wrap gap-2 pt-2 border-t border-gray-100"> */}
-                                <DetailItem icon={Calendar} label="Identified Date" value={new Date(localDefect.identificationDate).toLocaleDateString()} />
-                                <DetailItem icon={User} label="Reported By" value={localDefect?.reportedBy || 'Unknown'} />
+                                <DetailItem 
+                                icon={Calendar} 
+                                label="Identified Date" 
+                                value={(
+                                    <span style={{ position: 'relative', display: 'inline-flex', alignItems: 'baseline' }}>
+                                    {new Date(localDefect.identificationDate).toLocaleDateString('en-GB', {
+                                        day: 'numeric',
+                                        month: 'short',
+                                        year: 'numeric'
+                                    })}
+                                    <small style={{ 
+                                        fontSize: '0.5em', 
+                                        opacity: 0.8, 
+                                        marginLeft: '-44px', // Adjusted from negative to keep readability
+                                        display: 'inline-block',
+                                        transform: 'translateY(-16px)', // Force the text higher
+                                        fontWeight: 'bold',
+                                        textTransform: 'lowercase'
+                                    }}>
+                                        <span className='text-blue-500  hidden lg:block'>{timeAgo(new Date(localDefect.identificationDate).toLocaleDateString())}</span>
+                                    </small>
+                                    </span>
+                                )} 
+                                />
+                                <DetailItem icon={User} label="Reported By" value={localDefect?.reportedby || 'Unknown'} />
                                 <DetailItem icon={FileText} label="Equipment Tag" value={localDefect.equipmentTag || 'N/A'} />
                                 <DetailItem icon={Target} label="Area/Location" value={localDefect.area || 'N/A'} />
                             </div>

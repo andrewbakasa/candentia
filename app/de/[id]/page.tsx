@@ -100,7 +100,7 @@ const DefectPage = async ({ params }: { params: IParams }) => {
       implementationDate: io.implementationDate ? io.implementationDate.toISOString() : null,
     })),
   };
-  console.log("safeDefect",safeDefect)
+ // console.log("safeDefect",safeDefect)
   // --- 4. RENDER CLIENT COMPONENT ---
   return (
     <Container>

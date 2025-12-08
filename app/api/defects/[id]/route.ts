@@ -49,9 +49,11 @@ export async function PUT(
       description, 
       area, 
       equipmentTag, 
+      reportedby,
       status, 
       breakdownRelated, 
       breakdownId,
+      identificationDate,
       // *** Mismatched or Legacy Fields ***
       priority: currentPriority, // Renamed if client uses 'priority'
       severity, // Legacy name for Priority
@@ -75,9 +77,17 @@ export async function PUT(
     if (area !== undefined) dataToUpdate.area = area || null; 
     if (equipmentTag !== undefined) dataToUpdate.equipmentTag = equipmentTag || null; 
 
+     if (reportedby !== undefined) dataToUpdate.reportedby = reportedby || null;
+
     // Handle boolean field
     if (breakdownRelated !== undefined) dataToUpdate.breakdownRelated = breakdownRelated; 
     
+    // 2.2 Handle identificationDate
+    if (identificationDate !== undefined) {
+        // If identificationDate is provided, convert to Date object; 
+        // If null/empty string, you can either keep existing or set a fallback.
+        dataToUpdate.identificationDate = identificationDate ? new Date(identificationDate) : undefined;
+    }
     // 2.2 ✅ ADDED: Handle DefectType Enum (Model field: 'type', Body field: 'defectType')
     if (defectType !== undefined) {
         // Ensure type value is capitalized and valid
@@ -135,6 +145,7 @@ export async function PUT(
         description: true,
         area: true,
         equipmentTag: true,
+        reportedby:true,
         // 3. ✅ ADDED: Include the new type field in the response
         type: true, 
         priority: true,

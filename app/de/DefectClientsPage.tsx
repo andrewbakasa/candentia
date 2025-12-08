@@ -53,6 +53,7 @@ interface DefectListModel {
     assignee: string | null; 
     area: string;
     equipmentTag: string;
+    reportedby:string;
     identificationDate: Date;
     type: string; 
     priority: Priority; // Renamed from severity
@@ -172,6 +173,7 @@ export interface DefectFormData {
     assignee: string;
     area: string | null;
     equipmentTag: string | null;
+    reportedby:string|null;
     identificationDate: string; // Changed to string for input compatibility
     type: string;
     severity: Priority;
@@ -195,24 +197,7 @@ interface DefectFormProps {
 const DefectForm: React.FC<DefectFormProps> = ({ initialData, onSubmit, onCancel }) => {
     const isEditing = !!initialData;
     
-    // Helper to format Date for input[type="date"]
-    // const formatDateForInput = (date?: Date | string) => {
-    //     if (!date) return new Date().toISOString().split('T')[0];
-    //     return new Date(date).toISOString().split('T')[0];
-    // };
-
-    // const initialFormState: DefectFormData = {
-    //     title: initialData?.title || '',
-    //     description: initialData?.description || '',
-    //     area: initialData?.area || '',
-    //     equipmentTag: initialData?.equipmentTag || '',
-    //     identificationDate: formatDateForInput(initialData?.identificationDate),
-    //     assignee: initialData?.assignee || ASSIGNEE_OPTIONS[0],
-    //     defectType: initialData?.type || TYPE_OPTIONS[0],
-    //     severity: initialData?.priority || 'MEDIUM',
-    //     status: initialData?.status || 'IDENTIFIED',
-    // };
-
+   
     // Formats Date object or string into YYYY-MM-DD
     const formatDateForInput = (date?: Date | string) => {
         const d = date ? new Date(date) : new Date();
@@ -224,6 +209,7 @@ const DefectForm: React.FC<DefectFormProps> = ({ initialData, onSubmit, onCancel
         description: initialData?.description || '',
         area: initialData?.area || '',
         equipmentTag: initialData?.equipmentTag || '',
+        reportedby: initialData?.reportedby || '',
         // This is now a string 'YYYY-MM-DD', resolving the ts(2322) error
         identificationDate: formatDateForInput(initialData?.identificationDate),
         assignee: initialData?.assignee || ASSIGNEE_OPTIONS[0],
@@ -284,7 +270,8 @@ const DefectForm: React.FC<DefectFormProps> = ({ initialData, onSubmit, onCancel
                 
                 <form onSubmit={handleSubmit} className="p-8 space-y-6 overflow-y-auto">
                     {/* Primary Info: Title & Tag */}
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    {/* Section 1: Identity & Ownership */}
+                    <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
                         <div className="md:col-span-2">
                             <label className="block text-sm font-semibold text-gray-700 mb-2">Title *</label>
                             <input
@@ -292,20 +279,32 @@ const DefectForm: React.FC<DefectFormProps> = ({ initialData, onSubmit, onCancel
                                 value={formData.title}
                                 onChange={handleChange}
                                 required
-                                className="w-full rounded-xl border-gray-200 focus:ring-2 focus:ring-indigo-500 transition-all p-3 border"
+                                className="w-full rounded-xl border-gray-200 focus:ring-2 focus:ring-indigo-500 p-3 border"
                                 placeholder="Short descriptive title"
                             />
                         </div>
                         <div>
                             <label className="block text-sm font-semibold text-gray-700 mb-2 flex items-center gap-2">
-                                <Tag className="w-4 h-4" /> Equipment Tag
+                                <Tag className="w-4 h-4 text-indigo-500" /> Equipment Tag
                             </label>
                             <input
                                 name="equipmentTag"
-                                value={formData?.equipmentTag||""}
+                                value={formData?.equipmentTag || ""}
                                 onChange={handleChange}
                                 className="w-full rounded-xl border-gray-200 focus:ring-2 focus:ring-indigo-500 p-3 border font-mono uppercase"
                                 placeholder="E.g. PUMP-001"
+                            />
+                        </div>
+                        <div>
+                            <label className="block text-sm font-semibold text-gray-700 mb-2 flex items-center gap-2">
+                                <User className="w-4 h-4 text-indigo-500" /> Reported By
+                            </label>
+                            <input
+                                name="reportedby"
+                                value={formData?.reportedby || ""}
+                                onChange={handleChange}
+                                className="w-full rounded-xl border-gray-200 focus:ring-2 focus:ring-indigo-500 p-3 border"
+                                placeholder="Name"
                             />
                         </div>
                     </div>
@@ -1024,31 +1023,7 @@ if (isLoading) {
                 </button>
             </header>
 
-            {/* 2. DE Methodology: Information design with minimal mobile toggle */}
-            <section className="overflow-hidden rounded-2xl border border-indigo-100 bg-white shadow-sm ring-1 ring-black/5 transition-all">
-                <div className="border-l-4 border-indigo-600 bg-indigo-50/40 p-5">
-                    <p className="text-sm font-semibold text-gray-800 md:text-base">
-                        <span className="text-indigo-700">Methodology:</span> Identification and elimination of defects in both fixed and mobile plants.
-                    </p>
-                </div>
-
-                <div className="grid grid-cols-2 gap-px bg-indigo-50/50 md:grid-cols-4">
-                    {[
-                        { icon: ShieldCheck, label: "Safety", md: "Safety standards" },
-                        { icon: Zap, label: "Production", md: "Downtime/Reliability" },
-                        { icon: TrendingDown, label: "Costs", md: "Reduced spend" },
-                        { icon: Wrench, label: "Maintenance", md: "Labor/Materials" }
-                    ].map((aim, idx) => (
-                        <div key={idx} className="bg-white p-4 md:p-6 text-center md:text-left hover:bg-gray-50/50 transition-colors">
-                            <div className="flex flex-col md:flex-row items-center gap-2 text-indigo-700">
-                                <aim.icon className="w-5 h-5" />
-                                <span className="text-[11px] font-bold uppercase tracking-widest md:text-xs text-indigo-900">{aim.label}</span>
-                            </div>
-                            <p className="hidden md:block mt-2 text-xs text-gray-500 leading-snug">{aim.md}</p>
-                        </div>
-                    ))}
-                </div>
-            </section>
+          
 
             {/* 3. Controls Area: Unified search and filtering */}
             <div className="bg-white p-5 rounded-2xl shadow-sm border border-gray-100 space-y-5">
@@ -1143,6 +1118,32 @@ if (isLoading) {
                     handlePageSizeChange={handlePageSizeChange}
                 />
             )}
+
+              {/* 2. DE Methodology: Information design with minimal mobile toggle */}
+            <section className="overflow-hidden rounded-2xl border border-indigo-100 bg-white shadow-sm ring-1 ring-black/5 transition-all">
+                <div className="border-l-4 border-indigo-600 bg-indigo-50/40 p-5">
+                    <p className="text-sm font-semibold text-gray-800 md:text-base">
+                        <span className="text-indigo-700">Defect Elimination Methodology:</span> Identification and elimination of defects in both fixed and mobile plants.
+                    </p>
+                </div>
+
+                <div className="grid grid-cols-2 gap-px bg-indigo-50/50 md:grid-cols-4">
+                    {[
+                        { icon: ShieldCheck, label: "Safety", md: "Improves safety" },
+                        { icon: Zap, label: "Production", md: "Increased production- reduced downtime, increased reliability, controlled operations" },
+                        { icon: TrendingDown, label: "Costs", md: "Reduced operating costs" },
+                        { icon: Wrench, label: "Maintenance", md: "Reduced breakdown maintenance, labour and material costs" }
+                    ].map((aim, idx) => (
+                        <div key={idx} className="bg-white p-4 md:p-6 text-center md:text-left hover:bg-gray-50/50 transition-colors">
+                            <div className="flex flex-col md:flex-row items-center gap-2 text-indigo-700">
+                                <aim.icon className="w-5 h-5" />
+                                <span className="text-[11px] font-bold uppercase tracking-widest md:text-xs text-indigo-900">{aim.label}</span>
+                            </div>
+                            <p className="hidden md:block mt-2 text-xs text-gray-500 leading-snug">{aim.md}</p>
+                        </div>
+                    ))}
+                </div>
+            </section>
 
             {/* Modal Layer */}
             {showForm && (
