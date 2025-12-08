@@ -961,7 +961,30 @@ if (isLoading) {
                         Report New Defect
                     </button>
                 </div>
-                
+                {/* DE Methodology Overview Section */}
+                <div className="mb-8 p-6 bg-white rounded-xl border border-indigo-100 shadow-sm">
+                    <p className="text-gray-700 font-medium mb-3 text-sm leading-relaxed">
+                        Defect Elimination provides a methodology for systematic identification and elimination of defects in both fixed and mobile plants.
+                    </p>
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 text-xs">
+                        <div className="bg-indigo-50 p-3 rounded-lg border border-indigo-100">
+                            <span className="font-bold text-indigo-900 block mb-1">Safety</span>
+                            <p className="text-indigo-700">Improves site safety standards</p>
+                        </div>
+                        <div className="bg-indigo-50 p-3 rounded-lg border border-indigo-100">
+                            <span className="font-bold text-indigo-900 block mb-1">Production</span>
+                            <p className="text-indigo-700">Reduced downtime, increased reliability & controlled operations</p>
+                        </div>
+                        <div className="bg-indigo-50 p-3 rounded-lg border border-indigo-100">
+                            <span className="font-bold text-indigo-900 block mb-1">Operating Costs</span>
+                            <p className="text-indigo-700">Overall reduction in daily operating costs</p>
+                        </div>
+                        <div className="bg-indigo-50 p-3 rounded-lg border border-indigo-100">
+                            <span className="font-bold text-indigo-900 block mb-1">Maintenance</span>
+                            <p className="text-indigo-700">Reduced breakdowns, labor, and material costs</p>
+                        </div>
+                    </div>
+                </div>
                 {/* Controls Area */}
                 <div className="bg-white p-4 sm:p-6 rounded-xl shadow-2xl border border-gray-100 mb-6 space-y-4">
                     
