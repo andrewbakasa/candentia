@@ -117,15 +117,15 @@ const teamMembers: TeamMember[] = [
     image: "/images/team/kupakwashe-chamakavinga.jpg", // New Placeholder image path
   },
 
-    {
-    id: 12,
-    name: "Andrew Bakasa",
-    role: "Non-Executive Director",
-    description: `B.Eng, MSc Investment, Prof Eng. MZwe.IE, M.ECZ 
-  10yrs+ Machine Learning | ERP | Data Analytics | Business Intelligence | Clould Computing | Computer Vision |Project Finance | 20yrs Rail Technology, Engine Rebuilts/Upgrades, Plant Maintenance 
-`,
-    image: "/images/team/andrew-bakasa.jpg", // New Placeholder image path
-  },
+//     {
+//     id: 12,
+//     name: "Andrew Bakasa",
+//     role: "Non-Executive Director",
+//     description: `B.Eng, MSc Investment, Prof Eng. MZwe.IE, M.ECZ 
+//   10yrs+ Machine Learning | ERP | Data Analytics | Business Intelligence | Clould Computing | Computer Vision |Project Finance | 20yrs Rail Technology, Engine Rebuilts/Upgrades, Plant Maintenance 
+// `,
+//     image: "/images/team/andrew-bakasa.jpg", // New Placeholder image path
+//   },
   
     {
     id: 13,

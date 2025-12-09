@@ -1021,6 +1021,13 @@ enum DefectType {
   OTHER
 }
 
+enum AssigneeType {
+  MAINTENANCE
+  ENGINEERING
+  OPERATIONS
+  UNASSIGNED
+}
+
 model Defect {
   id                 String   @id @default(auto()) @map("_id") @db.ObjectId
   identificationDate DateTime @default(now())
@@ -1028,9 +1035,10 @@ model Defect {
   description        String
   area               String?
   equipmentTag       String?  @unique
-  reportedby               String?
+  reportedby         String?
   // ✅ ADDED FIELD: Defect Type
   type DefectType @default(MECHANICAL) // Set a sensible default
+  assignee AssigneeType @default(UNASSIGNED) // Set a sensible default
 
   priority         Priority     @default(MEDIUM)
   status           DefectStatus @default(IDENTIFIED)

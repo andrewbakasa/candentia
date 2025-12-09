@@ -135,7 +135,7 @@ const UserMenu: React.FC<UserMenuProps> = ({ currentUser, handleNavigate }) => {
                 
                 {/* --- Admin Careers Link --- */}
                 {currentUser?.isAdmin && (
-                  <MenuItem label="Defects Elimination" onClick={() => handleMenuItemClickWithNav("/de")} />
+                  <MenuItem label="Defect Elimination" onClick={() => handleMenuItemClickWithNav("/de")} />
                 )}
 
                  {isAuthorizedContracts && (<MenuItem label="Business Proposals" onClick={() => handleMenuItemClickWithNav("/bps")} />)} 

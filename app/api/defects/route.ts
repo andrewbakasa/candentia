@@ -3,7 +3,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import prisma from "../../libs/prismadb"; 
 import getCurrentUser from '@/app/actions/getCurrentUser';
 // ✅ UPDATED: Added DefectType to imports
-import { Priority, DefectStatus, DefectType } from '@prisma/client';
+import { Priority, DefectStatus, DefectType, AssigneeType } from '@prisma/client';
 
 /**
  * Handles the POST request to create a new Defect record.
@@ -38,6 +38,7 @@ export async function POST(request: NextRequest) {
             identificationDate,
             // ✅ ADDED: Destructure defectType from the body
             defectType, 
+            assignee
         } = body;
 
         // 3. Validation and Data Conversion
@@ -78,6 +79,7 @@ export async function POST(request: NextRequest) {
             
             // ✅ ADDED: Map defectType (frontend name) to type (backend model field)
             type: defectType || DefectType.MECHANICAL, // Use value or default
+            assignee: assignee || AssigneeType.UNASSIGNED,
             
             priority: priority || Priority.MEDIUM, // Default if not provided
             breakdownRelated: Boolean(breakdownRelated),
@@ -163,6 +165,7 @@ export async function GET(request: NextRequest) {
                 area: true,
                 equipmentTag: true,
                 reportedby:true,
+                assignee:true,
                 // ✅ ADDED: Include the new type field in the response
                 type: true, 
                 priority: true,
@@ -173,7 +176,7 @@ export async function GET(request: NextRequest) {
             },
         });
 
-        console.log(`[DEBUG] Successfully fetched ${defects.length} defects.`);
+       // console.log(`[DEBUG] Successfully fetched ${defects.length} defects.`);
         
         // 3. Return the array of defects with status 200 (OK)
         return NextResponse.json(defects, { status: 200 });

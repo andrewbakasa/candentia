@@ -70,9 +70,9 @@ interface DefectListModel {
 const SEVERITY_OPTIONS: Priority[] = ['CRITICAL', 'HIGH', 'MEDIUM', 'LOW'];
 export type DefectType = 'MECHANICAL' | 'ELECTRICAL' | 'SOFTWARE' | 'PROCESS' | 'OTHER';
 export type DefectStatus = 'IDENTIFIED' | 'IN_PROGRESS' | 'RESOLVED' | 'CLOSED';
-export type Assignee = 'Maintenance' | 'Engineering' | 'Operations' | 'Unassigned';
+export type Assignee = 'MAINTENANCE' | 'ENGINEERING' | 'OPERATIONS' | 'UNASSIGNED';
 const TYPE_OPTIONS: DefectType[] = ['MECHANICAL', 'ELECTRICAL', 'SOFTWARE', 'PROCESS', 'OTHER'];
-const ASSIGNEE_OPTIONS: Assignee[] = ['Maintenance', 'Engineering', 'Operations', 'Unassigned'];
+const ASSIGNEE_OPTIONS: Assignee[] = ['MAINTENANCE', 'ENGINEERING', 'OPERATIONS', 'UNASSIGNED'];
 const STATUS_OPTIONS: DatabaseDefectStatus[] = ['IDENTIFIED', 'IN_ANALYSIS', 'ACTION_DEFINED', 'ACTION_IMPLEMENTED', 'CLOSED_VERIFIED'];
 const DEFAULT_PAGE_SIZE = 8;
 const PAGE_SIZE_OPTIONS = [4, 8, 16, 24];

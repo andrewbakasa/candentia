@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 // 1. ✅ ADDED: DefectType is imported
-import { Priority, DefectStatus, DefectType, Prisma } from '@prisma/client'; 
+import { Priority, DefectStatus, DefectType, AssigneeType, Prisma } from '@prisma/client'; 
 import prisma from "../../../libs/prismadb"
 import getCurrentUser from '@/app/actions/getCurrentUser';
 
@@ -59,9 +59,10 @@ export async function PUT(
       severity, // Legacy name for Priority
       // 2. ✅ ADDED: Destructure the incoming defectType field (frontend name)
       defectType, 
+      assignee,
       // Unused/Removed fields (assignee, id, isClosed, closedDate) are implicitly filtered out
     } = body;
-    console.log("body", body)
+    //console.log("body", body)
     
     // Determine the priority value (since defectType is now separate)
     const finalPriority = currentPriority ?? severity ?? null; 
@@ -98,6 +99,17 @@ export async function PUT(
         }
         dataToUpdate.type = upperType as DefectType;
     }
+
+     if (assignee !== undefined) {
+        // Ensure type value is capitalized and valid
+        const upperType = typeof assignee === 'string' ? assignee.toUpperCase() : assignee;
+
+        if (!Object.values(AssigneeType).includes(upperType as AssigneeType)) {
+            return NextResponse.json({ message: `Bad Request: Invalid value for defect type: ${assignee}. Must be one of ${Object.values(AssigneeType).join(', ')}` }, { status: 400 });
+        }
+        dataToUpdate.assignee = upperType as AssigneeType;
+    }
+    
 
     // 2.3 Handle Priority Enum (using the determined `finalPriority` value)
     if (finalPriority !== undefined && finalPriority !== null) {
@@ -148,6 +160,7 @@ export async function PUT(
         reportedby:true,
         // 3. ✅ ADDED: Include the new type field in the response
         type: true, 
+        assignee:true,
         priority: true,
         status: true,
         breakdownRelated: true,
