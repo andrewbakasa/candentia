@@ -5,8 +5,6 @@ import { Invoice } from '@/app/ar/types/finance'; // Adjust import path for Invo
 import prisma from '../../../libs/prismadb'; 
 import InvoiceDetailHeader from '../../_components/features/invoices/InvoiceDetailsHeader';
 import InvoiceDetailView from '../../_components/features/invoices/InvoiceDetailsView';
-//import InvoiceDetailView from '../../../_components/features/invoices/InvoiceDetailView';
-//import InvoiceDetailHeader from '../../../_components/features/invoices/InvoiceDetailHeader'; // Component for status/action buttons
 
 // Define the expected props for a dynamic server component page
 interface InvoiceDetailPageProps {

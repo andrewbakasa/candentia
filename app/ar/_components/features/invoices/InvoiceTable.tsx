@@ -102,7 +102,7 @@ const InvoiceTable: React.FC<InvoiceTableProps> = ({ invoices = mockInvoices }) 
                         <tr key={invoice.id} className="hover:bg-gray-50 transition duration-150 ease-in-out">
                             {/* Invoice Number (Clickable link) */}
                             <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-indigo-600">
-                                <Link href={`/invoices/${invoice.id}`} className="hover:text-indigo-900 transition duration-150">
+                                <Link href={`/ar/invoices/${invoice.id}`} className="hover:text-indigo-900 transition duration-150">
                                     {invoice.invoiceNumber}
                                 </Link>
                             </td>
@@ -136,7 +136,7 @@ const InvoiceTable: React.FC<InvoiceTableProps> = ({ invoices = mockInvoices }) 
 
                             {/* Action Link (View) */}
                             <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                                <Link href={`/invoices/${invoice.id}`} className="text-indigo-600 hover:text-indigo-900">
+                                <Link href={`/ar/invoices/${invoice.id}`} className="text-indigo-600 hover:text-indigo-900">
                                     View
                                 </Link>
                             </td>

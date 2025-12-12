@@ -26,7 +26,7 @@ const InvoiceDetailHeader: React.FC<InvoiceDetailHeaderProps> = ({ invoice }) =>
     const isLoading = false; // Mocking loading state for simplicity
 
     const handleEdit = () => {
-        router.push(`/invoices/edit/${invoice.id}`);
+        router.push(`/ar/invoices/edit/${invoice.id}`);
     };
 
     const handleMarkPaid = () => {

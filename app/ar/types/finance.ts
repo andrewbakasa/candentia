@@ -51,17 +51,17 @@ export interface Quotation {
     items: QuotationItem[];
 }
 
-export interface InvoiceItem {
-    discountRate: number;
-    skuSnapshot: string;
-    id: string;
-    invoiceId: string;
-    productId?: string;
-    productName: string;
-    quantity: number;
-    unitPrice: Decimal;
-    lineTotal: Decimal;
-}
+// export interface InvoiceItem {
+//     discountRate: number;
+//     skuSnapshot: string;
+//     id: string;
+//     invoiceId: string;
+//     productId?: string;
+//     productName: string;
+//     quantity: number;
+//     unitPrice: Decimal;
+//     lineTotal: Decimal;
+// }
 
 export interface Invoice {
     subTotal: any;
@@ -139,6 +139,19 @@ export interface ProductFormData {
     stockQuantity: number; // Will be parsed from string input
     unitCost: number;       // Will be parsed from string input
 }
+
+// finance.ts (Example definition)
+export type InvoiceItem = {
+    id: string;
+    invoiceId: string; // <-- THIS IS REQUIRED IN THE BASE TYPE
+    productId: string;
+    productName: string;
+    quantity: number;
+    unitPrice: Decimal; // or number
+    lineTotal: Decimal; // or number
+    discountRate: number;
+    skuSnapshot: string;
+};
 
 // NOTE: These interfaces map directly to the fields in your Prisma models, 
 // excluding the auto-generated 'id' and relationship fields.
