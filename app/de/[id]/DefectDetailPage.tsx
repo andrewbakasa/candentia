@@ -115,6 +115,7 @@ import { truncateString } from '@/lib/utils';
 import useIsMobile from '@/app/hooks/isMobile';
 import { useRouter } from 'next/navigation';
 import { timeAgo } from '@/app/bp/[id]/_components/utility';
+import ExportButton from '../_components/ExportButton';
 
 // --- Type Definitions (Assuming these are available) ---
 interface ImprovementOpportunity {
@@ -1328,7 +1329,7 @@ type SectionKey = 'details' | 'analysis' | 'actions' | 'improvement';
     const handleIODeleteExternal = useCallback(async (id: string) => {
         //call api/defect/io method delete....
         const apiRoute = `/api/defects/io/${id}`;
-        console.log(`Attempting to delete IO`);
+        //console.log(`Attempting to delete IO`);
         try {
             const response = await fetch(apiRoute, {
                 method: 'DELETE',
@@ -1398,7 +1399,7 @@ type SectionKey = 'details' | 'analysis' | 'actions' | 'improvement';
     const handleDeleteCorrectiveAction = useCallback(async (id:string) => {
         //call api/defect/ca method Delete
         const apiRoute = `/api/defects/ca/${id}`;
-        console.log(`Attempting to delete Correct Action`);
+        //console.log(`Attempting to delete Correct Action`);
         try {
             const response = await fetch(apiRoute, {
                 method: 'DELETE',
@@ -1501,8 +1502,9 @@ type SectionKey = 'details' | 'analysis' | 'actions' | 'improvement';
                 {/* HEADER SECTION: Sticky on mobile, acts as context bar */}
                 <section className="bg-white p-4 rounded-xl shadow-2xl border-t-8 border-indigo-600 mb-4 sticky top-0 z-20">
                     
-                    {/* TOP ROW: Back Link and Share Button aligned horizontally */}
-                    <div className="flex justify-between items-center mb-3">
+                   {/* TOP ROW: Back Link and Share Button aligned horizontally */}
+                    <div className="flex justify-between items-center mb-6"> {/* Increased mb for better separation */}
+                        {/* --- LEFT SIDE: Back Link --- */}
                         {currentUser && (
                             <a 
                                 href={allDefectsHref} 
@@ -1511,18 +1513,30 @@ type SectionKey = 'details' | 'analysis' | 'actions' | 'improvement';
                                 <ArrowLeft className="w-4 h-4 mr-2"/> Back to All Defects
                             </a>
                         )}
-                        
-                        <button
-                            onClick={copyToClipboard}
-                            className="flex items-center text-indigo-600 bg-indigo-50 px-3 py-2 rounded-xl shadow-md hover:bg-indigo-100 transition transform hover:scale-[1.01] active:scale-95 font-semibold text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 relative whitespace-nowrap ml-auto"
-                            //disabled={isLoading}
-                        >
-                            <Clipboard className="w-4 h-4 mr-1"/>
-                            <span className="hidden sm:inline">{copied ? 'Link Copied!' : 'Share Link'}</span>
-                            <span className="sm:hidden">{copied ? 'Copied' : 'Share'}</span>
-                        </button>
+
+                        {/* --- RIGHT SIDE: Action Buttons (Export and Share) --- */}
+                        <div className='ml-auto flex space-x-3'> {/* Added 'flex space-x-3' to group and space the buttons */}
+                            
+                            {/* 1. Export Button */}
+                            <ExportButton 
+                                id={localDefect.id} 
+                                defect={localDefect} 
+                                // Applying similar styling to the Share button for visual consistency
+                                //className="flex items-center bg-green-500 text-white px-3 py-2 rounded-xl shadow-md hover:bg-green-600 transition transform hover:scale-[1.01] active:scale-95 font-semibold text-sm focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 relative whitespace-nowrap"
+                            />
+                            
+                            {/* 2. Share/Copy Link Button */}
+                            <button
+                                onClick={copyToClipboard}
+                                className="flex items-center text-indigo-600 bg-indigo-50 px-3 py-2 rounded-xl shadow-md hover:bg-indigo-100 transition transform hover:scale-[1.01] active:scale-95 font-semibold text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 relative whitespace-nowrap"
+                            >
+                                <Clipboard className="w-4 h-4 mr-1"/>
+                                <span className="hidden sm:inline">{copied ? 'Link Copied!' : 'Share Link'}</span>
+                                <span className="sm:hidden">{copied ? 'Copied' : 'Share'}</span>
+                            </button>
+                        </div>
                     </div>
-                    
+                                        
                     {/* MAIN CONTENT: Title and Description */}
                     <h1 className="text-2xl sm:text-3xl font-extrabold text-gray-900 truncate mb-1">
                         {localDefect.title}

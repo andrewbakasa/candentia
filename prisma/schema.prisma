@@ -1029,16 +1029,16 @@ enum AssigneeType {
 }
 
 model Defect {
-  id                 String   @id @default(auto()) @map("_id") @db.ObjectId
-  identificationDate DateTime @default(now())
+  id                 String       @id @default(auto()) @map("_id") @db.ObjectId
+  identificationDate DateTime     @default(now())
   title              String
   description        String
   area               String?
-  equipmentTag       String?  @unique
+  equipmentTag       String?      @unique
   reportedby         String?
   // ✅ ADDED FIELD: Defect Type
-  type DefectType @default(MECHANICAL) // Set a sensible default
-  assignee AssigneeType @default(UNASSIGNED) // Set a sensible default
+  type               DefectType   @default(MECHANICAL) // Set a sensible default
+  assignee           AssigneeType @default(UNASSIGNED) // Set a sensible default
 
   priority         Priority     @default(MEDIUM)
   status           DefectStatus @default(IDENTIFIED)
@@ -1135,11 +1135,11 @@ model AnalysisRecord {
 
 //## Critical Analysis (Root Cause Determination)
 model RootCause {
-  id               String  @id @default(auto()) @map("_id") @db.ObjectId
-  rootCauseText    String
-  analysisRecordId String? @unique @db.ObjectId // 1-to-1 link to the analysis record
-  criticalityScore Int?
-  fmeaRecordId     String? @unique @db.ObjectId  
+  id                String              @id @default(auto()) @map("_id") @db.ObjectId
+  rootCauseText     String
+  analysisRecordId  String?             @unique @db.ObjectId // 1-to-1 link to the analysis record
+  criticalityScore  Int?
+  fmeaRecordId      String?             @unique @db.ObjectId
   eliminationRecord DefectElimination[] // 1-to-many, Root Cause can be linked to multiple eliminations
   actions           CorrectiveAction[]
   fmeaRecord        FMEA?               @relation(fields: [fmeaRecordId], references: [id])
@@ -1150,15 +1150,15 @@ model RootCause {
 
 //## Correct Module (Defining and Implementing Actions)
 model CorrectiveAction {
-  id             String       @id @default(auto()) @map("_id") @db.ObjectId
-  defectId       String?      @db.ObjectId
-  rootCauseId    String?      @db.ObjectId
-  improvementId  String?      @db.ObjectId
-  description    String
-  responsible    String
-  dueDate        DateTime
-  completionDate DateTime?
-  status         ActionStatus @default(PENDING)
+  id                     String                  @id @default(auto()) @map("_id") @db.ObjectId
+  defectId               String?                 @db.ObjectId
+  rootCauseId            String?                 @db.ObjectId
+  improvementId          String?                 @db.ObjectId
+  description            String
+  responsible            String
+  dueDate                DateTime
+  completionDate         DateTime?
+  status                 ActionStatus            @default(PENDING)
   defect                 Defect?                 @relation(fields: [defectId], references: [id], onDelete: SetNull)
   rootCause              RootCause?              @relation(fields: [rootCauseId], references: [id], onDelete: SetNull)
   improvementOpportunity ImprovementOpportunity? @relation(fields: [improvementId], references: [id], onDelete: SetNull)
@@ -1237,4 +1237,232 @@ model MetricRecord {
   equipmentTag      String?
 
   @@index([metricName, dateOfMeasurement])
+}
+
+// prisma/schema/inventory.prisma
+
+model Product {
+  id            String @id @default(auto()) @map("_id") @db.ObjectId
+  sku           String @unique
+  name          String
+  stockQuantity Int
+  unitCost      Float // Average or Standard Cost
+
+  // Relationships
+  stockTransactions  StockTransaction[]
+  invoiceItems       InvoiceItem[]
+  purchaseOrderItems PurchaseOrderItem[] // New: Link to supplier orders
+  QuotationItem      QuotationItem[]
+}
+
+model StockTransaction {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  productId String
+  product   Product  @relation(fields: [productId], references: [id])
+  type      String // 'IN' (Goods Receipt/Adjustment) or 'OUT' (Invoice/Adjustment)
+  quantity  Int
+  reference String? // PO ID, Invoice ID, or manual reason
+  createdAt DateTime @default(now())
+
+  @@index([productId])
+  @@index([type])
+}
+
+// 3. Accounts Receivable & Quotations Module
+// This includes your Customer, Quotation, Invoice, and InvoiceItem models. We've added the missing QuotationItem model to complete the flow.
+
+// prisma/schema/finance_ar.prisma
+
+enum InvoiceStatus {
+  DRAFT
+  SENT
+  PAID
+  OVERDUE
+  VOID
+}
+
+model Customer {
+  id           String  @id @default(auto()) @map("_id") @db.ObjectId
+  name         String
+  email        String? @unique
+  phone        String?
+  address      String?
+  taxId        String?
+  paymentTerms String? // e.g., "Net 30"
+
+  // Relationships
+  invoices   Invoice[]
+  quotations Quotation[]
+}
+
+model Quotation {
+  id              String   @id @default(auto()) @map("_id") @db.ObjectId
+  customerId      String
+  customer        Customer @relation(fields: [customerId], references: [id])
+  quotationNumber String   @unique
+  status          String // DRAFT, PENDING, ACCEPTED, REJECTED
+
+  // Financials
+  subTotal    Float
+  totalAmount Float
+
+  // Relationships
+  items   QuotationItem[]
+  invoice Invoice[] // Link to the invoice created from this quote
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([customerId])
+}
+
+model QuotationItem {
+  id          String    @id @default(auto()) @map("_id") @db.ObjectId
+  quotationId String
+  quotation   Quotation @relation(fields: [quotationId], references: [id])
+
+  productId String?
+  product   Product? @relation(fields: [productId], references: [id])
+
+  productName String
+  unitPrice   Float
+  quantity    Int
+  lineTotal   Float
+
+  @@index([quotationId])
+}
+
+model Invoice {
+  // ... (Your previous Invoice model goes here) ...
+  id            String     @id @default(auto()) @map("_id") @db.ObjectId
+  invoiceNumber String     @unique
+  customerId    String
+  customer      Customer   @relation(fields: [customerId], references: [id])
+  quotationId   String?
+  quotation     Quotation? @relation(fields: [quotationId], references: [id])
+
+  items InvoiceItem[]
+
+  status      InvoiceStatus @default(DRAFT)
+  invoiceDate DateTime
+  dueDate     DateTime
+  paidDate    DateTime?
+
+  subTotal    Float
+  taxAmount   Float
+  totalAmount Float
+  amountDue   Float
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([customerId])
+  @@index([status])
+  @@index([dueDate])
+}
+
+model InvoiceItem {
+  // ... (Your previous InvoiceItem model goes here) ...
+  id           String   @id @default(auto()) @map("_id") @db.ObjectId
+  invoiceId    String
+  invoice      Invoice  @relation(fields: [invoiceId], references: [id])
+  productId    String?
+  product      Product? @relation(fields: [productId], references: [id])
+  productName  String
+  skuSnapshot  String
+  quantity     Int
+  unitPrice    Float
+  discountRate Float
+  lineTotal    Float
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@index([invoiceId])
+}
+
+////4. Supplier Payments & Purchasing Module
+//This is the new Accounts Payable section, handling suppliers, purchase orders (POs), and outgoing payments.
+
+// prisma/schema/finance_ap.prisma
+
+enum PurchaseOrderStatus {
+  DRAFT
+  ISSUED // Sent to supplier
+  RECEIVED_PARTIAL
+  RECEIVED_FULL
+  CLOSED // Fully received and paid
+  CANCELLED
+}
+
+model Supplier {
+  id           String  @id @default(auto()) @map("_id") @db.ObjectId
+  name         String
+  contactEmail String? @unique
+  address      String?
+  paymentTerms String? // e.g., "Net 60"
+
+  // Relationships
+  purchaseOrders PurchaseOrder[]
+  payments       SupplierPayment[]
+}
+
+model PurchaseOrder {
+  id         String              @id @default(auto()) @map("_id") @db.ObjectId
+  supplierId String
+  supplier   Supplier            @relation(fields: [supplierId], references: [id])
+  poNumber   String              @unique
+  status     PurchaseOrderStatus @default(DRAFT)
+
+  // Financials
+  totalAmount Float
+  amountPaid  Float
+
+  // Dates
+  orderDate       DateTime
+  expectedReceipt DateTime?
+
+  // Relationships
+  items    PurchaseOrderItem[]
+  payments SupplierPayment[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([supplierId])
+}
+
+model PurchaseOrderItem {
+  id              String        @id @default(auto()) @map("_id") @db.ObjectId
+  purchaseOrderId String
+  purchaseOrder   PurchaseOrder @relation(fields: [purchaseOrderId], references: [id])
+
+  // Link to Inventory (Product is being purchased)
+  productId String
+  product   Product @relation(fields: [productId], references: [id])
+
+  // PO Details
+  productName      String
+  unitPrice        Float
+  quantityOrdered  Int
+  quantityReceived Int    @default(0) // Tracks goods receipt against the order
+  lineTotal        Float
+
+  @@index([purchaseOrderId])
+}
+
+model SupplierPayment {
+  id         String   @id @default(auto()) @map("_id") @db.ObjectId
+  supplierId String
+  supplier   Supplier @relation(fields: [supplierId], references: [id])
+
+  // Payment link to the PO being paid (often multiple POs/Bills are paid in one go, 
+  // but for simplicity, linking to one PO or an internal Bill model is common)
+  purchaseOrderId String?
+  purchaseOrder   PurchaseOrder? @relation(fields: [purchaseOrderId], references: [id])
+
+  paymentDate DateTime @default(now())
+  amount      Float
+  reference   String? // Cheque number, bank transfer ID, etc.
+
+  @@index([supplierId])
 }
