@@ -13,10 +13,6 @@ interface InvoiceDetailPageProps {
     };
 }
 
-/**
- * Server function to fetch a single invoice by ID.
- * This function uses a direct Prisma call, optimized for the server component model.
- */
 async function getInvoice(id: string): Promise<Invoice | null> {
     try {
         const invoice = await prisma.invoice.findUnique({
@@ -26,12 +22,6 @@ async function getInvoice(id: string): Promise<Invoice | null> {
                 items: true,    // Include line items
             },
         });
-
-        // Prisma returns plain objects, we need to map Dates if needed, 
-        // but often the simplest approach for server components is to let 
-        // the rendering handle the conversion or display.
-        // If strict type adherence is required, we'd map dates here.
-
         return invoice as Invoice | null; // Cast to the client-side Invoice type
     } catch (error) {
         console.error(`Database error fetching invoice ${id}:`, error);
@@ -51,15 +41,6 @@ export default async function InvoiceDetailPage({ params }: InvoiceDetailPagePro
     if (!invoice) {
         notFound();
     }
-
-    // Since Server Components can't pass Date objects directly to Client Components
-    // or through simple props without serialization, we ensure the data is serializable.
-    // However, if InvoiceDetailView is a Server Component, this is fine.
-    // If it's a Client Component, you'll need a utility like 'superjson' or string conversion.
-    
-    // For simplicity, we'll assume InvoiceDetailView can handle the data structure 
-    // returned by Prisma on the server.
-
     return (
         <div className="container mx-auto p-8">
             {/* Header with status and action buttons (e.g., Edit, Mark Paid) */}
@@ -80,14 +61,3 @@ export default async function InvoiceDetailPage({ params }: InvoiceDetailPagePro
     );
 }
 
-// Optional: Define static parameters if you are pre-rendering paths (SSG)
-// export async function generateStaticParams() {
-//     const invoices = await prisma.invoice.findMany({ select: { id: true } });
-//     return invoices.map((invoice) => ({
-//         id: invoice.id,
-//     }));
-// }
-
-// To complete this feature, you will need to implement the presentation components:
-// 1. InvoiceDetailHeader.tsx
-// 2. InvoiceDetailView.tsx
