@@ -64,7 +64,11 @@ export async function POST(request: NextRequest) {
             if (!skuSnapshot) {
                 throw new Error(`Invalid Product ID provided: ${item.productId}`);
             }
-            
+            // --- Safe Parsing for Line Item Financial Fields ---
+            const quantity = item.quantity; // Assuming quantity is already a safe number or validated
+            const unitPrice = safeParseFloat(item.unitPrice); 
+            const discountRate = safeParseFloat(item.discountRate) / 100; // Assuming rate is a percentage (e.g., 10), convert to decimal (0.10)
+            const lineTotal = (quantity * unitPrice) * (1 - discountRate);
             return {
                 productId: item.productId,
                 productName: item.productName,
@@ -72,7 +76,8 @@ export async function POST(request: NextRequest) {
                 
                 // --- Safe Parsing for Line Item Financial Fields ---
                 unitPrice: safeParseFloat(item.unitPrice), 
-                lineTotal: safeParseFloat(item.lineTotal),
+               // lineTotal: safeParseFloat(item.lineTotal),
+                lineTotal: lineTotal, // 💡 Calculated value replaces parsed value
                 discountRate: safeParseFloat(item.discountRate), // <--- Final Fix
                 // ---------------------------------------------------
                 

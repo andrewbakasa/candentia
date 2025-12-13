@@ -72,6 +72,7 @@ async function getInvoice(id: string): Promise<Invoice | null> {
             include: {
                 customer: true, // Assuming your model includes customer data
                 items: true,    // Include line items
+                
             },
         });
         return invoice as Invoice | null; // Cast to the client-side Invoice type
