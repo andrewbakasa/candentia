@@ -6,14 +6,14 @@ import { useRouter } from 'next/navigation';
 // Ensure these types are correctly imported/defined
 // import { Invoice, InvoiceStatus } from '@/app/ar/types/finance'; 
 // import { useInvoices } from '@/app/ar/hooks/useInvoice'; 
-
-// --- Mock Types (Remove if imported correctly) ---
-enum InvoiceStatus { PAID = 'PAID', OVERDUE = 'OVERDUE', SENT = 'SENT', DRAFT = 'DRAFT', VOID = 'VOID' }
-interface Invoice {
-    id: string;
-    invoiceNumber: string;
-    status: InvoiceStatus;
-}
+import { Invoice, InvoiceStatus } from '@/app/ar/types/finance';
+// --- Mock Types (Remove if imported correctly) --//
+//enum InvoiceStatus { PAID = 'PAID', OVERDUE = 'OVERDUE', SENT = 'SENT', DRAFT = 'DRAFT', VOID = 'VOID' }
+// interface Invoice {
+//     id: string;
+//     invoiceNumber: string;
+//     status: InvoiceStatus;
+// }
 // --- End Mock Types ---
 
 interface InvoiceDetailHeaderProps {
