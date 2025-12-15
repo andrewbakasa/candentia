@@ -150,186 +150,75 @@ export interface CustomerFormData {
     paymentTerms: string;
 }
 
+// export interface ProductFormData {
+//     sku: string;
+//     name: string;
+//     stockQuantity: number;
+//     unitCost: number;
+// }
+
+export interface Product {
+    reorderLevel: string;
+    id: string;
+    sku: string;
+    name: string;
+    description?: string;
+    
+    // Inventory/Stocking fields
+    stockQuantity: number;
+    
+    // Financial fields
+    unitPrice?: number;         // Selling price (Optional in model, but often filled)
+    unitCost: number;           // Cost to the business (COGS)
+    
+    // Metadata / New Optional Fields
+    barcode?: string;
+    category?: string;
+    supplierId?: string;
+    reorderPoint?: number;      // Reorder threshold
+    location?: string;          // Warehouse location
+    
+    // System Fields (Required from Prisma)
+    createdAt: Date;
+    updatedAt: Date;
+    isActive: boolean;          // Product status flag (Default true in Prisma, so required when fetching)
+}
+
 export interface ProductFormData {
+    // --- REQUIRED CORE FIELDS (From Original Model) ---
     sku: string;
     name: string;
     stockQuantity: number;
     unitCost: number;
+
+    // --- FINANCIAL / STATUS FIELDS (Added in the form/model) ---
+    unitPrice?: number;         // Selling Price
+    isActive?: boolean;         // Product status flag
+    description?: string;       // Text description
+
+    // --- NEW OPTIONAL INVENTORY / METADATA FIELDS ---
+    barcode?: string;
+    category?: string;
+    supplierId?: string;        // ID linking to a Supplier
+    reorderPoint?: number;      // Threshold for reordering
+    location?: string;          // Warehouse location
 }
-// // src/types/finance.ts
-
-// import { Decimal } from "@prisma/client/runtime/library";
-// import { ReactNode } from "react";
-
-// // --- Enums ---
-// export enum InvoiceStatus {
-//     DRAFT = 'DRAFT',
-//     SENT = 'SENT',
-//     PAID = 'PAID',
-//     OVERDUE = 'OVERDUE',
-//     VOID = 'VOID',
-// }
-
-// export enum PurchaseOrderStatus {
-//     DRAFT = 'DRAFT',
-//     ISSUED = 'ISSUED',
-//     RECEIVED_PARTIAL = 'RECEIVED_PARTIAL',
-//     RECEIVED_FULL = 'RECEIVED_FULL',
-//     CLOSED = 'CLOSED',
-//     CANCELLED = 'CANCELLED',
-// }
-
-// // --- AR Models ---
-
-// export interface Customer {
+// export interface Product {
 //     id: string;
-//     name: string;
-//     email?: string;
-//     address?: string;
-//     paymentTerms?: string;
-// }
-
-// export interface QuotationItem {
-//     id: string;
-//     quotationId: string;
-//     productId?: string;
-//     productName: string;
-//     unitPrice: Decimal; // Use Decimal or convert to number/string on the backend
-//     quantity: number;
-//     lineTotal: Decimal;
-// }
-
-// export interface Quotation {
-//     id: string;
-//     customerId: string;
-//     customer: Customer;
-//     quotationNumber: string;
-//     status: string; // DRAFT, ACCEPTED, etc.
-//     totalAmount: Decimal;
-//     items: QuotationItem[];
-// }
-
-// // export interface InvoiceItem {
-// //     discountRate: number;
-// //     skuSnapshot: string;
-// //     id: string;
-// //     invoiceId: string;
-// //     productId?: string;
-// //     productName: string;
-// //     quantity: number;
-// //     unitPrice: Decimal;
-// //     lineTotal: Decimal;
-// // }
-
-// // export interface Invoice {
-// //     subTotal: any;
-// //     taxRate: number;
-// //     taxAmount: any;
-// //     id: string;
-// //     invoiceNumber: string;
-// //     customer: Customer;
-// //     quotationId?: string;
-// //     items: InvoiceItem[];
-// //     status: InvoiceStatus;
-// //     invoiceDate: Date;
-// //     dueDate: Date;
-// //     totalAmount: Decimal;
-// //     amountDue: Decimal;
-// // }
-// // Define the exact string literal union for the Statuses
-// type StatusLiterals = keyof typeof InvoiceStatus; 
-// // or simply: type StatusLiterals = 'PAID' | 'OVERDUE' | 'SENT' | 'DRAFT' | 'VOID';
-// export interface Invoice {
-//     id: string;
-//     invoiceNumber: string;
-//     customer: Customer;
-//     // CRITICAL FIX: Ensure 'status' type includes the string union 
-//     // or is simply defined as the strict enum type if the server guarantees it.
-//     status: InvoiceStatus | StatusLiterals; // Use this if you suspect the issue is due to type inference loss
-
-//     invoiceDate: Date | string; // Use Date if already hydrated, string if coming from API/Prisma
-//     dueDate: Date | string;
-//     items: InvoiceItem[];
-//     subTotal: number;
-//     taxRate: number;
-//     taxAmount: number;
-//     totalAmount: number;
-//     amountDue: number;
-// }
-
-
-// // --- AP Models ---
-
-// export interface Supplier {
-//     id: string;
-//     name: string;
-//     contactEmail?: string;
-//     paymentTerms?: string;
-// }
-
-// export interface PurchaseOrderItem {
-//     id: string;
-//     purchaseOrderId: string;
-//     productId: string;
-//     productName: string;
-//     unitPrice: Decimal;
-//     quantityOrdered: number;
-//     quantityReceived: number;
-//     lineTotal: Decimal;
-// }
-
-// export interface PurchaseOrder {
-//     id: string;
-//     supplier: Supplier;
-//     poNumber: string;
-//     status: PurchaseOrderStatus;
-//     totalAmount: Decimal;
-//     amountPaid: Decimal;
-//     items: PurchaseOrderItem[];
-//     orderDate: Date;
-// }
-
-// export interface SupplierPayment {
-//     id: string;
-//     supplierId: string;
-//     purchaseOrderId?: string;
-//     paymentDate: Date;
-//     amount: Decimal;
-//     reference?: string;
-// }
-
-// // --- Customer Creation Type ---
-// // This interface defines the expected shape of the data sent to POST /api/customers
-// export interface CustomerFormData {
-//     name: string;
-//     email: string;
-//     phone: string;
-//     address: string;
-//     taxId: string;
-//     paymentTerms: string;
-// }
-
-// // --- Product Creation Type ---
-// // This interface defines the expected shape of the data sent to POST /api/products
-// export interface ProductFormData {
 //     sku: string;
 //     name: string;
-//     stockQuantity: number; // Will be parsed from string input
-//     unitCost: number;       // Will be parsed from string input
+//     description?: string;
+    
+//     // Inventory/Stocking fields
+//     stockQuantity: number;
+//     reorderLevel?: number; // Optional threshold to trigger procurement
+    
+//     // Financial fields (Converted from Decimal to number for the client)
+//     unitPrice: number; // Selling price
+//     unitCost: number;  // Cost to the business (COGS)
+    
+//     // Metadata
+//     createdAt: Date;
+//     updatedAt: Date;
+//     isActive: boolean;
 // }
-
-// // finance.ts (Example definition)
-// export type InvoiceItem = {
-//     id: string;
-//     invoiceId: string; // <-- THIS IS REQUIRED IN THE BASE TYPE
-//     productId: string;
-//     productName: string;
-//     quantity: number;
-//     unitPrice: Decimal; // or number
-//     lineTotal: Decimal; // or number
-//     discountRate: number;
-//     skuSnapshot: string;
-// };
-
-// // NOTE: These interfaces map directly to the fields in your Prisma models, 
-// // excluding the auto-generated 'id' and relationship fields.

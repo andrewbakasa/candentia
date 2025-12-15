@@ -72,16 +72,7 @@ const InvoiceDetailView: React.FC<InvoiceDetailViewProps> = ({ invoice }) => {
     return (
         <div className="max-w-6xl mx-auto p-4 sm:p-6 lg:p-8 bg-white shadow-xl rounded-lg space-y-8">
             
-            {/* --- Section 0: Header (Invoice Number & Status) --- */}
-            {/* <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center border-b pb-4">
-                <h1 className="text-3xl font-bold text-gray-900 mb-2 sm:mb-0">
-                    Invoice <span className="text-indigo-600">#{invoice.invoiceNumber}</span>
-                </h1>
-                <span className={`px-3 py-1 text-sm font-semibold rounded-full uppercase tracking-wider ${getStatusClasses(invoice.status)}`}>
-                    {invoice.status}
-                </span>
-            </div>
-             */}
+           
             {/* --- Section 1: Customer & Dates (Responsive Grid) --- */}
             <div className="grid grid-cols-1 md:grid-cols-4 gap-6 md:gap-8 border-b pb-6">
                 

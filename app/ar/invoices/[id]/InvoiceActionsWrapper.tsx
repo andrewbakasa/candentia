@@ -63,9 +63,39 @@ const InvoiceActionsWrapper: React.FC<InvoiceActionsWrapperProps> = ({ invoice,c
 
     // --- EXISTING HANDLERS (omitted for brevity) ---
 
+
+    // --- CORRECTED HANDLER: DELETE ---
     const handleDelete = async () => {
-        // ... (existing handleDelete logic) ...
+       
+
+        //setIsLoading(true);
+        // 💡 FIX: Use the correct API route structure for the invoice
+        const apiRoute = `/ar/api/invoices/${invoice.id}`; 
+        
+        try {
+            const response = await fetch(apiRoute, {
+                method: 'DELETE',
+            });
+
+            if (!response.ok) {
+                const errorData = await response.json().catch(() => ({ message: 'Failed to delete invoice.' }));
+                // Catch any specific error message from the backend
+                throw new Error(errorData.message || 'Failed to delete invoice record.');
+            }
+
+            // 💡 FIX: Correct the success message and navigation path
+            toast.success(`Invoice ${invoice.invoiceNumber} deleted successfully!`);
+            router.push('/ar/invoices'); // Navigate back to the invoice list
+            router.refresh(); // Force a refresh of the list page
+        } catch (err) {
+            console.error("Deletion failed:", err);
+            toast.error(`Error: ${err instanceof Error ? err.message : 'An unknown error occurred during deletion.'}`);
+        } finally {
+            //setIsLoading(false);
+        }
     };
+
+    
 
     const handleMarkPaid = async () => {
         // ... (existing handleMarkPaid logic) ...

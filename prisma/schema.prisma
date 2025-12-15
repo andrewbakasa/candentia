@@ -1241,18 +1241,50 @@ model MetricRecord {
 
 // prisma/schema/inventory.prisma
 
+// model Product {
+//   id            String @id @default(auto()) @map("_id") @db.ObjectId
+//   sku           String @unique
+//   name          String
+//   stockQuantity Int
+//   unitCost      Float // Average or Standard Cost
+
+//   // Relationships
+//   stockTransactions  StockTransaction[]
+//   invoiceItems       InvoiceItem[]
+//   purchaseOrderItems PurchaseOrderItem[] // New: Link to supplier orders
+//   QuotationItem      QuotationItem[]
+// }
+
 model Product {
   id            String @id @default(auto()) @map("_id") @db.ObjectId
   sku           String @unique
   name          String
   stockQuantity Int
   unitCost      Float // Average or Standard Cost
+  description String? // optional
+  // --- New Optional Attributes (as requested) ---
+  barcode      String? // EAN/UPC or other barcode identifier
+  category     String? // Product category (e.g., 'Software', 'Hardware', 'Service')
+  supplierId   String? @db.ObjectId // ID of the default/preferred supplier
+  reorderPoint Int? // Stock level that triggers reordering
+  location     String? // Physical warehouse location (e.g., 'Aisle 3, Shelf B')
 
-  // Relationships
+  // --- Relationships ---
+  // The 'unitPrice' from the previous forms is typically stored in the 'Product' model
+  // I am adding it here as it is standard and required by your form component:
+  unitPrice Float? // Selling Price (Making it optional for now, but usually required)
+  isActive  Boolean? @default(true) // Status flag
+
   stockTransactions  StockTransaction[]
   invoiceItems       InvoiceItem[]
-  purchaseOrderItems PurchaseOrderItem[] // New: Link to supplier orders
+  purchaseOrderItems PurchaseOrderItem[] // Link to supplier orders
   QuotationItem      QuotationItem[]
+
+  // Optional relationship link to a Supplier model (assuming you have one)
+  supplier Supplier? @relation(fields: [supplierId], references: [id])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
 
 model StockTransaction {
@@ -1348,7 +1380,7 @@ model Invoice {
   dueDate     DateTime
   paidDate    DateTime?
   // NEW FIELD ADDED HERE
-  taxRate     Float @default(0.0)// e.g., 0.05 for 5% tax
+  taxRate     Float         @default(0.0) // e.g., 0.05 for 5% tax
 
   subTotal    Float
   taxAmount   Float
@@ -1406,6 +1438,7 @@ model Supplier {
   // Relationships
   purchaseOrders PurchaseOrder[]
   payments       SupplierPayment[]
+  Product        Product[]
 }
 
 model PurchaseOrder {
