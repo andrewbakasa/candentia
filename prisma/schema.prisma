@@ -1347,6 +1347,8 @@ model Invoice {
   invoiceDate DateTime
   dueDate     DateTime
   paidDate    DateTime?
+  // NEW FIELD ADDED HERE
+  taxRate     Float @default(0.0)// e.g., 0.05 for 5% tax
 
   subTotal    Float
   taxAmount   Float

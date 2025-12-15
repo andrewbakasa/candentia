@@ -1,9 +1,8 @@
 import React, { useState, useMemo, useCallback, useEffect } from 'react';
-// Assuming your types are defined here, e.g., Invoice, InvoiceItem, Customer, Decimal
 import { InvoiceStatus, Customer, InvoiceItem, Invoice } from '@/app/ar/types/finance'; 
 import { useFormOptions } from '@/app/ar/hooks/useFormOptions';
 
-// --- 1. Define Full Invoice Type (for initialData) ---
+// --- 1. Define Full Invoice Type ---
 export type FullInvoice = Invoice & {
     customer: Customer;
     items: InvoiceItem[];
@@ -46,12 +45,9 @@ interface InvoiceFormProps {
 let nextTempItemId = 1;
 
 const InvoiceForm: React.FC<InvoiceFormProps> = ({ onSubmit, isSubmitting, isEditing, initialData, onSubmitSuccess }) => {
-    
-    // --- Data Fetching ---
     const { customers, products, isLoading, error } = useFormOptions();
     const defaultProduct = products.length > 0 ? products[0] : null;
 
-    // --- State Initialization ---
     const [formData, setFormData] = useState<Omit<InvoiceFormData, 'subTotal' | 'taxAmount' | 'totalAmount'> & { totalAmount: any }>({
         customerId: '',
         invoiceDate: new Date().toISOString().substring(0, 10),
@@ -61,28 +57,24 @@ const InvoiceForm: React.FC<InvoiceFormProps> = ({ onSubmit, isSubmitting, isEdi
         items: [],
     });
 
-    // --- EFFECT: Initialize Form Data (Creation vs. Editing) ---
     useEffect(() => {
         if (initialData && isEditing && formData.items.length === 0) {
-            // EDIT MODE: Load data from initialData
             const loadedItems: FormInvoiceItem[] = initialData.items.map(item => ({
                 id: item.id, 
                 tempId: nextTempItemId++, 
                 productId: item.productId,
                 productName: item.productName,
                 quantity: item.quantity,
-                unitPrice: item.unitPrice as unknown as number, // Retaining as number assertion for safety
-                lineTotal: item.lineTotal as unknown as number, // Retaining as number assertion for safety
+                unitPrice: item.unitPrice as unknown as number,
+                lineTotal: item.lineTotal as unknown as number,
                 discountRate: item.discountRate as number,
             }));
             
-            // Recalculate tax rate based on loaded data
             const calculatedTaxRate = initialData.subTotal > 0 
                 ? initialData.taxAmount / initialData.subTotal 
                 : 0.05;
             
             setFormData({
-                // FIX: Access customerId from the nested 'customer' object
                 customerId: initialData.customer.id, 
                 invoiceDate: new Date(initialData.invoiceDate).toISOString().substring(0, 10),
                 dueDate: new Date(initialData.dueDate).toISOString().substring(0, 10),
@@ -91,7 +83,6 @@ const InvoiceForm: React.FC<InvoiceFormProps> = ({ onSubmit, isSubmitting, isEdi
                 items: loadedItems,
             });
         } else if (!isEditing && customers.length > 0 && defaultProduct && formData.items.length === 0) {
-            // CREATION MODE: Initialize with default values
             setFormData(prev => ({
                 ...prev,
                 customerId: customers[0].id,
@@ -109,7 +100,6 @@ const InvoiceForm: React.FC<InvoiceFormProps> = ({ onSubmit, isSubmitting, isEdi
     }, [customers, products, defaultProduct, initialData, isEditing]);
 
 
-    // --- Calculations ---
     const { subTotal, taxAmount, totalAmount } = useMemo(() => {
         const subTotal = formData.items.reduce((sum, item) => sum + item.lineTotal, 0);
         const taxAmount = subTotal * formData.taxRate;
@@ -122,7 +112,6 @@ const InvoiceForm: React.FC<InvoiceFormProps> = ({ onSubmit, isSubmitting, isEdi
     }, [formData.items, formData.taxRate]);
 
 
-    // --- Handlers ---
     const handleProductSelect = useCallback((tempId: number, productId: string) => {
         const product = products.find(p => p.id === productId);
         if (!product) return;
@@ -194,14 +183,12 @@ const InvoiceForm: React.FC<InvoiceFormProps> = ({ onSubmit, isSubmitting, isEdi
     }, []);
 
 
-    // --- Form Submission ---
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         
         const finalFormData: InvoiceFormData = {
             ...formData,
             ...(isEditing && { id: initialData?.id }), 
-            
             subTotal: subTotal,
             taxAmount: taxAmount,
             totalAmount: totalAmount, 
@@ -211,7 +198,6 @@ const InvoiceForm: React.FC<InvoiceFormProps> = ({ onSubmit, isSubmitting, isEdi
         onSubmitSuccess(); 
     };
 
-    // --- Loading and Error States (Unchanged) ---
     if (isLoading) {
         return <div className="text-center p-10 text-indigo-600 font-semibold">Loading customers and products...</div>;
     }
@@ -229,14 +215,13 @@ const InvoiceForm: React.FC<InvoiceFormProps> = ({ onSubmit, isSubmitting, isEdi
     }
 
 
-    // --- Rendering (Unchanged) ---
     return (
-        <form onSubmit={handleSubmit} className="p-6 bg-white rounded-xl shadow-2xl max-w-6xl mx-auto">
+        <form onSubmit={handleSubmit} className="p-4 sm:p-6 bg-white rounded-xl shadow-2xl max-w-6xl mx-auto">
             <h2 className="text-2xl font-bold mb-6 text-indigo-700">
                 {isEditing ? `Edit Invoice: ${initialData?.invoiceNumber}` : 'Create New Invoice'}
             </h2>
 
-            {/* --- Customer and Dates --- */}
+            {/* Customer and Dates */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
                 {/* Customer Select */}
                 <div>
@@ -288,14 +273,26 @@ const InvoiceForm: React.FC<InvoiceFormProps> = ({ onSubmit, isSubmitting, isEdi
                 </div>
             </div>
 
-            {/* --- Line Items --- */}
+            {/* Line Items */}
             <h3 className="text-xl font-semibold mb-4 text-gray-800">Invoice Items</h3>
+            
+            {/* Desktop Header Row */}
+            <div className="hidden md:grid md:grid-cols-12 gap-4 items-center mb-2 font-medium text-gray-600 text-sm border-b pb-1">
+                <div className="col-span-4">Product</div>
+                <div className="col-span-1 text-center">Qty</div>
+                <div className="col-span-2 text-right">Unit Price</div>
+                <div className="col-span-2 text-right">Disc (%)</div>
+                <div className="col-span-2 text-right">Line Total</div>
+                <div className="col-span-1"></div>
+            </div>
+
             <div className="space-y-4">
                 {formData.items.map((item) => (
-                    <div key={item.tempId} className="grid grid-cols-12 gap-4 items-center bg-gray-50 p-3 rounded-lg border">
+                    <div key={item.tempId} className="grid grid-cols-1 md:grid-cols-12 gap-y-3 md:gap-4 items-center bg-gray-50 p-3 rounded-lg border relative">
                         
                         {/* Product Select */}
-                        <div className="col-span-4">
+                        <div className="col-span-full md:col-span-4">
+                            <label className="block md:hidden text-xs font-medium text-gray-700 mb-1">Product</label>
                             <select
                                 value={item.productId}
                                 onChange={(e) => handleProductSelect(item.tempId, e.target.value)}
@@ -308,56 +305,73 @@ const InvoiceForm: React.FC<InvoiceFormProps> = ({ onSubmit, isSubmitting, isEdi
                                 ))}
                             </select>
                         </div>
-
-                        {/* Quantity */}
-                        <input
-                            type="number"
-                            value={item.quantity}
-                            onChange={(e) => handleItemChange(item.tempId, 'quantity', parseInt(e.target.value) || 0)}
-                            placeholder="Qty"
-                            min="1"
-                            required
-                            className="col-span-1 p-2 border border-gray-300 rounded-md text-sm text-center"
-                        />
-
-                        {/* Unit Price */}
-                        <input
-                            type="number"
-                            value={item?.unitPrice?.toFixed(2)}
-                            onChange={(e) => handleItemChange(item.tempId, 'unitPrice', parseFloat(e.target.value) || 0)}
-                            placeholder="Price"
-                            min="0.01"
-                            step="0.01"
-                            required
-                            className="col-span-2 p-2 border border-gray-300 rounded-md text-sm text-right"
-                        />
                         
-                        {/* Discount Rate */}
-                        <div className="col-span-2 flex items-center border border-gray-300 rounded-md overflow-hidden">
-                            <input
-                                type="number"
-                                value={(item.discountRate * 100).toFixed(0)}
-                                onChange={(e) => handleItemChange(item.tempId, 'discountRate', (parseFloat(e.target.value) || 0) / 100)}
-                                placeholder="Disc %"
-                                min="0"
-                                max="100"
-                                step="1"
-                                className="w-full p-2 text-sm text-right border-none focus:ring-0"
-                            />
-                            <span className="p-2 bg-gray-200 text-gray-600 text-xs">%</span>
+                        {/* INPUT ROW for Mobile (Q, P, D) - Grouping related fields */}
+                        <div className="grid grid-cols-3 gap-3 col-span-full md:col-span-5">
+                            
+                            {/* Quantity */}
+                            <div>
+                                <label htmlFor={`qty-${item.tempId}`} className="block text-xs font-medium text-gray-700 mb-1 md:hidden">Quantity</label>
+                                <input
+                                    id={`qty-${item.tempId}`}
+                                    type="number"
+                                    value={item.quantity}
+                                    onChange={(e) => handleItemChange(item.tempId, 'quantity', parseInt(e.target.value) || 0)}
+                                    placeholder="Qty"
+                                    min="1"
+                                    required
+                                    className="w-full p-2 border border-gray-300 rounded-md text-sm text-center md:col-span-1" 
+                                />
+                            </div>
+
+                            {/* Unit Price */}
+                            <div>
+                                <label htmlFor={`price-${item.tempId}`} className="block text-xs font-medium text-gray-700 mb-1 md:hidden">Unit Price</label>
+                                <input
+                                    id={`price-${item.tempId}`}
+                                    type="number"
+                                    value={item?.unitPrice?.toFixed(2)}
+                                    onChange={(e) => handleItemChange(item.tempId, 'unitPrice', parseFloat(e.target.value) || 0)}
+                                    placeholder="Price"
+                                    min="0.01"
+                                    step="0.01"
+                                    required
+                                    className="w-full p-2 border border-gray-300 rounded-md text-sm text-right md:col-span-2"
+                                />
+                            </div>
+                        
+                            {/* Discount Rate */}
+                            <div>
+                                <label htmlFor={`disc-${item.tempId}`} className="block text-xs font-medium text-gray-700 mb-1 md:hidden">Discount (%)</label>
+                                <div className="flex items-center border border-gray-300 rounded-md overflow-hidden md:col-span-2">
+                                    <input
+                                        id={`disc-${item.tempId}`}
+                                        type="number"
+                                        value={(item.discountRate * 100).toFixed(0)}
+                                        onChange={(e) => handleItemChange(item.tempId, 'discountRate', (parseFloat(e.target.value) || 0) / 100)}
+                                        placeholder="Disc %"
+                                        min="0"
+                                        max="100"
+                                        step="1"
+                                        className="w-full p-2 text-sm text-right border-none focus:ring-0"
+                                    />
+                                    <span className="p-2 bg-gray-200 text-gray-600 text-xs">%</span>
+                                </div>
+                            </div>
                         </div>
 
                         {/* Line Total Display */}
-                        <div className="col-span-2 text-right font-medium text-gray-700 text-sm">
-                            ${item?.lineTotal?.toFixed(2)}
+                        <div className="col-span-full flex justify-between md:block md:col-span-2 text-right font-medium text-gray-700 text-base md:text-sm pt-2 md:pt-0 border-t md:border-t-0">
+                            <span className="block md:hidden text-xs font-medium text-gray-700">Line Total:</span>
+                            <span className="text-lg md:text-sm font-bold md:font-medium">${item?.lineTotal?.toFixed(2)}</span>
                         </div>
 
                         {/* Remove Button */}
-                        <div className="col-span-1 flex justify-end">
+                        <div className="col-span-1 flex justify-end absolute top-3 right-3 md:relative md:top-0 md:right-0">
                             <button
                                 type="button"
                                 onClick={() => handleRemoveItem(item.tempId)}
-                                className="text-red-500 hover:text-red-700 transition"
+                                className={`text-red-500 hover:text-red-700 transition ${formData.items.length === 1 ? 'opacity-50 cursor-not-allowed' : ''}`}
                                 disabled={formData.items.length === 1} 
                             >
                                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5">
@@ -378,7 +392,7 @@ const InvoiceForm: React.FC<InvoiceFormProps> = ({ onSubmit, isSubmitting, isEdi
             </button>
 
 
-            {/* --- Totals & Submission --- */}
+            {/* Totals & Submission */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-8">
                 {/* Tax Rate Input */}
                 <div>

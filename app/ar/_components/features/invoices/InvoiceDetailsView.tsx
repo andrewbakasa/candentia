@@ -2,18 +2,41 @@
 import React from 'react';
 import { Invoice, InvoiceStatus, Customer, InvoiceItem } from '@/app/ar/types/finance'; 
 
+// Assuming Invoice, Customer, and InvoiceItem types are complete from '@/app/ar/types/finance'
+// Added a placeholder for Customer phone/address for richer details in the view
+type RichCustomer = Customer & { phone?: string; address?: string };
+type RichInvoice = Omit<Invoice, 'customer'> & { customer: RichCustomer; taxRate: number };
+
 interface InvoiceDetailViewProps {
-    invoice: Invoice; 
+    invoice: RichInvoice; // Use the enriched type
 }
 
 // Utility function to format dates
 const formatDate = (date: Date | string) => {
+    // Ensure the date object is created correctly
     const d = date instanceof Date ? date : new Date(date);
     return d.toLocaleDateString('en-US', {
         year: 'numeric',
         month: 'short',
         day: 'numeric',
     });
+};
+// Utility function for Status Badge styling - UPDATED
+const getStatusClasses = (status: InvoiceStatus) => {
+    switch (status) {
+        case InvoiceStatus.PAID:
+            return 'bg-green-100 text-green-800';
+        case InvoiceStatus.DRAFT:
+            return 'bg-gray-100 text-gray-800';
+        case InvoiceStatus.SENT:
+            return 'bg-indigo-100 text-indigo-800';
+        case InvoiceStatus.OVERDUE:
+            return 'bg-red-100 text-red-800';
+        case InvoiceStatus.VOID:
+            return 'bg-black text-white'; // VOID status should stand out
+        default:
+            return 'bg-gray-100 text-gray-800';
+    }
 };
 
 // --- Mobile Line Item Card Component ---
@@ -38,25 +61,41 @@ const MobileLineItemCard: React.FC<{ item: InvoiceItem }> = ({ item }) => (
 
 const InvoiceDetailView: React.FC<InvoiceDetailViewProps> = ({ invoice }) => {
     
-    const invoiceDate = typeof invoice.invoiceDate === 'string' ? new Date(invoice.invoiceDate) : invoice.invoiceDate;
-    const dueDate = typeof invoice.dueDate === 'string' ? new Date(invoice.dueDate) : invoice.dueDate;
+    // Ensure robust date handling, defaulting to current date if parsing fails
+    const invoiceDate = new Date(invoice.invoiceDate);
+    const dueDate = new Date(invoice.dueDate);
     
+    // Fallback for taxRate if not explicitly available, though RichInvoice defines it
+    const taxRate = invoice.taxRate ?? 0; 
+   // console.log("taxRate:::", invoice)
+
     return (
-        <div className="space-y-8">
+        <div className="max-w-6xl mx-auto p-4 sm:p-6 lg:p-8 bg-white shadow-xl rounded-lg space-y-8">
             
+            {/* --- Section 0: Header (Invoice Number & Status) --- */}
+            {/* <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center border-b pb-4">
+                <h1 className="text-3xl font-bold text-gray-900 mb-2 sm:mb-0">
+                    Invoice <span className="text-indigo-600">#{invoice.invoiceNumber}</span>
+                </h1>
+                <span className={`px-3 py-1 text-sm font-semibold rounded-full uppercase tracking-wider ${getStatusClasses(invoice.status)}`}>
+                    {invoice.status}
+                </span>
+            </div>
+             */}
             {/* --- Section 1: Customer & Dates (Responsive Grid) --- */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-8 border-b pb-6">
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-6 md:gap-8 border-b pb-6">
                 
-                {/* Customer Information (Takes full width on mobile, 1/3 on desktop) */}
-                <div className="md:col-span-1">
+                {/* Customer Information (Takes 1/2 width on mobile, 2/4 on desktop) */}
+                <div className="col-span-full sm:col-span-2">
                     <h3 className="text-lg font-semibold text-indigo-700 mb-2">Billed To</h3>
                     <p className="font-bold text-gray-800">{invoice.customer.name}</p>
-                    {/* Optional check for email field, assuming it exists */}
                     {invoice.customer.email && <p className="text-sm text-gray-600">{invoice.customer.email}</p>}
+                    {invoice.customer.phone && <p className="text-sm text-gray-600">Phone: {invoice.customer.phone}</p>}
+                    {invoice.customer.address && <p className="text-sm text-gray-600 mt-2">{invoice.customer.address}</p>}
                 </div>
 
-                {/* Date Information (Takes full width on mobile, 2/3 on desktop) */}
-                <div className="md:col-span-2 grid grid-cols-2 gap-4 text-left sm:text-right">
+                {/* Date Information (Takes 1/2 width on mobile, 2/4 on desktop, aligned right on desktop) */}
+                <div className="col-span-full sm:col-span-2 grid grid-cols-2 gap-4 text-left sm:text-right">
                     <div className="col-span-1">
                         <p className="text-sm font-medium text-gray-500">Invoice Date</p>
                         <p className="text-base font-semibold text-gray-800">{formatDate(invoiceDate)}</p>
@@ -64,7 +103,7 @@ const InvoiceDetailView: React.FC<InvoiceDetailViewProps> = ({ invoice }) => {
                     <div className="col-span-1">
                         <p className="text-sm font-medium text-gray-500">Due Date</p>
                         <p className={`text-base font-semibold ${
-                            invoice.status === 'OVERDUE' ? 'text-red-600' : 'text-gray-800'
+                            invoice.status === 'OVERDUE' && invoice.amountDue > 0 ? 'text-red-600' : 'text-gray-800'
                         }`}>
                             {formatDate(dueDate)}
                         </p>
@@ -114,22 +153,32 @@ const InvoiceDetailView: React.FC<InvoiceDetailViewProps> = ({ invoice }) => {
 
             {/* --- Section 3: Financial Summary (Responsive Alignment) --- */}
             <div className="flex justify-end pt-6">
-                <div className="w-full sm:w-2/3 md:w-1/3 space-y-2">
+                {/* Summary box takes full width on mobile, then 2/3, then 1/3 on large screens */}
+                <div className="w-full sm:w-2/3 md:w-1/2 lg:w-1/3 space-y-2">
+                    
                     <div className="flex justify-between">
                         <span className="text-gray-700">Subtotal:</span>
                         <span className="font-medium">${invoice.subTotal.toFixed(2)}</span>
                     </div>
+                    
                     <div className="flex justify-between">
-                        <span className="text-gray-700">Tax ({ (invoice.taxRate * 100).toFixed(2) }%):</span>
+                        <span className="text-gray-700">Tax ({ (taxRate * 100).toFixed(2) }%):</span>
                         <span className="font-medium">${invoice.taxAmount.toFixed(2)}</span>
                     </div>
+                    
                     <div className="flex justify-between border-t-2 border-indigo-500 pt-3 text-lg sm:text-xl font-bold text-indigo-700">
                         <span>Grand Total:</span>
                         <span>${invoice.totalAmount.toFixed(2)}</span>
                     </div>
+                    
                     <div className="flex justify-between pt-2">
                         <span className="text-lg sm:text-xl font-bold text-gray-700">Amount Due:</span>
-                        <span className="text-lg sm:text-xl font-bold text-red-600">${invoice.amountDue.toFixed(2)}</span>
+                        {/* Highlight amount due in red if positive, otherwise use black/default */}
+                        <span className={`text-lg sm:text-xl font-bold ${
+                            invoice.amountDue > 0 ? 'text-red-600' : 'text-gray-800'
+                        }`}>
+                            ${invoice.amountDue.toFixed(2)}
+                        </span>
                     </div>
                 </div>
             </div>

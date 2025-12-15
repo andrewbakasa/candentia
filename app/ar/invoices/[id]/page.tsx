@@ -41,7 +41,7 @@ export default async function InvoiceDetailPage({ params }: InvoiceDetailPagePro
         dueDate: new Date(invoice.dueDate),
         status: invoice.status as InvoiceStatus, 
     };
-
+    //console.log("invoice====>",invoice)
     return (
         <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-8">
             {/* Header with status and action buttons */}
@@ -49,9 +49,9 @@ export default async function InvoiceDetailPage({ params }: InvoiceDetailPagePro
             
             {/* Main detail content */}
             <div className="bg-white p-4 sm:p-8 rounded-xl shadow-2xl">
-                <h1 className="text-2xl sm:text-3xl font-extrabold text-indigo-700 mb-4 sm:mb-6">
+                {/* <h1 className="text-2xl sm:text-3xl font-extrabold text-indigo-700 mb-4 sm:mb-6">
                     Invoice # {invoice.invoiceNumber}
-                </h1>
+                </h1> */}
                 
                 {/* Invoice Details component */}
                 <InvoiceDetailView invoice={displayInvoice} />

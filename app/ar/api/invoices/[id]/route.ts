@@ -196,9 +196,9 @@ interface UpdateInvoicePayload {
 
 export async function PATCH(
     request: Request,
-    { params }: { params: { invoiceId: string } }
+    { params }: { params: { id: string } }
 ) {
-    const invoiceId = params.invoiceId;
+    const invoiceId = params.id;
     
     // --- 1. Validate ID and Parse Body ---
     if (!invoiceId) {
@@ -250,6 +250,7 @@ export async function PATCH(
             ...item, // Keep existing fields like id
             quantity,
             unitPrice,
+          //  taxRate:12,
             discountRate: discountRateDecimal, // Store as decimal
             lineTotal: lineTotal, // 💡 Calculated Line Total
         };
@@ -273,6 +274,18 @@ export async function PATCH(
     try {
         const result = await prisma.$transaction(async (tx) => {
             
+
+            // 💡 FIX: Convert the "YYYY-MM-DD" string to a full ISO-8601 date string.
+            // We are assuming the date is intended to be for the start of the day (00:00:00) in UTC.
+            const invoiceDateISO = payload.invoiceDate 
+                ? new Date(payload.invoiceDate).toISOString() 
+                : payload.invoiceDate; // Keep it as is if null/undefined
+
+            const dueDateISO = payload.dueDate
+                ? new Date(payload.dueDate).toISOString()
+                : payload.dueDate; // Keep it as is if null/undefined
+
+            const taxRate =payload.taxRate;
             // a. Update Invoice Header (USING CALCULATED TOTALS)
             const updatedInvoice = await tx.invoice.update({
                 where: { id: invoiceId },
@@ -282,9 +295,11 @@ export async function PATCH(
                     taxAmount: newTaxAmount,
                     totalAmount: newTotalAmount,
                     amountDue: newAmountDue, 
-                    // Other fields remain the same
-                    invoiceDate: payload.invoiceDate,
-                    dueDate: payload.dueDate,
+                    taxRate:taxRate,
+                  
+                    // Use the converted ISO strings
+                    invoiceDate: invoiceDateISO, // 💡 USE ISO STRING
+                    dueDate: dueDateISO,         // 💡 USE ISO STRING
                 },
                 select: { id: true, invoiceNumber: true }
             });
@@ -346,194 +361,3 @@ export async function PATCH(
         return NextResponse.json({ message: 'Database error during invoice update.' }, { status: 500 });
     }
 }
-// // src/app/api/invoices/[id]/route.ts
-
-// import { NextRequest, NextResponse } from 'next/server';
-// import prisma from '../../../../libs/prismadb';
-
-// // Define Props for dynamic route
-// interface Context {
-//     params: {
-//         id: string;
-//     };
-// }
-
-// /**
-//  * 🎯 Route Handler for: GET /api/invoices/[id]
-//  * Fetches a single invoice by ID.
-//  */
-// export async function GET(request: NextRequest, context: Context) {
-//     const { id } = context.params;
-
-//     try {
-//         const invoice = await prisma.invoice.findUnique({
-//             where: { id: id },
-//             include: {
-//                 customer: true,
-//                 items: true,
-//             },
-//         });
-
-//         if (!invoice) {
-//             return NextResponse.json({ message: "Invoice not found." }, { status: 404 });
-//         }
-
-//         return NextResponse.json(invoice, { status: 200 });
-
-//     } catch (error) {
-//         console.error(`API GET Error: Failed to fetch invoice ${id}`, error);
-//         return NextResponse.json(
-//             { message: "Failed to retrieve invoice." },
-//             { status: 500 }
-//         );
-//     }
-// }
-
-// // Define the expected shape of the incoming request body
-// interface UpdateInvoicePayload {
-//     id: string; // The ID of the invoice being updated
-//     customerId: string; // Should be the same, but good to include
-//     invoiceDate: string;
-//     dueDate: string;
-//     taxRate: number;
-//     subTotal: number;
-//     taxAmount: number;
-//     totalAmount: number;
-//     amountDue: number; // The amount still due (usually starts at totalAmount)
-//     // The items include the optional 'id' for existing items, and 'tempId' for React keys
-//     items: Array<{
-//         id?: string; // Prisma ID for existing items
-//         tempId: number; // Temporary React key
-//         productId: string;
-//         productName: string;
-//         quantity: number;
-//         unitPrice: number;
-//         lineTotal: number;
-//         discountRate: number;
-//     }>;
-// }
-
-// /**
-//  * PATCH /ar/api/invoices/[invoiceId]
-//  * Updates an existing Invoice and its line items.
-//  */
-// export async function PATCH(
-//     request: Request,
-//     { params }: { params: { invoiceId: string } }
-// ) {
-//     const invoiceId = params.invoiceId;
-    
-//     // --- 1. Validate ID and Parse Body ---
-//     if (!invoiceId) {
-//         return NextResponse.json({ message: 'Missing invoice ID' }, { status: 400 });
-//     }
-
-//     let payload: UpdateInvoicePayload;
-//     try {
-//         payload = await request.json();
-//     } catch (e) {
-//         return NextResponse.json({ message: 'Invalid JSON body' }, { status: 400 });
-//     }
-
-//     // Basic validation
-//     if (payload.id !== invoiceId) {
-//         return NextResponse.json({ message: 'URL ID and Payload ID mismatch' }, { status: 400 });
-//     }
-
-//     // --- 2. Separate Line Items ---
-//     const existingItemIds = payload.items
-//         .map(item => item.id)
-//         .filter((id): id is string => !!id);
-
-//     // Get the IDs of items currently in the database to find deletions
-//     const currentDbItems = await prisma.invoiceItem.findMany({
-//         where: { invoiceId },
-//         select: { id: true },
-//     });
-//     const dbItemIds = currentDbItems.map(item => item.id);
-    
-//     // Calculate items to delete (in DB but not in payload)
-//     const itemsToDelete = dbItemIds.filter(dbId => !existingItemIds.includes(dbId));
-
-
-//     // --- 3. Start Transaction ---
-//     try {
-//         const result = await prisma.$transaction(async (tx) => {
-            
-//             // a. Update Invoice Header
-//             const updatedInvoice = await tx.invoice.update({
-//                 where: { id: invoiceId },
-//                 data: {
-//                     // Convert float numbers back to Decimal or appropriate type for DB
-//                     subTotal: new Decimal(payload.subTotal),
-//                     taxAmount: new Decimal(payload.taxAmount),
-//                     totalAmount: new Decimal(payload.totalAmount),
-//                     amountDue: new Decimal(payload.amountDue), 
-//                     taxRate: payload.taxRate, // Assuming taxRate is float/Decimal
-//                     invoiceDate: payload.invoiceDate,
-//                     dueDate: payload.dueDate,
-//                     // customerId is locked/unchanged, but if it were editable, update here
-//                     // status: 'DRAFT' // Optionally update status if needed
-//                 },
-//                 select: { id: true, invoiceNumber: true }
-//             });
-
-//             // b. Handle Item Deletions
-//             if (itemsToDelete.length > 0) {
-//                 await tx.invoiceItem.deleteMany({
-//                     where: {
-//                         id: {
-//                             in: itemsToDelete,
-//                         },
-//                     },
-//                 });
-//             }
-
-//             // c. Handle Item Updates and Creations
-//             const itemOperations = payload.items.map(item => {
-//                 const itemData = {
-//                     productId: item.productId,
-//                     productName: item.productName,
-//                     quantity: item.quantity,
-//                     // Ensure numerical types are correct for the database
-//                     unitPrice: new Decimal(item.unitPrice),
-//                     lineTotal: new Decimal(item.lineTotal),
-//                     discountRate: item.discountRate,
-//                     // Snapshot: A simple static snapshot of the SKU could be added here
-//                     skuSnapshot: 'N/A', 
-//                 };
-                
-//                 if (item.id) {
-//                     // Item exists (Update)
-//                     return tx.invoiceItem.update({
-//                         where: { id: item.id },
-//                         data: itemData,
-//                     });
-//                 } else {
-//                     // New item (Create)
-//                     return tx.invoiceItem.create({
-//                         data: {
-//                             ...itemData,
-//                             invoiceId: updatedInvoice.id,
-//                         },
-//                     });
-//                 }
-//             });
-
-//             await Promise.all(itemOperations);
-
-//             return updatedInvoice;
-//         });
-
-//         // --- 4. Success Response ---
-//         return NextResponse.json({
-//             message: `Invoice ${result.invoiceNumber} updated successfully.`,
-//             invoice: result,
-//         }, { status: 200 });
-
-//     } catch (dbError) {
-//         // --- 5. Error Response ---
-//         console.error("Database transaction failed during update:", dbError);
-//         return NextResponse.json({ message: 'Database error during invoice update.' }, { status: 500 });
-//     }
-// }

@@ -27,7 +27,8 @@ interface InvoiceCreationBody {
     invoiceDate: string;
     dueDate: string;
     totalAmount: string;
-    taxAmount: string; 
+    taxAmount: string;
+    taxRate:string; 
     subTotal: string; 
     amountDue: string;
     items: {
@@ -49,6 +50,8 @@ export async function POST(request: NextRequest) {
     try {
         // 1. Parse the incoming request body.
         const body: InvoiceCreationBody = await request.json();
+
+        console.log("input body...", body)
         
         // 2. Fetch Product SKUs for Line Items
         const productIds = body.items.map(item => item.productId);
@@ -97,7 +100,8 @@ export async function POST(request: NextRequest) {
                 
                 // --- Safe Parsing for Main Invoice Financial Totals ---
                 totalAmount: safeParseFloat(body.totalAmount),
-                subTotal: safeParseFloat(body.subTotal), 
+                subTotal: safeParseFloat(body.subTotal),
+                taxRate: safeParseFloat(body.taxRate),
                 taxAmount: safeParseFloat(body.taxAmount),
                 amountDue: safeParseFloat(body.amountDue), // <--- Fix for missing/invalid amountDue
                 // ----------------------------------------------------
