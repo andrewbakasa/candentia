@@ -12,7 +12,7 @@ import {
 
 import InvoiceDetailView from '../../_components/features/invoices/InvoiceDetailsView';
 import InvoiceActionsWrapper from './InvoiceActionsWrapper';
-import { ChevronLeft } from 'lucide-react';
+import getCurrentUser from '@/app/actions/getCurrentUser';
 
 
 // Define the expected type structure coming from the database
@@ -34,6 +34,7 @@ interface InvoiceDetailPageProps {
 export default async function InvoiceDetailPage({ params }: InvoiceDetailPageProps) {
     const invoiceId = params.id;
     const invoice = await getInvoice(invoiceId);
+    const currentUser = await getCurrentUser();
     
     
 
@@ -55,7 +56,7 @@ export default async function InvoiceDetailPage({ params }: InvoiceDetailPagePro
         <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-8">
             
             {/* Header with status and action buttons (Client Component Wrapper) */}
-            <InvoiceActionsWrapper invoice={displayInvoice} />
+            <InvoiceActionsWrapper invoice={displayInvoice} currentUser={currentUser} />
             
             {/* Main detail content */}
             <div className="bg-white p-4 sm:p-8 rounded-xl shadow-2xl">
