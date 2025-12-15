@@ -94,65 +94,6 @@ const handleReturnToList = () => {
         router.push('/ar/invoices'); 
     };
 
-//    return (
-//     // Primary container layout: flex, justify-end to push contents to the right
-//     <div className="flex justify-end p-4 bg-white rounded-xl shadow-lg mb-6">
-//          {/* Cancel Button (Go Back) */}
-//                 <button
-//                     onClick={handleReturnToList} // Use the new handleCancel function
-//                     className="flex items-center text-gray-600 hover:text-gray-800 transition duration-150 text-sm sm:text-base font-medium p-2 rounded-md hover:bg-gray-100"
-//                 >
-//                     <ChevronLeft className="w-5 h-5 mr-1" />
-//                     Return to List
-//                 </button>
-//         {/* RIGHT SIDE: Action Buttons (Delegated Header Actions + Dropdown) */}
-//         <div className="flex items-center space-x-3">
-            
-//             {/* 1. Delegated Primary Actions (Edit/Mark Paid) */}
-//             {/* This component is assumed to render the primary action buttons based on status */}
-//             <InvoiceDetailHeader 
-//                 invoice={invoice} 
-//                 onDelete={handleDelete} 
-//                 //onMarkPaid={handleMarkPaid} 
-//                 //isLoading={isLoading} 
-//             />
-
-//             {/* 2. Dropdown Menu for Secondary Actions (Print/Export) */}
-//             <DropdownMenu>
-//                 <DropdownMenuTrigger asChild>
-//                     {/* Use a simple rounded button for the trigger */}
-//                     <Button variant="outline" size="icon" disabled={isLoading} className="border-gray-300">
-//                         <MoreVerticalIcon className="w-5 h-5" />
-//                     </Button>
-//                 </DropdownMenuTrigger>
-//                 <DropdownMenuContent align="end" className="w-56">
-                    
-//                     <DropdownMenuLabel>Document Actions</DropdownMenuLabel>
-                    
-//                     {/* Output Actions */}
-//                     <DropdownMenuItem onClick={handlePrintPDF}>
-//                         <PrinterIcon className="w-4 h-4 mr-2" /> Print/Export PDF
-//                     </DropdownMenuItem>
-//                     <DropdownMenuItem onClick={handleExportExcel}>
-//                         <FileDownIcon className="w-4 h-4 mr-2" /> Export to Excel
-//                     </DropdownMenuItem>
-                    
-//                     {/* Separator before the standard "Delete" (if InvoiceDetailHeader doesn't render it) */}
-//                     <DropdownMenuSeparator />
-//                     <DropdownMenuItem 
-//                         onClick={handleDelete} 
-//                         disabled={isLoading}
-//                         className="text-red-600 focus:bg-red-50 focus:text-red-600"
-//                     >
-//                         <Trash2Icon className="w-4 h-4 mr-2" /> Delete Invoice (via Wrapper)
-//                     </DropdownMenuItem>
-                    
-//                 </DropdownMenuContent>
-//             </DropdownMenu>
-
-//         </div>
-//     </div>
-// );
 return (
     // Primary container layout: flex-col on mobile, flex-row on desktop,
     // w-full on mobile, fixed width/max-width often used on desktop (though here we just control flow).
@@ -203,18 +144,7 @@ return (
                     </DropdownMenuItem>
                     <DropdownMenuItem onClick={handleExportExcel}>
                         <FileDownIcon className="w-4 h-4 mr-2" /> Export to Excel
-                    </DropdownMenuItem>
-                    
-                    {/* Separator before the standard "Delete" */}
-                    <DropdownMenuSeparator />
-                    <DropdownMenuItem 
-                        onClick={handleDelete} 
-                        disabled={isLoading}
-                        className="text-red-600 focus:bg-red-50 focus:text-red-600"
-                    >
-                        <Trash2Icon className="w-4 h-4 mr-2" /> Delete Invoice (via Wrapper)
-                    </DropdownMenuItem>
-                    
+                    </DropdownMenuItem> 
                 </DropdownMenuContent>
             </DropdownMenu>
 
