@@ -4,14 +4,34 @@
 import React from 'react';
 import { useRouter } from 'next/navigation';
 import toast from 'react-hot-toast'; 
-import { PrinterIcon, FileTextIcon, FileDownIcon } from 'lucide-react'; // Assuming you use lucide icons
+import { PrinterIcon, FileTextIcon, FileDownIcon, Edit3Icon, MoreVerticalIcon, Trash2Icon, ChevronLeft } from 'lucide-react'; // Assuming you use lucide icons
 
+// Assuming you have components like this (if not, you'd replace them with standard HTML/CSS)
+import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuLabel } from '@/components/ui/dropdown-menu'; 
+import { Button } from '@/components/ui/button'; // Assuming a Button component
 import InvoiceDetailHeader from '../../_components/features/invoices/InvoiceDetailsHeader';
 import { 
     Invoice, 
     Customer, 
-    InvoiceItem 
+    InvoiceItem, 
+    InvoiceStatus
 } from '@/app/ar/types/finance'; 
+
+// Helper function to map status to Tailwind classes for a visual badge
+const getStatusBadgeClasses = (status: InvoiceStatus): string => {
+    switch (status) {
+        case 'PAID':
+            return 'bg-green-100 text-green-700';
+        // case 'PENDING':
+        //     return 'bg-yellow-100 text-yellow-700';
+        case 'DRAFT':
+            return 'bg-gray-100 text-gray-700';
+        case 'OVERDUE':
+            return 'bg-red-100 text-red-700';
+        default:
+            return 'bg-blue-100 text-blue-700';
+    }
+};
 
 type FullInvoice = Invoice & {
     customer: Customer;
@@ -68,131 +88,139 @@ const InvoiceActionsWrapper: React.FC<InvoiceActionsWrapperProps> = ({ invoice }
         toast.success("Invoice export initiated.");
     };
 
-    return (
-        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center p-4 sm:p-5 bg-white rounded-lg shadow-lg mb-6">
-            
-            {/* Invoice Info & Status (Left Side) - Rendered for context/consistency */}
-            <div className="flex flex-col sm:flex-row items-start sm:items-center space-y-2 sm:space-y-0 sm:space-x-4 w-full sm:w-auto pb-3 sm:pb-0">
-                <span className="text-xl font-bold text-gray-900">
-                    Invoice: <span className="text-indigo-600">{invoice.invoiceNumber}</span>
-                </span>
-                <span className={`px-3 py-1 text-xs sm:text-sm font-bold rounded-full uppercase bg-green-100 text-green-700`}>
-                    {invoice.status}
-                </span>
-            </div>
-            
-            {/* Action Buttons (Right Side) */}
-            <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto border-t sm:border-t-0 pt-3 sm:pt-0">
-                
-                {/* PDF Print Button (Client-side Print) */}
-                <button
-                    onClick={handlePrintPDF}
-                    className="w-full sm:w-auto px-4 py-2 text-sm font-medium border border-blue-400 text-blue-700 rounded-md hover:bg-blue-50 transition flex items-center justify-center"
-                >
-                    <PrinterIcon className="w-4 h-4 mr-2" /> Print (PDF)
-                </button>
+    
+const handleReturnToList = () => {
+        // Navigate to the main invoice list page
+        router.push('/ar/invoices'); 
+    };
 
-                {/* Excel Export Button */}
-                <button
-                    onClick={handleExportExcel}
-                    className="w-full sm:w-auto px-4 py-2 text-sm font-medium border border-green-400 text-green-700 rounded-md hover:bg-green-50 transition flex items-center justify-center"
-                >
-                    <FileDownIcon className="w-4 h-4 mr-2" /> Export (Excel)
-                </button>
+//    return (
+//     // Primary container layout: flex, justify-end to push contents to the right
+//     <div className="flex justify-end p-4 bg-white rounded-xl shadow-lg mb-6">
+//          {/* Cancel Button (Go Back) */}
+//                 <button
+//                     onClick={handleReturnToList} // Use the new handleCancel function
+//                     className="flex items-center text-gray-600 hover:text-gray-800 transition duration-150 text-sm sm:text-base font-medium p-2 rounded-md hover:bg-gray-100"
+//                 >
+//                     <ChevronLeft className="w-5 h-5 mr-1" />
+//                     Return to List
+//                 </button>
+//         {/* RIGHT SIDE: Action Buttons (Delegated Header Actions + Dropdown) */}
+//         <div className="flex items-center space-x-3">
+            
+//             {/* 1. Delegated Primary Actions (Edit/Mark Paid) */}
+//             {/* This component is assumed to render the primary action buttons based on status */}
+//             <InvoiceDetailHeader 
+//                 invoice={invoice} 
+//                 onDelete={handleDelete} 
+//                 //onMarkPaid={handleMarkPaid} 
+//                 //isLoading={isLoading} 
+//             />
 
-                {/* Render the standard header actions, passing the handlers */}
-                <InvoiceDetailHeader 
-                    invoice={invoice} 
-                    onDelete={handleDelete} 
-                   // onMarkPaid={handleMarkPaid} 
-                   // isLoading={isLoading} 
-                    // Note: You would update the InvoiceDetailHeader to include these buttons 
-                    // and use the handlers. For this example, I've defined them here 
-                    // and rendered the buttons directly in this wrapper.
-                />
-            </div>
+//             {/* 2. Dropdown Menu for Secondary Actions (Print/Export) */}
+//             <DropdownMenu>
+//                 <DropdownMenuTrigger asChild>
+//                     {/* Use a simple rounded button for the trigger */}
+//                     <Button variant="outline" size="icon" disabled={isLoading} className="border-gray-300">
+//                         <MoreVerticalIcon className="w-5 h-5" />
+//                     </Button>
+//                 </DropdownMenuTrigger>
+//                 <DropdownMenuContent align="end" className="w-56">
+                    
+//                     <DropdownMenuLabel>Document Actions</DropdownMenuLabel>
+                    
+//                     {/* Output Actions */}
+//                     <DropdownMenuItem onClick={handlePrintPDF}>
+//                         <PrinterIcon className="w-4 h-4 mr-2" /> Print/Export PDF
+//                     </DropdownMenuItem>
+//                     <DropdownMenuItem onClick={handleExportExcel}>
+//                         <FileDownIcon className="w-4 h-4 mr-2" /> Export to Excel
+//                     </DropdownMenuItem>
+                    
+//                     {/* Separator before the standard "Delete" (if InvoiceDetailHeader doesn't render it) */}
+//                     <DropdownMenuSeparator />
+//                     <DropdownMenuItem 
+//                         onClick={handleDelete} 
+//                         disabled={isLoading}
+//                         className="text-red-600 focus:bg-red-50 focus:text-red-600"
+//                     >
+//                         <Trash2Icon className="w-4 h-4 mr-2" /> Delete Invoice (via Wrapper)
+//                     </DropdownMenuItem>
+                    
+//                 </DropdownMenuContent>
+//             </DropdownMenu>
+
+//         </div>
+//     </div>
+// );
+return (
+    // Primary container layout: flex-col on mobile, flex-row on desktop,
+    // w-full on mobile, fixed width/max-width often used on desktop (though here we just control flow).
+    // On small screens, items stack (flex-col). On desktop (sm:), they flow horizontally.
+    <div className="flex flex-col sm:flex-row justify-end items-start sm:items-center p-4 bg-white rounded-xl shadow-lg mb-6">
+        
+        {/* TOP/LEFT: Return to List Link (Full width on mobile, pushed to the left/top) */}
+        <div className="w-full sm:w-auto mb-4 sm:mb-0 mr-auto">
+            <button
+                onClick={handleReturnToList}
+                // Removed redundant 'flex items-center' as the container is flex-col by default on mobile.
+                // Added text-left to ensure text alignment is logical if it spans full width.
+                className="w-full sm:w-auto flex items-center text-gray-600 hover:text-gray-800 transition duration-150 text-sm sm:text-base font-medium p-2 rounded-md hover:bg-gray-100"
+            >
+                <ChevronLeft className="w-5 h-5 mr-1" />
+                Return to List
+            </button>
         </div>
-    );
+
+        
+        {/* BOTTOM/RIGHT: Action Buttons (Delegated Header Actions + Dropdown) */}
+        {/* ml-auto on desktop pushes this content to the far right, and on mobile ensures it is right-aligned 
+            if the parent wasn't forced to justify-between. Given the above structure, we rely on the sm:flex-row parent. */}
+        <div className="flex items-center space-x-3 ml-auto sm:ml-0">
+            
+            {/* 1. Delegated Primary Actions (Edit/Mark Paid) */}
+            <InvoiceDetailHeader 
+                invoice={invoice} 
+                onDelete={handleDelete} 
+                //onMarkPaid={handleMarkPaid} 
+                //isLoading={isLoading} 
+            />
+
+            {/* 2. Dropdown Menu for Secondary Actions (Print/Export) */}
+            <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                    <Button variant="outline" size="icon" disabled={isLoading} className="border-gray-300">
+                        <MoreVerticalIcon className="w-5 h-5" />
+                    </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-56">
+                    
+                    <DropdownMenuLabel>Document Actions</DropdownMenuLabel>
+                    
+                    {/* Output Actions */}
+                    <DropdownMenuItem onClick={handlePrintPDF}>
+                        <PrinterIcon className="w-4 h-4 mr-2" /> Print/Export PDF
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={handleExportExcel}>
+                        <FileDownIcon className="w-4 h-4 mr-2" /> Export to Excel
+                    </DropdownMenuItem>
+                    
+                    {/* Separator before the standard "Delete" */}
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem 
+                        onClick={handleDelete} 
+                        disabled={isLoading}
+                        className="text-red-600 focus:bg-red-50 focus:text-red-600"
+                    >
+                        <Trash2Icon className="w-4 h-4 mr-2" /> Delete Invoice (via Wrapper)
+                    </DropdownMenuItem>
+                    
+                </DropdownMenuContent>
+            </DropdownMenu>
+
+        </div>
+    </div>
+);
 };
 
 export default InvoiceActionsWrapper;
-
-// src/app/invoices/[id]/InvoiceActionsWrapper.tsx
-// 'use client'; 
-
-// import React from 'react';
-// import { useRouter } from 'next/navigation';
-// // Assuming you have 'react-hot-toast' installed for notifications
-// import toast from 'react-hot-toast'; 
-
-// import InvoiceDetailHeader from '../../_components/features/invoices/InvoiceDetailsHeader';
-// import { 
-//     Invoice, 
-//     Customer, 
-//     InvoiceItem 
-// } from '@/app/ar/types/finance'; 
-
-// // Define the fully loaded invoice type
-// type FullInvoice = Invoice & {
-//     customer: Customer;
-//     items: InvoiceItem[];
-// };
-
-// interface InvoiceActionsWrapperProps {
-//     invoice: FullInvoice;
-// }
-
-// const InvoiceActionsWrapper: React.FC<InvoiceActionsWrapperProps> = ({ invoice }) => {
-//     const router = useRouter();
-    
-//     // Mocking loading state for simplicity
-//     const isLoading = false; 
-
-//     // Handler for Invoice Deletion
-//     const handleDelete = async () => {
-      
-//         const apiRoute = `/ar/api/invoices/${invoice.id}`; // Matches the path used in the original faulty code
-        
-//         try {
-//             const response = await fetch(apiRoute, {
-//                 method: 'DELETE',
-//                 headers: { 'Content-Type': 'application/json' },
-//             });
-
-//             if (response.ok) {
-//                 toast.success(`Invoice ${invoice.invoiceNumber} deleted successfully.`);
-//                 // Navigate back to the invoice list and refresh the route cache
-//                 router.push('/ar/invoices'); 
-//                 router.refresh(); 
-//             } else {
-//                 const errorData = await response.json();
-//                 toast.error(errorData.message || 'Deletion failed.');
-//             }
-//         } catch (error) {
-//             console.error(`Error deleting invoice ${invoice.id}:`, error);
-//             toast.error(`Error deleting invoice: ${error instanceof Error ? error.message : 'Unknown error'}`);
-//         }
-//     };
-
-//     // Handler for Mark Paid logic
-//     const handleMarkPaid = async () => {
-//         // Implementation for marking the invoice as paid via API
-//         // This is necessary because the InvoiceDetailHeader button requires a handler
-//         console.log(`Action: Mark Invoice ${invoice.invoiceNumber} as PAID.`);
-//         // router.refresh() after successful update
-//     };
-
-
-//     // Pass the handlers down to the InvoiceDetailHeader
-//     return (
-//         <InvoiceDetailHeader 
-//             invoice={invoice} 
-//             // Pass the regular functions directly
-//             onDelete={handleDelete} 
-//             //onMarkPaid={handleMarkPaid} // Assuming you update the header to accept this
-//            // isLoading={isLoading} // Assuming you update the header to accept this
-//         />
-//     );
-// };
-
-// export default InvoiceActionsWrapper;

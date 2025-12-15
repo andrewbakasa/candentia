@@ -70,7 +70,7 @@ const InvoiceDetailHeader: React.FC<InvoiceDetailHeaderProps> = ({ invoice, onDe
             
             {/* Action Buttons (Right Side - Stack vertically on mobile, wrap horizontally on desktop) */}
             {/* Added w-full and border-t on mobile for better separation and full-width buttons */}
-            <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto border-t sm:border-t-0 pt-3 sm:pt-0">
+            <div className="flex flex-row gap-2 w-full sm:w-auto border-t sm:border-t-0 pt-3 sm:pt-0">
                 
                 {/* Edit Button */}
                 {invoice.status !== InvoiceStatus.VOID && (

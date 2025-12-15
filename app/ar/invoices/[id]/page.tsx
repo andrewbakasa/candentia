@@ -1,6 +1,6 @@
 // src/app/invoices/[id]/page.tsx
 import React from 'react';
-import { notFound } from 'next/navigation';
+import { notFound, useRouter } from 'next/navigation';
 
 // Correct imports
 import prisma from '../../../libs/prismadb'; 
@@ -12,6 +12,7 @@ import {
 
 import InvoiceDetailView from '../../_components/features/invoices/InvoiceDetailsView';
 import InvoiceActionsWrapper from './InvoiceActionsWrapper';
+import { ChevronLeft } from 'lucide-react';
 
 
 // Define the expected type structure coming from the database
@@ -33,6 +34,8 @@ interface InvoiceDetailPageProps {
 export default async function InvoiceDetailPage({ params }: InvoiceDetailPageProps) {
     const invoiceId = params.id;
     const invoice = await getInvoice(invoiceId);
+    
+    
 
     if (!invoice) {
         notFound();
@@ -45,6 +48,8 @@ export default async function InvoiceDetailPage({ params }: InvoiceDetailPagePro
        // invoiceDate: invoice.invoiceDate.toISOString(), 
        // dueDate: invoice.dueDate.toISOString(),
     };
+
+    
 
     return (
         <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-8">

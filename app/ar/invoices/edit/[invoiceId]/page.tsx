@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation';
 import { Invoice, Customer, InvoiceItem } from '@prisma/client'; 
 // Import the component and the necessary types from the form file
 import InvoiceForm, { InvoiceFormData, FullInvoice } from '@/app/ar/_components/features/invoices/InvoiceForm';
+import { ChevronLeft } from 'lucide-react';
 
 interface EditInvoicePageProps {
     params: {
@@ -106,17 +107,71 @@ export default function EditInvoicePage({ params }: EditInvoicePageProps) {
         return <div className="p-8 text-center text-red-600">{error || 'Invoice not found.'}</div>;
     }
 
-    // --- Rendering the Form ---
+  
+    
+    // --- UPDATED: Navigation handler for the "Cancel" button ---
+    const handleCancel = () => {
+        // router.back() navigates to the previous page in the history, 
+        // which should be the single invoice view page.
+        router.back(); 
+    };
+    // return (
+    //     <div className="container mx-auto p-4 sm:p-8 max-w-4xl">
+            
+    //         {/* Header Area with Title and Back Link */}
+    //         <div className="flex justify-between items-center mb-6 border-b pb-3">
+    //             <h1 className="text-2xl sm:text-3xl font-bold text-gray-800">
+    //                 Edit Invoice: {initialData.invoiceNumber}
+    //             </h1>
+                
+    //             {/* Return Link Button */}
+    //             <button
+    //                 onClick={handleReturnToList}
+    //                 className="flex items-center text-indigo-600 hover:text-indigo-800 transition duration-150 text-sm sm:text-base font-medium p-2 rounded-md hover:bg-indigo-50"
+    //             >
+    //                 <ChevronLeft className="w-5 h-5 mr-1" />
+    //                 Return to Invoice List
+    //             </button>
+    //         </div>
+            
+    //         <InvoiceForm 
+    //             initialData={initialData} 
+    //             onSubmit={handleFormSubmit}
+    //             onSubmitSuccess={handleUpdateSuccess} 
+    //             isEditing={true}
+    //             isSubmitting={isSubmitting}
+    //         />
+    //     </div>
+    // );
+
+
     return (
-        <div className="container mx-auto p-8 max-w-4xl">
-            <h1 className="text-3xl font-bold mb-6">Edit Invoice: {initialData.invoiceNumber}</h1>
+        <div className="container mx-auto p-4 sm:p-8 max-w-4xl">
+            
+            {/* Header Area with Title and Back Link */}
+            <div className="flex justify-between items-center mb-6 border-b pb-3">
+                <h1 className="text-2xl sm:text-3xl font-bold text-gray-800">
+                    Edit Invoice: {initialData.invoiceNumber}
+                </h1>
+                
+                {/* Cancel Button (Go Back) */}
+                <button
+                    onClick={handleCancel} // Use the new handleCancel function
+                    className="flex items-center text-gray-600 hover:text-gray-800 transition duration-150 text-sm sm:text-base font-medium p-2 rounded-md hover:bg-gray-100"
+                >
+                    <ChevronLeft className="w-5 h-5 mr-1" />
+                    Cancel
+                </button>
+            </div>
+            
             <InvoiceForm 
                 initialData={initialData} 
-                onSubmit={handleFormSubmit} // <-- CORRECTED onSubmit handler
+                onSubmit={handleFormSubmit}
                 onSubmitSuccess={handleUpdateSuccess} 
                 isEditing={true}
-                isSubmitting={isSubmitting} // <-- CORRECTED isSubmitting state
+                isSubmitting={isSubmitting}
             />
         </div>
     );
 }
+
