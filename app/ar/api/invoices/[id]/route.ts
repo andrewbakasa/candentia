@@ -66,133 +66,6 @@ interface UpdateInvoicePayload {
     }>;
 }
 
-/**
- * PATCH /ar/api/invoices/[invoiceId]
- * Updates an existing Invoice and its line items.
- */
-// export async function PATCH(
-//     request: Request,
-//     { params }: { params: { invoiceId: string } }
-// ) {
-//     const invoiceId = params.invoiceId;
-    
-//     // --- 1. Validate ID and Parse Body ---
-//     if (!invoiceId) {
-//         return NextResponse.json({ message: 'Missing invoice ID' }, { status: 400 });
-//     }
-
-//     let payload: UpdateInvoicePayload;
-//     try {
-//         payload = await request.json();
-//     } catch (e) {
-//         return NextResponse.json({ message: 'Invalid JSON body' }, { status: 400 });
-//     }
-
-//     // Basic validation
-//     if (payload.id !== invoiceId) {
-//         return NextResponse.json({ message: 'URL ID and Payload ID mismatch' }, { status: 400 });
-//     }
-
-//     // --- 2. Separate Line Items ---
-//     const existingItemIds = payload.items
-//         .map(item => item.id)
-//         .filter((id): id is string => !!id);
-
-//     // Get the IDs of items currently in the database to find deletions
-//     const currentDbItems = await prisma.invoiceItem.findMany({
-//         where: { invoiceId },
-//         select: { id: true },
-//     });
-//     const dbItemIds = currentDbItems.map(item => item.id);
-    
-//     // Calculate items to delete (in DB but not in payload)
-//     const itemsToDelete = dbItemIds.filter(dbId => !existingItemIds.includes(dbId));
-
-
-//     // --- 3. Start Transaction ---
-//     try {
-//         const result = await prisma.$transaction(async (tx) => {
-            
-//             // a. Update Invoice Header
-//             const updatedInvoice = await tx.invoice.update({
-//                 where: { id: invoiceId },
-//                 data: {
-//                     // Removed: new Decimal(...)
-//                     subTotal: payload.subTotal,
-//                     taxAmount: payload.taxAmount,
-//                     totalAmount: payload.totalAmount,
-//                     amountDue: payload.amountDue, 
-//                     //taxRate: payload.taxRate, 
-//                     invoiceDate: payload.invoiceDate,
-//                     dueDate: payload.dueDate,
-//                     // customerId is locked/unchanged, but if it were editable, update here
-//                     // status: 'DRAFT' // Optionally update status if needed
-//                 },
-//                 select: { id: true, invoiceNumber: true }
-//             });
-
-//             // b. Handle Item Deletions
-//             if (itemsToDelete.length > 0) {
-//                 await tx.invoiceItem.deleteMany({
-//                     where: {
-//                         id: {
-//                             in: itemsToDelete,
-//                         },
-//                     },
-//                 });
-//             }
-
-//             // c. Handle Item Updates and Creations
-//             const itemOperations = payload.items.map(item => {
-//                 const itemData = {
-//                     productId: item.productId,
-//                     productName: item.productName,
-//                     quantity: item.quantity,
-//                     // Removed: new Decimal(...)
-//                     unitPrice: item.unitPrice,
-//                     lineTotal: item.lineTotal,
-//                     discountRate: item.discountRate,
-//                     // Snapshot: A simple static snapshot of the SKU could be added here
-//                     skuSnapshot: 'N/A', 
-//                 };
-                
-//                 if (item.id) {
-//                     // Item exists (Update)
-//                     return tx.invoiceItem.update({
-//                         where: { id: item.id },
-//                         data: itemData,
-//                     });
-//                 } else {
-//                     // New item (Create)
-//                     return tx.invoiceItem.create({
-//                         data: {
-//                             ...itemData,
-//                             invoiceId: updatedInvoice.id,
-//                         },
-//                     });
-//                 }
-//             });
-
-//             await Promise.all(itemOperations);
-
-//             return updatedInvoice;
-//         });
-
-//         // --- 4. Success Response ---
-//         return NextResponse.json({
-//             message: `Invoice ${result.invoiceNumber} updated successfully.`,
-//             invoice: result,
-//         }, { status: 200 });
-
-//     } catch (dbError) {
-//         // --- 5. Error Response ---
-//         console.error("Database transaction failed during update:", dbError);
-//         return NextResponse.json({ message: 'Database error during invoice update.' }, { status: 500 });
-//     }
-// }
-
-// Define constants and interfaces used in the logic (place at the top of your file)
-// const TAX_RATE = 0.10; // Example 10% tax rate. You must define this globally or fetch it.
 
 export async function PATCH(
     request: Request,
@@ -359,5 +232,56 @@ export async function PATCH(
         // ... (Error handling remains the same)
         console.error("Database transaction failed during update:", dbError);
         return NextResponse.json({ message: 'Database error during invoice update.' }, { status: 500 });
+    }
+}
+
+/**
+ * 🎯 Route Handler for: DELETE /api/invoices/[id]
+ * Deletes an invoice and all its associated line items.
+ */
+export async function DELETE(request: NextRequest, context: Context) {
+    const { id } = context.params;
+
+    if (!id) {
+        return NextResponse.json({ message: "Missing invoice ID." }, { status: 400 });
+    }
+
+    try {
+        // Use a transaction to ensure both items and the invoice are deleted,
+        // or neither is. This maintains database integrity.
+        await prisma.$transaction(async (tx) => {
+            
+            // 1. Delete all associated InvoiceItems first
+            await tx.invoiceItem.deleteMany({
+                where: { invoiceId: id },
+            });
+            
+            // 2. Delete the Invoice itself
+            const deletedInvoice = await tx.invoice.delete({
+                where: { id: id },
+                select: { invoiceNumber: true }
+            });
+
+            // 3. Check if the deletion was successful (optional, but good practice)
+            if (!deletedInvoice) {
+                 // Throwing an error will automatically rollback the transaction
+                 throw new Error("Invoice record not found during deletion.");
+            }
+        });
+
+        return NextResponse.json({ 
+            message: `Invoice ID ${id} deleted successfully.`,
+            id: id,
+        }, { status: 200 });
+
+    } catch (error) {
+        console.error(`API DELETE Error: Failed to delete invoice ${id}`, error);
+        
+        // Handle specific case where the invoice might not exist (e.g., P2003 error for foreign key violation if not handled above)
+        // Note: The transaction handles atomicity, but a final check for a non-existent ID after item deletion is tricky.
+        return NextResponse.json(
+            { message: "Failed to delete invoice due to a database error or not found." },
+            { status: 500 }
+        );
     }
 }
