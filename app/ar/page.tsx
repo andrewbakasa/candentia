@@ -30,7 +30,7 @@ const DASHBOARD_LINKS: DashboardLink[] = [
         href: "/ar/products",
         icon: <ShoppingCart className="w-8 h-8" />,
         color: "green",
-        develop_stage: 60
+        develop_stage: 90
     },
     
     {
@@ -47,7 +47,7 @@ const DASHBOARD_LINKS: DashboardLink[] = [
         href: "/ar/invoices",
         icon: <DollarSign className="w-8 h-8" />,
         color: "red",
-        develop_stage: 90
+        develop_stage: 95
     },
 ];
 
