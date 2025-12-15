@@ -1327,34 +1327,63 @@ model Customer {
   quotations Quotation[]
 }
 
+
+
+// model Quotation {
+//   id              String          @id @default(auto()) @map("_id") @db.ObjectId
+//   customerId      String
+//   customer        Customer        @relation(fields: [customerId], references: [id])
+//   quotationNumber String          @unique
+//   status          String          // DRAFT, PENDING, ACCEPTED, REJECTED
+
+//   // Financials (UPDATED)
+//   subTotal        Float
+//   taxAmount       Float           // Added: The calculated tax amount
+//   taxRate         Float           // Added: The applicable tax rate (e.g., 0.05 for 5%)
+//   totalAmount     Float
+
+//   // Relationships
+//   items           QuotationItem[]
+//   invoice         Invoice[]       // Link to the invoice created from this quote
+
+//   createdAt       DateTime        @default(now())
+//   updatedAt       DateTime        @updatedAt
+
+//   @@index([customerId])
+// }
+
 model Quotation {
-  id              String   @id @default(auto()) @map("_id") @db.ObjectId
-  customerId      String
-  customer        Customer @relation(fields: [customerId], references: [id])
-  quotationNumber String   @unique
-  status          String // DRAFT, PENDING, ACCEPTED, REJECTED
+  id                String          @id @default(auto()) @map("_id") @db.ObjectId
+  customerId        String
+  customer          Customer        @relation(fields: [customerId], references: [id])
+  quotationNumber   String          @unique
+  status            String          // DRAFT, PENDING, ACCEPTED, REJECTED
 
   // Financials
-  subTotal    Float
-  totalAmount Float
+  subTotal          Float
+  taxAmount         Float           // Added: The calculated tax amount
+  taxRate           Float           // Added: The applicable tax rate (e.g., 0.05 for 5%)
+  totalAmount       Float
+
+  // FIX: ADD THE MISSING EXPIRY DATE FIELD
+  validUntil        DateTime?       // The date the quotation is valid until (Optional)
 
   // Relationships
-  items   QuotationItem[]
-  invoice Invoice[] // Link to the invoice created from this quote
+  items             QuotationItem[]
+  invoice           Invoice[]       // Link to the invoice created from this quote
 
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  createdAt         DateTime        @default(now())
+  updatedAt         DateTime        @updatedAt
 
   @@index([customerId])
 }
-
 model QuotationItem {
   id          String    @id @default(auto()) @map("_id") @db.ObjectId
   quotationId String
   quotation   Quotation @relation(fields: [quotationId], references: [id])
 
-  productId String?
-  product   Product? @relation(fields: [productId], references: [id])
+  productId   String?
+  product     Product?  @relation(fields: [productId], references: [id])
 
   productName String
   unitPrice   Float

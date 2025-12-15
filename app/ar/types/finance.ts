@@ -46,6 +46,7 @@ export interface QuotationItem {
 }
 
 export interface Quotation {
+    createdAt: string | number | Date;
     id: string;
     customerId: string;
     customer: Customer;
@@ -203,22 +204,138 @@ export interface ProductFormData {
     reorderPoint?: number;      // Threshold for reordering
     location?: string;          // Warehouse location
 }
-// export interface Product {
-//     id: string;
-//     sku: string;
-//     name: string;
-//     description?: string;
-    
-//     // Inventory/Stocking fields
-//     stockQuantity: number;
-//     reorderLevel?: number; // Optional threshold to trigger procurement
-    
-//     // Financial fields (Converted from Decimal to number for the client)
-//     unitPrice: number; // Selling price
-//     unitCost: number;  // Cost to the business (COGS)
-    
-//     // Metadata
-//     createdAt: Date;
-//     updatedAt: Date;
-//     isActive: boolean;
-// }
+
+// NEW: Explicit Enum for Quotation Status
+export enum QuotationStatus {
+    DRAFT = 'DRAFT',
+    PENDING = 'PENDING', // Sent to client, awaiting response
+    ACCEPTED = 'ACCEPTED',
+    REJECTED = 'REJECTED',
+    EXPIRED = 'EXPIRED',
+}
+
+// --- AR Models: Quotation (Backend/Decimal Types) ---
+
+// Detailed item structure using Decimal for high precision
+export interface QuotationItemDetail {
+    id: string;
+    quotationId: string;
+    productId?: string;
+    productName: string;
+    unitPrice: Decimal; 
+    quantity: number;
+    lineTotal: Decimal;
+}
+
+// Detailed Quotation structure (from backend/Prisma)
+export interface QuotationDetail {
+    id: string;
+    customerId: string;
+    customer: Customer; // Assumes customer is included via relation
+    quotationNumber: string;
+    status: QuotationStatus; // Use the strict enum
+    subTotal: Decimal;
+    totalAmount: Decimal;
+    items: QuotationItemDetail[];
+    invoice?: { id: string }[]; // Simplified invoice relation link
+    createdAt: Date;
+    updatedAt: Date;
+}
+
+
+// --- AR Models: Quotation (Client/Number Types) ---
+
+// Client-friendly item structure using number for display/forms
+export interface QuotationItemClient {
+    id: string;
+    quotationId: string;
+    productId?: string;
+    productName: string;
+    unitPrice: number; // Converted from Decimal
+    quantity: number;
+    lineTotal: number; // Converted from Decimal
+}
+
+// Client-friendly Quotation structure
+export interface QuotationClient {
+    id: string;
+    customerId: string;
+    // For lists, we often only need the name/summary
+    customer: { id: string; name: string }; 
+    quotationNumber: string;
+    status: QuotationStatus;    
+    taxRate: number;
+    taxAmount:number;
+    subTotal: number; // Converted from Decimal
+    totalAmount: number; // Converted from Decimal
+    items: QuotationItemClient[];
+    invoiceCreated: boolean; // Simple flag for client logic
+    createdAt: Date;
+    updatedAt: Date;
+}
+
+
+// --- Quotation Form Data Types ---
+
+// Data structure used to create/update items via the form (temporary IDs/no IDs)
+export interface QuotationItemFormData {
+    productId?: string;
+    productName: string;
+    unitPrice: number;
+    quantity: number;
+    lineTotal: number;
+}
+
+// Data structure used to create/update a full Quotation
+export interface QuotationFormData {
+    expiryDate: any;
+    quotationDate: any;
+    customerId: string;
+    quotationNumber: string;
+    // Status can usually only be DRAFT/PENDING when being created/edited
+    status: QuotationStatus.DRAFT | QuotationStatus.PENDING; 
+    subTotal: number;
+    totalAmount: number;
+    // Items are included in the payload
+    items: QuotationItemFormData[]; 
+}
+
+// ... (Other Invoice, PO, Product models) ...
+
+
+// --- Quotation Form Data Types ---
+
+// Data structure used to create/update items via the form (temporary IDs/no IDs)
+export interface QuotationItemFormData {
+    productId?: string;
+    productName: string;
+    unitPrice: number;
+    quantity: number;
+    lineTotal: number;
+}
+
+// NEW TYPE: Minimal data structure returned by the QuotationForm component
+// This represents the data collected directly from the input fields.
+export interface QuotationFormOutput {
+    expiryDate: any;
+    quotationDate: any;
+    customerId: string;
+    subTotal: number;
+    totalAmount: number;
+    items: QuotationItemFormData[]; 
+}
+
+
+// UPDATED TYPE: Data structure used to create/update a full Quotation for the API.
+// This is used for editing or when the server generates a quotationNumber/status.
+// NOTE: Since your component uses it for submission payload, we'll keep the full type 
+// and only use QuotationFormOutput for the form's onSubmit handler.
+export interface QuotationFormData extends QuotationFormOutput {
+    quotationNumber: string; // Required for a full record
+    status: QuotationStatus.DRAFT | QuotationStatus.PENDING; // Required for a full record
+}
+
+// NEW EXPORT: The minimal data required to CREATE a quotation (API input)
+export type QuotationCreationPayload = QuotationFormOutput & { 
+    status: QuotationStatus.DRAFT | QuotationStatus.PENDING; 
+};
