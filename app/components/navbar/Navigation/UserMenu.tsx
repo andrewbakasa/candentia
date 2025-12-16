@@ -32,13 +32,20 @@ const UserMenu: React.FC<UserMenuProps> = ({ currentUser, handleNavigate }) => {
   const { unreadMessages } = useInboxCountVarStore();
 
   const allowedRolesContracts = ['admin', 'executive'];
-  
+    // --- Access Control Check ---
+  const allowedDefectElimantion = ['admin', 'executive', 'manager', 'engineer'];
+
   /**
    * Determine authorization for the Contracts link.
    * True if the user is an admin OR if their roles array contains 'admin' or 'executive'.
    */
   const isAuthorizedContracts = currentUser?.isAdmin || 
     currentUser?.roles?.some(role => allowedRolesContracts.includes(role.toLowerCase()));
+
+ const isAuthorizedDefectElimination = currentUser?.isAdmin || 
+    currentUser?.roles?.some(role => allowedDefectElimantion.includes(role.toLowerCase()));
+
+   
 
   // Handle click outside to close the menu
   useEffect(() => {
@@ -134,7 +141,8 @@ const UserMenu: React.FC<UserMenuProps> = ({ currentUser, handleNavigate }) => {
                 <hr className="my-1" />
                 
                 {/* --- Admin Careers Link --- */}
-                {currentUser?.isAdmin && (
+                
+                {isAuthorizedDefectElimination && (
                   <MenuItem label="Defect Elimination" onClick={() => handleMenuItemClickWithNav("/de")} />
                 )}
 
