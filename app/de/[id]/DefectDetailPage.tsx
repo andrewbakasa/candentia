@@ -1070,7 +1070,7 @@ type SectionKey = 'details' | 'analysis' | 'actions' | 'improvement';
     const actionsRef = useRef<HTMLDivElement>(null);
     const improvementRef = useRef<HTMLDivElement>(null);
 
-     const allowedRoles: string[] = ['admin', 'executive'];
+     const allowedRoles: string[] = ['admin', 'executive','engineer'];
     
         const hasRequiredRole = useMemo(() => {
             if (!currentUser) {
