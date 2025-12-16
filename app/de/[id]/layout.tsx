@@ -1,99 +1,103 @@
 import prisma from "@/app/libs/prismadb";
-import { Prisma } from "@prisma/client"; // Import Prisma for types/client
+import { Prisma } from "@prisma/client";
 
-// Define the type for the included invoice to ensure type safety
-// This is a custom type built from Prisma's generated types if you have them,
-// or you can define an explicit fragment.
-// For simplicity and dependency on the model structure:
-type InvoiceWithCustomer = Prisma.InvoiceGetPayload<{
-  include: { customer: true };
+// Define a minimal type for the selected fields to ensure type safety.
+// This type strictly mirrors the fields requested in the 'select' query below.
+type DefectMinimal = Prisma.DefectGetPayload<{
+    select: {
+        id: true;
+        title: true;
+        equipmentTag: true;
+        status: true;
+        type: true;
+        priority: true;
+        reportedby: true;
+        eliminationRecord: { select: { dateClosed: true } };
+    };
 }>;
 
 
+/**
+ * @description Generates dynamic metadata (title, description) for the Defect detail page.
+ * @param {object} params - Contains the 'id' of the Defect from the route segment.
+ * @returns {object} The metadata object for the page.
+ */
 export async function generateMetadata({ 
-  params
+    params
 }: {
-  params: { id: string; };
+    params: { id: string; };
 }) {
-  
-  // 1. Eager-load the 'customer' relation
-  const invoice: InvoiceWithCustomer | null = await prisma.invoice.findUnique({
-    where: {
-      id: params.id,
-    },
-    include: {
-      customer: true, // Fetch the related Customer data
-    }
-  });
-
-  // Default title if invoice is not found
-  if (!invoice) {
-    return {
-      title: "Invoice Not Found",
-    };
-  }
-  
-  // 2. Construct a richer title using customer and totalAmount
-  const formattedTotal = new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: 'USD', // Assuming USD, adjust as needed
-  }).format(invoice.totalAmount);
-
-  const title = `Invoice #${invoice.invoiceNumber} for ${invoice.customer.name} - Total: ${formattedTotal}`;
     
-  return {
-    title: title,
-    // Add a description for better SEO/sharing context
-    description: `Details for Invoice #${invoice.invoiceNumber} issued to ${invoice.customer.name} on ${invoice.invoiceDate.toLocaleDateString()}. Status: ${invoice.status}. Amount Due: ${formattedTotal}.`,
-  };
+    // 1. Fetch ONLY the required fields using 'select' for optimal performance.
+    const defect: DefectMinimal | null = await prisma.defect.findUnique({
+        where: {
+            id: params.id,
+        },
+        select: {
+            // Core Defect fields
+            id: true,
+            title: true,
+            equipmentTag: true,
+            status: true,
+            type: true,
+            priority: true,
+            reportedby: true,
+            
+            // Related DefectElimination field (only the closure date)
+            eliminationRecord: {
+                select: {
+                    dateClosed: true, 
+                }
+            },
+        }
+    });
+
+    // Default title if defect is not found
+    if (!defect) {
+        return {
+            title: "Defect Not Found",
+        };
+    }
+    
+    // 2. Construct metadata fields
+    const statusText = defect.status;
+    const typeText = defect.type;
+    const reportedByText = defect.reportedby ? ` (Reported by: ${defect.reportedby})` : '';
+
+    // Primary Title: Short and descriptive for search engines/tabs
+    const title = `Defect: ${defect.title} [${defect.equipmentTag}] - Status: ${statusText}`;
+    
+    // Description: Detailed context for SEO/sharing previews
+    const description = 
+        `Details for Defect ID ${defect.id} on equipment ${defect.equipmentTag} (${typeText} type). ` +
+        `Current Status: ${statusText}. ` +
+        `Priority: ${defect.priority}. ` +
+        `${defect.eliminationRecord?.dateClosed 
+            ? `Closed on: ${defect.eliminationRecord.dateClosed.toLocaleDateString()}.` 
+            : 'Still open/in progress.'}` +
+        `${reportedByText}`;
+        
+    return {
+        title: title,
+        description: description,
+    };
 }
 
-const InvoiceLayout = async ({
-  children,
+/**
+ * @description Layout component for the Defect detail page.
+ * (Typical boilerplate for a page layout in Next.js).
+ */
+const DefectLayout = async ({
+    children,
 }: {
-  children: React.ReactNode;
+    children: React.ReactNode;
 }) => {
-  return (
-    <>
-      {children}
-    </>
-  );
+    return (
+        // Renders the child page content (e.g., app/defect/[id]/page.tsx)
+        <>
+            {children}
+        </>
+    );
 };
 
-export default InvoiceLayout;
-// import prisma from "@/app/libs/prismadb";
-// export async function generateMetadata({ 
-//   params
-//  }: {
-//   params: { id: string; };
-//  }) {
- 
-//   const defect = await prisma.defect.findUnique({
-//     where: {
-//       id: params.id,
-//     }
-//   });
-
-
-    
-//   return {
-//     title: `Defect: ${defect?.title}` || "Defect",
-//   };
-// }
-// const DefectLayout = async ({
-//   children,
-// }: {
-//   children: React.ReactNode;
-// }) => {
-
- 
-
-//   return (
-//     <>
-//       {children}
-//     </>
-//   );
-// };
-
-// export default DefectLayout;
-
+export default DefectLayout;
