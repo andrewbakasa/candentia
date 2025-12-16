@@ -29,6 +29,7 @@ import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
 import { useAction } from '@/hooks/use-action';
 import { updatePagSize } from '@/actions/update-user-pagesize';
+import SearchFieldSelector from './_components/SearchFielSelector';
 
 
 // --- DATABASE ENUMS (MAPPED TO REACT TYPES) ---
@@ -46,7 +47,7 @@ type DatabaseDefectStatus = 'IDENTIFIED' | 'IN_ANALYSIS' | 'ACTION_DEFINED' | 'A
 // Logical groupings used by the UI for coloring/filtering
 type DefectStatusCategory = 'ALL' | 'CLOSED' | 'HIGH_PRIORITY' | 'OPEN';
 
-interface DefectListModel {
+interface DefectListModel1 {
     id: string;
     title: string;
     description: string | null;
@@ -66,6 +67,78 @@ interface DefectListModel {
     }
 }
 
+interface DefectListModel2 {
+    id: string;
+    title: string;
+    description: string | null;
+    assignee: string | null; 
+    area: string | null;
+    equipmentTag: string | null;
+    reportedby: string | null;
+    identificationDate: Date;
+    type: string; 
+    priority: Priority; 
+    status: DatabaseDefectStatus; 
+
+    isClosed: boolean; 
+    closedDate: string | null; 
+    targetResolutionDate: string | null; 
+
+    // FIELDS FOR SEARCHING RELATED TEXT
+    eliminationRootCauseText: string | null; 
+    analysisSummaries: string[];             
+    actionDescriptions: string[];           
+    improvementDescriptions: string[]; 
+
+    _count: {
+        comments: number;
+    }
+}
+ export interface DefectListModel {
+    id: string;
+    title: string;
+    description: string | null;
+    assignee: string | null; 
+    area: string | null;
+    equipmentTag: string | null;
+    reportedby: string | null;
+    identificationDate: Date;
+    type: string; 
+    priority: Priority; 
+    status: DatabaseDefectStatus; 
+
+    isClosed: boolean; 
+    closedDate: string | null; 
+    targetResolutionDate: string | null; 
+
+    // FIELDS FOR SEARCHING RELATED TEXT
+    eliminationRootCauseText: string | null; 
+    analysisSummaries: string[];             
+    actionDescriptions: string[];           
+    improvementDescriptions: string[]; 
+
+    _count: {
+        comments: number;
+    }
+}
+
+// Define all available search fields for the user to choose from
+export const searchableFields = {
+    // Direct Defect fields
+    title: { label: 'Title', type: 'string' },
+    description: { label: 'Description', type: 'string' },
+    assignee: { label: 'Assignee', type: 'string' },
+    type: { label: 'Defect Type', type: 'string' },
+    equipmentTag: { label: 'Equipment Tag', type: 'string' },
+    
+    // Related/Flattened fields
+    eliminationRootCauseText: { label: 'Root Cause Text', type: 'string' },
+    analysisSummaries: { label: 'Analysis Summaries', type: 'array' },
+    actionDescriptions: { label: 'Action Descriptions', type: 'array' },
+    improvementDescriptions: { label: 'CI Opportunities', type: 'array' },
+};
+
+export type SearchableFieldKey = keyof typeof searchableFields;
 // Data options for the Form
 const SEVERITY_OPTIONS: Priority[] = ['CRITICAL', 'HIGH', 'MEDIUM', 'LOW'];
 export type DefectType = 'MECHANICAL' | 'ELECTRICAL' | 'SOFTWARE' | 'PROCESS' | 'OTHER';
@@ -225,18 +298,7 @@ const DefectForm: React.FC<DefectFormProps> = ({ initialData, onSubmit, onCancel
         setFormData(prev => ({ ...prev, [name]: value }));
     };
 
-    // const handleSubmit = (e: React.FormEvent) => {
-    //     e.preventDefault();
-        
-    //     const dataToSubmit = {
-    //         ...formData,
-    //         identificationDate: new Date(formData.identificationDate), // Convert back to Date object
-    //         ...(isEditing && { id: initialData.id }),
-    //         description: formData.description?.trim() || null, 
-    //     };
-        
-    //     onSubmit(dataToSubmit);
-    // };
+    
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
         
@@ -767,6 +829,15 @@ const DefectListClient: React.FC<DefectListClientProps> = ({ currentUser }) => {
     // --- State Management ---
     const [defects, setDefects] = useState<DefectListModel[]>([]);
     const [searchTerm, setSearchTerm] = useState('');
+    // NEW STATE: Tracks which fields are active for searching
+    const initialActiveFields: SearchableFieldKey[] = [
+        'title', 
+        'description', 
+        'assignee', 
+        'equipmentTag', 
+        'eliminationRootCauseText' // Root Cause is often a primary search target
+    ];
+    const [activeSearchFields, setActiveSearchFields] = useState<SearchableFieldKey[]>(initialActiveFields);
     const [filterCategory, setFilterCategory] = useState<DefectStatusCategory>('ALL');
     const [pageSize, setPageSize] = useState(currentUser?.pageSize||DEFAULT_PAGE_SIZE);
     const [itemOffset, setItemOffset] = useState(0);
@@ -830,9 +901,9 @@ const DefectListClient: React.FC<DefectListClientProps> = ({ currentUser }) => {
 
 
     // --- Filtering Logic ---
-    const filteredDefects = useMemo(() => {
+    const filteredDefects1 = useMemo(() => {
         let result = defects;
-
+        console.log('results', result)
         // 1. Category Filter
         if (filterCategory !== 'ALL') {
             result = result.filter(defect => getDefectStatusCategory(defect) === filterCategory);
@@ -854,6 +925,99 @@ const DefectListClient: React.FC<DefectListClientProps> = ({ currentUser }) => {
 
         return result;
     }, [defects, filterCategory, searchTerm]);
+
+    const filteredDefects2 = useMemo(() => {
+    let result = defects;
+    const lowerCaseSearch = searchTerm ? searchTerm.toLowerCase() : '';
+
+    // 1. Category Filter (Retained)
+    if (filterCategory !== 'ALL') {
+        result = result.filter(defect => getDefectStatusCategory(defect) === filterCategory);
+    }
+
+    // 2. Search Filter (IMPROVED)
+    if (searchTerm) {
+        result = result.filter(defect => 
+            // Existing search fields
+            defect.title.toLowerCase().includes(lowerCaseSearch) ||
+            defect.description?.toLowerCase().includes(lowerCaseSearch) ||
+            defect.assignee?.toLowerCase().includes(lowerCaseSearch) ||
+            defect.type?.toLowerCase().includes(lowerCaseSearch) ||
+            
+            // -----------------------------------------------------------------
+            // ✅ NEW SEARCH LOGIC FOR RELATED DATA (Root Cause, Analysis, Actions)
+            
+            // 1. Elimination Root Cause Text
+            defect.eliminationRootCauseText?.toLowerCase().includes(lowerCaseSearch) ||
+            
+            // 2. Analysis Summaries (Check if *any* summary contains the term)
+            defect.analysisSummaries.some(summary => 
+                summary.toLowerCase().includes(lowerCaseSearch)
+            ) ||
+
+            // 3. Action Descriptions (Check if *any* action description contains the term)
+            defect.actionDescriptions.some(description => 
+                description.toLowerCase().includes(lowerCaseSearch)
+            ) ||
+            
+            // 4. Improvement Opportunity Descriptions (Check if *any* opportunity description contains the term)
+            defect.improvementDescriptions.some(description => 
+                description.toLowerCase().includes(lowerCaseSearch)
+            )
+            // -----------------------------------------------------------------
+        );
+    }
+    
+    // Always sort by ID descending (newest first for simplicity)
+    result.sort((a, b) => b.id.localeCompare(a.id)); 
+
+    return result;
+}, [defects, filterCategory, searchTerm]);
+
+// --- Filtering Logic ---
+const filteredDefects = useMemo(() => {
+    let result = defects;
+    const lowerCaseSearch = searchTerm ? searchTerm.toLowerCase() : '';
+
+    // 1. Category Filter (Retained)
+    if (filterCategory !== 'ALL') {
+        result = result.filter(defect => getDefectStatusCategory(defect) === filterCategory);
+    }
+
+    // 2. Search Filter (IMPROVED - USES ACTIVE FIELDS)
+    if (searchTerm && activeSearchFields.length > 0) {
+        result = result.filter(defect => {
+            // Check if the search term matches ANY active field
+            return activeSearchFields.some(fieldKey => {
+                const fieldDef = searchableFields[fieldKey];
+                const defectValue = defect[fieldKey as keyof DefectListModel];
+
+                if (!defectValue) {
+                    return false; // Skip if the field is null/undefined/empty array
+                }
+
+                if (fieldDef.type === 'string' && typeof defectValue === 'string') {
+                    // Search string fields (e.g., title, rootCauseText)
+                    return defectValue.toLowerCase().includes(lowerCaseSearch);
+                } 
+                
+                if (fieldDef.type === 'array' && Array.isArray(defectValue)) {
+                    // Search array fields (e.g., analysisSummaries, actionDescriptions)
+                    return defectValue.some(item => 
+                        typeof item === 'string' && item.toLowerCase().includes(lowerCaseSearch)
+                    );
+                }
+
+                return false;
+            });
+        });
+    }
+    
+    // Always sort by ID descending (newest first for simplicity)
+    result.sort((a, b) => b.id.localeCompare(a.id)); 
+
+    return result;
+}, [defects, filterCategory, searchTerm, activeSearchFields]); // DEPENDENCY ADDED
 
     // --- Pagination Logic ---
     const endOffset = itemOffset + pageSize;
@@ -1060,6 +1224,12 @@ if (isLoading) {
                         className="w-full pl-12 pr-4 py-3 bg-gray-50 border-transparent rounded-xl focus:ring-2 focus:ring-indigo-500/20 focus:bg-white focus:border-indigo-300 transition-all text-sm"
                     />
                 </div>
+                {/* NEW: Search Field Selector Component */}
+                <SearchFieldSelector 
+                    searchableFields={searchableFields}
+                    activeFields={activeSearchFields}
+                    onFieldsChange={setActiveSearchFields}
+                />
             </div>
 
             {/* 4. Desktop Table View: High-density readability */}
