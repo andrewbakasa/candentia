@@ -214,8 +214,9 @@ export const UserData = ({
     { value: 'visitor', label: "Visitor" },
     { value: 'employee', label: "Employee" },
     { value: 'manager', label: "Manager" },
-     { value: 'executive', label: "Executive" },
+    { value: 'executive', label: "Executive" },
     { value: 'admin', label: "Admin" },
+    { value: 'engineer', label: "Engineer" },
   ];
   const convertToOptionArray = (values: string[]): MultiValue<Option> => {
     return values.map((value) => ({ value, label: value.charAt(0).toUpperCase() + value.slice(1) }));
