@@ -1169,25 +1169,48 @@ if (isLoading) {
         <div className="max-w-7xl mx-auto space-y-8">
             {/* 1. Header Area: High contrast, clear hierarchy */}
             <header className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                {/* Left Side: Title and Icon */}
                 <div className="flex items-center gap-3">
+                    {/* Icon/Logo */}
                     <div className="bg-indigo-600 p-2.5 rounded-xl shadow-indigo-200 shadow-lg">
                         <Activity className="w-7 h-7 text-white" />
                     </div>
+                    
+                    {/* Title and Subtitle */}
                     <div>
                         <h1 className="text-2xl font-extrabold text-gray-900 tracking-tight">Defect Elimination</h1>
                         <p className="text-sm text-gray-500 font-medium">Systematic Asset Reliability</p>
                     </div>
                 </div>
-                <button
-                    onClick={() => handleOpenForm(undefined)}
-                    className="group flex items-center px-5 py-2.5 bg-indigo-600 text-white text-sm font-semibold rounded-xl shadow-lg shadow-indigo-100 hover:bg-indigo-700 transition duration-200 transform hover:-translate-y-0.5"
-                >
-                    <Plus className="w-5 h-5 mr-2 group-hover:rotate-90 transition-transform duration-200" />
-                    Report New Defect
-                </button>
-            </header>
 
-          
+                {/* Right Side: Action and Settings Buttons */}
+                <div className='flex flex-row gap-2'> 
+                    {/* 1. Report New Defect Button (Mobile-friendly adaptation) */}
+                    <button
+                        onClick={() => handleOpenForm(undefined)}
+                        className="group flex items-center py-2.5 bg-indigo-600 text-white text-sm font-semibold rounded-xl shadow-lg shadow-indigo-100 hover:bg-indigo-700 transition duration-200 transform hover:-translate-y-0.5"
+                    >
+                        <Plus 
+                            className="w-5 h-5 mx-2 sm:mr-2 sm:ml-0 group-hover:rotate-90 transition-transform duration-200" 
+                        />
+                        {/* Show text only on medium screens and up */}
+                        <span className="hidden sm:inline-block pr-5">
+                            Report New Defect
+                        </span>
+                        {/* Show icon-only button style on small screens */}
+                        <span className="sm:hidden mx-1.5"></span>
+                    </button>
+
+                    {/* 2. Search Field Selector Component */}
+                    {/* The component already handles its own condensed appearance well */}
+                    <SearchFieldSelector 
+                        searchableFields={searchableFields}
+                        activeFields={activeSearchFields}
+                        onFieldsChange={setActiveSearchFields}
+                    />
+                </div>
+            </header>
+                    
 
             {/* 3. Controls Area: Unified search and filtering */}
             <div className="bg-white p-5 rounded-2xl shadow-sm border border-gray-100 space-y-5">
@@ -1224,12 +1247,7 @@ if (isLoading) {
                         className="w-full pl-12 pr-4 py-3 bg-gray-50 border-transparent rounded-xl focus:ring-2 focus:ring-indigo-500/20 focus:bg-white focus:border-indigo-300 transition-all text-sm"
                     />
                 </div>
-                {/* NEW: Search Field Selector Component */}
-                <SearchFieldSelector 
-                    searchableFields={searchableFields}
-                    activeFields={activeSearchFields}
-                    onFieldsChange={setActiveSearchFields}
-                />
+               
             </div>
 
             {/* 4. Desktop Table View: High-density readability */}
