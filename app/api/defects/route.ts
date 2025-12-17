@@ -176,7 +176,8 @@ const transformDefectToDefectListModel = (defect: any): DefectListModel => {
         analysisSummaries: analysisSummaries,             
         actionDescriptions: actionDescriptions,           
         improvementDescriptions: improvementDescriptions, 
-
+        createdAt:defect.createdAt,
+        updatedAt:defect.updatedAt,
         // Counts (Ensure your Prisma query includes _count if needed)
         _count: {
             comments: defect._count?.comments ?? 0,

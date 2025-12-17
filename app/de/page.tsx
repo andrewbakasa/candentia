@@ -1,6 +1,7 @@
 import getCurrentUser from "@/app/actions/getCurrentUser";
 import Container from "@/app/components/Container";
-import DefectsListPage from "./DefectClientsPage";
+import DefectListClient from "./DefectListClient";
+//import DefectsListPage from "./DefectClientsPage";
 
 
 /**
@@ -15,7 +16,7 @@ const ProjectsPage = async () => {
     // --- 4. RENDER CLIENT COMPONENT ---
     return (
         <Container>
-            <DefectsListPage 
+            <DefectListClient
                 // Pass the array of correctly serialized project data
                 currentUser={currentUser} // May be null
             />

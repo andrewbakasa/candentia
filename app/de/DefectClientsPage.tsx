@@ -116,6 +116,8 @@ interface DefectListModel2 {
     analysisSummaries: string[];             
     actionDescriptions: string[];           
     improvementDescriptions: string[]; 
+    createdAt:string;
+    updatedAt:string;
 
     _count: {
         comments: number;
