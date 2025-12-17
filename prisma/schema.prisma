@@ -1329,29 +1329,6 @@ model Customer {
 
 
 
-// model Quotation {
-//   id              String          @id @default(auto()) @map("_id") @db.ObjectId
-//   customerId      String
-//   customer        Customer        @relation(fields: [customerId], references: [id])
-//   quotationNumber String          @unique
-//   status          String          // DRAFT, PENDING, ACCEPTED, REJECTED
-
-//   // Financials (UPDATED)
-//   subTotal        Float
-//   taxAmount       Float           // Added: The calculated tax amount
-//   taxRate         Float           // Added: The applicable tax rate (e.g., 0.05 for 5%)
-//   totalAmount     Float
-
-//   // Relationships
-//   items           QuotationItem[]
-//   invoice         Invoice[]       // Link to the invoice created from this quote
-
-//   createdAt       DateTime        @default(now())
-//   updatedAt       DateTime        @updatedAt
-
-//   @@index([customerId])
-// }
-
 model Quotation {
   id                String          @id @default(auto()) @map("_id") @db.ObjectId
   customerId        String
