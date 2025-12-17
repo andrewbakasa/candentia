@@ -39,7 +39,7 @@ const DASHBOARD_LINKS: DashboardLink[] = [
         href: "/ar/quotations",
         icon: <FileText className="w-8 h-8" />,
         color: "blue",
-        develop_stage: 70
+        develop_stage: 85
     },
     {
         title: "Invoices & Billing",
