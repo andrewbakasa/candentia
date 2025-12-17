@@ -225,7 +225,7 @@ const UserMenu: React.FC<UserMenuProps> = ({ currentUser, handleNavigate }) => {
                                                 />
                                             )}
 
-                                            {currentUser?.isAdmin && (
+                                            {isAuthorizedContracts && (
                                                 <MenuItem 
                                                     icon={Icon("M17 14.5l-5-5-5 5H17zM17 17.5l-5-5-5 5H17z")}
                                                     label="Accounts Recievable" 
