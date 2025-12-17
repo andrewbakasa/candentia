@@ -39,10 +39,12 @@ export async function GET() {
             where: {
                 status: {
                     // Only count quotes that are awaiting a decision or were accepted but not yet invoiced
-                    in: [QuotationStatus.PENDING, QuotationStatus.ACCEPTED], 
+                    in: [QuotationStatus.DRAFT, QuotationStatus.PENDING, QuotationStatus.ACCEPTED], 
                 },
             },
         });
+
+        console.log("activeQuotationStats", activeQuotationStats)
 
         const activeCount = activeQuotationStats._count.id || 0;
         // FIX: Remove .toNumber() as the sum is expected to be a number/float after Prisma client generation
@@ -67,6 +69,7 @@ export async function GET() {
             where: {
                 status: {
                     in: [
+                       // QuotationStatus.DRAFT,
                         QuotationStatus.PENDING, 
                         QuotationStatus.ACCEPTED, 
                         QuotationStatus.REJECTED, 
@@ -107,7 +110,7 @@ export async function GET() {
             conversionRate,
             expiringSoonCount,
         };
-
+        console.log("metrics:",metrics)
         // Return a successful response
         return NextResponse.json(metrics, { status: 200 });
 

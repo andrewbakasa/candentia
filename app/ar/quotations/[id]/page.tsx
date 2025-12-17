@@ -83,7 +83,7 @@ export default function QuotationDetailPage({ params }: { params: { id: string }
 
     return (
         <div className="min-h-screen bg-slate-50/50 pb-12 bg-white rounded-xl shadow-lg mb-6">
-            <div className="container mx-auto p-4 sm:p-8 max-w-6xl">
+            <div className="container mx-auto p-4 sm:p-8 max-w-6xl bg-white p-4 sm:p-8 rounded-xl shadow-2xl">
                 
                 {/* 1. TOP BREADCRUMB & PRIMARY ACTIONS */}
                 <div className="flex flex-col md:flex-row md:items-end justify-between mb-8 gap-4">

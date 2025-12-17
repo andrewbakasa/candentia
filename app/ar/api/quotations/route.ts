@@ -91,7 +91,7 @@ export async function GET() {
             },
         });
 
-        console.log("get qouatations", quotations)
+        //console.log("get qouatations", quotations)
 
         // The list view expects customer data to be easily accessible
         const formattedQuotations = quotations.map(q => ({
