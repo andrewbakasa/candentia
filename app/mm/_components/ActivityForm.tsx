@@ -88,7 +88,7 @@ export default function MM_ActivityForm({ initialData, projects, onClose, onSucc
 
     try {
       const method = initialData ? 'PATCH' : 'POST';
-      const endpoint = initialData ? `/api/mm/activities/${initialData.id}` : '/api/mm/activities';
+      const endpoint = initialData ? `/mm/api/activities/${initialData.id}` : '/mm/api/activities';
 
       const res = await fetch(endpoint, {
         method,

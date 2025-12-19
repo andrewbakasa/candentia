@@ -7,7 +7,11 @@ import {
   Box,
   HardHat,
   Construction,
-  AlertCircle
+  AlertCircle,
+  UserCheck,
+  ShieldAlert,
+  Target,
+  Briefcase
 } from 'lucide-react';
 import { MM_Activity, MM_Project, MM_StrategicPlan } from '../types/strategies';
 import ConfirmAction from './ConfirmAction';
@@ -186,34 +190,150 @@ export const WorkshopListView = ({ workshops, onEdit, onDelete }: Props) => (
     })}
   </div>
 );
-/**
- * 📈 STRATEGY VIEW (Mobile Compliant)
- */
 export const StrategyListView = ({ strategies, onEdit, onDelete }: any) => (
-  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 p-2 md:p-0">
-    {strategies.map((plan: MM_StrategicPlan) => {
-      const utilized = plan.mm_projects?.reduce((sum, p) => sum + p.allocatedBudget, 0) || 0;
+  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 p-2 md:p-0">
+    {strategies.map((plan: any) => {
+      // Financial Calculation Logic
+      const utilized = plan.mm_projects?.reduce((sum: number, p: any) => sum + (p.allocatedBudget || 0), 0) || 0;
+      const remaining = plan.totalBudget - utilized;
       const percentUsed = Math.min((utilized / plan.totalBudget) * 100, 100);
 
       return (
-        <div key={plan.id} className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm relative overflow-hidden">
-          <div className="flex justify-between items-start mb-4">
-            <div className="p-2 bg-emerald-50 text-emerald-600 rounded-lg"><Calendar size={20} /></div>
+        <div key={plan.id} className="group bg-white p-6 rounded-3xl border border-slate-200 shadow-sm hover:shadow-xl hover:border-indigo-100 transition-all duration-300 relative overflow-hidden">
+          {/* Top Row: Icon & Actions */}
+          <div className="flex justify-between items-start mb-5">
+            <div className={`p-3 rounded-2xl ${percentUsed > 95 ? 'bg-red-50 text-red-600' : 'bg-indigo-50 text-indigo-600'}`}>
+              {percentUsed > 95 ? <ShieldAlert size={22} /> : <Target size={22} />}
+            </div>
             <ItemActions id={plan.id} item={plan} onEdit={onEdit} onDelete={onDelete} />
           </div>
-          <h3 className="text-lg font-black text-slate-800">FY {plan.year} Strategy</h3>
-          <p className="text-slate-500 text-xs mb-6 line-clamp-2 leading-relaxed">{plan.description}</p>
-          
-          <div className="space-y-2">
-            <div className="flex justify-between text-[10px] font-black uppercase text-slate-400 tracking-tighter">
-              <span>Budget Utilization</span>
-              <span className="text-slate-900">${utilized.toLocaleString()}</span>
+
+          {/* Plan Identity */}
+          <div className="mb-4">
+            <h3 className="text-xl font-black text-slate-800 tracking-tight">FY {plan.year} Strategy</h3>
+            <div className="flex items-center gap-1.5 mt-1 text-indigo-600">
+              <UserCheck size={14} />
+              <span className="text-[10px] font-black uppercase tracking-widest">
+                {plan.assignedExecutive || 'No Executive Assigned'}
+              </span>
             </div>
-            <div className="w-full bg-slate-100 h-2.5 rounded-full overflow-hidden">
+          </div>
+
+          <p className="text-slate-500 text-xs mb-6 line-clamp-3 leading-relaxed min-h-[48px]">
+            {plan.description}
+          </p>
+          
+          {/* Progress & Utilization Metrics */}
+          <div className="space-y-3 bg-slate-50 p-4 rounded-2xl border border-slate-100">
+            <div className="flex justify-between items-end">
+              <div className="flex flex-col">
+                <span className="text-[9px] font-black uppercase text-slate-400">Utilization</span>
+                <span className="text-sm font-black text-slate-800">${utilized.toLocaleString()}</span>
+              </div>
+              <div className="text-right flex flex-col">
+                <span className="text-[9px] font-black uppercase text-slate-400">Ceiling</span>
+                <span className="text-sm font-black text-slate-400">${plan.totalBudget.toLocaleString()}</span>
+              </div>
+            </div>
+
+            <div className="w-full bg-slate-200 h-2.5 rounded-full overflow-hidden">
               <div 
-                className={`h-full transition-all duration-700 ${percentUsed > 90 ? 'bg-red-500' : 'bg-emerald-500'}`} 
+                className={`h-full transition-all duration-1000 ease-out rounded-full ${
+                  percentUsed > 90 ? 'bg-red-500' : percentUsed > 70 ? 'bg-amber-500' : 'bg-indigo-500'
+                }`} 
                 style={{ width: `${percentUsed}%` }} 
               />
+            </div>
+
+            <div className="flex justify-between text-[9px] font-bold">
+              <span className={percentUsed > 90 ? 'text-red-600' : 'text-slate-500'}>
+                {percentUsed.toFixed(1)}% Allocated
+              </span>
+              <span className="text-slate-500">
+                ${remaining.toLocaleString()} Available
+              </span>
+            </div>
+          </div>
+
+          {/* Decorative Year Label */}
+          <div className="absolute -bottom-2 -right-2 text-slate-50 opacity-[0.03] font-black text-7xl pointer-events-none group-hover:opacity-[0.05] transition-opacity">
+            {plan.year}
+          </div>
+        </div>
+      );
+    })}
+  </div>
+);
+
+
+/**
+ * 🏗️ PROJECT GRID VIEW (Mobile Compliant)
+ */
+
+export const ProjectGridView = ({ projects, onEdit, onDelete }: any) => (
+  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 p-2 md:p-0">
+    {projects.map((project: any) => {
+      // Calculate variance for Financial Viability (Guideline 5.1)
+      const costWarning = project.totalActualCost > project.allocatedBudget;
+      
+      return (
+        <div key={project.id} className="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm hover:shadow-md transition-all">
+          <div className="flex justify-between items-start mb-4">
+            <span className={`px-2 py-0.5 rounded text-[9px] font-black uppercase tracking-widest border ${
+              project.status === 'IN_PROGRESS' ? 'bg-amber-50 text-amber-600 border-amber-100' : 
+              project.status === 'COMPLETED' ? 'bg-emerald-50 text-emerald-600 border-emerald-100' :
+              'bg-slate-50 text-slate-400 border-slate-200'
+            }`}>
+              {project.status?.replace('_', ' ') || 'PLANNED'}
+            </span>
+            <ItemActions id={project.id} item={project} onEdit={onEdit} onDelete={onDelete} />
+          </div>
+          
+          <h3 className="text-sm font-black text-slate-800 mb-4 line-clamp-1 flex items-center gap-2">
+            <Briefcase size={14} className="text-slate-400" /> {project.name}
+          </h3>
+          
+          <div className="grid grid-cols-2 gap-3 mb-5">
+            <div className="flex items-center gap-1.5 text-slate-500 text-[10px] font-bold uppercase tracking-tight">
+              <MapPin size={12} className="text-emerald-500" /> 
+              <span className="truncate">{project.responsibleWorkshop?.name || 'Central'}</span>
+            </div>
+            {/* Updated projectManager mapping: directly accessing the string */}
+            <div className="flex items-center gap-1.5 text-slate-500 text-[10px] font-bold uppercase tracking-tight">
+              <UserIcon size={12} className="text-blue-500" /> 
+              <span className="truncate">{project.projectManager || 'Unassigned'}</span>
+            </div>
+          </div>
+
+          <div className="pt-4 border-t border-slate-50 space-y-3">
+            {/* Progress Section */}
+            <div>
+              <div className="flex justify-between text-[9px] font-black mb-1.5 text-slate-400 uppercase tracking-widest">
+                <span>Operational Progress</span>
+                <span className="text-blue-600">{project.progress}%</span>
+              </div>
+              <div className="w-full bg-slate-100 h-2 rounded-full overflow-hidden border border-slate-50">
+                <div 
+                  className="bg-blue-600 h-full transition-all duration-1000" 
+                  style={{ width: `${project.progress}%` }} 
+                />
+              </div>
+            </div>
+
+            {/* Financial Health Snapshot */}
+            <div className="flex justify-between items-center">
+               <div className="flex flex-col">
+                  <span className="text-[8px] font-black text-slate-400 uppercase">Utilized</span>
+                  <span className={`text-xs font-mono font-bold ${costWarning ? 'text-red-600' : 'text-slate-700'}`}>
+                    ${project.totalActualCost?.toLocaleString()}
+                  </span>
+               </div>
+               <div className="text-right flex flex-col">
+                  <span className="text-[8px] font-black text-slate-400 uppercase">Allocation</span>
+                  <span className="text-xs font-mono font-bold text-slate-400">
+                    ${project.allocatedBudget?.toLocaleString()}
+                  </span>
+               </div>
             </div>
           </div>
         </div>
@@ -222,86 +342,6 @@ export const StrategyListView = ({ strategies, onEdit, onDelete }: any) => (
   </div>
 );
 
-/**
- * 🏗️ PROJECT GRID VIEW (Mobile Compliant)
- */
-export const ProjectGridView = ({ projects, onEdit, onDelete }: any) => (
-  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-    {projects.map((project: MM_Project) => (
-      <div key={project.id} className="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm active:scale-[0.98] transition-transform">
-        <div className="flex justify-between items-start mb-3">
-          <span className={`px-2 py-0.5 rounded text-[9px] font-black uppercase tracking-widest border ${
-            project.status === 'IN_PROGRESS' ? 'bg-amber-50 text-amber-600 border-amber-100' : 'bg-green-50 text-green-600 border-green-100'
-          }`}>
-            {project.status.replace('_', ' ')}
-          </span>
-          <ItemActions id={project.id} item={project} onEdit={onEdit} onDelete={onDelete} />
-        </div>
-        
-        <h3 className="text-md font-bold text-slate-800 mb-4 line-clamp-1">{project.name}</h3>
-        
-        <div className="grid grid-cols-2 gap-2 mb-5">
-          <div className="flex items-center gap-1.5 text-slate-500 text-[11px]">
-            <MapPin size={12} /> <span className="truncate">{project.responsibleWorkshop?.name || 'Central'}</span>
-          </div>
-          <div className="flex items-center gap-1.5 text-slate-500 text-[11px]">
-            <UserIcon size={12} /> <span className="truncate">{project.projectManager?.name || 'Unassigned'}</span>
-          </div>
-        </div>
-
-        <div className="pt-3 border-t border-slate-50">
-          <div className="flex justify-between text-[10px] font-black mb-1.5 text-slate-400 uppercase">
-            <span>Completion</span>
-            <span className="text-blue-600">{project.progress}%</span>
-          </div>
-          <div className="w-full bg-slate-100 h-1.5 rounded-full overflow-hidden">
-            <div className="bg-blue-600 h-full" style={{ width: `${project.progress}%` }} />
-          </div>
-        </div>
-      </div>
-    ))}
-  </div>
-);
-
-/**
- * ⚙️ ACTIVITY VIEW (Mobile Compliant Table)
- */
-// export const ActivityTableView = ({ activities, onEdit, onDelete }: any) => {
-//   return (
-//     <div className="w-full overflow-x-auto rounded-2xl border border-slate-200 bg-white shadow-sm">
-//       <table className="w-full text-left border-collapse">
-//         <thead className="bg-slate-50 border-b border-slate-200 hidden md:table-header-group">
-//           <tr className="text-[10px] font-black text-slate-400 uppercase tracking-widest">
-//             <th className="px-6 py-4">Activity Description</th>
-//             <th className="px-6 py-4">Stage</th>
-//             <th className="px-6 py-4 text-right">Actual Cost</th>
-//             <th className="px-6 py-4 text-center">Actions</th>
-//           </tr>
-//         </thead>
-//         <tbody className="divide-y divide-slate-100">
-//           {activities.map((act: MM_Activity) => (
-//             <tr key={act.id} className="flex flex-col md:table-row p-4 md:p-0 hover:bg-slate-50/50">
-//               <td className="md:px-6 md:py-4">
-//                 <div className="font-bold text-slate-800 text-sm md:text-base">{act.description}</div>
-//                 <div className="text-[10px] text-slate-400 md:mt-1">Manager: {act.supervisor?.name || 'Pending'}</div>
-//               </td>
-//               <td className="md:px-6 md:py-4 mt-2 md:mt-0">
-//                 <span className="text-[9px] bg-slate-100 px-2 py-1 rounded font-black border border-slate-200 uppercase">{act.stage}</span>
-//               </td>
-//               <td className="md:px-6 md:py-4 md:text-right font-mono font-bold text-emerald-600 mt-2 md:mt-0">
-//                 <span className="md:hidden text-slate-400 text-[10px] uppercase mr-2">Cost:</span>
-//                 ${(act.actualLaborCost + act.actualMaterialCost).toLocaleString()}
-//               </td>
-//               <td className="md:px-6 md:py-4 flex justify-end md:table-cell mt-3 md:mt-0 border-t md:border-0 pt-3 md:pt-4">
-//                 <ItemActions id={act.id} item={act} onEdit={onEdit} onDelete={onDelete} />
-//               </td>
-//             </tr>
-//           ))}
-//         </tbody>
-//       </table>
-//     </div>
-//   );
-// };
 
 export const ActivityTableView = ({ activities, onEdit, onDelete }: any) => {
   return (

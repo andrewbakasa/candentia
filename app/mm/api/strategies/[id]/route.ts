@@ -10,7 +10,7 @@ interface StrategyUpdateData {
     year?: number;
     description?: string;
     totalBudget?: number;
-    executiveId?: string;
+    assignedExecutive?: string;
 }
 
 export async function PATCH(
@@ -26,7 +26,7 @@ export async function PATCH(
             ...(body.year && { year: body.year }),
             ...(body.description !== undefined && { description: body.description }),
             ...(body.totalBudget !== undefined && { totalBudget: body.totalBudget }),
-            ...(body.executiveId && { executiveId: body.executiveId }),
+            ...(body.assignedExecutive && { assignedExecutive: body.assignedExecutive }),
         };
 
         const updatedPlan = await prisma.mM_StrategicPlan.update({

@@ -5,7 +5,7 @@ interface StrategyCreationData {
     year: number;
     description: string;
     totalBudget: number;
-    executiveId: string;
+    assignedExecutive: string;
 }
 
 export async function POST(request: NextRequest) {
@@ -21,7 +21,7 @@ export async function POST(request: NextRequest) {
                 year: body.year,
                 description: body.description,
                 totalBudget: body.totalBudget,
-                executiveId: body.executiveId || null,
+                assignedExecutive: body.assignedExecutive || null,
             }
         });
 

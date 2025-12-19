@@ -71,7 +71,7 @@ model User {
   StrategyActivityComment StrategyActivityComment[]
 
    // Relations for Accountability
-  executivePlans    MM_StrategicPlan[] 
+  //executivePlans    MM_StrategicPlan[] 
  // managedProjects   MM_Project[]       
  // supervisedTasks   MM_Activity[] 
 }
@@ -1524,9 +1524,7 @@ model MM_StrategicPlan {
   year                Int          @unique
   description         String
   totalBudget         Float        // HQ Strategic Ceiling
-  
-  executiveId         String?
-  assignedExecutive   User?        @relation(fields: [executiveId], references: [id])
+  assignedExecutive   String?
   
   mm_projects         MM_Project[]
   createdAt           DateTime     @default(now())

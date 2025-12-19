@@ -2,20 +2,20 @@ import { NextRequest, NextResponse } from 'next/server';
 import prisma from '../../../../libs/prismadb';
 import { Prisma } from '@prisma/client';
 
-/**
- * 🎯 PATCH /api/mm/projects/[id]
- * Updates Maintenance Projects and enforces Strategic Plan budget ceilings
- */
 interface ProjectUpdateData {
     name?: string;
     allocatedBudget?: number;
     planId?: string;
     workshopId?: string;
-    managerId?: string; 
+    projectManager?: string; // Updated field name
     status?: any;
     progress?: number;
 }
 
+/**
+ * 🎯 PATCH /api/mm/projects/[id]
+ * Updates Maintenance Projects and enforces Strategic Plan budget ceilings
+ */
 export async function PATCH(
     request: NextRequest,
     { params }: { params: { id: string } }
@@ -24,9 +24,8 @@ export async function PATCH(
         const id = params.id;
         const body: ProjectUpdateData = await request.json();
 
-        // 1. Budget Ceiling Validation
+        // 1. Budget Ceiling Validation (Section 2.2 Alignment)
         if (body.allocatedBudget !== undefined || body.planId) {
-            // FIX: Changed 'strategicPlan' to 'plan' to match your schema
             const currentProject = await prisma.mM_Project.findUnique({
                 where: { id },
                 include: { 
@@ -40,11 +39,11 @@ export async function PATCH(
                 return NextResponse.json({ message: "Project not found" }, { status: 404 });
             }
 
-            // Logic check: If project is orphaned (no plan attached), we skip the ceiling check
+            // Perform check if project is linked to a Strategic Plan
             if (currentProject.plan) {
                 const parentPlan = currentProject.plan;
                 
-                // Calculate total budget used by other projects under this specific plan
+                // Calculate utilization by all sibling projects
                 const otherProjectsTotal = parentPlan.mm_projects
                     .filter(p => p.id !== id)
                     .reduce((acc, p) => acc + p.allocatedBudget, 0);
@@ -53,47 +52,37 @@ export async function PATCH(
 
                 if (proposedTotal > parentPlan.totalBudget) {
                     return NextResponse.json({ 
-                        message: `Budget Breach: Strategic Plan limit is $${parentPlan.totalBudget.toLocaleString()}. Proposed allocation reaches $${proposedTotal.toLocaleString()}.` 
+                        message: `Budget Breach: Strategic Plan limit is $${parentPlan.totalBudget.toLocaleString()}. Proposed total reaches $${proposedTotal.toLocaleString()}.` 
                     }, { status: 403 });
                 }
             }
         }
 
-        // 2. Type-Safe Update
-        const updateData: Prisma.MM_ProjectUncheckedUpdateInput = {
-            ...(body.name && { name: body.name }),
-            ...(body.allocatedBudget !== undefined && { allocatedBudget: body.allocatedBudget }),
-            ...(body.planId && { planId: body.planId }),
-            ...(body.workshopId && { workshopId: body.workshopId }),
-            ...(body.managerId && { projectManager: body.managerId }),
-            ...(body.status && { status: body.status }),
-            ...(body.progress !== undefined && { progress: body.progress }),
-        };
-
+        // 2. Data Mapping & Persistent Update
         const updatedProject = await prisma.mM_Project.update({
             where: { id },
-            data: updateData
+            data: {
+                ...(body.name && { name: body.name }),
+                ...(body.allocatedBudget !== undefined && { allocatedBudget: body.allocatedBudget }),
+                ...(body.planId && { planId: body.planId }),
+                ...(body.workshopId && { workshopId: body.workshopId }),
+                ...(body.projectManager && { projectManager: body.projectManager }), // String mapping
+                ...(body.status && { status: body.status }),
+                ...(body.progress !== undefined && { progress: body.progress }),
+            }
         });
 
         return NextResponse.json(updatedProject, { status: 200 });
 
     } catch (error: any) {
         console.error("MM_Project PATCH Error:", error);
-        
-        if (error instanceof Prisma.PrismaClientKnownRequestError) {
-            if (error.code === 'P2025') {
-                return NextResponse.json({ message: "Project record not found." }, { status: 404 });
-            }
-        }
-        
-        return NextResponse.json({ message: "Internal Server Error" }, { status: 500 });
+        return NextResponse.json({ message: "Update failed. System Link Failure." }, { status: 500 });
     }
 }
 
-
 /**
  * 🎯 DELETE /api/mm/projects/[id]
- * Safely removes a project and its associated operational activities/POs
+ * Cascade deletion following NRZ Operational Security standards
  */
 export async function DELETE(
     request: NextRequest,
@@ -102,10 +91,8 @@ export async function DELETE(
     try {
         const id = params.id;
 
-        // 1. Transaction: Ensure operational records are cleaned up before project deletion
+        // Transaction ensures data integrity: Activity cleanup must happen before Project removal
         await prisma.$transaction(async (tx) => {
-            
-            // A. Find all activities linked to this project
             const projectActivities = await tx.mM_Activity.findMany({
                 where: { projectId: id },
                 select: { id: true }
@@ -113,35 +100,28 @@ export async function DELETE(
 
             const activityIds = projectActivities.map(a => a.id);
 
-            // B. Delete associated Purchase Orders first (leaf nodes)
+            // B. Delete Leaf Nodes (POs)
             if (activityIds.length > 0) {
                 await tx.mM_PurchaseOrder.deleteMany({
                     where: { activityId: { in: activityIds } }
                 });
             }
 
-            // C. Delete the Activities
+            // C. Delete Branch Nodes (Activities)
             await tx.mM_Activity.deleteMany({
                 where: { projectId: id }
             });
 
-            // D. Finally, delete the Project
+            // D. Delete Root Node (Project)
             await tx.mM_Project.delete({
                 where: { id }
             });
         });
 
-        return NextResponse.json({ message: "Project and associated resources deleted successfully." }, { status: 200 });
+        return NextResponse.json({ message: "Project and dependencies purged successfully." }, { status: 200 });
 
     } catch (error: any) {
         console.error("MM_Project DELETE Error:", error);
-
-        if (error instanceof Prisma.PrismaClientKnownRequestError) {
-            if (error.code === 'P2025') {
-                return NextResponse.json({ message: "Project record not found." }, { status: 404 });
-            }
-        }
-
-        return NextResponse.json({ message: "Failed to delete project. Ensure no dependencies exist." }, { status: 500 });
+        return NextResponse.json({ message: "Purge failed. Ensure project is not locked by external audit." }, { status: 500 });
     }
 }
