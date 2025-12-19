@@ -69,6 +69,11 @@ model User {
   //strategyOutputs StrategyOutput[]  
   //strategyActivities StrategyActivity[]
   StrategyActivityComment StrategyActivityComment[]
+
+   // Relations for Accountability
+  executivePlans    MM_StrategicPlan[] 
+  managedProjects   MM_Project[]       
+  supervisedTasks   MM_Activity[] 
 }
 
 model Account {
@@ -1506,4 +1511,161 @@ model SupplierPayment {
   reference   String? // Cheque number, bank transfer ID, etc.
 
   @@index([supplierId])
+}
+
+// --- GLOBAL USER & WORKFORCE ---
+
+
+// --- MM STRATEGIC GOVERNANCE ---
+
+model MM_StrategicPlan {
+  id                  String       @id @default(auto()) @map("_id") @db.ObjectId
+  
+  year                Int          @unique
+  description         String
+  totalBudget         Float        // HQ Strategic Ceiling
+  
+  executiveId         String?
+  assignedExecutive   User?        @relation(fields: [executiveId], references: [id])
+  
+  mm_projects         MM_Project[]
+  createdAt           DateTime     @default(now())
+  updatedAt           DateTime     @updatedAt
+}
+
+// --- MM MAINTENANCE MANAGEMENT MODULES ---
+
+model MM_Project {
+  id                  String           @id @default(auto()) @map("_id") @db.ObjectId
+  name                String
+  allocatedBudget     Float            // Target budget from Strategic Plan
+  
+  workshopId          String
+  responsibleWorkshop MM_Workshop      @relation(fields: [workshopId], references: [id])
+  progress            Int  
+  managerId           String?
+  projectManager      User?            @relation(fields: [managerId], references: [id])
+  
+  planId              String?
+  plan                MM_StrategicPlan? @relation(fields: [planId], references: [id])
+  
+  activities          MM_Activity[]
+  status              MM_ProjectStatus @default(PLANNED)
+  
+  // Cost Tracking Aggregation
+  totalActualCost     Float            @default(0) 
+  createdAt           DateTime     @default(now())
+  updatedAt           DateTime     @updatedAt
+}
+
+model MM_Activity {
+  id                  String           @id @default(auto()) @map("_id") @db.ObjectId
+  projectId           String
+  project             MM_Project       @relation(fields: [projectId], references: [id])
+  description         String
+  
+  supervisorId        String?
+  supervisor          User?            @relation(fields: [supervisorId], references: [id])
+  
+  // Timeline & Variance Engine
+  scheduledStart      DateTime?
+  scheduledEnd        DateTime?
+  actualEnd           DateTime?        // If null after scheduledEnd = Variance
+  progress      Int            // Calculated: quantity * unitPrice
+  // Quality & Rework (Sec 5.5)
+  isRework            Boolean          @default(false)
+  reworkCost          Float            @default(0)
+  varianceReason      String?          // e.g., "Awaiting Funding", "Skill Gap"
+  
+  // Resource Load
+  allocatedBudget     Float
+  actualLaborCost     Float            @default(0)
+  actualMaterialCost  Float            @default(0)
+  
+  stage               MM_ActivityStage @default(PLANNING)
+  requirements        String[]         // e.g., ["NSSA Cert", "Brake Blocks"]
+  
+  // Procurement & Inventory
+  purchaseOrder       MM_PurchaseOrder?
+  createdAt           DateTime     @default(now())
+  updatedAt           DateTime     @updatedAt
+}
+
+model MM_Workshop {
+  id                String            @id @default(auto()) @map("_id") @db.ObjectId
+  name              String            @unique
+  type              MM_WorkshopType
+ // staff             User[]
+  mm_projects       MM_Project[]
+
+}
+
+// --- MM PROCUREMENT & LINE ITEMS ---
+
+model MM_PurchaseOrder {
+  id              String           @id @default(auto()) @map("_id") @db.ObjectId
+  poNumber        String           @unique
+  status          MM_POStatus      @default(AWAITING_FUNDING)
+  
+  activityId      String?          @unique
+  mm_activity     MM_Activity?     @relation(fields: [activityId], references: [id])
+  value           Float            // Calculated: quantity * unitPrice
+  lineItems       MM_POLineItem[]
+  
+  // Audit Trail
+  createdAt       DateTime         @default(now())
+  fundedAt        DateTime?        // When status moves from Awaiting -> Funded
+  updatedAt           DateTime     @updatedAt
+}
+
+model MM_POLineItem {
+  id              String           @id @default(auto()) @map("_id") @db.ObjectId
+  poId            String
+  purchaseOrder   MM_PurchaseOrder @relation(fields: [poId], references: [id], onDelete: Cascade)
+  
+  itemCode        String           // NRZ Inventory Code
+  description     String           
+  quantity        Int
+  unitPrice       Float
+  totalPrice      Float            // Calculated: quantity * unitPrice
+  
+  isReceived      Boolean          @default(false)
+  createdAt           DateTime     @default(now())
+  updatedAt           DateTime     @updatedAt
+}
+
+// --- ENUMS ---
+enum NRZ_UserRole { 
+   EXECUTIVE 
+   WORKSHOP_MANAGER
+   ENGINEER 
+   SUPERVISOR
+   ARTISAN 
+}
+
+enum MM_WorkshopType { 
+  CENTRAL_WORKSHOP
+  MOTIVE_POWER_DEPOT
+  WAGON_SHOP 
+}
+
+enum MM_ProjectStatus { 
+  PLANNED
+  IN_PROGRESS
+  COMPLETED
+  ON_HOLD
+}
+
+enum MM_ActivityStage { 
+  PLANNING
+  PROCUREMENT
+  ENGINEERING
+  QUALITY_ASSURANCE 
+}
+
+enum MM_POStatus { 
+  AWAITING_FUNDING
+  FUNDED
+  RECEIVED
+  CANCELLED 
 }

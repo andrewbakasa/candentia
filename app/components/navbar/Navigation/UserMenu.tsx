@@ -232,6 +232,13 @@ const UserMenu: React.FC<UserMenuProps> = ({ currentUser, handleNavigate }) => {
                                                     onClick={() => handleMenuItemClickWithNav("/ar")} 
                                                 />
                                             )}
+                                             {isAuthorizedContracts && (
+                                                <MenuItem 
+                                                    icon={Icon("M17 14.5l-5-5-5 5H17zM17 17.5l-5-5-5 5H17z")}
+                                                    label="Maintenance Module" 
+                                                    onClick={() => handleMenuItemClickWithNav("/mm")} 
+                                                />
+                                            )}
                                             {isAuthorizedContracts && (<MenuItem icon={BriefcaseIcon()} label="Business Proposals" onClick={() => handleMenuItemClickWithNav("/bps")} />)} 
                                             {isAuthorizedContracts && (<MenuItem icon={Icon("M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z")} label="Strategies" onClick={() => handleMenuItemClickWithNav("/strategies")} />)} 
                                         </div>
