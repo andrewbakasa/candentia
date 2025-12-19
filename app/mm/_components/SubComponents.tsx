@@ -14,6 +14,71 @@ import { MM_Activity, MM_Project, MM_StrategicPlan } from '../types/strategies';
  * 📊 STRATEGY LIST VIEW
  * Focuses on HQ Budget Utilization
  */
+/**
+ * 🛠️ WORKSHOP LIST VIEW
+ * Focuses on Infrastructure Capacity & Geographic Distribution
+ */
+export const WorkshopListView = ({ workshops }: { workshops: any[] }) => (
+  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+    {workshops.map((workshop) => {
+      // Logic to show activity levels or project counts
+      const projectCount = workshop._count?.mm_projects || 0;
+      
+      return (
+        <div key={workshop.id} className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden flex flex-col hover:border-indigo-200 transition-all group">
+          <div className="p-5 border-b border-slate-50 bg-slate-50/50 group-hover:bg-indigo-50/30 transition-colors">
+            <div className="flex justify-between items-start">
+              <div className="p-2.5 bg-white shadow-sm border border-slate-100 text-indigo-600 rounded-xl">
+                <Activity size={20} />
+              </div>
+              <span className={`px-2 py-1 rounded text-[10px] font-black tracking-tighter border ${
+                workshop.specialization === 'MECHANICAL' 
+                  ? 'bg-blue-50 text-blue-700 border-blue-100' 
+                  : 'bg-purple-50 text-purple-700 border-purple-100'
+              }`}>
+                {workshop.specialization}
+              </span>
+            </div>
+          </div>
+          
+          <div className="p-6">
+            <h3 className="text-lg font-black text-slate-800 mb-1 tracking-tight">{workshop.name}</h3>
+            <div className="flex items-center gap-1.5 text-slate-500 text-sm mb-6">
+              <MapPin size={14} className="text-slate-400" />
+              {workshop.location}
+            </div>
+            
+            <div className="grid grid-cols-2 gap-4 py-4 border-t border-slate-50">
+              <div>
+                <span className="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Max Capacity</span>
+                <span className="text-sm font-black text-slate-700">{workshop.capacity} Units</span>
+              </div>
+              <div>
+                <span className="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Active Projects</span>
+                <span className="text-sm font-black text-indigo-600">{projectCount} Assigned</span>
+              </div>
+            </div>
+
+            <div className="mt-4">
+               <div className="flex justify-between items-center mb-1.5">
+                  <span className="text-[10px] font-bold text-slate-400 uppercase">Load Factor</span>
+                  <span className="text-[10px] font-bold text-slate-700">
+                    {Math.round((projectCount / (workshop.capacity || 1)) * 100)}%
+                  </span>
+               </div>
+               <div className="w-full bg-slate-100 h-1.5 rounded-full overflow-hidden">
+                  <div 
+                    className="bg-indigo-500 h-full rounded-full transition-all duration-1000" 
+                    style={{ width: `${Math.min((projectCount / (workshop.capacity || 1)) * 100, 100)}%` }}
+                  />
+               </div>
+            </div>
+          </div>
+        </div>
+      );
+    })}
+  </div>
+);
 export const StrategyListView = ({ strategies }: { strategies: MM_StrategicPlan[] }) => (
   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
     {strategies.map((plan) => {

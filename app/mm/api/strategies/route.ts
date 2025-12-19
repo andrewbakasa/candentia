@@ -37,12 +37,10 @@ export async function POST(request: NextRequest) {
 export async function GET() {
     try {
         const plans = await prisma.mM_StrategicPlan.findMany({
-            include: {
-                assignedExecutive: { select: { name: true } },
-                _count: { select: { mm_projects: true } }
-            },
+           
             orderBy: { year: 'desc' }
         });
+        console.log('plans===>', plans)
         return NextResponse.json(plans, { status: 200 });
     } catch (error) {
         return NextResponse.json({ message: "Error fetching strategic plans." }, { status: 500 });

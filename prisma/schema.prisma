@@ -72,7 +72,7 @@ model User {
 
    // Relations for Accountability
   executivePlans    MM_StrategicPlan[] 
-  managedProjects   MM_Project[]       
+ // managedProjects   MM_Project[]       
   supervisedTasks   MM_Activity[] 
 }
 
@@ -1542,9 +1542,8 @@ model MM_Project {
   
   workshopId          String
   responsibleWorkshop MM_Workshop      @relation(fields: [workshopId], references: [id])
-  progress            Int  
-  managerId           String?
-  projectManager      User?            @relation(fields: [managerId], references: [id])
+  progress            Int 
+  projectManager      String?
   
   planId              String?
   plan                MM_StrategicPlan? @relation(fields: [planId], references: [id])
@@ -1591,13 +1590,33 @@ model MM_Activity {
   updatedAt           DateTime     @updatedAt
 }
 
-model MM_Workshop {
-  id                String            @id @default(auto()) @map("_id") @db.ObjectId
-  name              String            @unique
-  type              MM_WorkshopType
- // staff             User[]
-  mm_projects       MM_Project[]
 
+
+enum MM_WorkshopType {
+  MECHANICAL
+  ELECTRICAL
+  CIVIL
+  LOGISTICS
+}
+
+model MM_Workshop {
+  id              String           @id @default(auto()) @map("_id") @db.ObjectId
+  name            String           @unique
+  
+  // Maps to the 'Specialization' dropdown in your form
+  type            MM_WorkshopType  @default(MECHANICAL)
+  
+  // Maps to the 'Location Reference' input
+  location        String?
+  
+  // Maps to the 'Unit Capacity' input
+  capacity        Int              @default(0)
+  
+  // Relations
+  mm_projects     MM_Project[]
+  
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
 }
 
 // --- MM PROCUREMENT & LINE ITEMS ---
@@ -1643,11 +1662,11 @@ enum NRZ_UserRole {
    ARTISAN 
 }
 
-enum MM_WorkshopType { 
-  CENTRAL_WORKSHOP
-  MOTIVE_POWER_DEPOT
-  WAGON_SHOP 
-}
+// enum MM_WorkshopType { 
+//   CENTRAL_WORKSHOP
+//   MOTIVE_POWER_DEPOT
+//   WAGON_SHOP 
+// }
 
 enum MM_ProjectStatus { 
   PLANNED
