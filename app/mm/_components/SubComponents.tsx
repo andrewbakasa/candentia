@@ -11,7 +11,8 @@ import {
   UserCheck,
   ShieldAlert,
   Target,
-  Briefcase
+  Briefcase,
+  ExternalLink
 } from 'lucide-react';
 import { MM_Activity, MM_Project, MM_StrategicPlan } from '../types/strategies';
 import ConfirmAction from './ConfirmAction';
@@ -270,14 +271,14 @@ export const StrategyListView = ({ strategies, onEdit, onDelete }: any) => (
  * 🏗️ PROJECT GRID VIEW (Mobile Compliant)
  */
 
+import Link from 'next/link';
 export const ProjectGridView = ({ projects, onEdit, onDelete }: any) => (
   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 p-2 md:p-0">
     {projects.map((project: any) => {
-      // Calculate variance for Financial Viability (Guideline 5.1)
       const costWarning = project.totalActualCost > project.allocatedBudget;
       
       return (
-        <div key={project.id} className="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm hover:shadow-md transition-all">
+        <div key={project.id} className="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm hover:shadow-md transition-all flex flex-col">
           <div className="flex justify-between items-start mb-4">
             <span className={`px-2 py-0.5 rounded text-[9px] font-black uppercase tracking-widest border ${
               project.status === 'IN_PROGRESS' ? 'bg-amber-50 text-amber-600 border-amber-100' : 
@@ -289,23 +290,25 @@ export const ProjectGridView = ({ projects, onEdit, onDelete }: any) => (
             <ItemActions id={project.id} item={project} onEdit={onEdit} onDelete={onDelete} />
           </div>
           
-          <h3 className="text-sm font-black text-slate-800 mb-4 line-clamp-1 flex items-center gap-2">
-            <Briefcase size={14} className="text-slate-400" /> {project.name}
-          </h3>
+          {/* Linked Project Title */}
+          <Link href={`/mm/projects/${project.id}`}>
+            <h3 className="text-sm font-black text-slate-800 mb-4 hover:text-indigo-600 transition-colors cursor-pointer line-clamp-1 flex items-center gap-2">
+              <Briefcase size={14} className="text-slate-400" /> {project.name}
+            </h3>
+          </Link>
           
           <div className="grid grid-cols-2 gap-3 mb-5">
             <div className="flex items-center gap-1.5 text-slate-500 text-[10px] font-bold uppercase tracking-tight">
               <MapPin size={12} className="text-emerald-500" /> 
               <span className="truncate">{project.responsibleWorkshop?.name || 'Central'}</span>
             </div>
-            {/* Updated projectManager mapping: directly accessing the string */}
             <div className="flex items-center gap-1.5 text-slate-500 text-[10px] font-bold uppercase tracking-tight">
               <UserIcon size={12} className="text-blue-500" /> 
               <span className="truncate">{project.projectManager || 'Unassigned'}</span>
             </div>
           </div>
 
-          <div className="pt-4 border-t border-slate-50 space-y-3">
+          <div className="pt-4 border-t border-slate-50 space-y-3 flex-grow">
             {/* Progress Section */}
             <div>
               <div className="flex justify-between text-[9px] font-black mb-1.5 text-slate-400 uppercase tracking-widest">
@@ -321,7 +324,7 @@ export const ProjectGridView = ({ projects, onEdit, onDelete }: any) => (
             </div>
 
             {/* Financial Health Snapshot */}
-            <div className="flex justify-between items-center">
+            <div className="flex justify-between items-center pb-2">
                <div className="flex flex-col">
                   <span className="text-[8px] font-black text-slate-400 uppercase">Utilized</span>
                   <span className={`text-xs font-mono font-bold ${costWarning ? 'text-red-600' : 'text-slate-700'}`}>
@@ -335,13 +338,20 @@ export const ProjectGridView = ({ projects, onEdit, onDelete }: any) => (
                   </span>
                </div>
             </div>
+
+            {/* Explicit Action Link */}
+            <Link 
+              href={`/mm/projects/${project.id}`}
+              className="mt-2 w-full flex items-center justify-center gap-2 py-2.5 bg-slate-50 hover:bg-indigo-50 text-slate-500 hover:text-indigo-600 border border-slate-100 hover:border-indigo-100 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all"
+            >
+              Full Project Report <ExternalLink size={12} />
+            </Link>
           </div>
         </div>
       );
     })}
   </div>
 );
-
 
 export const ActivityTableView = ({ activities, onEdit, onDelete }: any) => {
   return (
