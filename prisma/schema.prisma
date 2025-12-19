@@ -73,7 +73,7 @@ model User {
    // Relations for Accountability
   executivePlans    MM_StrategicPlan[] 
  // managedProjects   MM_Project[]       
-  supervisedTasks   MM_Activity[] 
+ // supervisedTasks   MM_Activity[] 
 }
 
 model Account {
@@ -1562,9 +1562,7 @@ model MM_Activity {
   projectId           String
   project             MM_Project       @relation(fields: [projectId], references: [id])
   description         String
-  
-  supervisorId        String?
-  supervisor          User?            @relation(fields: [supervisorId], references: [id])
+  supervisor          String?
   
   // Timeline & Variance Engine
   scheduledStart      DateTime?

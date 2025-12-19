@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useMemo, useEffect } from 'react';
-import { Calendar, Package, Save, X, Plus, AlertCircle, Briefcase, Loader2, User } from 'lucide-react';
+import { Calendar, Package, Save, X, Plus, AlertCircle, Briefcase, Loader2, User, Clock } from 'lucide-react';
 
 interface Project {
   id: string;
@@ -10,7 +10,7 @@ interface Project {
 }
 
 interface Props {
-  initialData?: any; // For Edit Mode
+  initialData?: any; 
   projects: Project[];
   onClose: () => void;
   onSuccess: () => void;
@@ -20,7 +20,6 @@ export default function MM_ActivityForm({ initialData, projects, onClose, onSucc
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
-  // Helper to format dates for the <input type="date">
   const formatDate = (dateStr: string) => {
     if (!dateStr) return '';
     return new Date(dateStr).toISOString().split('T')[0];
@@ -29,24 +28,27 @@ export default function MM_ActivityForm({ initialData, projects, onClose, onSucc
   const [formData, setFormData] = useState({
     projectId: initialData?.projectId || '',
     description: initialData?.description || '',
-    supervisorName: initialData?.supervisorName || '',
+    supervisor: initialData?.supervisor || '', // Aligned with Model
     allocatedBudget: initialData?.allocatedBudget || 0,
     scheduledStart: initialData?.scheduledStart ? formatDate(initialData.scheduledStart) : '',
     scheduledEnd: initialData?.scheduledEnd ? formatDate(initialData.scheduledEnd) : '',
+    actualEnd: initialData?.actualEnd ? formatDate(initialData.actualEnd) : '', // New: Variance Engine
+    varianceReason: initialData?.varianceReason || '', // New: Guideline 1 Compliance
     requirements: (initialData?.requirements as string[]) || [],
     currentReq: ''
   });
 
-  // Sync state if editing a different record
   useEffect(() => {
     if (initialData) {
       setFormData({
         projectId: initialData.projectId,
         description: initialData.description,
-        supervisorName: initialData.supervisorName,
+        supervisor: initialData.supervisor || '',
         allocatedBudget: initialData.allocatedBudget,
         scheduledStart: formatDate(initialData.scheduledStart),
         scheduledEnd: formatDate(initialData.scheduledEnd),
+        actualEnd: formatDate(initialData.actualEnd),
+        varianceReason: initialData.varianceReason || '',
         requirements: initialData.requirements || [],
         currentReq: ''
       });
@@ -56,6 +58,12 @@ export default function MM_ActivityForm({ initialData, projects, onClose, onSucc
   const selectedProject = useMemo(() => 
     projects.find(p => p.id === formData.projectId),
   [formData.projectId, projects]);
+
+  // Check if activity is overdue for Variance reporting
+  const isOverdue = useMemo(() => {
+    if (!formData.scheduledEnd) return false;
+    return new Date() > new Date(formData.scheduledEnd) && !formData.actualEnd;
+  }, [formData.scheduledEnd, formData.actualEnd]);
 
   const handleAddRequirement = () => {
     if (formData.currentReq.trim()) {
@@ -72,7 +80,6 @@ export default function MM_ActivityForm({ initialData, projects, onClose, onSucc
     setLoading(true);
     setError('');
 
-    // Business Logic Validation (Guideline 1)
     if (selectedProject && formData.allocatedBudget > selectedProject.allocatedBudget) {
       setError(`Variance Alert: Activity budget ($${formData.allocatedBudget}) exceeds Project balance ($${selectedProject.allocatedBudget})`);
       setLoading(false);
@@ -81,7 +88,7 @@ export default function MM_ActivityForm({ initialData, projects, onClose, onSucc
 
     try {
       const method = initialData ? 'PATCH' : 'POST';
-      const endpoint = initialData ? `/mm/api/activities/${initialData.id}` : '/mm/api/activities';
+      const endpoint = initialData ? `/api/mm/activities/${initialData.id}` : '/api/mm/activities';
 
       const res = await fetch(endpoint, {
         method,
@@ -104,17 +111,16 @@ export default function MM_ActivityForm({ initialData, projects, onClose, onSucc
   };
 
   return (
-    <div className="w-full bg-white">
-      {/* Header */}
-      <div className="p-6 border-b flex justify-between items-center bg-slate-50">
+    <div className="w-full bg-white max-h-[90vh] overflow-y-auto">
+      <div className="p-6 border-b flex justify-between items-center bg-slate-50 sticky top-0 z-10">
         <div>
           <h2 className="text-xl font-black text-slate-800 flex items-center gap-2">
-            <Package size={24} className="text-blue-600" />
-            {initialData ? 'Edit' : 'Deploy'} Maintenance Activity
+            <Package size={24} className="text-indigo-600" />
+            {initialData ? 'Update' : 'Deploy'} Maintenance Activity
           </h2>
-          <p className="text-[10px] text-slate-500 font-bold uppercase tracking-widest mt-1">Operational Task Management</p>
+          <p className="text-[10px] text-slate-500 font-bold uppercase tracking-widest mt-1">NRZ Maintenance Module v2025</p>
         </div>
-        <button onClick={onClose} className="p-2 hover:bg-slate-200 rounded-full text-slate-400"><X size={20}/></button>
+        <button onClick={onClose} className="p-2 hover:bg-slate-200 rounded-full text-slate-400 transition-colors"><X size={20}/></button>
       </div>
 
       <form onSubmit={handleSubmit} className="p-6 space-y-5">
@@ -124,94 +130,128 @@ export default function MM_ActivityForm({ initialData, projects, onClose, onSucc
           </div>
         )}
 
-        {/* Project Context */}
+        {/* Project Selection */}
         <div>
           <label className="block text-[10px] font-black uppercase text-slate-400 mb-1.5 tracking-widest flex items-center gap-1">
-            <Briefcase size={12} className="text-blue-600"/> Parent Project
+            <Briefcase size={12} className="text-indigo-600"/> Parent Project Assignment
           </label>
           <select 
             required
-            className="w-full border-2 border-slate-100 rounded-xl p-3 outline-none focus:border-blue-500 bg-slate-50 font-bold text-slate-700"
+            className="w-full border-2 border-slate-100 rounded-xl p-3 outline-none focus:border-indigo-500 bg-slate-50 font-bold text-slate-700 transition-all"
             value={formData.projectId}
             onChange={(e) => setFormData({...formData, projectId: e.target.value})}
           >
-            <option value="">Select Project Assignment...</option>
+            <option value="">Select Project...</option>
             {projects.map(p => (
               <option key={p.id} value={p.id}>{p.name} (Cap: ${p.allocatedBudget.toLocaleString()})</option>
             ))}
           </select>
         </div>
 
-        {/* Description */}
-        <div>
-          <label className="block text-[10px] font-black uppercase text-slate-400 mb-1.5 tracking-widest">Work Description</label>
-          <textarea 
-            required
-            className="w-full border-2 border-slate-100 rounded-xl p-4 outline-none focus:border-blue-500 h-24 bg-white font-medium text-slate-700"
-            placeholder="Describe technical task details..."
-            value={formData.description}
-            onChange={(e) => setFormData({...formData, description: e.target.value})}
-          />
-        </div>
-
+        {/* Supervisor & Budget Row */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
             <label className="block text-[10px] font-black uppercase text-slate-400 mb-1.5 tracking-widest flex items-center gap-1">
-              <User size={12} className="text-blue-600"/> Supervisor
+              <User size={12} className="text-indigo-600"/> Responsible Supervisor
             </label>
             <input 
               required
               type="text"
-              className="w-full border-2 border-slate-100 rounded-xl p-3 outline-none focus:border-blue-500 font-bold text-slate-700"
-              placeholder="Responsible Engineer"
-              value={formData.supervisorName}
-              onChange={(e) => setFormData({...formData, supervisorName: e.target.value})}
+              className="w-full border-2 border-slate-100 rounded-xl p-3 outline-none focus:border-indigo-500 font-bold text-slate-700"
+              placeholder="e.g., Senior Engineer Mapfumo"
+              value={formData.supervisor}
+              onChange={(e) => setFormData({...formData, supervisor: e.target.value})}
             />
           </div>
           <div>
-            <label className="block text-[10px] font-black uppercase text-slate-400 mb-1.5 tracking-widest">Task Budget ($)</label>
+            <label className="block text-[10px] font-black uppercase text-slate-400 mb-1.5 tracking-widest">Allocated Activity Budget ($)</label>
             <input 
               required type="number"
-              className="w-full border-2 border-slate-100 rounded-xl p-3 outline-none focus:border-blue-500 font-bold text-slate-700"
+              className="w-full border-2 border-slate-100 rounded-xl p-3 outline-none focus:border-indigo-500 font-bold text-slate-700"
               value={formData.allocatedBudget}
               onChange={(e) => setFormData({...formData, allocatedBudget: parseFloat(e.target.value)})}
             />
           </div>
         </div>
 
-        {/* Timeline */}
-        <div className="grid grid-cols-2 gap-4 bg-slate-50 p-4 rounded-xl border-2 border-slate-100">
-          <div>
-            <label className="block text-[10px] font-black text-slate-500 uppercase mb-1 flex items-center gap-1">
-              <Calendar size={12}/> Start Date
-            </label>
-            <input 
-              required type="date"
-              className="w-full bg-transparent font-bold text-slate-700 outline-none"
-              value={formData.scheduledStart}
-              onChange={(e) => setFormData({...formData, scheduledStart: e.target.value})}
-            />
-          </div>
-          <div>
-            <label className="block text-[10px] font-black text-slate-500 uppercase mb-1 flex items-center gap-1">
-              <Calendar size={12}/> End Date
-            </label>
-            <input 
-              required type="date"
-              className="w-full bg-transparent font-bold text-slate-700 outline-none"
-              value={formData.scheduledEnd}
-              onChange={(e) => setFormData({...formData, scheduledEnd: e.target.value})}
-            />
-          </div>
+        {/* Description */}
+        <div>
+          <label className="block text-[10px] font-black uppercase text-slate-400 mb-1.5 tracking-widest">Scope of Work</label>
+          <textarea 
+            required
+            className="w-full border-2 border-slate-100 rounded-xl p-4 outline-none focus:border-indigo-500 h-24 bg-white font-medium text-slate-700"
+            placeholder="Detailed technical specifications..."
+            value={formData.description}
+            onChange={(e) => setFormData({...formData, description: e.target.value})}
+          />
         </div>
 
-        {/* Requirements */}
+        {/* Timeline & Variance Section */}
+        <div className="p-4 bg-slate-50 rounded-2xl border border-slate-200 space-y-4">
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="block text-[10px] font-black text-slate-500 uppercase mb-1 flex items-center gap-1">
+                <Calendar size={12}/> Scheduled Start
+              </label>
+              <input 
+                required type="date"
+                className="w-full bg-transparent font-bold text-slate-700 outline-none"
+                value={formData.scheduledStart}
+                onChange={(e) => setFormData({...formData, scheduledStart: e.target.value})}
+              />
+            </div>
+            <div>
+              <label className="block text-[10px] font-black text-slate-500 uppercase mb-1 flex items-center gap-1">
+                <Calendar size={12}/> Scheduled End
+              </label>
+              <input 
+                required type="date"
+                className="w-full bg-transparent font-bold text-slate-700 outline-none"
+                value={formData.scheduledEnd}
+                onChange={(e) => setFormData({...formData, scheduledEnd: e.target.value})}
+              />
+            </div>
+          </div>
+
+          {initialData && (
+            <div className="pt-4 border-t border-slate-200">
+              <label className="block text-[10px] font-black text-emerald-600 uppercase mb-1 flex items-center gap-1">
+                <Clock size={12}/> Actual Completion Date
+              </label>
+              <input 
+                type="date"
+                className="w-full bg-transparent font-bold text-slate-700 outline-none"
+                value={formData.actualEnd}
+                onChange={(e) => setFormData({...formData, actualEnd: e.target.value})}
+              />
+            </div>
+          )}
+        </div>
+
+        {/* Variance Justification (Guideline Requirement) */}
+        {(isOverdue || formData.actualEnd > formData.scheduledEnd) && (
+          <div className="animate-in fade-in slide-in-from-top-2 duration-300">
+            <label className="block text-[10px] font-black uppercase text-amber-600 mb-1.5 tracking-widest flex items-center gap-1">
+              <AlertCircle size={12}/> Variance Reason (Required per Guideline 1)
+            </label>
+            <input 
+              required
+              type="text"
+              className="w-full border-2 border-amber-100 bg-amber-50/30 rounded-xl p-3 outline-none focus:border-amber-500 font-bold text-slate-700 placeholder:text-amber-300"
+              placeholder="e.g., Awaiting Spares, Skill Gap, or Funding Delay"
+              value={formData.varianceReason}
+              onChange={(e) => setFormData({...formData, varianceReason: e.target.value})}
+            />
+          </div>
+        )}
+
+        {/* Requirements Tagging */}
         <div>
-          <label className="block text-[10px] font-black uppercase text-slate-400 mb-1.5 tracking-widest">Spares & Resources</label>
+          <label className="block text-[10px] font-black uppercase text-slate-400 mb-1.5 tracking-widest">Resource/Spare Requirements</label>
           <div className="flex gap-2">
             <input 
-              className="flex-1 border-2 border-slate-100 rounded-xl p-3 outline-none focus:border-blue-500 bg-white font-medium"
-              placeholder="Add item (e.g. Bearings, Lubricant)"
+              className="flex-1 border-2 border-slate-100 rounded-xl p-3 outline-none focus:border-indigo-500 bg-white"
+              placeholder="e.g., Brake Blocks, Hydraulic Oil"
               value={formData.currentReq}
               onChange={(e) => setFormData({...formData, currentReq: e.target.value})}
               onKeyDown={(e) => e.key === 'Enter' && (e.preventDefault(), handleAddRequirement())}
@@ -219,14 +259,14 @@ export default function MM_ActivityForm({ initialData, projects, onClose, onSucc
             <button 
               type="button" 
               onClick={handleAddRequirement}
-              className="bg-slate-900 text-white px-5 rounded-xl hover:bg-black transition-all"
+              className="bg-slate-900 text-white px-5 rounded-xl hover:bg-indigo-600 transition-all"
             >
               <Plus size={20} />
             </button>
           </div>
           <div className="flex flex-wrap gap-2 mt-3">
             {formData.requirements.map((req, i) => (
-              <span key={i} className="bg-blue-50 text-blue-700 text-[10px] font-black px-3 py-1.5 rounded-lg border border-blue-100 flex items-center gap-2">
+              <span key={i} className="bg-indigo-50 text-indigo-700 text-[10px] font-black px-3 py-1.5 rounded-lg border border-indigo-100 flex items-center gap-2">
                 {req}
                 <button type="button" onClick={() => setFormData({...formData, requirements: formData.requirements.filter((_, idx) => idx !== i)})}><X size={12}/></button>
               </span>
@@ -237,10 +277,10 @@ export default function MM_ActivityForm({ initialData, projects, onClose, onSucc
         <button 
           type="submit"
           disabled={loading}
-          className="w-full py-4 bg-blue-600 text-white rounded-2xl font-black hover:bg-blue-700 shadow-xl shadow-blue-100 flex items-center justify-center gap-2 transition-all active:scale-[0.98] disabled:bg-slate-400"
+          className="w-full py-4 bg-indigo-600 text-white rounded-2xl font-black hover:bg-indigo-700 shadow-xl shadow-indigo-100 flex items-center justify-center gap-2 transition-all active:scale-[0.98] disabled:bg-slate-400"
         >
           {loading ? <Loader2 className="animate-spin" size={20} /> : <Save size={20} />}
-          {initialData ? 'Update Activity' : 'Deploy Activity'}
+          {initialData ? 'Commit Updates' : 'Authorize Deployment'}
         </button>
       </form>
     </div>

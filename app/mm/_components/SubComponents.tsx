@@ -5,7 +5,9 @@ import {
   Calendar, DollarSign, MapPin, User as UserIcon, Clock, AlertTriangle, 
   CheckCircle2, Activity, Edit3, Trash2, MoreVertical, 
   Box,
-  HardHat
+  HardHat,
+  Construction,
+  AlertCircle
 } from 'lucide-react';
 import { MM_Activity, MM_Project, MM_StrategicPlan } from '../types/strategies';
 import ConfirmAction from './ConfirmAction';
@@ -264,37 +266,129 @@ export const ProjectGridView = ({ projects, onEdit, onDelete }: any) => (
 /**
  * ⚙️ ACTIVITY VIEW (Mobile Compliant Table)
  */
+// export const ActivityTableView = ({ activities, onEdit, onDelete }: any) => {
+//   return (
+//     <div className="w-full overflow-x-auto rounded-2xl border border-slate-200 bg-white shadow-sm">
+//       <table className="w-full text-left border-collapse">
+//         <thead className="bg-slate-50 border-b border-slate-200 hidden md:table-header-group">
+//           <tr className="text-[10px] font-black text-slate-400 uppercase tracking-widest">
+//             <th className="px-6 py-4">Activity Description</th>
+//             <th className="px-6 py-4">Stage</th>
+//             <th className="px-6 py-4 text-right">Actual Cost</th>
+//             <th className="px-6 py-4 text-center">Actions</th>
+//           </tr>
+//         </thead>
+//         <tbody className="divide-y divide-slate-100">
+//           {activities.map((act: MM_Activity) => (
+//             <tr key={act.id} className="flex flex-col md:table-row p-4 md:p-0 hover:bg-slate-50/50">
+//               <td className="md:px-6 md:py-4">
+//                 <div className="font-bold text-slate-800 text-sm md:text-base">{act.description}</div>
+//                 <div className="text-[10px] text-slate-400 md:mt-1">Manager: {act.supervisor?.name || 'Pending'}</div>
+//               </td>
+//               <td className="md:px-6 md:py-4 mt-2 md:mt-0">
+//                 <span className="text-[9px] bg-slate-100 px-2 py-1 rounded font-black border border-slate-200 uppercase">{act.stage}</span>
+//               </td>
+//               <td className="md:px-6 md:py-4 md:text-right font-mono font-bold text-emerald-600 mt-2 md:mt-0">
+//                 <span className="md:hidden text-slate-400 text-[10px] uppercase mr-2">Cost:</span>
+//                 ${(act.actualLaborCost + act.actualMaterialCost).toLocaleString()}
+//               </td>
+//               <td className="md:px-6 md:py-4 flex justify-end md:table-cell mt-3 md:mt-0 border-t md:border-0 pt-3 md:pt-4">
+//                 <ItemActions id={act.id} item={act} onEdit={onEdit} onDelete={onDelete} />
+//               </td>
+//             </tr>
+//           ))}
+//         </tbody>
+//       </table>
+//     </div>
+//   );
+// };
+
 export const ActivityTableView = ({ activities, onEdit, onDelete }: any) => {
   return (
     <div className="w-full overflow-x-auto rounded-2xl border border-slate-200 bg-white shadow-sm">
       <table className="w-full text-left border-collapse">
         <thead className="bg-slate-50 border-b border-slate-200 hidden md:table-header-group">
           <tr className="text-[10px] font-black text-slate-400 uppercase tracking-widest">
-            <th className="px-6 py-4">Activity Description</th>
+            <th className="px-6 py-4">Activity & Supervisor</th>
+            <th className="px-6 py-4">Timeline Status</th>
             <th className="px-6 py-4">Stage</th>
             <th className="px-6 py-4 text-right">Actual Cost</th>
             <th className="px-6 py-4 text-center">Actions</th>
           </tr>
         </thead>
         <tbody className="divide-y divide-slate-100">
-          {activities.map((act: MM_Activity) => (
-            <tr key={act.id} className="flex flex-col md:table-row p-4 md:p-0 hover:bg-slate-50/50">
-              <td className="md:px-6 md:py-4">
-                <div className="font-bold text-slate-800 text-sm md:text-base">{act.description}</div>
-                <div className="text-[10px] text-slate-400 md:mt-1">Manager: {act.supervisor?.name || 'Pending'}</div>
-              </td>
-              <td className="md:px-6 md:py-4 mt-2 md:mt-0">
-                <span className="text-[9px] bg-slate-100 px-2 py-1 rounded font-black border border-slate-200 uppercase">{act.stage}</span>
-              </td>
-              <td className="md:px-6 md:py-4 md:text-right font-mono font-bold text-emerald-600 mt-2 md:mt-0">
-                <span className="md:hidden text-slate-400 text-[10px] uppercase mr-2">Cost:</span>
-                ${(act.actualLaborCost + act.actualMaterialCost).toLocaleString()}
-              </td>
-              <td className="md:px-6 md:py-4 flex justify-end md:table-cell mt-3 md:mt-0 border-t md:border-0 pt-3 md:pt-4">
-                <ItemActions id={act.id} item={act} onEdit={onEdit} onDelete={onDelete} />
-              </td>
-            </tr>
-          ))}
+          {activities.map((act: any) => {
+            // Logic for Variance Engine (Guideline 5.5)
+            const isOverdue = !act.actualEnd && act.scheduledEnd && new Date() > new Date(act.scheduledEnd);
+            const totalCost = (act.actualLaborCost || 0) + (act.actualMaterialCost || 0);
+            
+            return (
+              <tr key={act.id} className="flex flex-col md:table-row p-4 md:p-0 hover:bg-slate-50/50 transition-colors">
+                {/* 1. Description & Supervisor */}
+                <td className="md:px-6 md:py-4">
+                  <div className="font-bold text-slate-800 text-sm md:text-base leading-tight">
+                    {act.description}
+                  </div>
+                  <div className="flex items-center gap-1.5 text-[10px] text-slate-400 mt-1 font-medium uppercase tracking-tight">
+                    <Construction size={10} /> {act.supervisor || 'Unassigned'}
+                  </div>
+                </td>
+
+                {/* 2. Timeline Status (Variance Engine) */}
+                <td className="md:px-6 md:py-4 mt-2 md:mt-0">
+                  <div className="flex flex-col gap-1">
+                    {isOverdue ? (
+                      <span className="flex items-center gap-1 text-red-600 font-black text-[10px] uppercase">
+                        <AlertCircle size={12} /> Overdue Variance
+                      </span>
+                    ) : act.actualEnd ? (
+                      <span className="flex items-center gap-1 text-emerald-600 font-black text-[10px] uppercase">
+                        <CheckCircle2 size={12} /> Completed
+                      </span>
+                    ) : (
+                      <span className="flex items-center gap-1 text-slate-400 font-black text-[10px] uppercase">
+                        <Clock size={12} /> In Progress
+                      </span>
+                    )}
+                    <span className="text-[10px] text-slate-500 font-mono">
+                      Target: {act.scheduledEnd ? new Date(act.scheduledEnd).toLocaleDateString() : 'N/A'}
+                    </span>
+                  </div>
+                </td>
+
+                {/* 3. Stage Badge */}
+                <td className="md:px-6 md:py-4 mt-2 md:mt-0">
+                  <span className={`text-[9px] px-2 py-1 rounded font-black border uppercase ${
+                    act.stage === 'COMPLETED' ? 'bg-emerald-50 text-emerald-700 border-emerald-100' :
+                    act.stage === 'PLANNING' ? 'bg-blue-50 text-blue-700 border-blue-100' :
+                    'bg-amber-50 text-amber-700 border-amber-100'
+                  }`}>
+                    {act.stage}
+                  </span>
+                </td>
+
+                {/* 4. Cost Analysis */}
+                <td className="md:px-6 md:py-4 md:text-right font-mono font-bold mt-2 md:mt-0">
+                  <div className="flex flex-col md:items-end">
+                    <span className="md:hidden text-slate-400 text-[10px] uppercase mb-1">Total Cost:</span>
+                    <span className={totalCost > act.allocatedBudget ? 'text-red-600' : 'text-emerald-600'}>
+                      ${totalCost.toLocaleString()}
+                    </span>
+                    <span className="text-[9px] text-slate-400 font-normal">
+                      Budget: ${act.allocatedBudget?.toLocaleString()}
+                    </span>
+                  </div>
+                </td>
+
+                {/* 5. Actions */}
+                <td className="md:px-6 md:py-4 flex justify-end md:table-cell mt-4 md:mt-0 border-t md:border-0 pt-3 md:pt-4">
+                  <div className="flex justify-center">
+                    <ItemActions id={act.id} item={act} onEdit={onEdit} onDelete={onDelete} />
+                  </div>
+                </td>
+              </tr>
+            );
+          })}
         </tbody>
       </table>
     </div>
