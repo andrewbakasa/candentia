@@ -1576,6 +1576,9 @@ model MM_Activity {
   allocatedBudget     Float
   actualLaborCost     Float            @default(0)
   actualMaterialCost  Float            @default(0)
+
+  // Relationship to Tasks
+  tasks               MM_Task[]        // New relation field
   
   stage               MM_ActivityStage @default(PLANNING)
   requirements        String[]         // e.g., ["NSSA Cert", "Brake Blocks"]
@@ -1586,8 +1589,35 @@ model MM_Activity {
   updatedAt           DateTime     @updatedAt
 }
 
+model MM_Task {
+  id            String       @id @default(auto()) @map("_id") @db.ObjectId
+  activityId    String       @db.ObjectId
+  activity      MM_Activity  @relation(fields: [activityId], references: [id])
+  
+  title         String
+  description   String?
+  assignedTo    String?      // Staff ID or Name
+  
+  // Status & Progress
+  status        TaskStatus   @default(PENDING)
+  isCompleted   Boolean      @default(false)
+  completionDate DateTime?
+  
+  // Financial & Resource tracking (Supporting Guideline Sec 6.2)
+  estimatedHours Float?
+  actualHours    Float?
+  materialNotes  String?     // Specific parts used for this task
+  
+  createdAt     DateTime     @default(now())
+  updatedAt     DateTime     @updatedAt
+}
 
-
+enum TaskStatus {
+  PENDING
+  IN_PROGRESS
+  BLOCKED
+  COMPLETED
+}
 enum MM_WorkshopType {
   MECHANICAL
   ELECTRICAL
