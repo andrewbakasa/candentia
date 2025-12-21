@@ -36,7 +36,7 @@ function DashboardContent() {
     router.push(`/mm/?tab=${tab}`, { scroll: false });
   };
 
-  const fetchData = useCallback(async () => {
+  const fetchData2 = useCallback(async () => {
     setLoading(true);
     setError(null);
     try {
@@ -50,6 +50,43 @@ function DashboardContent() {
       setLoading(false);
     }
   }, [activeTab]);
+
+  const fetchData = useCallback(async () => {
+  setLoading(true);
+  setError(null);
+  try {
+    // 1. Fetch the primary data for the active tab
+    const primaryRes = await fetch(`/mm/api/${activeTab}`);
+    if (!primaryRes.ok) throw new Error(`Failed to fetch ${activeTab}`);
+    const primaryResult = await primaryRes.json();
+
+    // 2. NEW: If we are on the projects tab, we also need strategies and workshops
+    if (activeTab === 'projects') {
+      const [stratRes, workshopRes] = await Promise.all([
+        fetch('/mm/api/strategies'),
+        fetch('/mm/api/workshops')
+      ]);
+
+      const strategies = stratRes.ok ? await stratRes.json() : [];
+      const workshops = workshopRes.ok ? await workshopRes.json() : [];
+
+      setData((prev: any) => ({
+        ...prev,
+        projects: primaryResult,
+        strategies: strategies,
+        workshops: workshops
+      }));
+    } else {
+      // Standard behavior for other tabs
+      setData((prev: any) => ({ ...prev, [activeTab]: primaryResult }));
+    }
+    
+  } catch (err: any) {
+    setError(err.message);
+  } finally {
+    setLoading(false);
+  }
+}, [activeTab]);
 
   useEffect(() => {
     fetchData();
