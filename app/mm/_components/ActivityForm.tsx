@@ -20,7 +20,8 @@ interface Props {
 export default function MM_ActivityForm({ initialData, projects, onClose, onSuccess, preselectedProject }: Props) {
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
-
+    //console.log("projects....", projects)
+     //.log("preselectedProject....", preselectedProject)
     const formatDate = (dateStr: string) => {
         if (!dateStr) return '';
         return new Date(dateStr).toISOString().split('T')[0];
