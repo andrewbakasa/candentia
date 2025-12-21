@@ -22,10 +22,10 @@ export default function MM_Sidebar({ activeTab }: { activeTab?: TabType | 'none'
       
       <nav className="space-y-2 flex-1">
         <SidebarLink href="/mm/?tab=strategies" icon={<Target size={20}/>} label="Strategic Plans" active={activeTab === 'strategies'} />
-        <SidebarLink href="/mm/?tab=workshops" icon={<Settings size={20}/>} label="Workshops" active={activeTab === 'workshops'} />
-        <SidebarLink href="/mm/?tab=projects" icon={<Briefcase size={20}/>} label="Workshop Projects" active={activeTab === 'projects'} />
+        <SidebarLink href="/mm/?tab=projects" icon={<Briefcase size={20}/>} label="Projects" active={activeTab === 'projects'} />
         <SidebarLink href="/mm/?tab=activities" icon={<Activity size={20}/>} label="Operational Activities" active={activeTab === 'activities'} />
-        
+        <SidebarLink href="/mm/?tab=workshops" icon={<Settings size={20}/>} label="Workshops" active={activeTab === 'workshops'} />
+  
         <div className="pt-4 mt-4 border-t border-slate-800">
           <SidebarLink href="/mm/" icon={<LayoutDashboard size={20}/>} label="Main Dashboard" active={false} />
         </div>
