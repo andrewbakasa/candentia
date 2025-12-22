@@ -4,7 +4,7 @@ import { Prisma } from '@prisma/client';
 
 /**
  * 🎯 PATCH /api/mm/activities/[id]
- * Updates maintenance activity and synchronizes procurement values
+ * Updates activity and syncs Project-level Material Requirements (BoQ).
  */
 export async function PATCH(
     request: NextRequest,
@@ -15,38 +15,40 @@ export async function PATCH(
         const body = await request.json();
 
         const updatedActivity = await prisma.$transaction(async (tx) => {
-            
-            // 1. Build update object matching the updated MM_Activity schema
-            const updateData: Prisma.MM_ActivityUncheckedUpdateInput = {
-                ...(body.description && { description: body.description }),
-                ...(body.supervisor && { supervisor: body.supervisor }), // Changed from supervisorId to supervisor
-                ...(body.allocatedBudget !== undefined && { allocatedBudget: parseFloat(body.allocatedBudget) }),
-                ...(body.scheduledStart && { scheduledStart: new Date(body.scheduledStart) }),
-                ...(body.scheduledEnd && { scheduledEnd: new Date(body.scheduledEnd) }),
-                ...(body.actualEnd && { actualEnd: new Date(body.actualEnd) }), // Variance Engine Support
-                ...(body.requirements && { requirements: body.requirements }),
-                ...(body.progress !== undefined && { progress: body.progress }),
-                ...(body.stage && { stage: body.stage }),
-                ...(body.varianceReason && { varianceReason: body.varianceReason }),
-                ...(body.isRework !== undefined && { isRework: body.isRework }),
-                ...(body.reworkCost !== undefined && { reworkCost: parseFloat(body.reworkCost) }),
-            };
-
-            const activity = await tx.mM_Activity.update({
+            // 1. Fetch current activity to get the Project Context and current Label
+            const current = await tx.mM_Activity.findUnique({
                 where: { id },
-                data: updateData
+                select: { description: true, projectId: true }
             });
 
-            // 2. Guideline 1 Compliance: Sync PO value if budget changed and PO is still pending
-            if (body.allocatedBudget !== undefined) {
-                await tx.mM_PurchaseOrder.updateMany({
+            if (!current) throw new Error("Activity not found");
+
+            // 2. Update the Activity (Schedule, Labor, and Progress)
+            const activity = await tx.mM_Activity.update({
+                where: { id },
+                data: {
+                    ...(body.description && { description: body.description }),
+                    ...(body.supervisor && { supervisor: body.supervisor }),
+                    ...(body.allocatedBudget !== undefined && { allocatedBudget: parseFloat(body.allocatedBudget) }),
+                    ...(body.scheduledStart && { scheduledStart: new Date(body.scheduledStart) }),
+                    ...(body.scheduledEnd && { scheduledEnd: new Date(body.scheduledEnd) }),
+                    ...(body.actualEnd && { actualEnd: new Date(body.actualEnd) }),
+                    ...(body.progress !== undefined && { progress: body.progress }),
+                    ...(body.stage && { stage: body.stage }),
+                    ...(body.varianceReason && { varianceReason: body.varianceReason }),
+                    ...(body.isRework !== undefined && { isRework: body.isRework }),
+                    ...(body.reworkCost !== undefined && { reworkCost: parseFloat(body.reworkCost) }),
+                }
+            });
+
+            // 3. Sync BoQ Labels: If description changed, update the label on project materials
+            if (body.description && current.description !== body.description) {
+                await tx.mM_MaterialRequirement.updateMany({
                     where: { 
-                        activityId: id,
-                        status: 'AWAITING_FUNDING' 
+                        projectId: current.projectId,
+                        activityLabel: current.description 
                     },
-                    data: {
-                        value: parseFloat(body.allocatedBudget)
-                    }
+                    data: { activityLabel: body.description }
                 });
             }
 
@@ -57,15 +59,13 @@ export async function PATCH(
 
     } catch (error: any) {
         console.error("MM_Activity PATCH Error:", error);
-        if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2025') {
-            return NextResponse.json({ message: "Activity record not found." }, { status: 404 });
-        }
-        return NextResponse.json({ message: "Failed to update activity." }, { status: 500 });
+        return NextResponse.json({ message: error.message || "Update failed" }, { status: 500 });
     }
 }
 
 /**
  * 🎯 DELETE /api/mm/activities/[id]
+ * Removes activity. Procurement records (POs) remain safe at Project level.
  */
 export async function DELETE(
     request: NextRequest,
@@ -75,25 +75,131 @@ export async function DELETE(
         const id = params.id;
 
         await prisma.$transaction(async (tx) => {
-            // A. Remove dependent Purchase Orders
-            await tx.mM_PurchaseOrder.deleteMany({
-                where: { activityId: id }
+            const activity = await tx.mM_Activity.findUnique({
+                where: { id },
+                select: { description: true, projectId: true }
             });
 
-            // B. Delete Activity
-            await tx.mM_Activity.delete({
-                where: { id }
-            });
+            if (activity) {
+                // Unlink materials from this deleted activity but keep them in Project BoQ
+                await tx.mM_MaterialRequirement.updateMany({
+                    where: { 
+                        projectId: activity.projectId,
+                        activityLabel: activity.description 
+                    },
+                    data: {
+                        activityLabel: "UNASSIGNED",
+                        status: 'DRAFT' 
+                    }
+                });
+            }
+
+            // Delete Activity (Tasks will cascade delete if configured in Prisma)
+            await tx.mM_Activity.delete({ where: { id } });
         });
 
-        return NextResponse.json({ 
-            message: "Activity and associated procurement records removed." 
-        }, { status: 200 });
+        return NextResponse.json({ message: "Activity removed. BoQ preserved." });
 
     } catch (error: any) {
-        if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2025') {
-            return NextResponse.json({ message: "Activity record not found." }, { status: 404 });
-        }
-        return NextResponse.json({ message: "Failed to delete activity." }, { status: 500 });
+        return NextResponse.json({ message: "Deletion failed." }, { status: 500 });
     }
 }
+// import { NextRequest, NextResponse } from 'next/server';
+// import prisma from '../../../../libs/prismadb';
+// import { Prisma } from '@prisma/client';
+
+// /**
+//  * 🎯 PATCH /api/mm/activities/[id]
+//  * Updates maintenance activity and synchronizes procurement values
+//  */
+// export async function PATCH(
+//     request: NextRequest,
+//     { params }: { params: { id: string } }
+// ) {
+//     try {
+//         const id = params.id;
+//         const body = await request.json();
+
+//         const updatedActivity = await prisma.$transaction(async (tx) => {
+            
+//             // 1. Build update object matching the updated MM_Activity schema
+//             const updateData: Prisma.MM_ActivityUncheckedUpdateInput = {
+//                 ...(body.description && { description: body.description }),
+//                 ...(body.supervisor && { supervisor: body.supervisor }), // Changed from supervisorId to supervisor
+//                 ...(body.allocatedBudget !== undefined && { allocatedBudget: parseFloat(body.allocatedBudget) }),
+//                 ...(body.scheduledStart && { scheduledStart: new Date(body.scheduledStart) }),
+//                 ...(body.scheduledEnd && { scheduledEnd: new Date(body.scheduledEnd) }),
+//                 ...(body.actualEnd && { actualEnd: new Date(body.actualEnd) }), // Variance Engine Support
+//                 ...(body.requirements && { requirements: body.requirements }),
+//                 ...(body.progress !== undefined && { progress: body.progress }),
+//                 ...(body.stage && { stage: body.stage }),
+//                 ...(body.varianceReason && { varianceReason: body.varianceReason }),
+//                 ...(body.isRework !== undefined && { isRework: body.isRework }),
+//                 ...(body.reworkCost !== undefined && { reworkCost: parseFloat(body.reworkCost) }),
+//             };
+
+//             const activity = await tx.mM_Activity.update({
+//                 where: { id },
+//                 data: updateData
+//             });
+
+//             // 2. Guideline 1 Compliance: Sync PO value if budget changed and PO is still pending
+//             if (body.allocatedBudget !== undefined) {
+//                 await tx.mM_PurchaseOrder.updateMany({
+//                     where: { 
+//                         activityId: id,
+//                         status: 'AWAITING_FUNDING' 
+//                     },
+//                     data: {
+//                         value: parseFloat(body.allocatedBudget)
+//                     }
+//                 });
+//             }
+
+//             return activity;
+//         });
+
+//         return NextResponse.json(updatedActivity, { status: 200 });
+
+//     } catch (error: any) {
+//         console.error("MM_Activity PATCH Error:", error);
+//         if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2025') {
+//             return NextResponse.json({ message: "Activity record not found." }, { status: 404 });
+//         }
+//         return NextResponse.json({ message: "Failed to update activity." }, { status: 500 });
+//     }
+// }
+
+// /**
+//  * 🎯 DELETE /api/mm/activities/[id]
+//  */
+// export async function DELETE(
+//     request: NextRequest,
+//     { params }: { params: { id: string } }
+// ) {
+//     try {
+//         const id = params.id;
+
+//         await prisma.$transaction(async (tx) => {
+//             // A. Remove dependent Purchase Orders
+//             await tx.mM_PurchaseOrder.deleteMany({
+//                 where: { activityId: id }
+//             });
+
+//             // B. Delete Activity
+//             await tx.mM_Activity.delete({
+//                 where: { id }
+//             });
+//         });
+
+//         return NextResponse.json({ 
+//             message: "Activity and associated procurement records removed." 
+//         }, { status: 200 });
+
+//     } catch (error: any) {
+//         if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2025') {
+//             return NextResponse.json({ message: "Activity record not found." }, { status: 404 });
+//         }
+//         return NextResponse.json({ message: "Failed to delete activity." }, { status: 500 });
+//     }
+// }

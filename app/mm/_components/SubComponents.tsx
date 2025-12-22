@@ -11,19 +11,26 @@ import {
 } from 'lucide-react';
 import ConfirmAction from './ConfirmAction';
 
-/** * 🛠️ SHARED ACTION COMPONENTS
- */
+
 interface ActionProps {
   onEdit?: (item: any) => void;
   onDelete?: (id: string) => void;
   onAddTask?: (item: any) => void;
   id: string;
   item: any;
+  // Permissions broken down by action
+  permissions: {
+    canAdd?: boolean;
+    canEdit?: boolean;
+    canDelete?: boolean;
+  };
 }
 
-const ItemActions = ({ onEdit, onDelete, onAddTask, id, item }: ActionProps) => (
+
+const ItemActions = ({ onEdit, onDelete, onAddTask, id, item, permissions }: ActionProps) => (
   <div className="flex items-center gap-1"> 
-    {onAddTask && (
+    {/* ADD TASK RESTRICTION */}
+    {onAddTask && permissions.canAdd && (
       <button 
         onClick={(e) => { e.stopPropagation(); onAddTask(item); }}
         className="p-1.5 text-emerald-600 hover:bg-emerald-50 rounded-lg transition-colors flex items-center gap-1 text-[10px] font-black uppercase"
@@ -32,14 +39,20 @@ const ItemActions = ({ onEdit, onDelete, onAddTask, id, item }: ActionProps) => 
         <Plus size={16} /> <span className="hidden sm:inline">Task</span>
       </button>
     )}
-    <button 
-      onClick={(e) => { e.stopPropagation(); onEdit?.(item); }}
-      className="p-1.5 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition-colors"
-      title="Edit"
-    >
-      <Edit3 size={18} />
-    </button>
-    {onDelete && (
+
+    {/* EDIT RESTRICTION */}
+    {onEdit && permissions.canEdit && (
+      <button 
+        onClick={(e) => { e.stopPropagation(); onEdit(item); }}
+        className="p-1.5 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition-colors"
+        title="Edit"
+      >
+        <Edit3 size={18} />
+      </button>
+    )}
+
+    {/* DELETE RESTRICTION */}
+    {onDelete && permissions.canDelete && (
       <ConfirmAction 
         onConfirm={onDelete} 
         itemId={id}
@@ -56,78 +69,12 @@ const ItemActions = ({ onEdit, onDelete, onAddTask, id, item }: ActionProps) => 
     )}
   </div>
 );
-
 /**
  * 🏭 WORKSHOP GRID VIEW
  * High-level capacity monitoring for regional hubs.
  */
-export const WorkshopListView2 = ({ workshops, onEdit, onDelete }: any) => (
-  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 p-2 md:p-0">
-    {workshops.map((workshop: any) => {
-      const projectCount = workshop._count?.mm_projects || 0;
-      const loadFactor = Math.round((projectCount / (workshop.capacity || 1)) * 100);
-      
-      return (
-        <div key={workshop.id} className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden flex flex-col hover:border-indigo-300 transition-all group relative">
-          <div className="absolute top-4 right-4">
-             <ItemActions id={workshop.id} item={workshop} onEdit={onEdit} onDelete={onDelete} />
-          </div>
 
-          <div className="p-5 border-b border-slate-50 bg-slate-50/50 group-hover:bg-indigo-50/30 transition-colors">
-            <div className="p-2.5 w-fit bg-white shadow-sm border border-slate-100 text-indigo-600 rounded-xl mb-3">
-              <Activity size={20} />
-            </div>
-            <span className={`px-2 py-0.5 rounded text-[9px] font-black tracking-widest border uppercase ${
-              workshop.specialization === 'MECHANICAL' ? 'bg-blue-50 text-blue-700 border-blue-100' : 'bg-purple-50 text-purple-700 border-purple-100'
-            }`}>
-              {workshop.specialization}
-            </span>
-          </div>
-          
-          <div className="p-6">
-            <h3 className="text-lg font-black text-slate-800 mb-1 tracking-tight truncate pr-16">{workshop.name}</h3>
-            <div className="flex items-center gap-1.5 text-slate-500 text-xs mb-6">
-              <MapPin size={12} className="text-slate-400" /> {workshop.location}
-            </div>
-            
-            <div className="grid grid-cols-2 gap-4 py-4 border-y border-slate-50 mb-4">
-              <div className="flex flex-col gap-1">
-                <div className="flex items-center gap-1 text-[10px] font-bold text-slate-400 uppercase tracking-widest">
-                  <Box size={10}/> Capacity
-                </div>
-                <span className="text-sm font-black text-slate-700">{workshop.capacity} Units</span>
-              </div>
-              <div className="flex flex-col gap-1">
-                <div className="flex items-center gap-1 text-[10px] font-bold text-slate-400 uppercase tracking-widest">
-                  <HardHat size={10}/> Projects
-                </div>
-                <span className="text-sm font-black text-indigo-600">{projectCount} Active</span>
-              </div>
-            </div>
-
-            <div className="space-y-2">
-              <div className="flex justify-between items-center">
-                <span className="text-[10px] font-black text-slate-400 uppercase">Load Factor</span>
-                <span className={`text-[10px] font-black ${loadFactor > 90 ? 'text-red-600' : 'text-slate-700'}`}>{loadFactor}%</span>
-              </div>
-              <div className="w-full bg-slate-100 h-2 rounded-full overflow-hidden">
-                <div 
-                  className={`h-full rounded-full transition-all duration-1000 ${
-                    loadFactor > 90 ? 'bg-red-500' : loadFactor > 70 ? 'bg-amber-500' : 'bg-indigo-500'
-                  }`} 
-                  style={{ width: `${Math.min(loadFactor, 100)}%` }}
-                />
-              </div>
-            </div>
-          </div>
-        </div>
-      );
-    })}
-  </div>
-);
-
-
-export const WorkshopListView = ({ workshops, onEdit, onDelete }: any) => {
+export const WorkshopListView = ({ workshops, onEdit, onDelete,permissions}: any) => {
   const [searchTerm, setSearchTerm] = useState('');
 
   // 🛠️ Filter Logic: Matches Name, Location, or Specialization
@@ -162,7 +109,7 @@ export const WorkshopListView = ({ workshops, onEdit, onDelete }: any) => {
           return (
             <div key={workshop.id} className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden flex flex-col hover:border-indigo-300 transition-all group relative">
               <div className="absolute top-4 right-4 z-10">
-                 <ItemActions id={workshop.id} item={workshop} onEdit={onEdit} onDelete={onDelete} />
+                 <ItemActions id={workshop.id} item={workshop} onEdit={onEdit} onDelete={onDelete} permissions={permissions} />
               </div>
 
               <div className="p-5 border-b border-slate-50 bg-slate-50/50 group-hover:bg-indigo-50/30 transition-colors">
@@ -232,7 +179,7 @@ export const WorkshopListView = ({ workshops, onEdit, onDelete }: any) => {
  * Visualizes fiscal year budget utilization (Guideline 2.1).
  */
 
-export const StrategyListView = ({ strategies, onEdit, onDelete }: any) => {
+export const StrategyListView = ({ strategies, onEdit, onDelete,permissions }: any) => {
   const [searchTerm, setSearchTerm] = useState('');
 
   // 🛠️ Filter Logic: Matches Year, Executive, or Description
@@ -272,7 +219,7 @@ export const StrategyListView = ({ strategies, onEdit, onDelete }: any) => {
                   {percentUsed > 95 ? <ShieldAlert size={22} /> : <Target size={22} />}
                 </div>
                 {/* Assuming ItemActions is available globally or imported */}
-                <ItemActions id={plan.id} item={plan} onEdit={onEdit} onDelete={onDelete} />
+                <ItemActions id={plan.id} item={plan} onEdit={onEdit} onDelete={onDelete} permissions={permissions}/>
               </div>
 
               <div className="mb-4">
@@ -328,7 +275,7 @@ export const StrategyListView = ({ strategies, onEdit, onDelete }: any) => {
  * Card-based operational tracking.
  */
 
-export const ProjectGridView = ({ projects, onEdit, onDelete }: any) => {
+export const ProjectGridView = ({ projects, onEdit, onDelete,permissions }: any) => {
   const [searchTerm, setSearchTerm] = useState('');
 
   // 🛠️ Filter Logic: Name, Manager, or Workshop
@@ -368,7 +315,7 @@ export const ProjectGridView = ({ projects, onEdit, onDelete }: any) => {
                 }`}>
                   {project.status?.replace('_', ' ') || 'PLANNED'}
                 </span>
-                <ItemActions id={project.id} item={project} onEdit={onEdit} onDelete={onDelete} />
+                <ItemActions id={project.id} item={project} onEdit={onEdit} onDelete={onDelete} permissions={permissions}/>
               </div>
               
               <Link href={`/mm/projects/${project.id}`}>
@@ -441,8 +388,16 @@ export const ProjectGridView = ({ projects, onEdit, onDelete }: any) => {
  * The primary interface for tracking specific workflow execution.
  */
 
-
-export const ActivityTableView = ({ activities, onEdit, onDelete, onAddTask, onEditTask }: any) => {
+// Added onDeleteTask to the props destructuring
+export const ActivityTableView = ({ 
+  activities, 
+  onEdit, 
+  onDelete, 
+  onAddTask, 
+  onEditTask, 
+  onDeleteTask, // <--- Added here
+  permissions
+}: any) => {
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
 
@@ -547,7 +502,6 @@ export const ActivityTableView = ({ activities, onEdit, onDelete, onAddTask, onE
 
                     <td className="px-6 py-5">
                       <div className="flex flex-col md:flex-row items-end md:items-center justify-end gap-3">
-                        {/* 📊 NEW LINK INTEGRATED IN ACTIONS */}
                         <Link 
                           href={`/mm/activities/${act.id}`}
                           onClick={(e) => e.stopPropagation()}
@@ -557,7 +511,7 @@ export const ActivityTableView = ({ activities, onEdit, onDelete, onAddTask, onE
                         </Link>
                         
                         <div onClick={(e) => e.stopPropagation()}>
-                           <ItemActions id={act.id} item={act} onEdit={onEdit} onDelete={onDelete} onAddTask={onAddTask} />
+                           <ItemActions id={act.id} item={act} onEdit={onEdit} onDelete={onDelete} onAddTask={onAddTask} permissions={permissions} />
                         </div>
                       </div>
                     </td>
@@ -593,9 +547,32 @@ export const ActivityTableView = ({ activities, onEdit, onDelete, onAddTask, onE
                                      </span>
                                   </div>
                                 </div>
-                                <button onClick={(e) => { e.stopPropagation(); onEditTask(task, act); }} className="p-2 text-slate-300 hover:text-indigo-600 opacity-0 group-hover/task:opacity-100 transition-all">
-                                  <Edit3 size={14} />
-                                </button>
+
+                                {/* Task Action Buttons Container */}
+                                <div className="flex items-center gap-1 opacity-0 group-hover/task:opacity-100 transition-all">
+                                  <button 
+                                    onClick={(e) => { e.stopPropagation(); onEditTask(task, act); }} 
+                                    className="p-2 text-slate-300 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition-all"
+                                  >
+                                    <Edit3 size={14} />
+                                  </button>
+
+                                  <div onClick={(e) => e.stopPropagation()}>
+                                    <ConfirmAction 
+                                      onConfirm={() => onDeleteTask(task.id)} 
+                                      itemId={task.id}
+                                      action="Delete" 
+                                      heading="Delete Task"
+                                      description="Are you sure? This work order will be permanently removed from the activity logs."
+                                      showHint={false} 
+                                      triggerButton={
+                                        <button className="p-2 text-slate-300 hover:text-red-600 hover:bg-red-50 rounded-lg transition-all">
+                                          <Trash2 size={14} />
+                                        </button>
+                                      }
+                                    />
+                                  </div>
+                                </div>
                               </div>
                             ))}
                           </div>

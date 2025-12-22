@@ -15,6 +15,7 @@ export default async function ProjectDetailPage({ params }: { params: { id: stri
         include: { 
             plan: true, 
             responsibleWorkshop: true, 
+            // 1. Fetch activities with tasks for the execution timeline
             activities: {
                 include: {
                     tasks: true 
@@ -22,10 +23,25 @@ export default async function ProjectDetailPage({ params }: { params: { id: stri
                 orderBy: {
                     scheduledStart: 'asc'
                 }
-            } 
+            },
+            // 2. Fetch the Bill of Quantities (BoQ) for material readiness tracking
+            materialRequirements: {
+                orderBy: {
+                    createdAt: 'desc'
+                }
+            },
+            // 3. Fetch all Financial Commitments (POs) tied to this project
+            purchaseOrders: {
+                include: {
+                    lineItems: true
+                },
+                orderBy: {
+                    createdAt: 'desc'
+                }
+            }
         }
     });
-
+    console.log("project fetching", project)
     if (!project) notFound();
 
     // Serialize to handle Date objects safely for Client Components
@@ -37,7 +53,7 @@ export default async function ProjectDetailPage({ params }: { params: { id: stri
             <MM_Sidebar activeTab="projects" />
 
             <main className="flex-1 overflow-y-auto">
-                {/* Standardized Header Implementation */}
+                {/* Header Implementation */}
                 <div className="px-3 pt-3">
                     <EntityActionsHeader 
                         itemId={serializedProject.id}
@@ -48,6 +64,11 @@ export default async function ProjectDetailPage({ params }: { params: { id: stri
                 </div>
                 
                 <div className="p-2 pt-2">
+                    {/* ProjectDetailView should now be updated to display:
+                        - Execution Progress (Activities/Tasks)
+                        - Procurement Progress (Material Requirements vs POs)
+                        - Financial Variance (Allocated Budget vs totalActualCost)
+                    */}
                     <div className="bg-white rounded-[2.5rem] shadow-sm border border-slate-200 overflow-hidden">
                         <ProjectDetailView 
                             project={serializedProject} 
