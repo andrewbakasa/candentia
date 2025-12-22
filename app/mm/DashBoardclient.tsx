@@ -84,9 +84,9 @@ function DashboardContent({ currentUser }: DashboardContentProps) {
         setData(async (prev: any) => ({
           ...prev,
           [activeTab]: primaryResult,
-          strategies: stratRes.ok ? await stratRes.json() : [],
-          workshops: workshopRes.ok ? await workshopRes.json() : [],
-          activities: actRes.ok ? await actRes.json() : []
+          strategies: stratRes,
+          workshops: workshopRes,
+          activities: actRes
         }));
       } else {
         setData((prev: any) => ({ ...prev, [activeTab]: primaryResult }));
@@ -219,7 +219,7 @@ function ProcurementListView({ type, items, onEdit }: any) {
           </tr>
         </thead>
         <tbody className="divide-y divide-slate-50">
-          {items.map((item: any) => (
+          {items?.map((item: any) => (
             <tr key={item.id} className="hover:bg-slate-50/50 transition-colors group">
               <td className="px-6 py-5">
                 <p className="font-mono text-xs font-bold text-indigo-600">{item.poNumber || item.itemCode}</p>
