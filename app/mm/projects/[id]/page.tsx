@@ -10,12 +10,13 @@ import EntityActionsHeader from '../../_components/ProjectActionWrapper';
 export default async function ProjectDetailPage({ params }: { params: { id: string } }) {
     const { id } = params;
 
+    // 1. Fetch the Specific Project with all Execution & Procurement Relations
     const project = await prisma.mM_Project.findUnique({
         where: { id },
         include: { 
             plan: true, 
             responsibleWorkshop: true, 
-            // 1. Fetch activities with tasks for the execution timeline
+            // Execution timeline
             activities: {
                 include: {
                     tasks: true 
@@ -24,13 +25,14 @@ export default async function ProjectDetailPage({ params }: { params: { id: stri
                     scheduledStart: 'asc'
                 }
             },
-            // 2. Fetch the Bill of Quantities (BoQ) for material readiness tracking
+            // Bill of Quantities (BoQ)
             materialRequirements: {
+                include:{ material:true},
                 orderBy: {
                     createdAt: 'desc'
                 }
             },
-            // 3. Fetch all Financial Commitments (POs) tied to this project
+            // Financial Commitments (POs)
             purchaseOrders: {
                 include: {
                     lineItems: true
@@ -41,11 +43,20 @@ export default async function ProjectDetailPage({ params }: { params: { id: stri
             }
         }
     });
-    console.log("project fetching", project)
+
+    // 2. Fetch all Strategic Plans (Strategies) for Guideline 1 Validation
+    // This provides the context for budget ceilings and resource allocation
+    const strategies = await prisma.mM_StrategicPlan.findMany({
+        orderBy: {
+            year: 'desc'
+        }
+    });
+
     if (!project) notFound();
 
     // Serialize to handle Date objects safely for Client Components
     const serializedProject = JSON.parse(JSON.stringify(project));
+    const serializedStrategies = JSON.parse(JSON.stringify(strategies));
 
     return (
         <div className="flex h-screen bg-slate-100/50 overflow-hidden">
@@ -64,15 +75,12 @@ export default async function ProjectDetailPage({ params }: { params: { id: stri
                 </div>
                 
                 <div className="p-2 pt-2">
-                    {/* ProjectDetailView should now be updated to display:
-                        - Execution Progress (Activities/Tasks)
-                        - Procurement Progress (Material Requirements vs POs)
-                        - Financial Variance (Allocated Budget vs totalActualCost)
-                    */}
                     <div className="bg-white rounded-[2.5rem] shadow-sm border border-slate-200 overflow-hidden">
                         <ProjectDetailView 
                             project={serializedProject} 
                             MM_ActivityForm={MM_ActivityForm} 
+                            // 3. Passing the full strategy registry to enable cross-referencing
+                            allStrategies={serializedStrategies}
                         />
                     </div>
                 </div>

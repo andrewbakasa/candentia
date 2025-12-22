@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import prisma from '../../../../libs/prismadb';
-import { MM_MaterialStatus } from '@prisma/client';
+import { MM_MaterialStatus, MM_POStatus } from '@prisma/client';
 
 /**
  * 🎯 PATCH: Update existing PO and Re-calibrate Costs
@@ -12,10 +12,10 @@ export async function PATCH(
     try {
         const { id } = params;
         const body = await request.json();        
-        const { poNumber, lineItems, projectId, vendorName } = body; // vendorName from frontend
+        const { poNumber, lineItems, projectId, vendorName, status } = body; 
 
         const result = await prisma.$transaction(async (tx) => {
-            // 1. Fetch the existing record to calculate cost differences
+            // 1. Fetch existing record for comparison
             const oldPO = await tx.mM_PurchaseOrder.findUnique({ 
                 where: { id },
                 include: { lineItems: true }
@@ -25,13 +25,23 @@ export async function PATCH(
             const newTotal = lineItems.reduce((acc: number, item: any) => acc + (item.quantity * item.unitPrice), 0);
             const costDiff = newTotal - oldPO.totalValue;
 
-            // 2. Update Project Cost Delta (Financial Integrity)
+            // 2. Logic for fundedAt Timestamp (Audit & Cash Flow Tracking)
+            let fundedAtUpdate = undefined;
+            // If the new status is FUNDED and it wasn't funded before, set the timestamp
+            if (status === 'FUNDED' && oldPO.status !== 'FUNDED') {
+                fundedAtUpdate = new Date();
+            } else if (status !== 'FUNDED') {
+                // Optional: Clear fundedAt if the status is reverted from FUNDED
+                fundedAtUpdate = null;
+            }
+
+            // 3. Update Project Cost Delta (Financial Integrity)
             await tx.mM_Project.update({
                 where: { id: projectId },
                 data: { totalActualCost: { increment: costDiff } }
             });
 
-            // 3. Reset status of previously linked requirements to DRAFT
+            // 4. Reset old requirements to DRAFT
             const oldReqIds = oldPO.lineItems.map((li: any) => li.requirementId).filter(Boolean);
             if (oldReqIds.length > 0) {
                 await tx.mM_MaterialRequirement.updateMany({
@@ -40,17 +50,18 @@ export async function PATCH(
                 });
             }
 
-            // 4. Wipe old line items to replace with new set
-            // Check your schema: use 'poId' or 'purchaseOrderId' based on relation field name
+            // 5. Wipe old line items
             await tx.mM_POLineItem.deleteMany({ where: { poId: id } });
 
-            // 5. Update PO details and create new line items
+            // 6. Update PO details, Status, and fundedAt
             const updatedPO = await tx.mM_PurchaseOrder.update({
                 where: { id },
                 data: {
                     poNumber,
-                    vendorname: vendorName || body.vendorname, // Direct string update
+                    status: status as MM_POStatus, // Explicitly cast to Enum
+                    vendorname: vendorName || body.vendorname,
                     totalValue: newTotal,
+                    fundedAt: fundedAtUpdate, // Updated trigger
                     lineItems: {
                         create: lineItems.map((item: any) => ({
                             itemCode: item.itemCode,
@@ -65,7 +76,7 @@ export async function PATCH(
                 include: { lineItems: true }
             });
 
-            // 6. Set new requirements status to PO_ISSUED
+            // 7. Update new requirements status to PO_ISSUED
             const newReqIds = lineItems.map((item: any) => item.requirementId);
             await tx.mM_MaterialRequirement.updateMany({
                 where: { id: { in: newReqIds } },

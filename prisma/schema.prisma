@@ -1606,32 +1606,7 @@ model MM_MaterialRequirement {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
-// model MM_MaterialRequirement {
-//   id        String     @id @default(auto()) @map("_id") @db.ObjectId
-//   projectId String     @db.ObjectId
-//   project   MM_Project @relation(fields: [projectId], references: [id])
 
-//   // ADD THIS LINE
-//   activityLabel String? // Used to link this material to an Activity description
-
-//   itemCode          String // Standard NRZ Inventory Reference
-//   description       String
-//   quantityRequired  Int
-//   estimatedUnitCost Float // Planned cost used for initial budget variance
-
-//   // Procurement Lifecycle State Management
-//   status MM_MaterialStatus @default(DRAFT)
-
-//   // Internal Requisition link (The "paperwork" stage before a PO)
-//   requisitionId String?
-
-//   // Fulfillment Link: Connects the planned requirement to an actual PO line
-//   poLineItemId String?        @unique @db.ObjectId
-//   poLineItem   MM_POLineItem? @relation(fields: [poLineItemId], references: [id])
-
-//   createdAt DateTime @default(now())
-//   updatedAt DateTime @updatedAt
-// }
 
 // -----------------------------------------------------------------------------
 // --- 4. EXECUTION & LABOR TRACKING (ACTIVITIES) ---
