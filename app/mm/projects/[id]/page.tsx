@@ -57,7 +57,7 @@ export default async function ProjectDetailPage({ params }: { params: { id: stri
     // Serialize to handle Date objects safely for Client Components
     const serializedProject = JSON.parse(JSON.stringify(project));
     const serializedStrategies = JSON.parse(JSON.stringify(strategies));
-    console.log('project structure:', serializedProject)
+    //console.log('project structure:', serializedProject)
     return (
         <div className="flex h-screen bg-slate-100/50 overflow-hidden">
             {/* Sidebar Context */}
