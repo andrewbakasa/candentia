@@ -95,6 +95,7 @@ const fetchData = useCallback(async () => {
     // Fetch all required data for this tab
     const results = await Promise.all(
       endpoints.map(async (slug) => {
+        console.log('endpoint..........',`/mm/api/${slug}`)
         const res = await fetch(`/mm/api/${slug}`);
         const json = await res.json();
         return { slug, data: Array.isArray(json) ? json : [] };
@@ -192,6 +193,8 @@ const fetchData = useCallback(async () => {
               <MM_MaterialForm 
                 initialData={editingRecord} 
                 projects={data.projects} 
+                // Find the plan linked to the project we are editing
+                projectPlan={data.strategies.find(s => s.id === editingRecord?.project?.planId || editingRecord?.projectId)}
                 onClose={() => setIsModalOpen(false)} 
                 onSuccess={handleSaveSuccess} 
               />
@@ -213,7 +216,7 @@ const fetchData = useCallback(async () => {
 
 // --- Internal Helper: Fixed items.map crash ---
 function ProcurementListView({ items, onEdit }: { items: any[], onEdit: (item: any) => void }) {
-  console.log("Current Tab Items:", items); // Check your browser console!
+  //console.log("Current Tab Items:", items); // Check your browser console!
   // Guard 1: Not an array
   if (!Array.isArray(items)) {
     return (
@@ -253,7 +256,7 @@ function ProcurementListView({ items, onEdit }: { items: any[], onEdit: (item: a
                   {item.poNumber || item.itemCode || 'PENDING'}
                 </p>
                 <p className="text-xs font-bold text-slate-900 mt-0.5">
-                  {item.vendorName || item.description || 'N/A'}
+                  {item.vendorname || item.description || 'N/A'}
                 </p>
               </td>
               <td className="px-6 py-5">
