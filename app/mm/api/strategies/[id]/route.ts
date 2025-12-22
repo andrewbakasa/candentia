@@ -74,10 +74,9 @@ export async function DELETE(
     try {
         const id = params.id;
 
-        // 1. Transaction to handle the multi-level cascade cleanup
         await prisma.$transaction(async (tx) => {
             
-            // A. Identify all projects belonging to this Strategic Plan
+            // A. Find all projects belonging to this Strategic Plan
             const projects = await tx.mM_Project.findMany({
                 where: { planId: id },
                 select: { id: true }
@@ -85,52 +84,43 @@ export async function DELETE(
             const projectIds = projects.map(p => p.id);
 
             if (projectIds.length > 0) {
-                // B. Identify all activities within those projects
-                const activities = await tx.mM_Activity.findMany({
-                    where: { projectId: { in: projectIds } },
-                    select: { id: true }
+                // B. Delete all Purchase Orders linked to these Projects (Tactical level)
+                // FIX: Changed from activityId to projectId to match your schema
+                await tx.mM_PurchaseOrder.deleteMany({
+                    where: { projectId: { in: projectIds } }
                 });
-                const activityIds = activities.map(a => a.id);
 
-                if (activityIds.length > 0) {
-                    // C. Delete all Purchase Orders first (Bottom level)
-                    await tx.mM_PurchaseOrder.deleteMany({
-                        where: { activityId: { in: activityIds } }
-                    });
+                // C. Delete all Activities within those projects (Operational level)
+                await tx.mM_Activity.deleteMany({
+                    where: { projectId: { in: projectIds } }
+                });
 
-                    // D. Delete all Activities (Operational level)
-                    await tx.mM_Activity.deleteMany({
-                        where: { id: { in: activityIds } }
-                    });
-                }
+                // D. Delete all Material Requirements (BoQ level)
+                // This ensures the project can be deleted without foreign key violations
+                await tx.mM_MaterialRequirement.deleteMany({
+                    where: { projectId: { in: projectIds } }
+                });
 
-                // E. Delete all Projects (Tactical level)
+                // E. Finally, delete the Projects
                 await tx.mM_Project.deleteMany({
                     where: { id: { in: projectIds } }
                 });
             }
 
-            // F. Finally, delete the Strategic Plan (Executive level)
+            // F. Purge the Strategic Plan (Executive level)
             await tx.mM_StrategicPlan.delete({
                 where: { id }
             });
         });
 
         return NextResponse.json({ 
-            message: "Fiscal year plan and all associated projects/activities purged successfully." 
+            message: "Fiscal year plan and all associated ledger entries purged successfully." 
         }, { status: 200 });
 
     } catch (error: any) {
         console.error("MM_StrategicPlan DELETE Error:", error);
-
-        if (error instanceof Prisma.PrismaClientKnownRequestError) {
-            if (error.code === 'P2025') {
-                return NextResponse.json({ message: "Strategic Plan not found." }, { status: 404 });
-            }
-        }
-
         return NextResponse.json({ 
-            message: "Failed to purge Strategic Plan. System integrity requires manual review." 
+            message: "Purge failed. Ensure all financial locks are released." 
         }, { status: 500 });
     }
 }
