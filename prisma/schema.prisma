@@ -1569,33 +1569,69 @@ model MM_Project {
 // Tracks the lifecycle of material needs from initial planning (BoQ) to final 
 // procurement. Essential for tracking "missing" vs "ordered" items.
 // -----------------------------------------------------------------------------
+model MM_MasterMaterial {
+  id           String   @id @default(auto()) @map("_id") @db.ObjectId
+  itemCode     String   @unique // The NRZ Part Number
+  description  String
+  category     String?  // e.g., "Mechanical", "Electrical"
+  unitOfMeasure String   @default("units") // e.g., "meters", "kg", "pcs"
+  lastKnownCost Float?   // Useful for pre-filling "Estimated Cost"
+
+  // Relations
+  requirements MM_MaterialRequirement[]
+  
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+}
 
 model MM_MaterialRequirement {
   id        String     @id @default(auto()) @map("_id") @db.ObjectId
   projectId String     @db.ObjectId
   project   MM_Project @relation(fields: [projectId], references: [id])
 
-  // ADD THIS LINE
-  activityLabel String? // Used to link this material to an Activity description
+  // NEW RELATION
+  materialId String           @db.ObjectId
+  material   MM_MasterMaterial @relation(fields: [materialId], references: [id])
 
-  itemCode          String // Standard NRZ Inventory Reference
-  description       String
+  activityLabel String? 
+  
+  // These remain here because they are "Snapshot" values for a specific project
   quantityRequired  Int
-  estimatedUnitCost Float // Planned cost used for initial budget variance
+  estimatedUnitCost Float 
 
-  // Procurement Lifecycle State Management
-  status MM_MaterialStatus @default(DRAFT)
-
-  // Internal Requisition link (The "paperwork" stage before a PO)
-  requisitionId String?
-
-  // Fulfillment Link: Connects the planned requirement to an actual PO line
-  poLineItemId String?        @unique @db.ObjectId
-  poLineItem   MM_POLineItem? @relation(fields: [poLineItemId], references: [id])
+  status         MM_MaterialStatus @default(DRAFT)
+  poLineItemId   String?           @unique @db.ObjectId
+  poLineItem     MM_POLineItem?    @relation(fields: [poLineItemId], references: [id])
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
+// model MM_MaterialRequirement {
+//   id        String     @id @default(auto()) @map("_id") @db.ObjectId
+//   projectId String     @db.ObjectId
+//   project   MM_Project @relation(fields: [projectId], references: [id])
+
+//   // ADD THIS LINE
+//   activityLabel String? // Used to link this material to an Activity description
+
+//   itemCode          String // Standard NRZ Inventory Reference
+//   description       String
+//   quantityRequired  Int
+//   estimatedUnitCost Float // Planned cost used for initial budget variance
+
+//   // Procurement Lifecycle State Management
+//   status MM_MaterialStatus @default(DRAFT)
+
+//   // Internal Requisition link (The "paperwork" stage before a PO)
+//   requisitionId String?
+
+//   // Fulfillment Link: Connects the planned requirement to an actual PO line
+//   poLineItemId String?        @unique @db.ObjectId
+//   poLineItem   MM_POLineItem? @relation(fields: [poLineItemId], references: [id])
+
+//   createdAt DateTime @default(now())
+//   updatedAt DateTime @updatedAt
+// }
 
 // -----------------------------------------------------------------------------
 // --- 4. EXECUTION & LABOR TRACKING (ACTIVITIES) ---
@@ -1774,238 +1810,3 @@ enum NRZ_UserRole {
   SUPERVISOR
   ARTISAN
 }
-
-// // --- GLOBAL USER & WORKFORCE ---
-
-// // --- MM STRATEGIC GOVERNANCE ---
-
-// model MM_StrategicPlan {
-//   id                  String       @id @default(auto()) @map("_id") @db.ObjectId
-
-//   year                Int          @unique
-//   description         String
-//   totalBudget         Float        // HQ Strategic Ceiling
-//   assignedExecutive   String?
-
-//   mm_projects         MM_Project[]
-//   createdAt           DateTime     @default(now())
-//   updatedAt           DateTime     @updatedAt
-// }
-
-// // --- MM MAINTENANCE MANAGEMENT MODULES ---
-// //Project-Centric Procurement: Both MM_MaterialRequirement and MM_PurchaseOrder now belong directly to MM_Project.
-// model MM_Project {
-//   id                  String           @id @default(auto()) @map("_id") @db.ObjectId
-//   name                String
-//   allocatedBudget     Float            // Target budget from Strategic Plan
-
-//   workshopId          String
-//   responsibleWorkshop MM_Workshop      @relation(fields: [workshopId], references: [id])
-//   progress            Int 
-//   projectManager      String?
-
-//   planId              String?
-//   plan                MM_StrategicPlan? @relation(fields: [planId], references: [id])
-
-//   activities          MM_Activity[]
-//   status              MM_ProjectStatus @default(PLANNED)
-
-//    // The master list of everything needed for this project
-//   materialRequirements MM_MaterialRequirement[]
-
-//   // Direct access to POs linked to this project
-//   purchaseOrders    MM_PurchaseOrder[]
-
-//   // Cost Tracking Aggregation
-//   totalActualCost     Float            @default(0) 
-//   createdAt           DateTime     @default(now())
-//   updatedAt           DateTime     @updatedAt
-// }
-
-// model MM_MaterialRequirement {
-//   id                String           @id @default(auto()) @map("_id") @db.ObjectId
-//   projectId         String           @db.ObjectId
-//   project           MM_Project       @relation(fields: [projectId], references: [id])
-
-//   itemCode          String
-//   description       String
-//   quantityRequired  Int
-//   estimatedUnitCost Float
-
-//   // Tracking the stage
-//   status            MM_MaterialStatus @default(DRAFT)
-
-//   // Link to Requisition (Internal)
-//   requisitionId     String?          // Internal tracking number
-
-//   // Link to the actual PO Line Item once it exists
-//   poLineItemId      String?          @db.ObjectId @unique
-//   poLineItem        MM_POLineItem?   @relation(fields: [poLineItemId], references: [id])
-
-//   createdAt         DateTime         @default(now())
-// }
-
-// // MM_Activity now focuses on the timeline, quality (rework), and labor costs, while materials are listed at the project level to allow for bulk ordering.
-// model MM_Activity {
-//   id                  String           @id @default(auto()) @map("_id") @db.ObjectId
-//   projectId           String
-//   project             MM_Project       @relation(fields: [projectId], references: [id])
-//   description         String
-//   supervisor          String?
-
-//   // Timeline & Variance Engine
-//   scheduledStart      DateTime?
-//   scheduledEnd        DateTime?
-//   actualEnd           DateTime?        // If null after scheduledEnd = Variance
-//   progress      Int            // Calculated: quantity * unitPrice
-//   // Quality & Rework (Sec 5.5)
-//   isRework            Boolean          @default(false)
-//   reworkCost          Float            @default(0)
-//   varianceReason      String?          // e.g., "Awaiting Funding", "Skill Gap"
-
-//   // Resource Load
-//   allocatedBudget     Float
-//   actualLaborCost     Float            @default(0)
-//   actualMaterialCost  Float            @default(0)
-
-//   // Relationship to Tasks
-//   tasks               MM_Task[]        // New relation field
-
-//   stage               MM_ActivityStage @default(PLANNING)
-//   requirements        String[]         // e.g., ["NSSA Cert", "Brake Blocks"]
-
-//   createdAt           DateTime     @default(now())
-//   updatedAt           DateTime     @updatedAt
-// }
-
-// model MM_Task {
-//   id            String       @id @default(auto()) @map("_id") @db.ObjectId
-//   activityId    String       @db.ObjectId
-//   activity      MM_Activity  @relation(fields: [activityId], references: [id])
-
-//   title         String
-//   description   String?
-//   assignedTo    String?      // Staff ID or Name
-
-//   // Status & Progress
-//   status        TaskStatus   @default(PENDING)
-//   isCompleted   Boolean      @default(false)
-//   completionDate DateTime?
-
-//   // Financial & Resource tracking (Supporting Guideline Sec 6.2)
-//   estimatedHours Float?
-//   actualHours    Float?
-//   materialNotes  String?     // Specific parts used for this task
-
-//   createdAt     DateTime     @default(now())
-//   updatedAt     DateTime     @updatedAt
-// }
-
-// enum TaskStatus {
-//   PENDING
-//   IN_PROGRESS
-//   BLOCKED
-//   COMPLETED
-// }
-// enum MM_WorkshopType {
-//   MECHANICAL
-//   ELECTRICAL
-//   CIVIL
-//   LOGISTICS
-// }
-
-// model MM_Workshop {
-//   id              String           @id @default(auto()) @map("_id") @db.ObjectId
-//   name            String           @unique
-
-//   // Maps to the 'Specialization' dropdown in your form
-//   type            MM_WorkshopType  @default(MECHANICAL)
-
-//   // Maps to the 'Location Reference' input
-//   location        String?
-
-//   // Maps to the 'Unit Capacity' input
-//   capacity        Int              @default(0)
-
-//   // Relations
-//   mm_projects     MM_Project[]
-
-//   createdAt       DateTime         @default(now())
-//   updatedAt       DateTime         @updatedAt
-// }
-
-// // --- MM PROCUREMENT & LINE ITEMS ---
-
-// model MM_PurchaseOrder {
-//   id              String           @id @default(auto()) @map("_id") @db.ObjectId
-//   poNumber        String           @unique
-//   status          MM_POStatus      @default(AWAITING_FUNDING)
-
-//   projectId       String           @db.ObjectId
-//   project         MM_Project       @relation(fields: [projectId], references: [id])   
-//   totalValue      Float            @default(0)
-//   lineItems       MM_POLineItem[]
-
-//   // Audit Trail
-//   createdAt       DateTime         @default(now())
-//   fundedAt        DateTime?        // When status moves from Awaiting -> Funded
-//   updatedAt           DateTime     @updatedAt
-// }
-
-// model MM_POLineItem {
-//   id              String           @id @default(auto()) @map("_id") @db.ObjectId
-//   poId            String
-//   purchaseOrder   MM_PurchaseOrder @relation(fields: [poId], references: [id], onDelete: Cascade)
-
-//   itemCode        String           // NRZ Inventory Code
-//   description     String           
-//   quantity        Int
-//   unitPrice       Float
-//   totalPrice      Float            // Calculated: quantity * unitPrice
-
-//   isReceived      Boolean          @default(false)
-//   createdAt           DateTime     @default(now())
-//   updatedAt           DateTime     @updatedAt
-//    // Back-relation to the requirement it satisfies
-//   materialRequirement MM_MaterialRequirement? 
-// }
-
-// // --- ENUMS ---
-// enum NRZ_UserRole { 
-//    EXECUTIVE 
-//    WORKSHOP_MANAGER
-//    ENGINEER 
-//    SUPERVISOR
-//    ARTISAN 
-// }
-
-// enum MM_ProjectStatus { 
-//   PLANNED
-//   IN_PROGRESS
-//   COMPLETED
-//   ON_HOLD
-// }
-
-// enum MM_ActivityStage { 
-//   PLANNING
-//   PROCUREMENT
-//   ENGINEERING
-//   QUALITY_ASSURANCE 
-// }
-
-// enum MM_POStatus { 
-//   AWAITING_FUNDING
-//   FUNDED
-//   RECEIVED
-//   CANCELLED 
-// }
-
-// //Status Tracking: Added MM_MaterialStatus to the requirements so you can track the transition from Draft $\rightarrow$ Requisitioned $\rightarrow$ PO Issued $\rightarrow$ Received.
-// // --- MM PROCUREMENT ENUMS ---
-// enum MM_MaterialStatus {
-//   DRAFT          // Identified in planning
-//   REQUISITIONED  // Formal request sent to procurement
-//   PO_ISSUED      // Purchase Order generated
-//   RECEIVED       // Item delivered to workshop
-//   CANCELLED
-// }

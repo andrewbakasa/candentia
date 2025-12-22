@@ -81,14 +81,12 @@ export async function GET() {
         const projects = await prisma.mM_Project.findMany({
             include: {
                 responsibleWorkshop: true,
-                 materialRequirements: true, // This is required for the BoQ picker
-                  plan: true, 
-                // plan: {
-                //     select: {
-                //         year: true,
-                //         assignedExecutive: true
-                //     }
-                // },
+                materialRequirements: {
+                    include: {
+                        material: true // This is the missing link!
+                    }
+                },
+                plan: true,                
                 _count: { select: { activities: true } }
             },
             orderBy: { createdAt: 'desc' }
