@@ -91,37 +91,64 @@ export async function DELETE(
     try {
         const id = params.id;
 
-        // Transaction ensures data integrity: Activity cleanup must happen before Project removal
         await prisma.$transaction(async (tx) => {
+            // 1. Delete Task-level steps (Leaf nodes of Activities)
             const projectActivities = await tx.mM_Activity.findMany({
                 where: { projectId: id },
                 select: { id: true }
             });
-
             const activityIds = projectActivities.map(a => a.id);
 
-            // B. Delete Leaf Nodes (POs)
             if (activityIds.length > 0) {
-                await tx.mM_PurchaseOrder.deleteMany({
+                await tx.mM_Task.deleteMany({
                     where: { activityId: { in: activityIds } }
                 });
             }
 
-            // C. Delete Branch Nodes (Activities)
+           // 2. Delete PO Line Items before the POs
+            const projectPOs = await tx.mM_PurchaseOrder.findMany({
+                where: { projectId: id },
+                select: { id: true }
+            });
+            const poIds = projectPOs.map(po => po.id);
+
+            if (poIds.length > 0) {
+                await tx.mM_POLineItem.deleteMany({
+                    where: { 
+                        purchaseOrder: { // Use the relation name
+                            id: { in: poIds } // Filter by the ID within that relation
+                        }
+                    }
+                });
+            }
+
+            // 3. Delete Material Requirements (BoQ)
+            await tx.mM_MaterialRequirement.deleteMany({
+                where: { projectId: id }
+            });
+
+            // 4. Delete Purchase Orders
+            await tx.mM_PurchaseOrder.deleteMany({
+                where: { projectId: id }
+            });
+
+            // 5. Delete Activities
             await tx.mM_Activity.deleteMany({
                 where: { projectId: id }
             });
 
-            // D. Delete Root Node (Project)
+            // 6. Finally, Delete the Project (Root Node)
             await tx.mM_Project.delete({
                 where: { id }
             });
         });
 
-        return NextResponse.json({ message: "Project and dependencies purged successfully." }, { status: 200 });
+        return NextResponse.json({ message: "Project and all dependencies purged successfully." }, { status: 200 });
 
     } catch (error: any) {
         console.error("MM_Project DELETE Error:", error);
-        return NextResponse.json({ message: "Purge failed. Ensure project is not locked by external audit." }, { status: 500 });
+        return NextResponse.json({ 
+            message: "Purge failed. Ensure project is not locked by external audit." 
+        }, { status: 500 });
     }
 }

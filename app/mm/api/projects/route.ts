@@ -77,19 +77,23 @@ export async function POST(request: NextRequest) {
  */
 export async function GET() {
     try {
+
         const projects = await prisma.mM_Project.findMany({
             include: {
                 responsibleWorkshop: true,
-                plan: {
-                    select: {
-                        year: true,
-                        assignedExecutive: true
-                    }
-                },
+                 materialRequirements: true, // This is required for the BoQ picker
+                  plan: true, 
+                // plan: {
+                //     select: {
+                //         year: true,
+                //         assignedExecutive: true
+                //     }
+                // },
                 _count: { select: { activities: true } }
             },
             orderBy: { createdAt: 'desc' }
         });
+        //console.log("projects----check..........>>>>>>>>>>",projects)
         return NextResponse.json(projects, { status: 200 });
     } catch (error) {
         console.error("MM_Project GET Error:", error);

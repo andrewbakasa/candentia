@@ -1,50 +1,42 @@
 import { NextRequest, NextResponse } from 'next/server';
 import prisma from '../../../libs/prismadb';
 
-interface POLineItemData {
-    requirementId: string; // The specific ID from MM_MaterialRequirement
-    itemCode: string;
-    description: string;
-    quantity: number;
-    unitPrice: number;
-}
-
-interface POCreationData {
-    poNumber: string;
-    projectId: string; // Changed from activityId
-    lineItems: POLineItemData[];
-}
-
 /**
  * 🎯 POST: Create PO and link to Project Requirements
  */
+// app/mm/api/purchaseorders/route.ts
+
 export async function POST(request: NextRequest) {
     try {
-        const body: POCreationData = await request.json();
+        const body = await request.json();
+
+        // Safety check: ensure lineItems exists
+        if (!body.lineItems || body.lineItems.length === 0) {
+            return NextResponse.json({ message: "No items selected for PO." }, { status: 400 });
+        }
 
         const totalPOValue = body.lineItems.reduce(
-            (acc, item) => acc + (item.quantity * item.unitPrice), 
+            (acc: number, item: any) => acc + (item.quantity * item.unitPrice), 
             0
         );
 
-        // We use a transaction to ensure both PO creation and Status updates succeed
         const result = await prisma.$transaction(async (tx) => {
-            
             // 1. Create the Purchase Order
             const newPO = await tx.mM_PurchaseOrder.create({
                 data: {
                     poNumber: body.poNumber,
                     projectId: body.projectId,
                     status: 'AWAITING_FUNDING',
-                    totalValue: totalPOValue, // Using totalValue as per updated schema
+                    totalValue: totalPOValue,
                     lineItems: {
-                        create: body.lineItems.map(item => ({
+                        create: body.lineItems.map((item: any) => ({
                             itemCode: item.itemCode,
-                            description: item.description,
-                            quantityOrdered: item.quantity, // Matches schema 'quantityOrdered'
+                            // FIX: provide fallback if description is missing from form
+                            description: item.description || `Item: ${item.itemCode}`, 
+                            quantityOrdered: item.quantity,
                             unitPrice: item.unitPrice,
                             totalPrice: item.quantity * item.unitPrice,
-                            // This creates the link back to the requirement
+                            // Ensure the field name in schema matches 'materialRequirementId' or 'materialRequirement'
                             materialRequirement: {
                                 connect: { id: item.requirementId }
                             }
@@ -54,11 +46,19 @@ export async function POST(request: NextRequest) {
                 include: { lineItems: true }
             });
 
-            // 2. Update the status of the requirements to PO_ISSUED
-            const requirementIds = body.lineItems.map(item => item.requirementId);
+            // 2. Update status of requirements
+            const requirementIds = body.lineItems.map((item: any) => item.requirementId);
             await tx.mM_MaterialRequirement.updateMany({
                 where: { id: { in: requirementIds } },
                 data: { status: 'PO_ISSUED' }
+            });
+
+            // 3. Update Project Actual Cost (Guideline 1 Financial Integrity)
+            await tx.mM_Project.update({
+                where: { id: body.projectId },
+                data: {
+                    totalActualCost: { increment: totalPOValue }
+                }
             });
 
             return newPO;
@@ -66,32 +66,25 @@ export async function POST(request: NextRequest) {
 
         return NextResponse.json(result, { status: 201 });
     } catch (error: any) {
-        console.error("PO Creation Error:", error);
+        console.error("PO Creation Error Details:", error);
+        // Return error.message to help debug in the browser console
         return NextResponse.json({ 
             message: "Procurement creation failed.", 
-            error: error.message 
+            error: error.message,
+            stack: error.meta?.cause // Useful for Prisma specific errors
         }, { status: 500 });
     }
 }
-
 /**
- * 🎯 GET: Fetch POs for a Project or by Status
+ * 🎯 GET: Fetch POs (Aligns with Guideline 1 of 2025 Cost Tracking)
  */
 export async function GET(request: NextRequest) {
     try {
-        const { searchParams } = new URL(request.url);
-        const status = searchParams.get('status');
-        const projectId = searchParams.get('projectId');
-
         const pos = await prisma.mM_PurchaseOrder.findMany({
-            where: {
-                ...(status && { status: status as any }),
-                ...(projectId && { projectId: projectId })
-            },
             include: {
                 lineItems: {
                     include: {
-                        materialRequirement: true // Shows which requirement this line satisfies
+                        materialRequirement: true 
                     }
                 },
                 project: {
@@ -100,46 +93,10 @@ export async function GET(request: NextRequest) {
             },
             orderBy: { createdAt: 'desc' }
         });
-
+        console.log("backend--->", pos)
         return NextResponse.json(pos, { status: 200 });
     } catch (error) {
         console.error("PO Fetch Error:", error);
         return NextResponse.json({ message: "Error fetching procurement data." }, { status: 500 });
     }
 }
-
-/**
- * 🎯 GET /api/mm/purchase-orders
- * Purpose: Fetch POs. If activityDescription is provided, find POs linked to those materials.
- */
-// export async function GET(request: NextRequest) {
-//     const { searchParams } = new URL(request.url);
-//     const activityLabel = searchParams.get('activityLabel');
-//     const projectId = searchParams.get('projectId');
-
-//     const pos = await prisma.mM_PurchaseOrder.findMany({
-//         where: {
-//             projectId: projectId || undefined,
-//             // Deep filter: Find POs where at least one line item 
-//             // satisfies a requirement labeled with this activity
-//             ...(activityLabel && {
-//                 lineItems: {
-//                     some: {
-//                         requirement: {
-//                             activityLabel: activityLabel
-//                         }
-//                     }
-//                 }
-//             })
-//         },
-//         include: {
-//             lineItems: {
-//                 include: {
-//                     requirement: true
-//                 }
-//             }
-//         }
-//     });
-
-//     return NextResponse.json(pos);
-// }

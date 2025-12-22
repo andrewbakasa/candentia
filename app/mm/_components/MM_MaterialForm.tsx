@@ -1,10 +1,10 @@
 'use client';
 
 import React, { useState } from 'react';
-import { X, Save, Tag, Hash, Activity, DollarSign, AlertCircle } from 'lucide-react';
+import { X, Save, Tag, Hash, Activity, DollarSign, AlertCircle, Briefcase } from 'lucide-react';
 import toast from 'react-hot-toast';
 
-export default function MM_MaterialForm({ initialData, activities, projectPlan, onClose, onSuccess }: any) {
+export default function MM_MaterialForm({ initialData, projects, projectPlan, onClose, onSuccess }: any) {
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
     
@@ -13,8 +13,9 @@ export default function MM_MaterialForm({ initialData, activities, projectPlan, 
         description: initialData?.description || '',
         quantityRequired: initialData?.quantityRequired || 1,
         estimatedUnitCost: initialData?.estimatedUnitCost || 0,
-        activityId: initialData?.activityId || '',
-        status: initialData?.status || 'REQUISITIONED'
+        projectId: initialData?.projectId || '', // Corrected from activityId
+        activityLabel: initialData?.activityLabel || '', // Added per your schema
+        status: initialData?.status || 'DRAFT'
     });
 
     const handleSubmit = async (e: React.FormEvent) => {
@@ -24,16 +25,15 @@ export default function MM_MaterialForm({ initialData, activities, projectPlan, 
 
         const totalEntryCost = formData.quantityRequired * formData.estimatedUnitCost;
 
-        // Guideline 1 Compliance: Validation against Strategic Ceiling
+        // Validation against Strategic Ceiling
         if (!projectPlan) {
             setError("Strategic Plan reference missing. Authorization denied.");
             setLoading(false);
             return;
         }
 
-        // Check if the individual material entry exceeds the total plan budget
         if (totalEntryCost > projectPlan.totalBudget) {
-            setError(`Over-allocation: This entry ($${totalEntryCost.toLocaleString()}) exceeds the FY ${projectPlan.year} ceiling of $${projectPlan.totalBudget.toLocaleString()}`);
+            setError(`Over-allocation: This entry ($${totalEntryCost.toLocaleString()}) exceeds the project ceiling of $${projectPlan.totalBudget.toLocaleString()}`);
             setLoading(false);
             return;
         }
@@ -85,6 +85,7 @@ export default function MM_MaterialForm({ initialData, activities, projectPlan, 
             )}
 
             <div className="p-6 space-y-5 overflow-y-auto">
+                {/* Item Details */}
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                     <div className="md:col-span-1 space-y-1.5">
                         <label className="text-[10px] font-black text-slate-400 uppercase">Item Code</label>
@@ -100,7 +101,7 @@ export default function MM_MaterialForm({ initialData, activities, projectPlan, 
                         </div>
                     </div>
                     <div className="md:col-span-2 space-y-1.5">
-                        <label className="text-[10px] font-black text-slate-400 uppercase">Description</label>
+                        <label className="text-[10px] font-black text-slate-400 uppercase">Material Description</label>
                         <input 
                             required
                             className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-2xl text-sm font-bold outline-none focus:border-indigo-500 transition-all"
@@ -111,24 +112,40 @@ export default function MM_MaterialForm({ initialData, activities, projectPlan, 
                     </div>
                 </div>
 
-                <div className="space-y-1.5">
-                    <label className="text-[10px] font-black text-slate-400 uppercase">Execution Link (Activity)</label>
-                    <div className="relative">
-                        <Activity className="absolute left-4 top-1/2 -translate-y-1/2 text-indigo-500" size={16} />
-                        <select 
-                            required
-                            className="w-full pl-11 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-2xl text-sm font-bold outline-none appearance-none"
-                            value={formData.activityId}
-                            onChange={(e) => setFormData({...formData, activityId: e.target.value})}
-                        >
-                            <option value="">Select Activity Phase...</option>
-                            {activities?.map((a: any) => (
-                                <option key={a.id} value={a.id}>{a.description}</option>
-                            ))}
-                        </select>
+                {/* Mapping to Project and Labeling */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="space-y-1.5">
+                        <label className="text-[10px] font-black text-slate-400 uppercase">Parent Project</label>
+                        <div className="relative">
+                            <Briefcase className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={16} />
+                            <select 
+                                required
+                                className="w-full pl-11 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-2xl text-sm font-bold outline-none appearance-none"
+                                value={formData.projectId}
+                                onChange={(e) => setFormData({...formData, projectId: e.target.value})}
+                            >
+                                <option value="">Select Project...</option>
+                                {projects?.map((p: any) => (
+                                    <option key={p.id} value={p.id}>{p.name}</option>
+                                ))}
+                            </select>
+                        </div>
+                    </div>
+                    <div className="space-y-1.5">
+                        <label className="text-[10px] font-black text-slate-400 uppercase">Activity Reference</label>
+                        <div className="relative">
+                            <Activity className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={16} />
+                            <input 
+                                className="w-full pl-11 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-2xl text-sm font-bold outline-none"
+                                placeholder="e.g. Phase 1 Foundation"
+                                value={formData.activityLabel}
+                                onChange={(e) => setFormData({...formData, activityLabel: e.target.value})}
+                            />
+                        </div>
                     </div>
                 </div>
 
+                {/* Costs */}
                 <div className="grid grid-cols-2 gap-4">
                     <div className="space-y-1.5">
                         <label className="text-[10px] font-black text-slate-400 uppercase">Quantity</label>
@@ -159,9 +176,9 @@ export default function MM_MaterialForm({ initialData, activities, projectPlan, 
                     </div>
                 </div>
 
-                {/* Live Total Calculation */}
+                {/* Entry Impact */}
                 <div className="p-4 bg-indigo-50 rounded-2xl border border-indigo-100 flex justify-between items-center">
-                    <span className="text-[10px] font-black text-indigo-600 uppercase tracking-widest">Entry Impact</span>
+                    <span className="text-[10px] font-black text-indigo-600 uppercase tracking-widest">Budget Impact</span>
                     <span className="text-lg font-black text-indigo-900">${(formData.quantityRequired * formData.estimatedUnitCost).toLocaleString()}</span>
                 </div>
             </div>
@@ -172,7 +189,7 @@ export default function MM_MaterialForm({ initialData, activities, projectPlan, 
                     disabled={loading}
                     className={`w-full font-black py-4 rounded-2xl shadow-lg transition-all flex items-center justify-center gap-2 uppercase text-xs tracking-widest ${loading ? 'bg-slate-400 cursor-not-allowed' : 'bg-slate-900 hover:bg-indigo-600 text-white'}`}
                 >
-                    {loading ? 'Authorizing...' : <><Save size={18}/> Update BoQ Registry</>}
+                    {loading ? 'Authorizing...' : <><Save size={18}/> Commit to BoQ Registry</>}
                 </button>
             </div>
         </form>
