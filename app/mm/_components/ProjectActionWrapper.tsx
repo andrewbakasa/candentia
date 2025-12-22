@@ -54,12 +54,7 @@ export default function EntityActionsHeader({
                     <Printer size={14} /> Export PDF
                 </button>
                 
-                {/* <button 
-                    onClick={() => router.push(editPath)}
-                    className="flex items-center gap-2 px-4 py-2 bg-white border border-slate-200 rounded-xl text-[10px] font-black uppercase tracking-widest text-slate-600 hover:bg-slate-50 transition-all shadow-sm"
-                >
-                    <Edit3 size={14} /> Edit {entityLabel}
-                </button> */}
+               
 
                 <button 
                     onClick={handleCopyLink}
