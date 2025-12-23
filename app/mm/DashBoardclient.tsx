@@ -186,7 +186,148 @@ function DashboardContent({ currentUser }: { currentUser: any }) {
 
 // Updated Helper Component to handle different Item Structures
 
+function ProcurementListView1({ items, activeTab, onEdit }: { items: any[], activeTab: TabType, onEdit: (item: any) => void }) {
+  const [searchTerm, setSearchTerm] = useState('');
 
+  const filteredItems = items.filter(item => {
+    const searchStr = searchTerm.toLowerCase();
+    const vendor = (item.vendorname || '').toLowerCase();
+    const code = (item.itemCode || item.poNumber || '').toLowerCase();
+    const desc = (item.description || item.material?.description || '').toLowerCase();
+    const project = (item.project?.name || '').toLowerCase();
+    return vendor.includes(searchStr) || code.includes(searchStr) || desc.includes(searchStr) || project.includes(searchStr);
+  });
+
+  if (!Array.isArray(items) || items.length === 0) {
+    return (
+      <div className="h-64 flex flex-col items-center justify-center gap-4 bg-white rounded-[2.5rem] border-2 border-dashed border-slate-100">
+        <div className="bg-slate-50 p-6 rounded-full">
+          <ShoppingCart size={40} className="text-slate-200" />
+        </div>
+        <p className="text-[11px] font-black uppercase tracking-[0.2em] text-slate-400">No Ledger Entries Found</p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-6"> 
+      {/* IMPROVED CONTROL BAR */}
+      <div className="flex flex-col md:flex-row items-stretch gap-4">
+        {/* Search Container */}
+        <div className="relative flex-1">
+          <Search className="absolute left-6 top-1/2 -translate-y-1/2 text-slate-400" size={20} />
+          <input 
+            type="text"
+            placeholder="Search ledger by vendor, code, or description..."
+            className="w-full h-16 bg-white border border-slate-200 focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/5 rounded-2xl pl-16 pr-6 shadow-sm text-sm font-bold transition-all outline-none placeholder:text-slate-400 placeholder:font-medium"
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+          />
+        </div>
+
+        {/* Export Button Container */}
+        <button 
+          onClick={() => exportToExcel(filteredItems, activeTab)}
+          className="h-16 flex items-center gap-4 px-6 bg-white border border-slate-200 rounded-2xl shadow-sm hover:bg-slate-50 hover:border-indigo-200 transition-all group active:scale-[0.98]"
+        >
+          <div className="flex items-center justify-center w-10 h-10 bg-emerald-50 rounded-xl group-hover:bg-emerald-500 group-hover:text-white transition-colors">
+            <Layers size={18} className="text-emerald-600 group-hover:text-white" />
+          </div>
+          <div className="flex flex-col items-start pr-4">
+            <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest leading-none mb-1">Spreadsheet</span>
+            <span className="text-xs font-bold text-slate-900 whitespace-nowrap">Export {filteredItems.length} Rows</span>
+          </div>
+        </button>
+      </div>
+
+      {/* 2. Responsive Table Wrapper */}
+      <div className="bg-white rounded-[2.5rem] border border-slate-100 shadow-xl shadow-slate-200/40 overflow-hidden">
+        <div className="overflow-x-auto">
+          <table className="w-full text-left border-collapse min-w-[800px] lg:min-w-full">
+            <thead className="bg-slate-50/80 border-b border-slate-100">
+              <tr>
+                <th className="px-8 py-6 text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Core Identification</th>
+                <th className="px-8 py-6 text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] hidden md:table-cell text-center">Logistics Timeline</th>
+                <th className="px-8 py-6 text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] text-right">Valuation</th>
+                <th className="px-8 py-6"></th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-slate-50">
+              {filteredItems.map((item: any) => (
+                <tr key={item.id} className="hover:bg-slate-50/50 transition-all group">
+                  {/* Identification Column */}
+                  <td className="px-8 py-6">
+                    <div className="flex flex-col gap-2">
+                      <div className="flex items-center gap-2">
+                         <span className="font-mono text-[10px] font-black text-indigo-600 px-2 py-1 bg-indigo-50 rounded uppercase border border-indigo-100">
+                            {item.material?.itemCode || item.itemCode || item.poNumber || "NEW"}
+                         </span>
+                         {item.category && (
+                            <span className="text-[9px] font-black text-slate-400 uppercase border border-slate-200 px-2 py-0.5 rounded-lg">
+                              {item.category}
+                            </span>
+                         )}
+                      </div>
+                      <div className="flex flex-col">
+                        <span className="text-sm font-black text-slate-900 line-clamp-1">
+                          {item.vendorname || item.description || item.material?.description || 'UNSPECIFIED'}
+                        </span>
+                        {item.project?.name && (
+                          <p className="text-[11px] font-bold text-slate-400 flex items-center gap-1 mt-0.5">
+                            <Box size={12} className="text-slate-300" />
+                            {item.project.name}
+                          </p>
+                        )}
+                      </div>
+                    </div>
+                  </td>
+
+                  {/* Logistics Timeline */}
+                  <td className="px-8 py-6 hidden md:table-cell">
+                    <div className="flex flex-col items-center gap-1.5">
+                      <div className="flex items-center gap-2 text-[10px] font-black text-slate-500">
+                        <Calendar size={12} className="text-slate-300" />
+                        {item.createdAt ? new Date(item.createdAt).toLocaleDateString() : '—'}
+                      </div>
+                      {item.fundedAt && (
+                        <div className="px-2 py-0.5 bg-emerald-50 text-emerald-600 rounded text-[9px] font-black uppercase flex items-center gap-1">
+                          <DollarSign size={10} /> Funded
+                        </div>
+                      )}
+                    </div>
+                  </td>
+
+                  {/* Financial Valuation */}
+                  <td className="px-8 py-6">
+                    <div className="flex flex-col items-end gap-1">
+                      <span className="text-base font-black text-slate-900 tabular-nums tracking-tighter">
+                        ${(item.lastKnownCost || item.totalValue || (item.quantityRequired * (item.estimatedUnitCost || 0)) || 0).toLocaleString()}
+                      </span>
+                      <span className={`text-[9px] font-black px-2 py-1 rounded-md uppercase tracking-wider
+                        ${(item.status || '').toLowerCase() === 'completed' ? 'bg-emerald-500 text-white' : 'bg-slate-100 text-slate-500'}
+                      `}>
+                        {item.status || 'Active'}
+                      </span>
+                    </div>
+                  </td>
+
+                  <td className="px-8 py-6 text-right">
+                    <button 
+                      onClick={() => onEdit(item)} 
+                      className="inline-flex items-center justify-center h-12 w-12 bg-slate-900 text-white rounded-xl hover:bg-indigo-600 transition-all shadow-md active:scale-95 group-hover:shadow-indigo-200"
+                    >
+                      <ArrowUpRight size={20} strokeWidth={2.5}/>
+                    </button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  );
+}
 function ProcurementListView({ items, activeTab, onEdit }: { items: any[], activeTab: TabType, onEdit: (item: any) => void }) {
   const [searchTerm, setSearchTerm] = useState('');
 
@@ -212,33 +353,34 @@ function ProcurementListView({ items, activeTab, onEdit }: { items: any[], activ
 
   return (
     <div className="space-y-6"> 
-        <div className="flex flex-col md:flex-row gap-4">
-        {/* Unified Search & Export Container */}
-        <div className="relative flex-1 group">
-          <Search className="absolute left-6 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-indigo-600 transition-colors" size={18} />
+     
+ <div className="flex flex-col md:flex-row items-stretch gap-4">
+        {/* Search Container */}
+        <div className="relative flex-1">
+          <Search className="absolute left-6 top-1/2 -translate-y-1/2 text-slate-400" size={20} />
           <input 
             type="text"
-            placeholder="Search ledger..."
-            className="w-full bg-white border-none ring-1 ring-slate-200 focus:ring-2 focus:ring-indigo-500 rounded-2xl py-5 pl-14 pr-4 shadow-sm text-sm font-semibold transition-all outline-none"
+            placeholder="Search ledger by vendor, code, or description..."
+            className="w-full h-16 bg-white border border-slate-200 focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/5 rounded-2xl pl-16 pr-6 shadow-sm text-sm font-bold transition-all outline-none placeholder:text-slate-400 placeholder:font-medium"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
           />
         </div>
 
+        {/* Export Button Container */}
         <button 
           onClick={() => exportToExcel(filteredItems, activeTab)}
-          className="flex items-center gap-3 px-8 py-5 bg-white border border-slate-200 rounded-2xl shadow-sm hover:bg-slate-50 transition-all group"
+          className="h-16 flex items-center gap-4 px-6 bg-white border border-slate-200 rounded-2xl shadow-sm hover:bg-slate-50 hover:border-indigo-200 transition-all group active:scale-[0.98]"
         >
-          <div className="p-2 bg-emerald-50 rounded-lg group-hover:bg-emerald-100 transition-colors">
-            <Layers size={18} className="text-emerald-600" />
+          <div className="flex items-center justify-center w-10 h-10 bg-emerald-50 rounded-xl group-hover:bg-emerald-500 group-hover:text-white transition-colors">
+            <Layers size={18} className="text-emerald-600 group-hover:text-white" />
           </div>
-          <div className="text-left">
-            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest leading-none">Export</p>
-            <p className="text-xs font-bold text-slate-900">{filteredItems.length} Entries</p>
+          <div className="flex flex-col items-start pr-4">
+            <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest leading-none mb-1">Spreadsheet</span>
+            <span className="text-xs font-bold text-slate-900 whitespace-nowrap">Export {filteredItems.length} Rows</span>
           </div>
         </button>
       </div>
-
       {/* 2. Responsive Table/Card Wrapper */}
       <div className="bg-white rounded-[2rem] border border-slate-100 shadow-xl shadow-slate-200/50 overflow-hidden">
         <div className="overflow-x-auto">
