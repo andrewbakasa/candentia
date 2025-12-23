@@ -130,7 +130,7 @@ export default function MM_PurchaseOrderForm({ initialData, strategies = [], pro
               {initialData ? 'Edit Procurement Order' : 'New Procurement Order'}
             </h2>
             <p className="text-[10px] text-slate-400 font-mono">
-                {initialData ? `ID: ${initialData.id}` : 'Drafting New Entry (Compliance Guideline 1)'}
+                {initialData ? `ID: ${initialData.id}` : 'Drafting New Entry'}
             </p>
           </div>
         </div>

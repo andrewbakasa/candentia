@@ -56,7 +56,7 @@ export default function MM_ProjectForm({ initialData, strategies, workshops, onC
     setLoading(true);
     setError('');
     
-    // Guideline 1 Compliance: Validation against Strategic Ceiling
+    //Validation against Strategic Ceiling
     if (!formData.planId) {
       setError("Strategic Plan selection is required for authorization.");
       setLoading(false);

@@ -36,7 +36,7 @@ export default function MM_Sidebar({ activeTab }: { activeTab?: TabType | 'none'
           </div>
           <div className="leading-none">
             <span className="font-black text-xl tracking-tight block text-white uppercase">NRZ MM</span>
-            <span className="text-[10px] text-slate-500 font-bold uppercase tracking-widest">Guideline 1 / 2025</span>
+            <span className="text-[10px] text-slate-500 font-bold uppercase tracking-widest">Intergrated Hub</span>
           </div>
         </div>
         

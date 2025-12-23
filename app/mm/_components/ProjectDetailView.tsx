@@ -56,10 +56,9 @@ export default function ProjectDetailView({ project, onRefresh, MM_ActivityForm,
     };
 
     const handleDelete = async (id: string, entity: 'materials' | 'pos') => {
-        // if (!confirm(`Confirm Deletion? This action is irrevocable and will be logged under Guideline 1 Compliance Audit.`)) return;
-
+     
         const endpoint = entity === 'materials' ? `/mm/api/materialrequirements/${id}` : `/mm/api/purchaseorders/${id}`;
-        console.log('endpoint----->', endpoint)
+        //console.log('endpoint----->', endpoint)
         try {
             const res = await fetch(endpoint, { method: 'DELETE' });
             if (!res.ok) throw new Error('Delete failed');

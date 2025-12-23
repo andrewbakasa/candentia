@@ -116,7 +116,7 @@ export default function MM_MaterialForm({ initialData, projects, strategies, onC
                     </div>
                     <div>
                         <h2 className="text-sm md:text-lg font-black text-slate-900 uppercase tracking-tight leading-none">Project BoQ Entry</h2>
-                        <p className="text-[9px] md:text-[10px] text-indigo-600 font-black uppercase tracking-widest mt-1">Guideline 1 Compliance</p>
+                        <p className="text-[9px] md:text-[10px] text-indigo-600 font-black uppercase tracking-widest mt-1">Intergrated Hub</p>
                     </div>
                 </div>
                 <button type="button" onClick={onClose} className="p-2 hover:bg-slate-100 rounded-full transition-colors">
