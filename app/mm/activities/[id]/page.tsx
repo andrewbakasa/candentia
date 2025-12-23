@@ -47,15 +47,13 @@ export default async function ActivityDetailPage({ params }: { params: { id: str
                         entityLabel="Activity"
                         editPath={`/mm/activities/edit/${serializedActivity.id}`}
                         backLabel="Back to Activity Logs"
+                        data={serializedActivity}
                     />
                 </div>
                 
                 <div className="p-2 pt-2">
                     <div className="bg-white rounded-[2.5rem] shadow-sm border border-slate-200 overflow-hidden">
-                        {/* ActivityDetailView receives serialized activity 
-                            which includes parent project data for financial 
-                            compliance tracking.
-                        */}
+                       
                         <ActivityDetailView 
                             activity={serializedActivity} 
                             MM_TaskForm_Component={MM_TaskForm} 
