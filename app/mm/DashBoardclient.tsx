@@ -3,22 +3,19 @@
 import React, { useState, useEffect, useCallback, Suspense } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { 
-  Plus, Loader2, Target, Briefcase, ShoppingCart, Box, ArrowUpRight, Receipt, AlertCircle, Layers 
+  Plus, Loader2, Target, Briefcase, ShoppingCart, Box, ArrowUpRight, Receipt, AlertCircle, Layers,  Search, Calendar, DollarSign, Clock
 } from 'lucide-react';
 import { toast } from 'sonner';
+import ExcelJS from 'exceljs';
+import { saveAs } from 'file-saver';
 
 // Components
 import { ActivityTableView, ProjectGridView, StrategyListView, WorkshopListView } from './_components/SubComponents';
-import MM_StrategicPlanForm from './_components/MM_StrategicPlanForm';
 import MM_ProjectForm from './_components/MM_ProjectForm';
-import MM_ActivityForm from './_components/ActivityForm';
-import MM_WorkshopForm from './_components/MM_WorkshopForm';
 import MM_Sidebar from './_components/MM_Sidebar';
-import MM_TaskForm from './_components/TaskForm';
 import MM_MaterialForm from './_components/MM_MaterialForm';
 import MM_PurchaseOrderForm from './_components/MM_PurchaseOrder';
 import MM_MasterMaterialForm from './_components/MM_MasterMaterial';
-//import MM_MasterMaterialForm from './_components/MM_MasterMaterialForm'; // Added new form
 
 // 1. Updated TabType to include mastermaterials
 export type TabType = 'strategies' | 'projects' | 'activities' | 'workshops' | 'purchaseorders' | 'materials' | 'mastermaterials';
@@ -122,6 +119,7 @@ function DashboardContent({ currentUser }: { currentUser: any }) {
             </div>
 
             {isAllowed && (
+              //export exceljs of filtered data----> AI should create function thasend excel data  when clicked button// all active purchase orders, or catelog material or boq active
               <button 
                 onClick={() => { setEditingRecord(null); setIsModalOpen(true); }} 
                 className="bg-slate-900 text-white px-8 py-4 rounded-2xl font-black flex items-center gap-3 shadow-2xl hover:bg-indigo-600 transition-all text-xs uppercase tracking-widest"
@@ -187,66 +185,174 @@ function DashboardContent({ currentUser }: { currentUser: any }) {
 }
 
 // Updated Helper Component to handle different Item Structures
+
+
 function ProcurementListView({ items, activeTab, onEdit }: { items: any[], activeTab: TabType, onEdit: (item: any) => void }) {
+  const [searchTerm, setSearchTerm] = useState('');
+
+  const filteredItems = items.filter(item => {
+    const searchStr = searchTerm.toLowerCase();
+    const vendor = (item.vendorname || '').toLowerCase();
+    const code = (item.itemCode || item.poNumber || '').toLowerCase();
+    const desc = (item.description || item.material?.description || '').toLowerCase();
+    const project = (item.project?.name || '').toLowerCase();
+    return vendor.includes(searchStr) || code.includes(searchStr) || desc.includes(searchStr) || project.includes(searchStr);
+  });
+
   if (!Array.isArray(items) || items.length === 0) {
     return (
-      <div className="h-64 flex flex-col items-center justify-center gap-4 bg-white rounded-[2rem] border border-dashed border-slate-200">
-        <ShoppingCart size={40} className="text-slate-200" />
-        <p className="text-[10px] font-black uppercase text-slate-400">No Records Found</p>
+      <div className="h-64 flex flex-col items-center justify-center gap-4 bg-white rounded-[2.5rem] border-2 border-dashed border-slate-100">
+        <div className="bg-slate-50 p-6 rounded-full">
+          <ShoppingCart size={40} className="text-slate-200" />
+        </div>
+        <p className="text-[11px] font-black uppercase tracking-[0.2em] text-slate-400">No Ledger Entries Found</p>
       </div>
     );
   }
 
   return (
-    <div className="bg-white rounded-[2rem] border border-slate-100 shadow-sm overflow-hidden">
-      <table className="w-full text-left">
-        <thead className="bg-slate-50/50 border-b border-slate-100">
-          <tr>
-            <th className="px-6 py-4 text-[10px] font-black text-slate-400 uppercase tracking-widest">
-                {activeTab === 'mastermaterials' ? 'Part Number / Category' : 'Reference / Item'}
-            </th>
-            <th className="px-6 py-4 text-[10px] font-black text-slate-400 uppercase tracking-widest">
-                {activeTab === 'mastermaterials' ? 'UoM' : 'Status'}
-            </th>
-            <th className="px-6 py-4 text-[10px] font-black text-slate-400 uppercase tracking-widest text-right">
-                {activeTab === 'mastermaterials' ? 'Last Known Cost' : 'Commitment'}
-            </th>
-            <th className="px-6 py-4"></th>
-          </tr>
-        </thead>
-        <tbody className="divide-y divide-slate-50">
-          {items.map((item: any) => (
-            <tr key={item.id} className="hover:bg-slate-50/50 transition-colors group">
-              <td className="px-6 py-5">
-                <p className="font-mono text-xs font-bold text-indigo-600">
-                  {item.itemCode || item.poNumber || 'PENDING'}
-                </p>
-                <p className="text-xs font-bold text-slate-900 mt-0.5">
-                  {/* Accessing nested material data for BoQ entries vs flat data for Master Items */}
-                  {item.material?.description || item.description || item.vendorName || 'N/A'}
-                </p>
-              </td>
-              <td className="px-6 py-5">
-                <span className="text-[10px] font-black bg-slate-100 px-2 py-1 rounded-md text-slate-500 uppercase">
-                  {item.unitOfMeasure || item.status || 'ACTIVE'}
-                </span>
-              </td>
-              <td className="px-6 py-5 text-right font-black text-slate-900 text-sm">
-                ${(item.lastKnownCost || item.totalValue || (item.quantityRequired * item.estimatedUnitCost) || 0).toLocaleString()}
-              </td>
-              <td className="px-6 py-5 text-right">
-                <button onClick={() => onEdit(item)} className="p-2 opacity-0 group-hover:opacity-100 bg-slate-900 text-white rounded-xl transition-all">
-                  <ArrowUpRight size={14}/>
-                </button>
-              </td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
+    <div className="space-y-6"> 
+        <div className="flex flex-col md:flex-row gap-4">
+        {/* Unified Search & Export Container */}
+        <div className="relative flex-1 group">
+          <Search className="absolute left-6 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-indigo-600 transition-colors" size={18} />
+          <input 
+            type="text"
+            placeholder="Search ledger..."
+            className="w-full bg-white border-none ring-1 ring-slate-200 focus:ring-2 focus:ring-indigo-500 rounded-2xl py-5 pl-14 pr-4 shadow-sm text-sm font-semibold transition-all outline-none"
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+          />
+        </div>
+
+        <button 
+          onClick={() => exportToExcel(filteredItems, activeTab)}
+          className="flex items-center gap-3 px-8 py-5 bg-white border border-slate-200 rounded-2xl shadow-sm hover:bg-slate-50 transition-all group"
+        >
+          <div className="p-2 bg-emerald-50 rounded-lg group-hover:bg-emerald-100 transition-colors">
+            <Layers size={18} className="text-emerald-600" />
+          </div>
+          <div className="text-left">
+            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest leading-none">Export</p>
+            <p className="text-xs font-bold text-slate-900">{filteredItems.length} Entries</p>
+          </div>
+        </button>
+      </div>
+
+      {/* 2. Responsive Table/Card Wrapper */}
+      <div className="bg-white rounded-[2rem] border border-slate-100 shadow-xl shadow-slate-200/50 overflow-hidden">
+        <div className="overflow-x-auto">
+          <table className="w-full text-left border-collapse min-w-[800px] lg:min-w-full">
+            <thead className="bg-slate-50/80 border-b border-slate-100">
+              <tr>
+                <th className="px-8 py-5 text-[10px] font-black text-slate-400 uppercase tracking-[0.15em]">Core Identification</th>
+                <th className="px-8 py-5 text-[10px] font-black text-slate-400 uppercase tracking-[0.15em] hidden md:table-cell">Logistics Timeline</th>
+                <th className="px-8 py-5 text-[10px] font-black text-slate-400 uppercase tracking-[0.15em]">Valuation</th>
+                <th className="px-8 py-5"></th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-slate-50">
+              {filteredItems.map((item: any) => (
+                <tr key={item.id} className="hover:bg-slate-50/50 transition-all group">
+                  {/* Identification Column */}
+                  <td className="px-8 py-6">
+                    <div className="flex flex-col gap-1.5">
+                      <div className="flex items-center gap-2">
+                         <span className="font-mono text-[9px] font-black text-white px-2 py-0.5 bg-indigo-600 rounded shadow-sm uppercase">
+                            {item.material?.itemCode ? `IC: ${item.material.itemCode}` : 
+                             item.itemCode ? `IC: ${item.itemCode}` : 
+                             item.poNumber ? `PO: ${item.poNumber}` : "NEW"}
+                         </span>
+                         {item.category && (
+                            <span className="text-[9px] font-black text-slate-400 uppercase border border-slate-200 px-1.5 py-0.5 rounded">
+                              {item.category}
+                            </span>
+                         )}
+                      </div>
+                      
+                      {item.project?.name && (
+                        <p className="text-xs font-black text-slate-900 flex items-center gap-1.5">
+                          <Box size={12} className="text-indigo-400" />
+                          {item.project.name}
+                        </p>
+                      )}
+                      
+                     
+                      <p className="text-[11px] text-slate-500 font-bold leading-relaxed max-w-xs">
+                        {/* Check if vendorname exists to decide the label */}
+                        <span className="text-slate-300 font-medium uppercase mr-1">
+                          {item.vendorname ? "FROM:" : "DESC:"}
+                        </span>
+                        
+                        {/* The dynamic value */}
+                        <span className="text-slate-900 font-black">
+                          {item.vendorname || item.description || item.material?.description || 'UNSPECIFIED'}
+                        </span>
+                      </p>
+                    </div>
+                  </td>
+
+                  {/* Logistics Timeline (Hidden on small mobile) */}
+                  <td className="px-8 py-6 hidden md:table-cell">
+                    <div className="flex flex-col gap-2">
+                      <div className="flex items-center gap-2 text-[10px] font-black text-slate-500">
+                        <div className="w-1.5 h-1.5 rounded-full bg-blue-400" />
+                        REQ: {item.createdAt ? new Date(item.createdAt).toLocaleDateString() : '—'}
+                      </div>
+                      {item.fundedAt && (
+                        <div className="flex items-center gap-2 text-[10px] font-black text-emerald-600 bg-emerald-50 w-fit px-2 py-0.5 rounded">
+                          <DollarSign size={10} />
+                          FUNDED: {new Date(item.fundedAt).toLocaleDateString()}
+                        </div>
+                      )}
+                      {item.lastOrderedDate && (
+                        <div className="flex items-center gap-2 text-[10px] font-black text-slate-400">
+                          <Clock size={10} />
+                          HISTORY: {item.lastOrderedDate}
+                        </div>
+                      )}
+                    </div>
+                  </td>
+
+                  {/* Financial Valuation */}
+                  <td className="px-8 py-6">
+                    <div className="flex flex-col items-end gap-1">
+                      <span className="text-base font-black text-slate-900 tabular-nums">
+                        ${(item.lastKnownCost || item.totalValue || (item.quantityRequired * item.estimatedUnitCost) || 0).toLocaleString()}
+                      </span>
+                      <span className={`text-[9px] font-black px-2 py-0.5 rounded-full uppercase tracking-tighter shadow-sm
+                        ${(item.status || '').toLowerCase() === 'completed' ? 'bg-emerald-500 text-white' : 'bg-amber-100 text-amber-700'}
+                      `}>
+                        {item.poLineItem?.purchaseOrder?.status || item.status || 'Active'}
+                      </span>
+                    </div>
+                  </td>
+
+                  <td className="px-8 py-6 text-right">
+                    <button 
+                      onClick={() => onEdit(item)} 
+                      className="inline-flex items-center justify-center p-3.5 bg-slate-900 text-white rounded-2xl hover:bg-indigo-600 hover:scale-105 active:scale-95 transition-all shadow-lg shadow-slate-200"
+                    >
+                      <ArrowUpRight size={18} strokeWidth={3}/>
+                    </button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+        
+        {filteredItems.length === 0 && (
+          <div className="p-20 text-center">
+            <p className="text-xs font-black text-slate-300 uppercase tracking-widest italic">
+              No matching ledger entries for {searchTerm}
+            </p>
+          </div>
+        )}
+      </div>
     </div>
   );
 }
-
 export default function MM_CommandDashboard({ currentUser }: { currentUser: any }) {
   return (
     <Suspense fallback={<div className="h-screen flex items-center justify-center"><Loader2 className="animate-spin text-blue-600" /></div>}>
@@ -254,3 +360,74 @@ export default function MM_CommandDashboard({ currentUser }: { currentUser: any 
     </Suspense>
   );
 }
+const exportToExcel = async (filteredData: any[], tabName: string) => {
+  const workbook = new ExcelJS.Workbook();
+  const worksheet = workbook.addWorksheet(tabName.toUpperCase());
+
+  const isPO = tabName === 'purchaseorders';
+  
+  // 1. Define Columns
+  worksheet.columns = [
+    { header: 'PO / Ref ID', key: 'idnt', width: 20 },
+    { header: 'Project', key: 'project', width: 25 },
+    { header: 'Vendor', key: 'vendor', width: 30 },
+    ...(isPO ? [
+      { header: 'Material Code', key: 'li_code', width: 15 },
+      { header: 'Line Description', key: 'li_desc', width: 35 },
+      { header: 'Qty Ordered', key: 'li_qty', width: 12 },
+      { header: 'Unit Price ($)', key: 'li_unit', width: 15 },
+    ] : []),
+    { header: 'Total Line Value ($)', key: 'value', width: 18 },
+    { header: 'Status', key: 'status', width: 15 },
+    { header: 'Date Created', key: 'created', width: 15 },
+  ];
+
+  // 2. Map Data
+  filteredData.forEach(item => {
+    const baseData = {
+      idnt: item.poNumber || item.itemCode || 'N/A',
+      project: item.project?.name || 'N/A',
+      vendor: item.vendorname || 'N/A',
+      status: item.status || 'Active',
+      created: item.createdAt ? new Date(item.createdAt).toLocaleDateString() : 'N/A',
+    };
+
+    // PO Logic: Drill into lineItems -> materialRequirement
+    if (isPO && item.lineItems?.length > 0) {
+      item.lineItems.forEach((li: any) => {
+        // Accessing the specific requirement object you mentioned
+        const req = li.materialRequirement || {};
+        
+        worksheet.addRow({
+          ...baseData,
+          li_code: li.itemCode || 'N/A',
+          li_desc: li.description || 'N/A',
+          li_qty: req.quantityOrdered || 0,
+          li_unit: req.unitPrice || 0,
+          value: req.totalPrice || ((req.quantityOrdered || 0) * (req.unitPrice || 0))
+        });
+      });
+    } else {
+      // Logic for Material Catalog or BoQ Tabs
+      worksheet.addRow({
+        ...baseData,
+        vendor: item.vendorname || item.description || item.material?.description || 'N/A',
+        value: (item.totalValue || item.lastKnownCost || 0),
+      });
+    }
+  });
+
+  // 3. Header Styling
+  worksheet.getRow(1).eachCell((cell) => {
+    cell.font = { bold: true, color: { argb: 'FFFFFFFF' } };
+    cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF1E293B' } };
+    cell.alignment = { horizontal: 'center' };
+  });
+
+  // 4. Save File
+  const buffer = await workbook.xlsx.writeBuffer();
+  const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+  saveAs(blob, `NRZ_Procurement_${tabName}_${new Date().toISOString().split('T')[0]}.xlsx`);
+  
+  toast.success(`Exported ${filteredData.length} records including material requirements.`);
+};

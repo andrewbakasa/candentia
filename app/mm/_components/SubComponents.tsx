@@ -383,11 +383,6 @@ export const ProjectGridView = ({ projects, onEdit, onDelete,permissions }: any)
   );
 };
 
-/**
- * 📋 ACTIVITY TABLE VIEW (With Task Expandable Engine)
- * The primary interface for tracking specific workflow execution.
- */
-
 // Added onDeleteTask to the props destructuring
 export const ActivityTableView = ({ 
   activities, 
