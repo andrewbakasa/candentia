@@ -1,13 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import prisma from '../../../libs/prismadb';
-import { MM_WorkshopType,MM_ProjectStatus } from '@prisma/client';
-
-// enum MM_ProjectStatus {
-//   PLANNED
-//   IN_PROGRESS
-//   COMPLETED
-//   ON_HOLD
-// }
+import { MM_WorkshopType } from '@prisma/client';
 
 /**
  * 🎯 POST /api/mm/workshops
@@ -76,7 +69,7 @@ export async function GET() {
         // 🛠️ Manual Aggregation to bypass the _count:0 bug
         const workshopData = workshops.map(workshop => {
             const projects = workshop.mm_projects || [];
-           // console.log('workshop',workshop)
+            
             // Financial aggregation for Guideline 2.1
             const totalAllocated = projects.reduce((sum, p) => sum + p.allocatedBudget, 0);
             const totalActual = projects.reduce((sum, p) => sum + p.totalActualCost, 0);
@@ -100,7 +93,7 @@ export async function GET() {
             };
         });
 
-        console.log("workshopData------------------>",workshopData)
+        console.log("workshopData",workshopData)
 
         return NextResponse.json(workshopData, { status: 200 });
     } catch (error) {
@@ -112,14 +105,12 @@ export async function GET() {
     }
 }
 
-
 // export async function GET() {
 //     try {
 //         const workshops = await prisma.mM_Workshop.findMany({
 //             include: {
 //                 mm_projects: {
 //                     select: {
-//                         status: true,
 //                         allocatedBudget: true,
 //                         totalActualCost: true
 //                     }
@@ -129,24 +120,14 @@ export async function GET() {
 //                 name: 'asc'
 //             }
 //         });
-//        //console.log("workshops---------------------------->",workshops)
+
+//         // 🛠️ Manual Aggregation to bypass the _count:0 bug
 //         const workshopData = workshops.map(workshop => {
-//             const allProjects = workshop.mm_projects || [];
-            
-//             // 1. Filter for Active Projects (Status is not PLANNED, COMPLETED, or CANCELLED)
-//             // Adjust the statuses below based on your specific Enum values
-//             const activeProjects = allProjects.filter(p => 
-//                 p.status !== MM_ProjectStatus.PLANNED && 
-//                 p.status !== MM_ProjectStatus.COMPLETED && 
-//                 p.status !== MM_ProjectStatus.ON_HOLD
-//             );
-
-//             // 2. Financial aggregation (Total for ALL projects in this workshop)
-//             const totalAllocated = allProjects.reduce((sum, p) => sum + (p.allocatedBudget || 0), 0);
-//             const totalActual = allProjects.reduce((sum, p) => sum + (p.totalActualCost || 0), 0);
-
-//             // 3. Financial aggregation (Only for ACTIVE projects)
-//             const activeAllocated = activeProjects.reduce((sum, p) => sum + (p.allocatedBudget || 0), 0);
+//             const projects = workshop.mm_projects || [];
+//            // console.log('workshop',workshop)
+//             // Financial aggregation for Guideline 2.1
+//             const totalAllocated = projects.reduce((sum, p) => sum + p.allocatedBudget, 0);
+//             const totalActual = projects.reduce((sum, p) => sum + p.totalActualCost, 0);
 
 //             return {
 //                 id: workshop.id,
@@ -154,25 +135,21 @@ export async function GET() {
 //                 type: workshop.type,
 //                 location: workshop.location,
 //                 capacity: workshop.capacity,
-                
-//                 // Metrics
-//                 totalProjectCount: allProjects.length,
-//                 activeProjectCount: activeProjects.length, 
-                
+//                 // Explicitly derive count from the length of retrieved projects
+//                 projectCount: projects.length, 
 //                 totalAllocated,
 //                 totalActual,
-//                 activeAllocated,
-
-//                 // Capacity utilization based on ACTIVE projects vs Workshop Capacity
+//                 // Calculate capacity utilization percentage
 //                 utilization: workshop.capacity > 0 
-//                     ? Math.round((activeProjects.length / workshop.capacity) * 100) 
+//                     ? Math.round((projects.length / workshop.capacity) * 100) 
 //                     : 0,
-                
 //                 createdAt: workshop.createdAt,
 //                 updatedAt: workshop.updatedAt
 //             };
 //         });
-//         console.log("workshopData",workshopData)
+
+//         console.log("workshopData------------------>",workshopData)
+
 //         return NextResponse.json(workshopData, { status: 200 });
 //     } catch (error) {
 //         console.error("WORKSHOP_GET_ERROR:", error);
