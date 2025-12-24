@@ -29,6 +29,16 @@ export default async function ActivityDetailPage({ params }: { params: { id: str
         }
     });
 
+    //  const workshops = await prisma.mM_Workshop.findMany({
+    //         include: {
+    //             mm_projects: true
+    //         },
+    //         orderBy: {
+    //             name: 'asc'
+    //         }
+    //     });
+
+    // console.log('testing.....>', workshops)
     if (!activity) notFound();
 
     // Safe serialization for Client Components

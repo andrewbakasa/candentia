@@ -6,9 +6,6 @@ import {
   Plus, Loader2, Target, Briefcase, ShoppingCart, Box, ArrowUpRight, Receipt, AlertCircle, Layers,  Search, Calendar, DollarSign, Clock
 } from 'lucide-react';
 import { toast } from 'sonner';
-import ExcelJS from 'exceljs';
-import { saveAs } from 'file-saver';
-
 // Components
 import { ActivityTableView, ProjectGridView, StrategyListView, WorkshopListView } from './_components/SubComponents';
 import MM_ProjectForm from './_components/MM_ProjectForm';
@@ -17,6 +14,7 @@ import MM_MaterialForm from './_components/MM_MaterialForm';
 import MM_PurchaseOrderForm from './_components/MM_PurchaseOrder';
 import MM_MasterMaterialForm from './_components/MM_MasterMaterial';
 import ProcurementListView from './_components/ProcurementListView';
+import MM_WorkshopForm from './_components/MM_WorkshopForm';
 
 // 1. Updated TabType to include mastermaterials
 export type TabType = 'strategies' | 'projects' | 'activities' | 'workshops' | 'purchaseorders' | 'materials' | 'mastermaterials';
@@ -185,7 +183,14 @@ const tabLabels = {
               <MM_MasterMaterialForm initialData={editingRecord} onClose={() => setIsModalOpen(false)} onSuccess={handleSaveSuccess} />
             ) : activeTab === 'projects' ? (
                <MM_ProjectForm initialData={editingRecord} workshops={data.workshops} strategies={data.strategies} onClose={() => setIsModalOpen(false)} onSuccess={handleSaveSuccess} />
-            ) : null}
+            ) : activeTab === 'workshops' ? (
+            /* ADD THIS SECTION BELOW */
+            <MM_WorkshopForm 
+              initialData={editingRecord} 
+              onClose={() => setIsModalOpen(false)} 
+              onSuccess={handleSaveSuccess} 
+            />
+          ) : null}
           </div>
         </div>
       )}
