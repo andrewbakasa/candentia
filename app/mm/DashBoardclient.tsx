@@ -15,6 +15,7 @@ import MM_PurchaseOrderForm from './_components/MM_PurchaseOrder';
 import MM_MasterMaterialForm from './_components/MM_MasterMaterial';
 import ProcurementListView from './_components/ProcurementListView';
 import MM_WorkshopForm from './_components/MM_WorkshopForm';
+import MM_ActivityForm from './_components/ActivityForm';
 
 // 1. Updated TabType to include mastermaterials
 export type TabType = 'strategies' | 'projects' | 'activities' | 'workshops' | 'purchaseorders' | 'materials' | 'mastermaterials';
@@ -54,7 +55,7 @@ function DashboardContent({ currentUser }: { currentUser: any }) {
         strategies: [],
         workshops: [],
         mastermaterials: [], // Global catalog is independent
-        projects: ['strategies'],
+        projects: ['strategies','workshops'],
         activities: ['projects'],
         purchaseorders: ['strategies', 'projects'],
         materials: ['strategies', 'projects']
@@ -177,7 +178,14 @@ const tabLabels = {
               onClose={() => setIsModalOpen(false)} 
               onSuccess={handleSaveSuccess} 
             />
-         
+         ):activeTab === 'activities' ? (
+            <MM_ActivityForm 
+            initialData={editingRecord} 
+            projects={data.projects} 
+            onClose={() => setIsModalOpen(false)} 
+            onSuccess={handleSaveSuccess} 
+            // preselectedProject={...} // Optional: only if calling from a specific project view
+          />
 
             ) : activeTab === 'mastermaterials' ? (
               <MM_MasterMaterialForm initialData={editingRecord} onClose={() => setIsModalOpen(false)} onSuccess={handleSaveSuccess} />
