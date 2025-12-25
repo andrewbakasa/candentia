@@ -3,9 +3,9 @@ import React from 'react';
 import { notFound } from 'next/navigation';
 import prisma from '../../../libs/prismadb';
 import MM_Sidebar from '../../_components/MM_Sidebar';
-import ProjectDetailView from '../../_components/ProjectDetailView';
 import MM_ActivityForm from '../../_components/ActivityForm';
 import EntityActionsHeader from '../../_components/ProjectActionWrapper';
+import ProjectDetailView from '../../_components/ProjectDetailView';
 
 export default async function ProjectDetailPage({ params }: { params: { id: string } }) {
     const { id } = params;
