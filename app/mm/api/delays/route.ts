@@ -1,14 +1,22 @@
 import { NextRequest, NextResponse } from 'next/server';
 import prisma from '../../../libs/prismadb';
+import { MM_DelayType } from '@prisma/client';
 
 /**
  * 🎯 POST /api/mm/delays
  */
+
+
 export async function POST(request: NextRequest) {
     try {
         const body = await request.json();
+        
+        // 1. Validate mandatory Activity link
+        if (!body.activityId) {
+            return NextResponse.json({ message: "activityId is required" }, { status: 400 });
+        }
 
-        // 1. First, find the activity to get the Project ID (Model cross-reference)
+        // 2. Fetch Parent Activity to resolve Project ID for financial updates
         const parentActivity = await prisma.mM_Activity.findUnique({
             where: { id: body.activityId },
             select: { projectId: true }
@@ -18,46 +26,62 @@ export async function POST(request: NextRequest) {
             return NextResponse.json({ message: "Parent Activity not found" }, { status: 404 });
         }
 
+        // 3. Execute Transaction
         const result = await prisma.$transaction(async (tx) => {
-            // 2. Log the Delay Incident (No projectId in this model)
+            
+            // Convert types explicitly to satisfy Prisma/Database strictness
+            const costValue = parseFloat(body.costImpact) || 0;
+            const hoursValue = parseFloat(body.impactHours) || 0;
+            
+            // LOG THE DELAY
             const delay = await tx.mM_ProcessDelay.create({
                 data: {
-                    type: body.type,
+                    // Force the type to match Enum naming conventions
+                    // We cast to 'any' here to bypass the strict TypeScript check 
+                    // if your local generated types are out of sync.
+                    type: body.type as MM_DelayType, 
                     activityId: body.activityId,
+                    description: body.description || "No description provided",
+                    impactHours: hoursValue,
+                    costImpact: costValue,
+                    isReworkTriggered: Boolean(body.isReworkTriggered),
                     materialReqId: body.materialReqId || null,
-                    description: body.description,
-                    impactHours: parseFloat(body.impactHours) || 0,
-                    costImpact: parseFloat(body.costImpact) || 0,
-                    isReworkTriggered: body.isReworkTriggered || false,
                 }
             });
 
-            // 3. Update Activity Rework Costs if applicable
+            // UPDATE ACTIVITY REWORK (Step 3 of Guidelines)
             if (body.isReworkTriggered) {
                 await tx.mM_Activity.update({
                     where: { id: body.activityId },
                     data: { 
                         isRework: true,
-                        reworkCost: { increment: parseFloat(body.costImpact) || 0 }
+                        reworkCost: { increment: costValue }
                     }
                 });
             }
 
-            // 4. Update Project Total Cost using the ID we fetched in step 1
-            await tx.mM_Project.update({
-                where: { id: parentActivity.projectId },
-                data: { 
-                    totalActualCost: { increment: parseFloat(body.costImpact) || 0 }
-                }
-            });
+            // UPDATE PROJECT TOTAL ACTUAL COST
+            if (parentActivity.projectId) {
+                await tx.mM_Project.update({
+                    where: { id: parentActivity.projectId },
+                    data: { 
+                        totalActualCost: { increment: costValue }
+                    }
+                });
+            }
 
             return delay;
         });
 
         return NextResponse.json(result, { status: 201 });
+
     } catch (error: any) {
         console.error("MM_ProcessDelay POST Error:", error);
-        return NextResponse.json({ message: "Delay failed.", error: error.message }, { status: 500 });
+        // Extract specific Prisma error messages if available
+        return NextResponse.json({ 
+            message: "Delay failed.", 
+            error: error.message 
+        }, { status: 500 });
     }
 }
 

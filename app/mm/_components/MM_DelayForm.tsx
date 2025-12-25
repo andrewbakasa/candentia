@@ -1,243 +1,182 @@
 'use client';
-
 import React, { useState, useEffect } from 'react';
-import { 
-    AlertTriangle, X, Save, Loader2, Info, Clock, 
-    DollarSign, Activity, FileText, Package 
-} from 'lucide-react';
-import { toast } from 'sonner';
+import { X, Save, Clock, AlertCircle, Link as LinkIcon } from 'lucide-react';
+import toast from 'react-hot-toast';
 
-interface ActivityItem {
-    id: string;
-    description: string;
-    projectId: string;
-}
-
-interface MaterialRequirement {
-    id: string;
-    material: { itemCode: string; description: string };
-}
-
-interface Props {
-    initialData?: any; // Used when editing existing delay
-    activities: ActivityItem[]; // Master list for selection
-    materialRequirements: MaterialRequirement[];
-    preselectedActivityId?: string; // Used when "Creating New" from an Activity View
-    onClose: () => void;
-    onSuccess: () => void;
-}
-
-const DELAY_TYPES = [
-    { value: 'REWORK_REQUIRED', label: 'Rework Required (Engineering)', color: 'text-red-600' },
-    { value: 'MATERIAL_SHORTAGE', label: 'Material Shortage (Procurement)', color: 'text-orange-600' },
-    { value: 'FUNDING_LACK', label: 'Funding/Budget Lack (HQ)', color: 'text-amber-600' },
-    { value: 'EQUIPMENT_DOWN', label: 'Infrastructure Breakdown (Workshop)', color: 'text-purple-600' },
-    { value: 'LABOR_UNAVAILABLE', label: 'Specialized Labor Shortage', color: 'text-blue-600' },
-    { value: 'SPARES_CANNIBALIZATION', label: 'Spares Cannibalization', color: 'text-cyan-600' },
+// Define the options matching your specific Enum for clear mapping
+const DELAY_OPTIONS = [
+    { value: 'REWORK_REQUIRED', label: 'QA Failure / Rework Required' },
+    { value: 'MATERIAL_SHORTAGE', label: 'Material Shortage (BoQ/PO)' },
+    { value: 'FUNDING_LACK', label: 'Funding Lack (Budget Ceiling)' },
+    { value: 'EQUIPMENT_DOWN', label: 'Equipment / Infrastructure Failure' },
+    { value: 'LABOR_UNAVAILABLE', label: 'Labor / Skill Shortage' },
+    { value: 'SAFETY_HALT', label: 'Safety Halt / Audit' },
+    { value: 'THIRD_PARTY_REPAIR', label: 'Third Party Specialist' },
+    { value: 'UTILITY_OUTAGE', label: 'Utility Outage (Power/Water)' },
+    { value: 'SPARES_CANNIBALIZATION', label: 'Spares Cannibalization' },
+    { value: 'OTHER', label: 'Other / Uncategorized' },
 ];
 
-export default function MM_ProcessDelayForm({ 
-    initialData, 
-    activities, 
-    materialRequirements, 
-    preselectedActivityId,
-    onClose, 
-    onSuccess 
-}: Props) {
+export default function MM_ProcessDelayForm({ initialData, onClose, onSuccess }: any) {
     const [loading, setLoading] = useState(false);
-    const [error, setError] = useState('');
+    const isEditMode = Boolean(initialData?.id);
 
-    // Unified state: projectId is inferred from the chosen activity
     const [formData, setFormData] = useState({
-        type: initialData?.type || 'MATERIAL_SHORTAGE',
-        activityId: initialData?.activityId || preselectedActivityId || '',
-        materialReqId: initialData?.materialReqId || '',
+        activityId: initialData?.activityId || '', 
+        type: initialData?.type || 'EQUIPMENT_DOWN', // Default must match enum
         description: initialData?.description || '',
         impactHours: initialData?.impactHours || 0,
         costImpact: initialData?.costImpact || 0,
         isReworkTriggered: initialData?.isReworkTriggered || false,
+        materialReqId: initialData?.materialReqId || null
     });
 
-    // Automatically update the rework flag if the type is Rework Required
     useEffect(() => {
-        if (formData.type === 'REWORK_REQUIRED') {
-            setFormData(prev => ({ ...prev, isReworkTriggered: true }));
+        if (initialData) {
+            setFormData(prev => ({
+                ...prev,
+                activityId: initialData.activityId || prev.activityId,
+                type: initialData.type || prev.type,
+                description: initialData.description || prev.description,
+                impactHours: initialData.impactHours || prev.impactHours,
+                costImpact: initialData.costImpact || prev.costImpact,
+                isReworkTriggered: initialData.isReworkTriggered ?? prev.isReworkTriggered,
+                ...(isEditMode ? initialData : {})
+            }));
         }
-    }, [formData.type]);
+    }, [initialData, isEditMode]);
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         setLoading(true);
-        setError('');
-
-        // Find the project associated with the activity to ensure the API gets the correct scope
-        const selectedActivity = activities.find(a => a.id === formData.activityId);
-        
-        const payload = {
-            ...formData,
-            projectId: selectedActivity?.projectId // Derived from Activity
-        };
 
         try {
-            const method = initialData ? 'PATCH' : 'POST';
-            const endpoint = initialData ? `/mm/api/delays/${initialData.id}` : '/mm/api/delays';
-
-            const res = await fetch(endpoint, {
+            const method = isEditMode ? 'PATCH' : 'POST';
+            const url = isEditMode ? `/mm/api/delays/${initialData.id}` : `/mm/api/delays`;
+            
+            const res = await fetch(url, {
                 method,
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(payload),
+                body: JSON.stringify(formData),
             });
 
+            const result = await res.json();
+
             if (res.ok) {
-                toast.success("Operational Variance Authorized");
+                toast.success('Delay record synchronized with ledger');
                 onSuccess();
-                onClose();
             } else {
-                const err = await res.json();
-                setError(err.message || 'Validation failed');
+                throw new Error(result.message || 'Prisma Validation Failed');
             }
-        } catch (err) {
-            setError('ERP Uplink Failed: Workshop Connectivity Offline');
+        } catch (err: any) {
+            console.error("Delay Sync Error:", err);
+            toast.error(err.message || "Internal Server Error");
         } finally {
             setLoading(false);
         }
     };
 
     return (
-        <div className="w-full bg-white flex flex-col h-full overflow-hidden">
-            {/* Header */}
-            <div className="px-6 py-5 border-b flex justify-between items-center bg-white sticky top-0 z-20">
-                <div className="flex items-center gap-4">
-                    <div className="p-3 bg-rose-50 rounded-2xl text-rose-600">
-                        <AlertTriangle size={24} />
+        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[100] flex items-center justify-center p-4">
+            <div className="bg-white rounded-3xl w-full max-w-md shadow-2xl overflow-hidden border border-rose-100">
+                
+                {/* HEADER */}
+                <div className="p-6 border-b border-slate-100 flex justify-between items-center bg-rose-50/50">
+                    <div className="flex items-center gap-3">
+                        <div className="p-2 bg-rose-600 text-white rounded-xl shadow-sm">
+                            <Clock size={20} />
+                        </div>
+                        <div>
+                            <h2 className="text-lg font-black text-slate-900 uppercase tracking-tight">
+                                {isEditMode ? 'Amend Delay' : 'Log Process Delay'}
+                            </h2>
+                            <p className="text-[9px] text-rose-600 font-bold uppercase tracking-widest mt-0.5">
+                                Guideline 1 of 2025 • Workshop Operations
+                            </p>
+                        </div>
                     </div>
+                    <button onClick={onClose} className="p-2 hover:bg-white rounded-xl text-slate-400 transition-colors">
+                        <X size={20}/>
+                    </button>
+                </div>
+
+                <form onSubmit={handleSubmit} className="p-6 space-y-5">
+                    {/* TYPE SELECT */}
                     <div>
-                        <h2 className="text-xl font-black text-slate-900 tracking-tight">
-                            {initialData ? 'Update Variance' : 'Log Delay Incident'}
-                        </h2>
-                        <p className="text-[10px] text-slate-400 font-bold uppercase tracking-[0.2em]">NRZ Operational Leakage Tracker</p>
-                    </div>
-                </div>
-                <button onClick={onClose} className="p-2 hover:bg-slate-100 rounded-full transition-colors">
-                    <X size={24} className="text-slate-400" />
-                </button>
-            </div>
-
-            <form onSubmit={handleSubmit} className="p-6 space-y-8 overflow-y-auto custom-scrollbar">
-                {error && (
-                    <div className="p-4 bg-red-50 text-red-700 rounded-2xl flex items-center gap-3 text-xs font-black border-2 border-red-100">
-                        <Info size={18} />
-                        <span className="uppercase tracking-wider">{error}</span>
-                    </div>
-                )}
-
-                {/* Main Linkage: Activity */}
-                <div className="space-y-3">
-                    <label className="text-[11px] font-black uppercase text-slate-400 tracking-widest flex items-center gap-2">
-                        <Activity size={14}/> Activity Context
-                    </label>
-                    <select 
-                        required
-                        className="w-full border-2 border-slate-100 rounded-2xl p-4 font-bold text-slate-700 focus:border-indigo-500 outline-none transition-all"
-                        value={formData.activityId}
-                        onChange={(e) => setFormData({...formData, activityId: e.target.value})}
-                    >
-                        <option value="">Choose workshop activity...</option>
-                        {activities.map(a => (
-                            <option key={a.id} value={a.id}>{a.description}</option>
-                        ))}
-                    </select>
-                </div>
-
-                {/* Categorization Card */}
-                <div className="bg-slate-50 p-6 rounded-[2.5rem] border-2 border-slate-100 space-y-6">
-                    <div className="space-y-3">
-                        <label className="text-[11px] font-black uppercase text-slate-500 tracking-widest">Incident Category</label>
+                        <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1.5 block">Reason Category</label>
                         <select 
-                            required
-                            className="w-full bg-white border-2 border-slate-200/60 rounded-2xl p-4 font-bold text-slate-800 outline-none focus:border-indigo-500 shadow-sm"
                             value={formData.type}
-                            onChange={(e) => setFormData({...formData, type: e.target.value as any})}
+                            onChange={(e) => setFormData({...formData, type: e.target.value})}
+                            className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm font-bold focus:ring-2 focus:ring-rose-500 outline-none transition-all"
                         >
-                            {DELAY_TYPES.map(t => (
-                                <option key={t.value} value={t.value}>{t.label}</option>
+                            {DELAY_OPTIONS.map(opt => (
+                                <option key={opt.value} value={opt.value}>{opt.label}</option>
                             ))}
                         </select>
                     </div>
 
-                    {formData.type === 'MATERIAL_SHORTAGE' && (
-                        <div className="animate-in fade-in slide-in-from-top-2 duration-300 space-y-3">
-                            <label className="text-[11px] font-black text-orange-600 uppercase tracking-widest flex items-center gap-2">
-                                <Package size={14}/> Missing Component
-                            </label>
-                            <select 
-                                className="w-full bg-white border-2 border-orange-100 rounded-2xl p-4 font-bold text-slate-700"
-                                value={formData.materialReqId}
-                                onChange={(e) => setFormData({...formData, materialReqId: e.target.value})}
-                            >
-                                <option value="">Select from BoQ...</option>
-                                {materialRequirements.map(m => (
-                                    <option key={m.id} value={m.id}>{m.material.itemCode} - {m.material.description}</option>
-                                ))}
-                            </select>
+                    {/* DESCRIPTION */}
+                    <div>
+                        <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1.5 block">Incident Description</label>
+                        <textarea 
+                            value={formData.description}
+                            onChange={(e) => setFormData({...formData, description: e.target.value})}
+                            className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm font-medium h-24 outline-none focus:ring-2 focus:ring-rose-500 resize-none"
+                            placeholder="Detail the cause (e.g., ZESA outage or Artisan shortage)..."
+                            required
+                        />
+                    </div>
+
+                    {/* METRICS GRID */}
+                    <div className="grid grid-cols-2 gap-4">
+                        <div className="bg-slate-50 p-3 rounded-2xl border border-slate-100">
+                            <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1 block">Impact (Hours)</label>
+                            <input 
+                                type="number" 
+                                value={formData.impactHours}
+                                onChange={(e) => setFormData({...formData, impactHours: parseFloat(e.target.value) || 0})}
+                                className="w-full bg-transparent text-lg font-black outline-none text-slate-900"
+                            />
                         </div>
-                    )}
-                </div>
+                        <div className="bg-rose-50/50 p-3 rounded-2xl border border-rose-100">
+                            <label className="text-[9px] font-black text-rose-400 uppercase tracking-widest mb-1 block">Cost Impact ($)</label>
+                            <input 
+                                type="number" 
+                                value={formData.costImpact}
+                                onChange={(e) => setFormData({...formData, costImpact: parseFloat(e.target.value) || 0})}
+                                className="w-full bg-transparent text-lg font-black outline-none text-rose-600"
+                            />
+                        </div>
+                    </div>
 
-                {/* Impact Metrics */}
-                <div className="grid grid-cols-2 gap-6">
-                    <div className="space-y-3">
-                        <label className="text-[11px] font-black uppercase text-slate-400 tracking-widest flex items-center gap-2">
-                            <Clock size={14}/> Stoppage (Hrs)
-                        </label>
+                    {/* REWORK TOGGLE */}
+                    <div className="flex items-center justify-between p-4 bg-slate-50 rounded-2xl border border-slate-100">
+                        <div className="flex items-center gap-2">
+                            <AlertCircle size={16} className="text-amber-500" />
+                            <div>
+                                <p className="text-[10px] font-black text-slate-800 uppercase">Trigger Rework?</p>
+                                <p className="text-[8px] text-slate-400 font-bold uppercase">Updates Rework Ledger</p>
+                            </div>
+                        </div>
                         <input 
-                            type="number" step="0.5"
-                            className="w-full border-2 border-slate-100 rounded-2xl p-4 font-black text-slate-700 focus:border-indigo-500 outline-none bg-white shadow-sm"
-                            value={formData.impactHours}
-                            onChange={(e) => setFormData({...formData, impactHours: parseFloat(e.target.value)})}
+                            type="checkbox"
+                            checked={formData.isReworkTriggered}
+                            onChange={(e) => setFormData({...formData, isReworkTriggered: e.target.checked})}
+                            className="w-5 h-5 accent-rose-600 rounded"
                         />
                     </div>
-                    <div className="space-y-3">
-                        <label className="text-[11px] font-black uppercase text-slate-400 tracking-widest flex items-center gap-2">
-                            <DollarSign size={14}/> Cost Leakage ($)
-                        </label>
-                        <input 
-                            type="number"
-                            className="w-full border-2 border-slate-100 rounded-2xl p-4 font-black text-slate-900 focus:border-emerald-500 outline-none bg-white shadow-sm"
-                            value={formData.costImpact}
-                            onChange={(e) => setFormData({...formData, costImpact: parseFloat(e.target.value)})}
-                        />
-                    </div>
-                </div>
 
-                {/* Audit Narrative */}
-                <div className="space-y-3">
-                    <label className="text-[11px] font-black uppercase text-slate-400 tracking-widest flex items-center gap-2">
-                        <FileText size={14}/> Bottleneck Narrative
-                    </label>
-                    <textarea 
-                        required
-                        className="w-full border-2 border-slate-100 rounded-3xl p-5 h-32 outline-none focus:border-indigo-500 font-medium text-slate-600 bg-white"
-                        placeholder="Provide details for internal audit (e.g. ZESA Power loss or Spare part theft)..."
-                        value={formData.description}
-                        onChange={(e) => setFormData({...formData, description: e.target.value})}
-                    />
-                </div>
-
-                {/* Footer Submit */}
-                <div className="pb-4">
+                    {/* SUBMIT */}
                     <button 
-                        type="submit"
+                        type="submit" 
                         disabled={loading}
-                        className="w-full py-5 bg-slate-900 text-white rounded-[2rem] font-black hover:bg-indigo-600 flex items-center justify-center gap-3 transition-all active:scale-[0.98] shadow-2xl shadow-slate-200 disabled:bg-slate-200"
+                        className={`w-full py-4 rounded-2xl font-black uppercase text-xs shadow-lg transition-all flex items-center justify-center gap-2 
+                            ${loading ? 'bg-slate-100 text-slate-400' : 'bg-rose-600 hover:bg-rose-700 text-white shadow-rose-100 active:scale-[0.98]'}`}
                     >
-                        {loading ? <Loader2 className="animate-spin" size={20} /> : <Save size={20} />}
-                        <span className="uppercase tracking-[0.3em] text-xs">
-                            Commit Record to Ledger
-                        </span>
+                        {loading ? 'Processing...' : <><Save size={16}/> Save to Project Ledger</>}
                     </button>
-                </div>
-            </form>
+                </form>
+            </div>
         </div>
     );
 }

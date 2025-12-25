@@ -33,22 +33,21 @@ export default function EntityActionsHeader({
 
         try {
             const workbook = new ExcelJS.Workbook();
-            const ws = workbook.addWorksheet('NRZ Official Report');
+            const ws = workbook.addWorksheet('NRZ Strategic Audit');
 
-            // --- 1. THEME STYLES ---
+            // --- 1. THEME & BRANDING STYLES ---
             const headerStyle: Partial<ExcelJS.Font> = { bold: true, color: { argb: 'FFFFFFFF' }, size: 11 };
-            const indigoFill: ExcelJS.Fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF4F46E5' } };
-            const emeraldFill: ExcelJS.Fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF059669' } };
-            const slateFill: ExcelJS.Fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF1E293B' } };
+            const indigoFill: ExcelJS.Fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF4F46E5' } }; 
+            const emeraldFill: ExcelJS.Fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF059669' } }; 
+            const slateFill: ExcelJS.Fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF1E293B' } }; 
+            const roseFill: ExcelJS.Fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFE11D48' } }; 
 
             // --- 2. STRUCTURE DETECTION ---
             const isMaterialList = Array.isArray(data) && data.length > 0 && 'materialId' in data[0];
-            // Optimized check: Is this a single activity detail? 
-            // (Checks for typical activity-only fields like 'supervisor' or 'projectId' without 'activities' array)
             const isSingleActivity = !isMaterialList && !!data.supervisor;
 
             if (isMaterialList) {
-                // --- MODE A: MATERIAL PROCUREMENT LIST ---
+                // MODE A: MATERIAL PROCUREMENT LIST
                 ws.addRow(['MATERIAL PROCUREMENT REGISTRY']).font = { bold: true, size: 16 };
                 ws.addRow(['Project ID:', String(data[0].projectId || 'N/A')]);
                 ws.addRow(['Export Date:', new Date().toLocaleDateString()]);
@@ -60,7 +59,7 @@ export default function EntityActionsHeader({
                     { header: 'Qty', key: 'qty', width: 10 },
                     { header: 'UOM', key: 'uom', width: 10 },
                     { header: 'Unit Cost', key: 'unit', width: 15 },
-                    { header: 'Total Est.', key: 'total', width: 18 },
+                    { header: 'Total Est. Value', key: 'total', width: 18 },
                     { header: 'Status', key: 'status', width: 20 },
                 ];
 
@@ -84,53 +83,40 @@ export default function EntityActionsHeader({
                 });
 
             } else if (isSingleActivity) {
-                // --- MODE B: ACTIVITY DETAIL (Attributes + Tasks) ---
-                // Extract nested plan data which might be in data.plan OR data.project.plan
-                const planRef = data.plan || data.project?.plan || {};
-                const projectName = data.project?.name || "N/A";
-
+                // MODE B: SINGLE ACTIVITY DETAIL
                 ws.addRow(['ACTIVITY EXECUTION REPORT']).font = { bold: true, size: 16 };
                 ws.addRow(['Activity:', String(data.description)]);
-                ws.addRow(['Project Context:', projectName]);
-                ws.addRow(['Assigned Executive:', String(planRef.assignedExecutive || 'N/A'), 'Year:', planRef.year || 'N/A']);
-                ws.addRow(['Activity Budget:', data.allocatedBudget || 0, 'Supervisor:', data.supervisor || 'N/A']);
-                ws.addRow([]); // Spacer
+                ws.addRow(['Status:', String(data.stage), 'Progress:', `${data.progress}%`]);
+                ws.addRow(['Supervisor:', data.supervisor || 'N/A', 'Allocated Budget:', data.allocatedBudget || 0]);
+                ws.addRow([]);
 
+                ws.addRow(['I. TASK EXECUTION LOG']).font = { bold: true, size: 12 };
                 ws.columns = [
                     { header: 'Task Title', key: 'title', width: 40 },
-                    { header: 'Detailed Description', key: 'desc', width: 50 },
                     { header: 'Assignee', key: 'who', width: 25 },
                     { header: 'Status', key: 'status', width: 15 },
                     { header: 'Date Logged', key: 'date', width: 20 },
                 ];
-
-                const headerRowNumber = 7; // Adjusted for extra info rows
-                const hRow = ws.getRow(headerRowNumber);
-                hRow.values = ws.columns.map(c => c.header) as ExcelJS.CellValue[];
-                hRow.font = headerStyle;
-                hRow.eachCell(cell => cell.fill = indigoFill);
+                const tHeader = ws.getRow(7);
+                tHeader.values = ['Task Title', 'Assignee', 'Status', 'Date Logged'];
+                tHeader.font = headerStyle;
+                tHeader.eachCell(c => c.fill = indigoFill);
 
                 (data.tasks || []).forEach((t: any) => {
-                    ws.addRow({
-                        title: t.title,
-                        desc: t.description,
-                        who: t.assignedTo || 'Unassigned',
-                        status: t.status,
-                        date: t.createdAt ? new Date(t.createdAt).toLocaleDateString() : 'N/A'
-                    });
+                    ws.addRow([t.title || t.description, t.assignedTo || 'Unassigned', t.status, t.createdAt ? new Date(t.createdAt).toLocaleDateString() : 'N/A']);
                 });
 
             } else {
-                // --- MODE C: FULL PROJECT OVERVIEW ---
+                // MODE C: FULL PROJECT OVERVIEW
                 ws.addRow(['PROJECT STRATEGIC AUDIT SUMMARY']).font = { bold: true, size: 16 };
                 ws.addRow(['Project:', String(data.name), 'Manager:', String(data.projectManager)]);
-                ws.addRow(['Budget:', data.allocatedBudget, 'Total Actual:', data.totalActualCost]);
-                ws.addRow(['Workshop:', data.responsibleWorkshop?.name || 'N/A']);
+                ws.addRow(['Budget Total:', data.allocatedBudget, 'Total Actual Cost:', data.totalActualCost]);
+                ws.addRow(['Workshop:', data.responsibleWorkshop?.name || 'N/A', 'Current Progress:', `${data.progress}%`]);
                 ws.addRow([]);
 
                 // I. Work Breakdown
-                ws.addRow(['I. WORKBREAKDOWN STRUCTURE']).font = { bold: true, size: 12 };
-                const actH = ws.addRow(['Work Item', 'Supervisor', 'Status', 'Allocated Budget']);
+                ws.addRow(['I. WORKBREAKDOWN STRUCTURE (WBS)']).font = { bold: true, size: 12 };
+                const actH = ws.addRow(['Work Item / Description', 'Supervisor', 'Stage', 'Allocated Budget']);
                 actH.font = headerStyle;
                 actH.eachCell(c => c.fill = indigoFill);
 
@@ -166,38 +152,89 @@ export default function EntityActionsHeader({
                     });
                 }
 
-                ws.columns = [{ width: 45 }, { width: 30 }, { width: 15 }, { width: 15 }, { width: 15 }, { width: 15 }];
+                // IV. OPERATIONAL LATENCY (Corrected Separation)
+                if (data.allProcessDelays?.length > 0) {
+                    ws.addRow([]);
+                    ws.addRow(['IV. OPERATIONAL LATENCY & RISK AUDIT']).font = { bold: true, size: 12, color: { argb: 'FFE11D48' } };
+                    const delayH = ws.addRow(['Risk Type', 'Activity Context', 'Detailed Description', 'Impact Hours', 'Cost Leakage']);
+                    delayH.font = headerStyle;
+                    delayH.eachCell(c => c.fill = roseFill);
+
+                    data.allProcessDelays.forEach((delay: any) => {
+                        ws.addRow([
+                            delay.type?.replace(/_/g, ' '),
+                            delay.activityName || delay.activityDescription || 'General',
+                            delay.description,
+                            delay.impactHours || 0,
+                            delay.costImpact || 0
+                        ]);
+                    });
+
+                    const totalLeakage = data.allProcessDelays.reduce((sum: number, d: any) => sum + (d.costImpact || 0), 0);
+                    const totalHours = data.allProcessDelays.reduce((sum: number, d: any) => sum + (d.impactHours || 0), 0);
+                    
+                    ws.addRow([]);
+                    const summaryRow = ws.addRow(['AGGREGATE PROJECT RISK IMPACT', '', '', totalHours, totalLeakage]);
+                    summaryRow.font = { bold: true };
+                    summaryRow.getCell(5).font = { color: { argb: 'FFE11D48' }, bold: true };
+                }
+
+                ws.columns = [{ width: 45 }, { width: 30 }, { width: 45 }, { width: 15 }, { width: 20 }, { width: 20 }];
             }
 
-            // --- 3. FINAL FORMATTING ---
+            // --- 3. RECTIFIED FORMATTING ENGINE ---
             ws.eachRow((row, rowNumber) => {
-                row.eachCell((cell) => {
+                if (rowNumber < 2) return; // Skip title
+
+                row.eachCell((cell, colNumber) => {
                     cell.alignment = { vertical: 'middle', horizontal: 'left', wrapText: true };
 
                     if (typeof cell.value === 'number' && cell.value !== 0) {
-                        const colIdx = cell.col;
-                        const headers = [4, 5, 6, 7].map(r => ws.getRow(r).getCell(colIdx).value?.toString().toLowerCase() || '');
-                        headers.push(row.getCell(1).value?.toString().toLowerCase() || '');
+                        // Search for the column header vertically
+                        let columnHeader = "";
+                        for (let i = rowNumber - 1; i > 0; i--) {
+                            const val = ws.getRow(i).getCell(colNumber).value?.toString().toLowerCase() || "";
+                            if (val.includes('hours') || val.includes('leakage') || val.includes('budget') || val.includes('cost') || val.includes('value')) {
+                                columnHeader = val;
+                                break;
+                            }
+                        }
 
-                        const isMoney = headers.some(h => 
-                            h.includes('budget') || h.includes('cost') || h.includes('value') || h.includes('total') || h.includes('unit') || h.includes('actual')
-                        );
+                        const rowLabel = row.getCell(1).value?.toString().toLowerCase() || '';
 
-                        if (isMoney) {
+                        // Logic Separation
+                        const isHoursField = columnHeader.includes('hours');
+                        const isCurrencyField = (
+                            columnHeader.includes('budget') || 
+                            columnHeader.includes('cost') || 
+                            columnHeader.includes('leakage') || 
+                            columnHeader.includes('value') ||
+                            rowLabel.includes('budget') ||
+                            rowLabel.includes('leakage') ||
+                            rowLabel.includes('total actual cost')
+                        ) && !isHoursField;
+
+                        if (isCurrencyField) {
                             cell.numFmt = '"$"#,##0.00';
+                        } else if (isHoursField) {
+                            cell.numFmt = '#,##0.00" hrs"'; // NO dollar sign, adds ' hrs' suffix
+                        } else {
+                            cell.numFmt = '#,##0.##';
                         }
                     }
                 });
             });
 
+            // --- 4. GENERATION ---
             const buffer = await workbook.xlsx.writeBuffer();
             const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
-            saveAs(blob, `NRZ_Export_${new Date().getTime()}.xlsx`);
-            toast.success("Excel exported successfully");
+            const fileName = isSingleActivity ? `Activity_Log_${data.id}` : `Strategic_Audit_${data.name?.replace(/\s+/g, '_')}`;
+            saveAs(blob, `${fileName}_${new Date().getTime()}.xlsx`);
+            toast.success("Audit Export Completed");
 
         } catch (error) {
-            console.error('Excel Export Error:', error);
-            toast.error("Export failed");
+            console.error('Export Failure:', error);
+            toast.error("Failed to generate Excel report");
         } finally {
             setIsExporting(false);
         }

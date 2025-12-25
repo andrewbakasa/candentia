@@ -21,7 +21,7 @@ export async function PATCH(
                     costImpact: true, 
                     activityId: true, 
                     isReworkTriggered: true,
-                    activity: { select: { projectId: true } } // Drill down to get projectId
+                    activity: { select: { projectId: true } } 
                 }
             });
 
@@ -29,35 +29,43 @@ export async function PATCH(
 
             const projectId = current.activity.projectId;
 
-            // 2. Update the Delay Incident
+            // 2. Prepare Sanitized Data
+            // Explicitly cast the Enum and parse numbers to prevent Prisma Validation Errors
+            const updateData: any = {};
+            
+            if (body.type) updateData.type = body.type as any; // Cast to Enum type
+            if (body.description) updateData.description = body.description;
+            if (body.impactHours !== undefined) updateData.impactHours = parseFloat(body.impactHours) || 0;
+            if (body.costImpact !== undefined) updateData.costImpact = parseFloat(body.costImpact) || 0;
+            if (body.materialReqId !== undefined) updateData.materialReqId = body.materialReqId;
+            if (body.isReworkTriggered !== undefined) updateData.isReworkTriggered = Boolean(body.isReworkTriggered);
+
+            // Execute Update
             const delay = await tx.mM_ProcessDelay.update({
                 where: { id },
-                data: {
-                    ...(body.type && { type: body.type }),
-                    ...(body.description && { description: body.description }),
-                    ...(body.impactHours !== undefined && { impactHours: parseFloat(body.impactHours) }),
-                    ...(body.costImpact !== undefined && { costImpact: parseFloat(body.costImpact) }),
-                    ...(body.materialReqId && { materialReqId: body.materialReqId }),
-                    ...(body.isReworkTriggered !== undefined && { isReworkTriggered: body.isReworkTriggered }),
-                }
+                data: updateData
             });
 
             // 3. Financial Re-balancing (Guideline Sec 3.4)
-            if (body.costImpact !== undefined && parseFloat(body.costImpact) !== current.costImpact) {
-                const delta = parseFloat(body.costImpact) - current.costImpact;
+            // Only trigger if costImpact was actually provided in the body
+            if (body.costImpact !== undefined) {
+                const newCost = parseFloat(body.costImpact) || 0;
+                const delta = newCost - current.costImpact;
                 
-                // Update Project Cost
-                await tx.mM_Project.update({
-                    where: { id: projectId },
-                    data: { totalActualCost: { increment: delta } }
-                });
-
-                // Update Activity Rework Cost if applicable
-                if (current.activityId && current.isReworkTriggered) {
-                    await tx.mM_Activity.update({
-                        where: { id: current.activityId },
-                        data: { reworkCost: { increment: delta } }
+                if (delta !== 0) {
+                    // Update Project Cost
+                    await tx.mM_Project.update({
+                        where: { id: projectId },
+                        data: { totalActualCost: { increment: delta } }
                     });
+
+                    // Update Activity Rework Cost if it was already triggered
+                    if (current.activityId && current.isReworkTriggered) {
+                        await tx.mM_Activity.update({
+                            where: { id: current.activityId },
+                            data: { reworkCost: { increment: delta } }
+                        });
+                    }
                 }
             }
 
@@ -98,11 +106,13 @@ export async function DELETE(
 
             const projectId = delay.activity.projectId;
 
-            // 1. Reverse the Financial Impact
-            await tx.mM_Project.update({
-                where: { id: projectId },
-                data: { totalActualCost: { decrement: delay.costImpact } }
-            });
+            // 1. Reverse the Financial Impact (Cleanup)
+            if (projectId) {
+                await tx.mM_Project.update({
+                    where: { id: projectId },
+                    data: { totalActualCost: { decrement: delay.costImpact } }
+                });
+            }
 
             if (delay.activityId && delay.isReworkTriggered) {
                 await tx.mM_Activity.update({
