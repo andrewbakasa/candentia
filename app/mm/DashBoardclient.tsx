@@ -3,7 +3,8 @@
 import React, { useState, useEffect, useCallback, Suspense } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { 
-  Plus, Loader2, Target, Briefcase, ShoppingCart, Box, ArrowUpRight, Receipt, AlertCircle, Layers,  Search, Calendar, DollarSign, Clock
+  Plus, Loader2, Target, Briefcase, ShoppingCart, Box, ArrowUpRight, Receipt, AlertCircle, Layers,  Search, Calendar, DollarSign, Clock,
+  X
 } from 'lucide-react';
 import { toast } from 'sonner';
 // Components
@@ -163,7 +164,7 @@ const tabLabels = {
       </main>
 
       {/* Modal Engine */}
-      {isModalOpen && (
+      {/* {isModalOpen && (
         <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4">
           <div className="w-full max-w-4xl bg-white rounded-[2rem] shadow-2xl overflow-hidden max-h-[90vh]">
             {activeTab === 'purchaseorders' ? (
@@ -192,13 +193,52 @@ const tabLabels = {
             ) : activeTab === 'projects' ? (
                <MM_ProjectForm initialData={editingRecord} workshops={data.workshops} strategies={data.strategies} onClose={() => setIsModalOpen(false)} onSuccess={handleSaveSuccess} />
             ) : activeTab === 'workshops' ? (
-            /* ADD THIS SECTION BELOW */
+         
             <MM_WorkshopForm 
               initialData={editingRecord} 
               onClose={() => setIsModalOpen(false)} 
               onSuccess={handleSaveSuccess} 
             />
           ) : null}
+          </div>
+        </div>
+      )} */}
+      {isModalOpen && (
+        <div className="fixed inset-0 z-[150] bg-slate-900/60 backdrop-blur-sm flex items-end md:items-center justify-center p-0 md:p-4">
+          <div className="w-full max-w-4xl bg-white rounded-t-[2.5rem] md:rounded-[2rem] shadow-2xl overflow-hidden max-h-[92vh] flex flex-col animate-in slide-in-from-bottom duration-300">
+            
+            {/* Scrollable Form Container with Bottom Safe-Area */}
+            <div className="overflow-y-auto pb-28 md:pb-8"> 
+              {/* Header (Optional: keeps close button visible) */}
+              <div className="sticky top-0 bg-white/80 backdrop-blur-md p-6 flex justify-between items-center z-10 border-b border-slate-50">
+                <h3 className="text-xs font-black uppercase tracking-widest text-slate-400">
+                  {editingRecord ? 'Update Entry' : 'New Registry'}
+                </h3>
+                <button 
+                  onClick={() => setIsModalOpen(false)}
+                  className="p-2 hover:bg-slate-100 rounded-full transition-colors"
+                >
+                  <X size={20} className="text-slate-400" />
+                </button>
+              </div>
+
+              {/* Form Selection Logic */}
+              <div className="p-2 md:p-6">
+                {activeTab === 'purchaseorders' ? (
+                  <MM_PurchaseOrderForm initialData={editingRecord} strategies={data.strategies} projects={data.projects} onClose={() => setIsModalOpen(false)} onSuccess={handleSaveSuccess} />
+                ) : activeTab === 'materials' ? (
+                  <MM_MaterialForm initialData={editingRecord} projects={data.projects} strategies={data.strategies} onClose={() => setIsModalOpen(false)} onSuccess={handleSaveSuccess} />
+                ) : activeTab === 'activities' ? (
+                  <MM_ActivityForm initialData={editingRecord} projects={data.projects} onClose={() => setIsModalOpen(false)} onSuccess={handleSaveSuccess} />
+                ) : activeTab === 'mastermaterials' ? (
+                  <MM_MasterMaterialForm initialData={editingRecord} onClose={() => setIsModalOpen(false)} onSuccess={handleSaveSuccess} />
+                ) : activeTab === 'projects' ? (
+                  <MM_ProjectForm initialData={editingRecord} workshops={data.workshops} strategies={data.strategies} onClose={() => setIsModalOpen(false)} onSuccess={handleSaveSuccess} />
+                ) : activeTab === 'workshops' ? (
+                  <MM_WorkshopForm initialData={editingRecord} onClose={() => setIsModalOpen(false)} onSuccess={handleSaveSuccess} />
+                ) : null}
+              </div>
+            </div>
           </div>
         </div>
       )}
