@@ -75,7 +75,7 @@ export default async function ProjectDetailPage({ params }: { params: { id: stri
                     />
                 </div>
                 
-                <div className="p-2 pt-2">
+                <div className="p-1 pt-2">
                     <div className="bg-white rounded-[2.5rem] shadow-sm border border-slate-200 overflow-hidden">
                         <ProjectDetailView 
                             project={serializedProject} 

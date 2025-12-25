@@ -103,7 +103,7 @@ export const WorkshopListView = ({ workshops, onEdit, onDelete,permissions}: any
       {/* WORKSHOP GRID */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 p-2 md:p-0">
         {filteredWorkshops?.map((workshop: any) => {
-          const projectCount = workshop._count?.mm_projects || 0;
+          const projectCount = workshop.projectCount//_count?.mm_projects || 0;
           const loadFactor = Math.round((projectCount / (workshop.capacity || 1)) * 100);
           
           return (

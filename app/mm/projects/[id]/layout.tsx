@@ -86,7 +86,7 @@ const ProjectLayout = async ({
     return (
         <div className="min-h-screen bg-slate-50">
             {/* Contextual indicators for Maintenance Modules could be placed here */}
-            <main className="max-w-[1600px] mx-auto p-6">
+            <main className="max-w-[1600px] mx-auto p-2">
                 {children}
             </main>
         </div>
