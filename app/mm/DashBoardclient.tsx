@@ -8,7 +8,7 @@ import {
 } from 'lucide-react';
 import { toast } from 'sonner';
 // Components
-import { ActivityTableView, ProjectGridView, StrategyListView, WorkshopListView } from './_components/SubComponents';
+import { ActivityTableView, DelayListView, ProjectGridView, StrategyListView, WorkshopListView } from './_components/SubComponents';
 import MM_ProjectForm from './_components/MM_ProjectForm';
 import MM_Sidebar from './_components/MM_Sidebar';
 import MM_MaterialForm from './_components/MM_MaterialForm';
@@ -17,9 +17,11 @@ import MM_MasterMaterialForm from './_components/MM_MasterMaterial';
 import ProcurementListView from './_components/ProcurementListView';
 import MM_WorkshopForm from './_components/MM_WorkshopForm';
 import MM_ActivityForm from './_components/ActivityForm';
+import MM_DelayForm from './_components/MM_DelayForm';
 
 // 1. Updated TabType to include mastermaterials
-export type TabType = 'strategies' | 'projects' | 'activities' | 'workshops' | 'purchaseorders' | 'materials' | 'mastermaterials';
+//export type TabType = 'strategies' | 'projects' | 'activities' | 'workshops' | 'purchaseorders' | 'materials' | 'mastermaterials';
+export type TabType = 'strategies' | 'projects' | 'activities' | 'workshops' | 'purchaseorders' | 'materials' | 'mastermaterials' | 'delays';
 
 function DashboardContent({ currentUser }: { currentUser: any }) {
   const searchParams = useSearchParams();
@@ -33,7 +35,8 @@ function DashboardContent({ currentUser }: { currentUser: any }) {
     workshops: [], 
     purchaseorders: [], 
     materials: [],
-    mastermaterials: [] // Initialized
+    mastermaterials: [] ,
+    delays: []
   });
   
   const [loading, setLoading] = useState(true);
@@ -59,7 +62,8 @@ function DashboardContent({ currentUser }: { currentUser: any }) {
         projects: ['strategies','workshops'],
         activities: ['projects'],
         purchaseorders: ['strategies', 'projects'],
-        materials: ['strategies', 'projects']
+        materials: ['strategies', 'projects'],
+        delays: ['activities', 'projects'],
       };
 
       const deps = dependencyMap[activeTab] || [];
@@ -108,6 +112,7 @@ const tabLabels = {
   workshops:'Workshop',
   purchaseorders:'Purchase Order',
   materials:'Material',
+  delays:'Process Delay',
 };
   return (
     <div className="flex flex-col lg:flex-row h-screen bg-slate-50 overflow-hidden">
@@ -150,7 +155,12 @@ const tabLabels = {
               {activeTab === 'workshops' && <WorkshopListView workshops={data.workshops} onEdit={(r:any)=>{setEditingRecord(r); setIsModalOpen(true);}} permissions={{canEdit:isAllowed}}/>}
               {activeTab === 'projects' && <ProjectGridView projects={data.projects} onEdit={(r:any)=>{setEditingRecord(r); setIsModalOpen(true);}} permissions={{canEdit:isAllowed}}/>}
               {activeTab === 'activities' && <ActivityTableView activities={data.activities} onEdit={(r:any)=>{setEditingRecord(r); setIsModalOpen(true);}} permissions={{canEdit:isAllowed}}/>}
-              
+              {activeTab === 'delays' && (
+                  <DelayListView 
+                    delays={data.delays} 
+                    onEdit={(r) => { setEditingRecord(r); setIsModalOpen(true); }} 
+                  />
+                )}
               {(activeTab === 'purchaseorders' || activeTab === 'materials' || activeTab === 'mastermaterials') && (
                 <ProcurementListView 
                   activeTab={activeTab}
@@ -163,46 +173,6 @@ const tabLabels = {
         </div>
       </main>
 
-      {/* Modal Engine */}
-      {/* {isModalOpen && (
-        <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="w-full max-w-4xl bg-white rounded-[2rem] shadow-2xl overflow-hidden max-h-[90vh]">
-            {activeTab === 'purchaseorders' ? (
-              <MM_PurchaseOrderForm initialData={editingRecord} strategies={data.strategies} projects={data.projects} onClose={() => setIsModalOpen(false)} onSuccess={handleSaveSuccess} />
-             
-           
-            ):activeTab === 'materials' ? (
-            <MM_MaterialForm 
-              initialData={editingRecord} 
-              projects={data.projects} 
-              strategies={data.strategies} // Pass the full list so the form can look it up
-              onClose={() => setIsModalOpen(false)} 
-              onSuccess={handleSaveSuccess} 
-            />
-         ):activeTab === 'activities' ? (
-            <MM_ActivityForm 
-            initialData={editingRecord} 
-            projects={data.projects} 
-            onClose={() => setIsModalOpen(false)} 
-            onSuccess={handleSaveSuccess} 
-            // preselectedProject={...} // Optional: only if calling from a specific project view
-          />
-
-            ) : activeTab === 'mastermaterials' ? (
-              <MM_MasterMaterialForm initialData={editingRecord} onClose={() => setIsModalOpen(false)} onSuccess={handleSaveSuccess} />
-            ) : activeTab === 'projects' ? (
-               <MM_ProjectForm initialData={editingRecord} workshops={data.workshops} strategies={data.strategies} onClose={() => setIsModalOpen(false)} onSuccess={handleSaveSuccess} />
-            ) : activeTab === 'workshops' ? (
-         
-            <MM_WorkshopForm 
-              initialData={editingRecord} 
-              onClose={() => setIsModalOpen(false)} 
-              onSuccess={handleSaveSuccess} 
-            />
-          ) : null}
-          </div>
-        </div>
-      )} */}
       {isModalOpen && (
         <div className="fixed inset-0 z-[150] bg-slate-900/60 backdrop-blur-sm flex items-end md:items-center justify-center p-0 md:p-4">
           <div className="w-full max-w-4xl bg-white rounded-t-[2.5rem] md:rounded-[2rem] shadow-2xl overflow-hidden max-h-[92vh] flex flex-col animate-in slide-in-from-bottom duration-300">
@@ -236,6 +206,14 @@ const tabLabels = {
                   <MM_ProjectForm initialData={editingRecord} workshops={data.workshops} strategies={data.strategies} onClose={() => setIsModalOpen(false)} onSuccess={handleSaveSuccess} />
                 ) : activeTab === 'workshops' ? (
                   <MM_WorkshopForm initialData={editingRecord} onClose={() => setIsModalOpen(false)} onSuccess={handleSaveSuccess} />
+                ): activeTab === 'delays' ? (
+                <MM_DelayForm 
+                                initialData={editingRecord}
+                                activities={data.activities}
+                                onClose={() => setIsModalOpen(false)}
+                                onSuccess={handleSaveSuccess} 
+                                materialRequirements={[]}               
+                 /> 
                 ) : null}
               </div>
             </div>

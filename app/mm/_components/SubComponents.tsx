@@ -567,3 +567,52 @@ export const ActivityTableView = ({
     </div>
   );
 };
+
+export function DelayListView({ delays, onEdit }: { delays: any[], onEdit: (r: any) => void }) {
+  return (
+    <div className="bg-white rounded-[2rem] shadow-sm border border-slate-100 overflow-hidden">
+      <table className="w-full text-left border-collapse">
+        <thead className="bg-slate-50 border-b border-slate-100">
+          <tr>
+            <th className="p-6 text-[10px] font-black uppercase tracking-widest text-slate-400">Incident Type</th>
+            <th className="p-6 text-[10px] font-black uppercase tracking-widest text-slate-400">Activity Context</th>
+            <th className="p-6 text-[10px] font-black uppercase tracking-widest text-slate-400">Impact Hours</th>
+            <th className="p-6 text-[10px] font-black uppercase tracking-widest text-slate-400 text-right">Cost Impact ($)</th>
+            <th className="p-6 text-[10px] font-black uppercase tracking-widest text-slate-400">Status</th>
+          </tr>
+        </thead>
+        <tbody className="divide-y divide-slate-50">
+          {delays.map((delay) => (
+            <tr key={delay.id} onClick={() => onEdit(delay)} className="hover:bg-slate-50 cursor-pointer transition-colors group">
+              <td className="p-6">
+                <div className="flex items-center gap-3">
+                  <div className={`p-2 rounded-lg ${delay.isReworkTriggered ? 'bg-red-100 text-red-600' : 'bg-amber-100 text-amber-600'}`}>
+                    <AlertCircle size={16} />
+                  </div>
+                  <div>
+                    <p className="text-sm font-bold text-slate-900">{delay.type.replace('_', ' ')}</p>
+                    <p className="text-[10px] text-slate-500 truncate max-w-[200px]">{delay.description}</p>
+                  </div>
+                </div>
+              </td>
+              <td className="p-6 text-sm text-slate-600 font-medium">
+                {delay.activity?.description || 'N/A'}
+              </td>
+              <td className="p-6 text-sm font-mono text-slate-500">
+                {delay.impactHours} hrs
+              </td>
+              <td className="p-6 text-right font-black text-slate-900">
+                ${delay.costImpact.toLocaleString()}
+              </td>
+              <td className="p-6">
+                <span className={`px-3 py-1 rounded-full text-[9px] font-black uppercase ${delay.isReworkTriggered ? 'bg-rose-100 text-rose-700' : 'bg-slate-100 text-slate-600'}`}>
+                  {delay.isReworkTriggered ? 'REWORK' : 'DELAY'}
+                </span>
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  );
+}

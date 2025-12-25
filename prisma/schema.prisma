@@ -1603,6 +1603,8 @@ model MM_MaterialRequirement {
   poLineItemId   String?           @unique @db.ObjectId
   poLineItem     MM_POLineItem?    @relation(fields: [poLineItemId], references: [id])
 
+  materialProcessDelays MM_ProcessDelay[]
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
@@ -1637,6 +1639,8 @@ model MM_Activity {
   actualMaterialCost Float @default(0)
 
   tasks        MM_Task[]
+  processDelays    MM_ProcessDelay[]
+  dailyplans     MM_DailyPlan[]
   stage        MM_ActivityStage @default(PLANNING)
   requirements String[] // Non-material prerequisites (e.g., Safety Certs)
 
@@ -1727,6 +1731,7 @@ model MM_Workshop {
   capacity Int             @default(0)
 
   mm_projects MM_Project[]
+  dailyplans       MM_DailyPlan[]
   createdAt   DateTime     @default(now())
   updatedAt   DateTime     @updatedAt
 }
@@ -1784,4 +1789,72 @@ enum NRZ_UserRole {
   ENGINEER
   SUPERVISOR
   ARTISAN
+}
+
+model MM_DailyPlan {
+  id          String   @id @default(auto()) @map("_id") @db.ObjectId
+  date        DateTime // The specific workday
+  workshopId  String   @db.ObjectId
+  workshop    MM_Workshop @relation(fields: [workshopId], references: [id])  
+  // Link to specific activities being worked on today
+  activityId  String   @db.ObjectId
+  activity    MM_Activity @relation(fields: [activityId], references: [id])
+  shift       MM_ShiftType @default(DAY)
+  targetOutput String?     // e.g., "Complete disassembly of Unit A"
+  actualOutput String?  
+  // Daily Resource Snapshot
+  manpowerCount Int        @default(0)
+  isCompleted   Boolean    @default(false)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  @@unique([date, workshopId, activityId])
+}
+// Date	2025-10-15
+// Workshop	Bulawayo Mechanical (ID: MECH_01)
+// Activity	Engine Block Reassembly (ID: ACT_789)
+// Target Output	Install all 16 cylinder liners.
+// Manpower	4 Artisans, 2 Assistants.
+// Enhancement to the Delay Model
+
+// --- Updated Enums ---
+
+enum MM_ShiftType {
+  DAY
+  NIGHT
+  OVERTIME
+}
+model MM_ProcessDelay {
+  id              String   @id @default(auto()) @map("_id") @db.ObjectId
+  type            MM_DelayType  
+  // Link to Material if type is MATERIAL_SHORTAGE
+  materialReqId   String?  @db.ObjectId
+  materialRequest MM_MaterialRequirement? @relation(fields: [materialReqId], references: [id])  
+  // Link to Activity (marks if this delay is specifically due to isRework = true)
+  activityId      String   @db.ObjectId
+  activity        MM_Activity @relation(fields: [activityId], references: [id])
+  isReworkTriggered Boolean @default(false) // True if the delay is due to correcting errors  
+  description     String   // e.g., "Weld failed X-ray test, requires grinding and re-welding"
+  impactHours     Float    @default(0)
+  costImpact      Float    @default(0) // Financial cost of the delay (Guideline Sec 5.1)  
+  createdAt       DateTime @default(now())
+  updatedAt   DateTime     @updatedAt
+}
+// Type: PROCUREMENT_LAG
+// Reason: "O-Rings (Part #NRZ-99) held at customs; PO #8821 awaiting HQ treasury release."
+// Impact Days: 5 Days.
+// Estimated Loss: $2,500 (Standby labor costs and workshop bay tie-up).
+
+
+// Updated Enum to reflect your specific delay drivers
+enum MM_DelayType {
+  REWORK_REQUIRED    // Delay caused by failed QA/Engineering error
+  MATERIAL_SHORTAGE  // BoQ items not in stock or PO not funded
+  FUNDING_LACK       // Guideline Sec 3.4: Budget ceiling reached
+  EQUIPMENT_DOWN     // Workshop infrastructure failure
+  LABOR_UNAVAILABLE  // Skill gap or artisan shortage
+  SAFETY_HALT          // Work stopped due to an incident or safety audit (Guideline Sec 5.5)
+  THIRD_PARTY_REPAIR   // Waiting for external specialist (e.g., Traction Motor rewinding)
+  UTILITY_OUTAGE       // ZESA/Power cuts or water shortages stopping heavy machinery
+  SPARES_CANNIBALIZATION // Delay while "borrowing" parts from another locomotive (common in rail)
+  OTHER
 }
