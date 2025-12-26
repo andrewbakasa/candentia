@@ -1,13 +1,17 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import Link from 'next/link';
 import { 
   Calendar, MapPin, User as UserIcon, Clock, AlertTriangle, 
   CheckCircle2, Activity, Edit3, Trash2, Box, HardHat, Construction,
   AlertCircle, UserCheck, ShieldAlert, Target, Briefcase, ExternalLink,
   ChevronDown, ChevronUp, ListChecks, Plus, User,
-  Search
+  Search,
+  X,
+  TrendingDown,
+  Filter,
+  FileSpreadsheet
 } from 'lucide-react';
 import ConfirmAction from './ConfirmAction';
 
@@ -27,7 +31,7 @@ interface ActionProps {
 }
 
 
-const ItemActions = ({ onEdit, onDelete, onAddTask, id, item, permissions }: ActionProps) => (
+export const ItemActions = ({ onEdit, onDelete, onAddTask, id, item, permissions }: ActionProps) => (
   <div className="flex items-center gap-1"> 
     {/* ADD TASK RESTRICTION */}
     {onAddTask && permissions.canAdd && (
@@ -384,235 +388,14 @@ export const ProjectGridView = ({ projects, onEdit, onDelete,permissions }: any)
 };
 
 
-export const ActivityTableView = ({ 
-  activities, 
-  onEdit, 
-  onDelete, 
-  onAddTask, 
-  onEditTask, 
-  onDeleteTask, 
-  permissions 
-}: any) => {
-  const [expandedId, setExpandedId] = useState<string | null>(null);
-  const [searchTerm, setSearchTerm] = useState('');
 
-  const filteredActivities = activities?.filter((act: any) => {
-    const searchLower = searchTerm.toLowerCase();
-    const matchesActivity = 
-      act.description?.toLowerCase().includes(searchLower) ||
-      act.supervisor?.toLowerCase().includes(searchLower);
-
-    const matchesTasks = act.tasks?.some((task: any) => 
-      task.title?.toLowerCase().includes(searchLower) ||
-      task.assignedTo?.toLowerCase().includes(searchLower)
-    );
-
-    return matchesActivity || matchesTasks;
-  });
-
-  return (
-    <div className="w-full space-y-4">
-      
-      {/* 🔍 SEARCH INPUT */}
-      <div className="relative group max-w-md">
-        <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-          <Search size={16} className="text-slate-400 group-focus-within:text-indigo-500 transition-colors" />
-        </div>
-        <input
-          type="text"
-          placeholder="Search activities, supervisors, or tasks..."
-          className="block w-full pl-11 pr-4 py-3 bg-white border border-slate-200 rounded-2xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all shadow-sm"
-          value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
-        />
-      </div>
-
-      <div className="md:overflow-x-auto md:rounded-3xl md:border md:border-slate-200 md:bg-white md:shadow-sm">
-        <table className="w-full text-left border-collapse">
-          <thead className="bg-slate-50 border-b border-slate-200 hidden md:table-header-group">
-            <tr className="text-[10px] font-black text-slate-400 uppercase tracking-widest">
-              <th className="px-6 py-4 w-10"></th>
-              <th className="px-6 py-4">Activity & Supervisor</th>
-              <th className="px-6 py-4">Timeline Status</th>
-              <th className="px-6 py-4">Financials</th>
-              <th className="px-6 py-4 text-right">Actions</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-slate-100">
-            {filteredActivities?.map((act: any) => {
-              const isOverdue = !act.actualEnd && act.scheduledEnd && new Date() > new Date(act.scheduledEnd);
-              const totalCost = (act.actualLaborCost || 0) + (act.actualMaterialCost || 0);
-              
-              // Logic Adjustments
-              const hasTasks = act.tasks && act.tasks.length > 0;
-              const isExpanded = expandedId === act.id && hasTasks;
-
-              return (
-                <React.Fragment key={act.id}>
-                  <tr 
-                    className={`flex flex-col md:table-row p-5 md:p-0 bg-white md:bg-transparent rounded-2xl md:rounded-none border md:border-0 mb-3 md:mb-0 transition-all ${
-                        hasTasks ? 'cursor-pointer hover:bg-slate-50/50' : 'cursor-default'
-                    } ${isExpanded ? 'md:bg-indigo-50/20' : ''}`}
-                    onClick={() => hasTasks && setExpandedId(isExpanded ? null : act.id)}
-                  >
-                    <td className="hidden md:table-cell px-6 text-center">
-                      {hasTasks ? (
-                        isExpanded ? <ChevronUp size={16} className="text-indigo-600" /> : <ChevronDown size={16} className="text-slate-400" />
-                      ) : null}
-                    </td>
-
-                    <td className="md:px-6 md:py-5">
-                      <div className="font-bold text-slate-900 text-sm md:text-base leading-snug">{act.description}</div>
-                      <div className="flex flex-wrap items-center gap-2 mt-1.5">
-                        <span className={`text-[8px] px-1.5 py-0.5 rounded font-black border uppercase ${act.stage === 'COMPLETED' ? 'bg-emerald-50 text-emerald-700 border-emerald-100' : 'bg-blue-50 text-blue-700 border-blue-100'}`}>
-                          {act.stage}
-                        </span>
-                        <span className="flex items-center gap-1 text-[10px] text-slate-400 font-bold uppercase">
-                          <Construction size={10} /> {act.supervisor || 'N/A'}
-                        </span>
-                        
-                        {/* Task Counter Badge */}
-                        {hasTasks && (
-                          <span className="flex items-center gap-1 text-[9px] bg-indigo-50 text-indigo-600 px-2 py-0.5 rounded-full font-black border border-indigo-100">
-                            <ListChecks size={10} />
-                            {act.tasks.length} {act.tasks.length === 1 ? 'TASK' : 'TASKS'}
-                          </span>
-                        )}
-                      </div>
-                    </td>
-
-                    <td className="md:px-6 md:py-5 mt-4 md:mt-0 border-t md:border-0 pt-4 md:pt-5">
-                      <div className="grid grid-cols-2 md:block gap-4">
-                        <div>
-                          {isOverdue ? (
-                            <span className="flex items-center gap-1 text-red-600 font-black text-[10px] uppercase">
-                              <AlertCircle size={12} /> Overdue
-                            </span>
-                          ) : (
-                            <span className="flex items-center gap-1 text-emerald-600 font-black text-[10px] uppercase">
-                              <CheckCircle2 size={12} /> {act.actualEnd ? 'Finished' : 'On Track'}
-                            </span>
-                          )}
-                        </div>
-                        <span className="text-[11px] text-slate-500 font-mono font-bold flex items-center gap-1">
-                          <Calendar size={12}/> {act.scheduledEnd ? new Date(act.scheduledEnd).toLocaleDateString() : 'N/A'}
-                        </span>
-                      </div>
-                    </td>
-
-                    <td className="md:px-6 md:py-5 mt-4 md:mt-0">
-                      <div className="flex flex-col">
-                        <span className="text-[8px] font-black text-slate-400 uppercase">Cost Burn</span>
-                        <span className={`text-sm font-black ${totalCost > act.allocatedBudget ? 'text-red-600' : 'text-slate-900'}`}>
-                          ${totalCost.toLocaleString()}
-                        </span>
-                        <span className="text-[9px] text-slate-400 font-bold">Limit: ${act.allocatedBudget?.toLocaleString()}</span>
-                      </div>
-                    </td>
-
-                    <td className="px-6 py-5">
-                      <div className="flex flex-col md:flex-row items-end md:items-center justify-end gap-3">
-                        <Link 
-                          href={`/mm/activities/${act.id}`}
-                          onClick={(e) => e.stopPropagation()}
-                          className="flex items-center gap-1.5 px-3 py-1.5 bg-slate-100 hover:bg-indigo-600 hover:text-white text-slate-600 rounded-lg text-[9px] font-black uppercase transition-all"
-                        >
-                          Full Report <ExternalLink size={10} />
-                        </Link>
-                        
-                        <div onClick={(e) => e.stopPropagation()}>
-                           <ItemActions id={act.id} item={act} onEdit={onEdit} onDelete={onDelete} onAddTask={onAddTask} permissions={permissions} />
-                        </div>
-                      </div>
-                    </td>
-                  </tr>
-
-                  {isExpanded && (
-                    <tr className="bg-slate-50/50">
-                      <td colSpan={5} className="p-0">
-                        <div className="p-5 md:px-20 md:py-8 border-l-4 border-indigo-500 bg-white">
-                          <div className="flex items-center justify-between mb-6">
-                             <h4 className="flex items-center gap-2 text-[11px] font-black text-slate-400 uppercase tracking-widest">
-                               <ListChecks size={16} className="text-indigo-600" /> Tasks ({act.tasks.length})
-                             </h4>
-                          </div>
-
-                          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-                            {act.tasks.map((task: any) => (
-                              <div key={task.id} className="bg-white p-4 rounded-2xl border border-slate-100 flex justify-between items-start group/task hover:border-indigo-200 transition-all">
-                                <div className="space-y-2">
-                                  <p className="text-xs font-black text-slate-800">{task.title}</p>
-                                  <div className="flex items-center gap-2">
-                                     <span className={`text-[8px] font-black px-2 py-0.5 rounded-lg border uppercase ${task.status === 'COMPLETED' ? 'bg-emerald-50 text-emerald-600 border-emerald-100' : 'bg-amber-50 text-amber-600 border-amber-100'}`}>
-                                         {task.status}
-                                     </span>
-                                     <span className="text-[9px] text-slate-400 font-bold flex items-center gap-1 uppercase">
-                                        <User size={10} /> {task.assignedTo || 'Unassigned'}
-                                     </span>
-                                  </div>
-                                </div>
-                              </div>
-                            ))}
-                          </div>
-                        </div>
-                      </td>
-                    </tr>
-                  )}
-                </React.Fragment>
-              );
-            })}
-          </tbody>
-        </table>
-      </div>
+// --- SUB-COMPONENT FOR METRICS ---
+const MetricBadge = ({ icon, label, value, color }: any) => (
+  <div className={`flex items-center gap-3 px-4 py-2 rounded-2xl border border-transparent shadow-sm ${color.split(' ')[1]}`}>
+    <div className={`${color.split(' ')[0]}`}>{icon}</div>
+    <div>
+      <p className="text-[8px] font-black uppercase tracking-widest opacity-60">{label}</p>
+      <p className={`text-sm font-black leading-none ${color.split(' ')[0]}`}>{value}</p>
     </div>
-  );
-};
-
-export function DelayListView({ delays, onEdit }: { delays: any[], onEdit: (r: any) => void }) {
-  return (
-    <div className="bg-white rounded-[2rem] shadow-sm border border-slate-100 overflow-hidden">
-      <table className="w-full text-left border-collapse">
-        <thead className="bg-slate-50 border-b border-slate-100">
-          <tr>
-            <th className="p-6 text-[10px] font-black uppercase tracking-widest text-slate-400">Incident Type</th>
-            <th className="p-6 text-[10px] font-black uppercase tracking-widest text-slate-400">Activity Context</th>
-            <th className="p-6 text-[10px] font-black uppercase tracking-widest text-slate-400">Impact Hours</th>
-            <th className="p-6 text-[10px] font-black uppercase tracking-widest text-slate-400 text-right">Cost Impact ($)</th>
-            <th className="p-6 text-[10px] font-black uppercase tracking-widest text-slate-400">Status</th>
-          </tr>
-        </thead>
-        <tbody className="divide-y divide-slate-50">
-          {delays.map((delay) => (
-            <tr key={delay.id} onClick={() => onEdit(delay)} className="hover:bg-slate-50 cursor-pointer transition-colors group">
-              <td className="p-6">
-                <div className="flex items-center gap-3">
-                  <div className={`p-2 rounded-lg ${delay.isReworkTriggered ? 'bg-red-100 text-red-600' : 'bg-amber-100 text-amber-600'}`}>
-                    <AlertCircle size={16} />
-                  </div>
-                  <div>
-                    <p className="text-sm font-bold text-slate-900">{delay.type.replace('_', ' ')}</p>
-                    <p className="text-[10px] text-slate-500 truncate max-w-[200px]">{delay.description}</p>
-                  </div>
-                </div>
-              </td>
-              <td className="p-6 text-sm text-slate-600 font-medium">
-                {delay.activity?.description || 'N/A'}
-              </td>
-              <td className="p-6 text-sm font-mono text-slate-500">
-                {delay.impactHours} hrs
-              </td>
-              <td className="p-6 text-right font-black text-slate-900">
-                ${delay.costImpact.toLocaleString()}
-              </td>
-              <td className="p-6">
-                <span className={`px-3 py-1 rounded-full text-[9px] font-black uppercase ${delay.isReworkTriggered ? 'bg-rose-100 text-rose-700' : 'bg-slate-100 text-slate-600'}`}>
-                  {delay.isReworkTriggered ? 'REWORK' : 'DELAY'}
-                </span>
-              </td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
-    </div>
-  );
-}
+  </div>
+);

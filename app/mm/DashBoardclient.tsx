@@ -8,7 +8,7 @@ import {
 } from 'lucide-react';
 import { toast } from 'sonner';
 // Components
-import { ActivityTableView, DelayListView, ProjectGridView, StrategyListView, WorkshopListView } from './_components/SubComponents';
+import { ProjectGridView, StrategyListView, WorkshopListView } from './_components/SubComponents';
 import MM_ProjectForm from './_components/MM_ProjectForm';
 import MM_Sidebar from './_components/MM_Sidebar';
 import MM_MaterialForm from './_components/MM_MaterialForm';
@@ -18,6 +18,8 @@ import ProcurementListView from './_components/ProcurementListView';
 import MM_WorkshopForm from './_components/MM_WorkshopForm';
 import MM_ActivityForm from './_components/ActivityForm';
 import MM_DelayForm from './_components/MM_DelayForm';
+import { DelayListView } from './_components/SubComponents/DelayListView';
+import { ActivityTableView } from './_components/SubComponents/ActivityView';
 
 // 1. Updated TabType to include mastermaterials
 //export type TabType = 'strategies' | 'projects' | 'activities' | 'workshops' | 'purchaseorders' | 'materials' | 'mastermaterials';
