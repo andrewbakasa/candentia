@@ -97,6 +97,32 @@ function DashboardContent({ currentUser }: { currentUser: any }) {
     }
   }, [activeTab]);
 
+
+  // --- Targeted Data Refresh for Activities/Tasks ---
+  const handleRefreshData = useCallback(async () => {
+    try {
+      // Re-fetch activities specifically
+      const res = await fetch(`/mm/api/activities`);
+      if (!res.ok) throw new Error("Sync failed");
+      
+      const updatedActivities = await res.json();
+      
+      // Update only the activities slice of state
+      setData((prev) => ({
+        ...prev,
+        activities: Array.isArray(updatedActivities) ? updatedActivities : []
+      }));
+
+      // A subtle toast is better than a hard loading screen for background refreshes
+      toast.success("Ledger Synchronized", {
+        description: "Activity and Task states have been updated."
+      });
+    } catch (err: any) {
+      console.error("Refresh Error:", err);
+      toast.error("Background Sync Failed: " + err.message);
+    }
+  }, []);
+
   useEffect(() => { fetchData(); }, [fetchData]);
 
   const handleSaveSuccess = () => {
@@ -156,7 +182,7 @@ const tabLabels = {
               {activeTab === 'strategies' && <StrategyListView strategies={data.strategies} onEdit={(r:any)=>{setEditingRecord(r); setIsModalOpen(true);}} permissions={{canEdit:isAllowed}}/>}
               {activeTab === 'workshops' && <WorkshopListView workshops={data.workshops} onEdit={(r:any)=>{setEditingRecord(r); setIsModalOpen(true);}} permissions={{canEdit:isAllowed}}/>}
               {activeTab === 'projects' && <ProjectGridView projects={data.projects} onEdit={(r:any)=>{setEditingRecord(r); setIsModalOpen(true);}} permissions={{canEdit:isAllowed}}/>}
-              {activeTab === 'activities' && <ActivityTableView activities={data.activities} onEdit={(r:any)=>{setEditingRecord(r); setIsModalOpen(true);}} permissions={{canEdit:isAllowed}}/>}
+              {activeTab === 'activities' && <ActivityTableView activities={data.activities} onEdit={(r:any)=>{setEditingRecord(r); setIsModalOpen(true);}} permissions={{canEdit:isAllowed}} refreshData={handleRefreshData}/>}
               {activeTab === 'delays' && (
                   <DelayListView 
                     delays={data.delays} 

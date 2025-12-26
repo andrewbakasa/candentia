@@ -253,13 +253,7 @@ function TaskCard({ task, onEdit, onDelete, isDeleting }: { task: any, onEdit: (
                     >
                         <Edit3 size={14}/>
                     </button>
-                    <button 
-                        onClick={onDelete} 
-                        className="p-2 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-xl transition-all"
-                    >
-                        <Trash2 size={14}/>
-                    </button>
-                   
+                  
 
                     <ConfirmAction 
                         onConfirm={onDelete} 
