@@ -119,9 +119,9 @@ export default function ProjectDetailView({ project, onRefresh, MM_ActivityForm,
         );
     }) || [];
 
-    const totalFilteredLeakage = useMemo(() => {
-        return filteredDelays.reduce((sum: number, delay: any) => sum + (delay.costImpact || 0), 0);
-    }, [filteredDelays]);
+    // const totalFilteredLeakage = useMemo(() => {
+    //     return filteredDelays.reduce((sum: number, delay: any) => sum + (delay.costImpact || 0), 0);
+    // }, [filteredDelays]);
 
     const handleAddBoQ = (projectId: string) => {
         setEditingRecord({ projectId });
@@ -145,16 +145,18 @@ export default function ProjectDetailView({ project, onRefresh, MM_ActivityForm,
 
             {/* LATENCY REGISTRY */}
             <LatencyRegistry 
-                filteredDelays={filteredDelays}
-                totalFilteredLeakage={totalFilteredLeakage}
-                delaySearch={delaySearch}
-                setDelaySearch={setDelaySearch}
+                //filteredDelays={filteredDelays}
+                //totalFilteredLeakage={totalFilteredLeakage}
+                //delaySearch={delaySearch}
+                //setDelaySearch={setDelaySearch}
                 setEditingRecord={setEditingRecord}
                 setActiveModal={setActiveModal}
                 handleDeleteDelay={handleDeleteDelay}
                 ConfirmAction={ConfirmAction}
-                 permissions={{ canEdit: isAllowedEdit , canDelete: isAllowedDelete}}
-            />
+                permissions={{ canEdit: isAllowedEdit || false, canDelete: isAllowedDelete || false }} 
+                delays={filteredDelays}           
+                
+                />
 
             {/* EXECUTION REGISTRY - Updated with Delete Handlers */}
             <ExecutionRegistry 
