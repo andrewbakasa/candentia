@@ -12,18 +12,23 @@ import LatencyRegistry from './ProjectDetails/LetencyRegistry';
 import ExecutionRegistry from './ProjectDetails/ExecutionRegistry';
 import ProcurementPortfolio from './ProjectDetails/ProcurementPortifolio';
 import ProjectModalPortal from './ProjectDetails/ProjectModalPortal';
+import { SafeUser } from '@/app/types';
 
 interface ProjectDetailViewProps {
     project: any;
+     currentUser:SafeUser|null;
     onRefresh?: () => void;
     MM_ActivityForm: React.ComponentType<any>;
     allStrategies?: any[]; 
 }
 
 
-export default function ProjectDetailView({ project, onRefresh, MM_ActivityForm, allStrategies = [] }: ProjectDetailViewProps) {
+export default function ProjectDetailView({ project, onRefresh, MM_ActivityForm, currentUser, allStrategies = [] }: ProjectDetailViewProps) {
     const router = useRouter();
-    
+    const isAllowedDelete = (currentUser?.isAdmin)// || currentUser?.roles?.some((r: string) => ['admin', 'executive'].includes(r.toLowerCase()));
+
+    const isAllowedEdit = (currentUser?.isAdmin) || currentUser?.roles?.some((r: string) => ['admin', 'engineer'].includes(r.toLowerCase()));
+
     const [activeModal, setActiveModal] = useState<'activity' | 'task' | 'po' | 'boq' | 'delay' | 'other' | null>(null);  
     const [editingRecord, setEditingRecord] = useState<any>(null);
     const [selectedActivity, setSelectedActivity] = useState<any>(null); 
@@ -148,6 +153,7 @@ export default function ProjectDetailView({ project, onRefresh, MM_ActivityForm,
                 setActiveModal={setActiveModal}
                 handleDeleteDelay={handleDeleteDelay}
                 ConfirmAction={ConfirmAction}
+                 permissions={{ canEdit: isAllowedEdit , canDelete: isAllowedDelete}}
             />
 
             {/* EXECUTION REGISTRY - Updated with Delete Handlers */}
@@ -158,7 +164,10 @@ export default function ProjectDetailView({ project, onRefresh, MM_ActivityForm,
                 setSelectedActivity={setSelectedActivity}
                 formatDate={(date) => new Date(date).toLocaleDateString()}
                 onDeleteActivity={handleDeleteActivity}
-                onDeleteTask={handleDeleteTask}
+                onDeleteTask={handleDeleteTask} permissions={{
+                    canEdit: isAllowedEdit||false,
+                    canDelete: isAllowedDelete||false
+                }}               //  permissions={{ canEdit: isAllowedEdit , canDelete: isAllowedDelete}}
             />
 
             {/* PROCUREMENT PORTFOLIO */}
@@ -168,6 +177,7 @@ export default function ProjectDetailView({ project, onRefresh, MM_ActivityForm,
                 onIssuePO={handleIssuePO}
                 onEditRecord={handleEdit}
                 onDeleteRecord={handleDelete}
+                 permissions={{ canEdit: isAllowedEdit , canDelete: isAllowedDelete}}
             />
 
             {/* MODAL ORCHESTRATOR */}

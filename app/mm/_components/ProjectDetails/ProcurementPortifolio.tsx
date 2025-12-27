@@ -4,6 +4,7 @@ import {
   ShoppingCart, Plus, Package, Edit2, Trash2, 
   ChevronRight, Search, X
 } from 'lucide-react';
+import ConfirmAction from '../ConfirmAction';
 
 interface ProcurementPortfolioProps {
   project: any;
@@ -11,6 +12,7 @@ interface ProcurementPortfolioProps {
   onIssuePO: (projectId: string) => void;
   onEditRecord: (record: any, type: 'boq' | 'po') => void;
   onDeleteRecord: (id: string, type: 'materials' | 'pos') => void;
+   permissions: any;
 }
 
 const ProcurementPortfolio: React.FC<ProcurementPortfolioProps> = ({
@@ -18,7 +20,8 @@ const ProcurementPortfolio: React.FC<ProcurementPortfolioProps> = ({
   onAddBoQ,
   onIssuePO,
   onEditRecord,
-  onDeleteRecord
+  onDeleteRecord,
+  permissions
 }) => {
   const [procurementTab, setProcurementTab] = useState<'materials' | 'pos'>('materials');
   const [expandedPOs, setExpandedPOs] = useState<string[]>([]);
@@ -140,6 +143,7 @@ const ProcurementPortfolio: React.FC<ProcurementPortfolioProps> = ({
             searchTerm={searchTerm}
             onEdit={(mat: any) => onEditRecord(mat, 'boq')}
             onDelete={(id: string) => onDeleteRecord(id, 'materials')}
+            permissions={permissions}
           />
         ) : (
           <PurchaseOrderView 
@@ -149,6 +153,7 @@ const ProcurementPortfolio: React.FC<ProcurementPortfolioProps> = ({
             togglePO={togglePO}
             onEdit={(po: any) => onEditRecord(po, 'po')}
             onDelete={(id: string) => onDeleteRecord(id, 'pos')}
+            permissions={permissions}
           />
         )}
       </div>
@@ -158,7 +163,7 @@ const ProcurementPortfolio: React.FC<ProcurementPortfolioProps> = ({
 
 // --- UPDATED SUB-COMPONENTS ---
 
-const MaterialView = ({ materials, searchTerm, onEdit, onDelete }: any) => (
+const MaterialView = ({ materials, searchTerm, onEdit, onDelete,permissions }: any) => (
   <>
     {materials?.length === 0 && <EmptySearchState />}
     <div className="lg:hidden divide-y divide-slate-100">
@@ -172,8 +177,20 @@ const MaterialView = ({ materials, searchTerm, onEdit, onDelete }: any) => (
               <p className="text-[10px] font-mono text-indigo-500 mt-1">{mat.material?.itemCode}</p>
             </div>
             <div className="flex gap-1">
-              <button onClick={() => onEdit(mat)} className="p-2 bg-slate-50 text-slate-400 rounded-lg"><Edit2 size={14}/></button>
-              <button onClick={() => onDelete(mat.id)} className="p-2 bg-rose-50 text-rose-500 rounded-lg"><Trash2 size={14}/></button>
+              {permissions.canEdit &&<button onClick={() => onEdit(mat)} className="p-2 bg-slate-50 text-slate-400 rounded-lg"><Edit2 size={14}/></button>}
+              {/* <button onClick={() => onDelete(mat.id)} className="p-2 bg-rose-50 text-rose-500 rounded-lg"><Trash2 size={14}/></button> */}
+               {permissions.canDelete &&<ConfirmAction 
+                                    onConfirm={onDelete} 
+                            itemId={mat.id}
+                            action="Delete" 
+                            heading="Confirm Material Deletion"
+                            description="This action will permanently remove this item."
+                            triggerButton={
+                                <button className="p-2 text-slate-400 hover:text-rose-600 active:bg-rose-50">
+                                    <Trash2 size={14}/>
+                                </button>
+                            }
+                        />}
             </div>
           </div>
           <div className="grid grid-cols-3 gap-2 bg-slate-50 p-3 rounded-2xl">
@@ -208,8 +225,21 @@ const MaterialView = ({ materials, searchTerm, onEdit, onDelete }: any) => (
               <td className="px-4 py-4 text-slate-600 font-medium">${mat.estimatedUnitCost?.toLocaleString()}</td>
               <td className="px-4 py-4 font-black text-indigo-600">${(mat.quantityRequired * (mat.estimatedUnitCost || 0)).toLocaleString()}</td>
               <td className="px-8 py-4 text-right space-x-2">
-                <button onClick={() => onEdit(mat)} className="p-2 hover:bg-slate-100 rounded-lg text-slate-400 hover:text-indigo-600 transition-colors"><Edit2 size={14}/></button>
-                <button onClick={() => onDelete(mat.id)} className="p-2 hover:bg-rose-50 rounded-lg text-slate-400 hover:text-rose-600 transition-colors"><Trash2 size={14}/></button>
+                {permissions.canEdit && <button onClick={() => onEdit(mat)} className="p-2 hover:bg-slate-100 rounded-lg text-slate-400 hover:text-indigo-600 transition-colors"><Edit2 size={14}/></button>}
+                
+                {/* {permissions.canDelete &&<button onClick={() => onDelete(mat.id)} className="p-2 hover:bg-rose-50 rounded-lg text-slate-400 hover:text-rose-600 transition-colors"><Trash2 size={14}/></button>} */}
+                 {permissions.canDelete &&<ConfirmAction 
+                                    onConfirm={onDelete} 
+                            itemId={mat.id}
+                            action="Delete" 
+                            heading="Confirm Material Deletion"
+                            description="This action will permanently remove this item."
+                            triggerButton={
+                                <button className="p-2 text-slate-400 hover:text-rose-600 active:bg-rose-50">
+                                    <Trash2 size={14}/>
+                                </button>
+                            }
+                        />}
               </td>
             </tr>
           );
@@ -219,7 +249,7 @@ const MaterialView = ({ materials, searchTerm, onEdit, onDelete }: any) => (
   </>
 );
 
-const PurchaseOrderView = ({ purchaseOrders, searchTerm, expandedPOs, togglePO, onEdit, onDelete }: any) => {
+const PurchaseOrderView = ({ purchaseOrders, searchTerm, expandedPOs, togglePO, onEdit, onDelete, permissions }: any) => {
   // Auto-expand if we are searching and there is a match inside
   const effectiveExpanded = useMemo(() => {
     if (!searchTerm) return expandedPOs;
@@ -288,8 +318,21 @@ const PurchaseOrderView = ({ purchaseOrders, searchTerm, expandedPOs, togglePO, 
                   <td className="px-4 py-4 font-black text-emerald-600">${po.totalValue?.toLocaleString()}</td>
                   <td className="px-4 py-4"><StatusBadge status={po.status} /></td>
                   <td className="px-8 py-4 text-right space-x-2">
-                    <button onClick={() => onEdit(po)} className="p-2 hover:bg-slate-100 rounded-lg text-slate-400 hover:text-indigo-600 transition-colors"><Edit2 size={14}/></button>
-                    <button onClick={() => onDelete(po.id)} className="p-2 hover:bg-rose-50 rounded-lg text-slate-400 hover:text-rose-600 transition-colors"><Trash2 size={14}/></button>
+                    {permissions.canEdit && <button onClick={() => onEdit(po)} className="p-2 hover:bg-slate-100 rounded-lg text-slate-400 hover:text-indigo-600 transition-colors"><Edit2 size={14}/></button>}
+                    {/* {permissions.canDelete && <button onClick={() => onDelete(po.id)} className="p-2 hover:bg-rose-50 rounded-lg text-slate-400 hover:text-rose-600 transition-colors"><Trash2 size={14}/></button>} */}
+                     {permissions.canDelete &&<ConfirmAction 
+                                    onConfirm={onDelete} 
+                            itemId={po.id}
+                            action="Delete" 
+                            heading="Confirm P-Order Deletion"
+                            description="This action will permanently remove this item."
+                            triggerButton={
+                                <button className="p-2 text-slate-400 hover:text-rose-600 active:bg-rose-50">
+                                    <Trash2 size={14}/>
+                                </button>
+                            }
+                        />}
+                   
                   </td>
                 </tr>
                 {isExpanded && <ExpandedLineItems items={po.lineItems} searchTerm={searchTerm} />}

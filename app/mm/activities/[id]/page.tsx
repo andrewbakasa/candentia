@@ -6,9 +6,12 @@ import MM_Sidebar from '../../_components/MM_Sidebar';
 import MM_TaskForm from '../../_components/TaskForm';
 import ActivityDetailView from '../../_components/ActvityDetailView';
 import EntityActionsHeader from '../../_components/ProjectActionWrapper';
+import getCurrentUser from '@/app/actions/getCurrentUser';
 
 export default async function ActivityDetailPage({ params }: { params: { id: string } }) {
     const { id } = params;
+ // Execute server-side authentication
+  const currentUser = await getCurrentUser();
 
     const activity = await prisma.mM_Activity.findUnique({
         where: { id },
@@ -29,18 +32,7 @@ export default async function ActivityDetailPage({ params }: { params: { id: str
         }
     });
 
-    //  const workshops = await prisma.mM_Workshop.findMany({
-    //         include: {
-    //             mm_projects: true
-    //         },
-    //         orderBy: {
-    //             name: 'asc'
-    //         }
-    //     });
-
-    // console.log('testing.....>', workshops)
     if (!activity) notFound();
-
     // Safe serialization for Client Components
     const serializedActivity = JSON.parse(JSON.stringify(activity));
 
@@ -67,6 +59,7 @@ export default async function ActivityDetailPage({ params }: { params: { id: str
                         <ActivityDetailView 
                             activity={serializedActivity} 
                             MM_TaskForm_Component={MM_TaskForm} 
+                            currentUser={currentUser}
                         />
                     </div>
                 </div>

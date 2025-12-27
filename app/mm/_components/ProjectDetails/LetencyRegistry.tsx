@@ -30,6 +30,7 @@ interface LatencyRegistryProps {
     setActiveModal: (type: ModalType) => void;
     handleDeleteDelay: (id: string | number) => void;
     ConfirmAction: React.ComponentType<any>; // Prop injected for the confirm button logic
+     permissions: any;
 }
 
 /** * SUB-COMPONENT: LATENCY HEADER
@@ -81,26 +82,29 @@ const LatencyMobileCard: React.FC<{
     onEdit: () => void;
     onDelete: (id: string | number) => void;
     ConfirmAction: React.ComponentType<any>;
-}> = ({ delay, onEdit, onDelete, ConfirmAction }) => (
+    permissions:any;
+}> = ({ delay, onEdit, onDelete, ConfirmAction,permissions }) => (
     <div className="p-4 space-y-3">
         <div className="flex justify-between items-center">
             <span className="text-[10px] font-black bg-rose-50 text-rose-600 px-2 py-1 rounded-lg border border-rose-100 uppercase">
                 {delay.type?.replace('_', ' ')}
             </span>
             <div className="flex items-center bg-slate-50 border border-slate-200 rounded-xl overflow-hidden shadow-sm">
-                <button onClick={onEdit} className="p-2 text-slate-500 border-r border-slate-200 active:bg-slate-100">
+                {permissions.canEdit &&<button onClick={onEdit} className="p-2 text-slate-500 border-r border-slate-200 active:bg-slate-100">
                     <Edit3 size={16}/>
-                </button>
-                <ConfirmAction 
+                </button>}
+                {permissions.canDelete &&<ConfirmAction 
                     onConfirm={onDelete} 
                     itemId={delay.id}
-                    action="Delete" 
+                    action="Delete"
+                    heading="Confirm Process Delay Deletion"
+                    description="This action will permanently remove this item." 
                     triggerButton={
                         <button className="p-2 text-slate-400 hover:text-rose-600 active:bg-rose-50">
                             <Trash2 size={16}/>
                         </button>
                     }
-                />
+                />}
             </div>
         </div>
         <h3 className="text-sm font-bold text-slate-800 leading-tight">
@@ -155,6 +159,8 @@ const LatencyDesktopRow: React.FC<{
                         onConfirm={onDelete} 
                         itemId={delay.id}
                         action="Delete" 
+                        heading="Confirm Process Delay Deletion"
+                        description="This action will permanently remove this item." 
                         triggerButton={
                             <button className="p-2.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition-all">
                                 <Trash2 size={14}/>
@@ -177,7 +183,8 @@ const LatencyRegistry: React.FC<LatencyRegistryProps> = ({
     setEditingRecord,
     setActiveModal,
     handleDeleteDelay,
-    ConfirmAction
+    ConfirmAction,
+    permissions
 }) => {
     return (
         <section className="bg-white rounded-3xl border border-rose-100 shadow-sm overflow-hidden">
@@ -197,6 +204,7 @@ const LatencyRegistry: React.FC<LatencyRegistryProps> = ({
                             ConfirmAction={ConfirmAction}
                             onEdit={() => { setEditingRecord(delay); setActiveModal('delay'); }}
                             onDelete={handleDeleteDelay}
+                            permissions={permissions}
                         />
                     ))
                 ) : (

@@ -8,7 +8,6 @@ import {
 } from 'lucide-react';
 import { toast } from 'sonner';
 // Components
-import { ProjectGridView, StrategyListView, WorkshopListView } from './_components/SubComponents';
 import MM_ProjectForm from './_components/MM_ProjectForm';
 import MM_Sidebar from './_components/MM_Sidebar';
 import MM_MaterialForm from './_components/MM_MaterialForm';
@@ -20,6 +19,10 @@ import MM_ActivityForm from './_components/ActivityForm';
 import MM_DelayForm from './_components/MM_DelayForm';
 import { DelayListView } from './_components/SubComponents/DelayListView';
 import { ActivityTableView } from './_components/SubComponents/ActivityView';
+import { ProjectGridView } from './_components/SubComponents/ProjectListView';
+import { WorkshopListView } from './_components/SubComponents/WorkshopListView';
+import { StrategyListView } from './_components/SubComponents/StrategicListView';
+import MM_StrategicPlanForm from './_components/MM_StrategicPlanForm';
 
 // 1. Updated TabType to include mastermaterials
 //export type TabType = 'strategies' | 'projects' | 'activities' | 'workshops' | 'purchaseorders' | 'materials' | 'mastermaterials';
@@ -97,7 +100,24 @@ function DashboardContent({ currentUser }: { currentUser: any }) {
     }
   }, [activeTab]);
 
+const handleDelete = async (tab: TabType, id: string) => {
+  // Optional: Add a native confirmation or use a custom modal
+  //if (!confirm("Are you sure you want to delete this record? This action cannot be undone.")) return;
 
+  try {
+    const res = await fetch(`/mm/api/${tab}/${id}`, {
+      method: 'DELETE',
+    });
+
+    if (!res.ok) throw new Error("Failed to delete record");
+
+    toast.success(`${tabLabels[tab]} removed successfully`);
+    fetchData(); // Refresh the ledger
+  } catch (err: any) {
+    console.error("Delete Error:", err);
+    toast.error("Deletion Failed: " + err.message);
+  }
+};
   // --- Targeted Data Refresh for Activities/Tasks ---
   const handleRefreshData = useCallback(async () => {
     try {
@@ -131,7 +151,10 @@ function DashboardContent({ currentUser }: { currentUser: any }) {
     fetchData(); 
   };
 
-const isAllowed = (currentUser?.isAdmin) || currentUser?.roles?.some((r: string) => ['admin', 'executive'].includes(r.toLowerCase()));
+const isAllowedDelete = (currentUser?.isAdmin)// || currentUser?.roles?.some((r: string) => ['admin', 'executive'].includes(r.toLowerCase()));
+
+const isAllowedEdit = (currentUser?.isAdmin) || currentUser?.roles?.some((r: string) => ['admin', 'engineer'].includes(r.toLowerCase()));
+
 const tabLabels = {
   mastermaterials: 'Catalog Item',
   strategies: 'Strategy',
@@ -160,7 +183,7 @@ const tabLabels = {
               </h1>
             </div>
 
-            {isAllowed && (
+            {isAllowedEdit && (
               //export exceljs of filtered data----> AI should create function thasend excel data  when clicked button// all active purchase orders, or catelog material or boq active
               <button 
                 onClick={() => { setEditingRecord(null); setIsModalOpen(true); }} 
@@ -179,10 +202,10 @@ const tabLabels = {
             </div>
           ) : (
             <div className="animate-in fade-in slide-in-from-bottom-4 duration-700">
-              {activeTab === 'strategies' && <StrategyListView strategies={data.strategies} onEdit={(r:any)=>{setEditingRecord(r); setIsModalOpen(true);}} permissions={{canEdit:isAllowed}}/>}
-              {activeTab === 'workshops' && <WorkshopListView workshops={data.workshops} onEdit={(r:any)=>{setEditingRecord(r); setIsModalOpen(true);}} permissions={{canEdit:isAllowed}}/>}
-              {activeTab === 'projects' && <ProjectGridView projects={data.projects} onEdit={(r:any)=>{setEditingRecord(r); setIsModalOpen(true);}} permissions={{canEdit:isAllowed}}/>}
-              {activeTab === 'activities' && <ActivityTableView activities={data.activities} onEdit={(r:any)=>{setEditingRecord(r); setIsModalOpen(true);}} permissions={{canEdit:isAllowed}} refreshData={handleRefreshData}/>}
+              {activeTab === 'strategies' && <StrategyListView strategies={data.strategies} onEdit={(r: any) => { setEditingRecord(r); setIsModalOpen(true); } }  permissions={{ canEdit: isAllowedEdit , canDelete: isAllowedDelete}} onDelete={(id: string) => handleDelete('strategies', id)}/>}
+              {activeTab === 'workshops' && <WorkshopListView workshops={data.workshops} onEdit={(r:any)=>{setEditingRecord(r); setIsModalOpen(true);}} permissions={{canEdit:isAllowedEdit}}/>}
+              {activeTab === 'projects' && <ProjectGridView projects={data.projects} onEdit={(r:any)=>{setEditingRecord(r); setIsModalOpen(true);}} permissions={{canEdit:isAllowedEdit}}/>}
+              {activeTab === 'activities' && <ActivityTableView activities={data.activities} onEdit={(r:any)=>{setEditingRecord(r); setIsModalOpen(true);}} permissions={{canEdit:isAllowedEdit}} refreshData={handleRefreshData}/>}
               {activeTab === 'delays' && (
                   <DelayListView 
                     delays={data.delays} 
@@ -222,7 +245,13 @@ const tabLabels = {
 
               {/* Form Selection Logic */}
               <div className="p-2 md:p-6">
-                {activeTab === 'purchaseorders' ? (
+                {activeTab === 'strategies' ? (
+                <MM_StrategicPlanForm 
+                  initialData={editingRecord} 
+                  onClose={() => setIsModalOpen(false)} 
+                  onSuccess={handleSaveSuccess} 
+                />
+               ) :activeTab === 'purchaseorders' ? (
                   <MM_PurchaseOrderForm initialData={editingRecord} strategies={data.strategies} projects={data.projects} onClose={() => setIsModalOpen(false)} onSuccess={handleSaveSuccess} />
                 ) : activeTab === 'materials' ? (
                   <MM_MaterialForm initialData={editingRecord} projects={data.projects} strategies={data.strategies} onClose={() => setIsModalOpen(false)} onSuccess={handleSaveSuccess} />
