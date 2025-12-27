@@ -1,262 +1,4 @@
-// import React, { useState, useMemo, useEffect } from 'react';
-// import { 
-//     Search, 
-//     Layers, 
-//     ShoppingCart, 
-//     Box, 
-//     DollarSign, 
-//     Clock, 
-//     ArrowUpRight, 
-//     Filter,
-//     FileSpreadsheet
-// } from 'lucide-react';
-// import { toast } from 'sonner';
-// import ExcelJS from 'exceljs';
-// import { saveAs } from 'file-saver';
 
-// // --- 1. SEARCH CONFIGURATION ---
-// export const searchableFields = {
-//     vendorname: { label: 'Vendor/Partner', type: 'string' },
-//     itemCode: { label: 'Item/Asset Code', type: 'string' },
-//     description: { label: 'Description', type: 'string' },
-//     projectName: { label: 'Project/Model Name', type: 'string' },
-//     category: { label: 'Strategic Category', type: 'string' },
-//     status: { label: 'Execution Status', type: 'string' },
-// };
-
-// export type SearchableFieldKey = keyof typeof searchableFields;
-
-// // Default search behaviors defined by Tab Context
-// const TAB_DEFAULTS: Record<string, SearchableFieldKey[]> = {
-//     mastermaterials: ['itemCode', 'description', 'category'], // Catalogue
-//     purchaseorders: ['vendorname', 'itemCode', 'status'],      // POs
-//     boq: ['projectName', 'description', 'category'],          // BOQ
-//     default: ['projectName', 'description', 'vendorname']
-// };
-
-// // --- 2. SUB-COMPONENTS ---
-
-// const SearchFieldSelector = ({ 
-//     activeFields, 
-//     onFieldsChange 
-// }: { 
-//     activeFields: SearchableFieldKey[], 
-//     onFieldsChange: (fields: SearchableFieldKey[]) => void 
-// }) => {
-//     return (
-//         <div className="flex flex-wrap gap-2">
-//             {(Object.keys(searchableFields) as SearchableFieldKey[]).map((key) => {
-//                 const isActive = activeFields.includes(key as SearchableFieldKey);
-//                 return (
-//                     <button
-//                         key={key}
-//                         onClick={() => {
-//                             const next = isActive 
-//                                 ? activeFields.filter(f => f !== key) 
-//                                 : [...activeFields, key as SearchableFieldKey];
-//                             onFieldsChange(next);
-//                         }}
-//                         className={`px-3 py-1.5 rounded-full text-[10px] font-black uppercase tracking-wider transition-all border ${
-//                             isActive 
-//                             ? 'bg-indigo-600 border-indigo-600 text-white shadow-md' 
-//                             : 'bg-white border-slate-200 text-slate-400 hover:border-indigo-300'
-//                         }`}
-//                     >
-//                         {searchableFields[key as SearchableFieldKey].label}
-//                     </button>
-//                 );
-//             })}
-//         </div>
-//     );
-// };
-
-// // --- 3. MAIN COMPONENT ---
-
-// const ProcurementListView = ({ items = [], activeTab, onEdit }: { 
-//     items: any[], 
-//     activeTab: string, 
-//     onEdit: (item: any) => void 
-// }) => {
-//     const [searchTerm, setSearchTerm] = useState('');
-//     const [activeSearchFields, setActiveSearchFields] = useState<SearchableFieldKey[]>([]);
-
-//     // Sync search targets when tab changes
-//     useEffect(() => {
-//         const defaults = TAB_DEFAULTS[activeTab] || TAB_DEFAULTS.default;
-//         setActiveSearchFields(defaults);
-//         setSearchTerm(''); 
-//     }, [activeTab]);
-
-//     // Enhanced Multi-Attribute Filtering
-//     const filteredItems = useMemo(() => {
-//         if (!searchTerm) return items;
-//         const lowSearch = searchTerm.toLowerCase();
-
-//         return items.filter(item => {
-//             return activeSearchFields.some(field => {
-//                 let val = '';
-//                 if (field === 'projectName') val = item.project?.name || '';
-//                 else val = item[field] || item.material?.[field] || '';
-//                 return String(val || '').toLowerCase().includes(lowSearch);
-//             });
-//         });
-//     }, [items, searchTerm, activeSearchFields]);
-
-//     // Financial Analysis (Standardized per Guideline 1 of 2025)
-//     const totalValue = useMemo(() => {
-//         return filteredItems.reduce((acc, item) => {
-//             const cost = item.lastKnownCost || item.totalValue || (item.quantityRequired * item.estimatedUnitCost) || 0;
-//             return acc + cost;
-//         }, 0);
-//     }, [filteredItems]);
-
-//     // EXCEL EXPORT LOGIC
-//     const handleExport = async () => {
-//         const workbook = new ExcelJS.Workbook();
-//         const worksheet = workbook.addWorksheet(activeTab.toUpperCase());
-
-//         worksheet.columns = [
-//             { header: 'Project', key: 'project', width: 25 },
-//             { header: 'Code', key: 'code', width: 15 },
-//             { header: 'Description', key: 'desc', width: 40 },
-//             { header: 'Status', key: 'status', width: 15 },
-//             { header: 'Value', key: 'value', width: 15 },
-//         ];
-
-//         filteredItems.forEach(item => {
-//             worksheet.addRow({
-//                 project: item.project?.name || 'N/A',
-//                 code: item.itemCode || item.material?.itemCode || 'N/A',
-//                 desc: item.description || item.vendorname || 'N/A',
-//                 status: item.status || 'Active',
-//                 value: item.lastKnownCost || 0
-//             });
-//         });
-
-//         const buffer = await workbook.xlsx.writeBuffer();
-//         saveAs(new Blob([buffer]), `${activeTab}_export_${new Date().toISOString().split('T')[0]}.xlsx`);
-//         toast.success(`Exported ${filteredItems.length} records to Excel`);
-//     };
-
-//     return (
-//         <div className="space-y-6"> 
-//             {/* SEARCH & STRATEGY CONTROLS */}
-//             <div className="bg-white p-8 rounded-[2.5rem] border border-slate-100 shadow-sm space-y-6">
-//                 <div className="flex flex-col lg:flex-row items-stretch gap-4">
-//                     <div className="relative flex-1">
-//                         <Search className="absolute left-6 top-1/2 -translate-y-1/2 text-slate-400" size={20} />
-//                         <input 
-//                             type="text"
-//                             placeholder={`Search ${activeTab} via active scopes...`}
-//                             className="w-full h-16 bg-slate-50 border-none focus:ring-4 focus:ring-indigo-500/5 rounded-2xl pl-16 pr-6 shadow-inner text-sm font-bold transition-all outline-none"
-//                             value={searchTerm}
-//                             onChange={(e) => setSearchTerm(e.target.value)}
-//                         />
-//                     </div>
-
-//                     <div className="flex gap-3 h-16">
-//                         <div className="flex-1 lg:w-64 flex items-center gap-4 px-6 bg-slate-900 rounded-2xl shadow-xl">
-//                             <div className="flex items-center justify-center w-10 h-10 bg-indigo-500/20 rounded-xl">
-//                                 <DollarSign size={18} className="text-indigo-400" />
-//                             </div>
-//                             <div className="flex flex-col">
-//                                 <span className="text-[9px] font-black text-indigo-300/50 uppercase tracking-widest leading-none mb-1">Impact</span>
-//                                 <span className="text-sm font-black text-white tabular-nums">
-//                                     ${totalValue.toLocaleString(undefined, { minimumFractionDigits: 2 })}
-//                                 </span>
-//                             </div>
-//                         </div>
-
-//                         <button 
-//                             onClick={handleExport}
-//                             className="flex items-center gap-4 px-6 bg-white border border-slate-200 rounded-2xl hover:bg-slate-50 transition-all group"
-//                         >
-//                             <FileSpreadsheet size={18} className="text-emerald-600 group-hover:scale-110 transition-transform" />
-//                             <span className="hidden sm:inline text-xs font-bold text-slate-900">Export</span>
-//                         </button>
-//                     </div>
-//                 </div>
-
-//                 {/* DYNAMIC FIELD SELECTOR */}
-//                 <div className="flex flex-col md:flex-row md:items-center gap-4">
-//                     <div className="flex items-center gap-2 text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] whitespace-nowrap">
-//                         <Filter size={14} className="text-indigo-500" />
-//                         Search Scopes
-//                     </div>
-//                     <SearchFieldSelector 
-//                         activeFields={activeSearchFields}
-//                         onFieldsChange={setActiveSearchFields}
-//                     />
-//                 </div>
-//             </div>
-
-//             {/* TABLE VIEW */}
-//             <div className="min-h-[400px]">
-//                 {filteredItems.length > 0 ? (
-//                     <div className="bg-white rounded-[2.5rem] border border-slate-100 shadow-xl overflow-hidden">
-//                         <table className="w-full text-left">
-//                             <thead className="bg-slate-50/50 border-b border-slate-100">
-//                                 <tr>
-//                                     <th className="px-10 py-6 text-[10px] font-black text-slate-400 uppercase tracking-widest">Asset & Project</th>
-//                                     <th className="px-10 py-6 text-[10px] font-black text-slate-400 uppercase tracking-widest">Timeline</th>
-//                                     <th className="px-10 py-6 text-[10px] font-black text-slate-400 uppercase tracking-widest text-right">Valuation</th>
-//                                     <th className="px-10 py-6"></th>
-//                                 </tr>
-//                             </thead>
-//                             <tbody className="divide-y divide-slate-50">
-//                                 {filteredItems.map((item) => (
-//                                     <tr key={item.id} className="hover:bg-slate-50/30 transition-all group">
-//                                         <td className="px-10 py-8">
-//                                             <div className="flex flex-col gap-2">
-//                                                 <div className="flex items-center gap-2">
-//                                                     <span className="font-mono text-[10px] font-black text-indigo-600 bg-indigo-50 px-2 py-0.5 rounded">
-//                                                         {item.itemCode || item.material?.itemCode || "N/A"}
-//                                                     </span>
-//                                                     <span className="text-[9px] font-black text-slate-400 uppercase border px-1.5 py-0.5 rounded">{item.category}</span>
-//                                                 </div>
-//                                                 <p className="text-sm font-black text-slate-900">{item.project?.name || "Unassigned"}</p>
-//                                                 <p className="text-xs font-bold text-slate-500 line-clamp-1 italic max-w-sm">
-//                                                     {item.description || item.vendorname}
-//                                                 </p>
-//                                             </div>
-//                                         </td>
-//                                         <td className="px-10 py-8">
-//                                             <div className="flex flex-col gap-1">
-//                                                 <div className="flex items-center gap-2 text-[10px] font-black text-slate-500">
-//                                                     <Clock size={12} className="text-slate-300" />
-//                                                     {new Date(item.createdAt || Date.now()).toLocaleDateString()}
-//                                                 </div>
-//                                                 <span className={`text-[9px] font-black px-2 py-0.5 rounded-full w-fit uppercase
-//                                                     ${item.status === 'Completed' ? 'bg-emerald-500 text-white' : 'bg-amber-100 text-amber-700'}`}>
-//                                                     {item.status || 'Active'}
-//                                                 </span>
-//                                             </div>
-//                                         </td>
-//                                         <td className="px-10 py-8 text-right">
-//                                             <span className="text-lg font-black text-slate-900 tabular-nums">
-//                                                 ${(item.lastKnownCost || 0).toLocaleString()}
-//                                             </span>
-//                                         </td>
-//                                         <td className="px-10 py-8 text-right">
-//                                             <button onClick={() => onEdit(item)} className="p-4 bg-slate-900 text-white rounded-2xl hover:bg-indigo-600 transition-all shadow-lg hover:-translate-y-1">
-//                                                 <ArrowUpRight size={20} strokeWidth={3} />
-//                                             </button>
-//                                         </td>
-//                                     </tr>
-//                                 ))}
-//                             </tbody>
-//                         </table>
-//                     </div>
-//                 ) : (
-//                     <div className="h-64 flex flex-col items-center justify-center bg-white rounded-[2.5rem] border-2 border-dashed border-slate-100">
-//                         <ShoppingCart size={48} className="text-slate-200 mb-4" />
-//                         <p className="text-xs font-black text-slate-400 uppercase tracking-widest italic">No matching entries found in {activeTab}</p>
-//                     </div>
-//                 )}
-//             </div>
-//         </div>
-//     );
-// };
 
 // export default ProcurementListView;
 import React, { useState, useMemo, useEffect } from 'react';
@@ -318,9 +60,9 @@ const SearchFieldSelector = ({
                             onFieldsChange(next);
                         }}
                         className={`px-3 py-1.5 rounded-full text-[10px] font-black uppercase tracking-wider transition-all border ${
-                            isActive 
-                            ? 'bg-indigo-600 border-indigo-600 text-white shadow-md' 
-                            : 'bg-white border-slate-200 text-slate-400 hover:border-indigo-300'
+                             isActive 
+                                ? 'bg-yellow-400 border-indigo-600 text-white shadow-md' 
+                                : 'bg-white border-slate-200 text-slate-400 hover:border-yellow-300'
                         }`}
                     >
                         {searchableFields[key as SearchableFieldKey].label}
@@ -338,9 +80,7 @@ const ProcurementListView = ({ items = [], activeTab, onEdit }: {
     onEdit: (item: any) => void 
 }) => {
     const [searchTerm, setSearchTerm] = useState('');
-    // const [activeSearchFields, setActiveSearchFields] = useState<SearchableFieldKey[]>(
-    //     ['projectName', 'vendorname', 'description']
-    // );
+   
      const [activeSearchFields, setActiveSearchFields] = useState<SearchableFieldKey[]>([]);
 
       // Sync search targets when tab changes
@@ -423,7 +163,6 @@ const ProcurementListView = ({ items = [], activeTab, onEdit }: {
                         Search Target:
                     </div>
                     <SearchFieldSelector 
-                       // searchableFields={searchableFields}
                         activeFields={activeSearchFields}
                         onFieldsChange={setActiveSearchFields}
                     />
@@ -525,7 +264,7 @@ const DesktopRow = ({ item, onEdit }: { item: any, onEdit: (item: any) => void }
                 <span className={`text-[9px] font-black px-2 py-0.5 rounded-full uppercase tracking-tighter
                     ${(item.status || '').toLowerCase() === 'completed' ? 'bg-emerald-500 text-white' : 'bg-amber-100 text-amber-700'}
                 `}>
-                    {item.status || 'Active'}
+                    {item.poLineItem?.purchaseOrder?.status|| item.status || 'Active'}
                 </span>
             </div>
         </td>
@@ -544,23 +283,32 @@ const MobileCard = ({ item, onEdit }: { item: any, onEdit: (item: any) => void }
     <div className="bg-white p-6 rounded-[2rem] border border-slate-100 shadow-sm space-y-4">
         <div className="flex justify-between items-start">
             <div className="flex flex-wrap gap-2">
-                <span className="font-mono text-[9px] font-black text-white px-2 py-0.5 bg-indigo-600 rounded">
+                {/* <span className="font-mono text-[9px] font-black text-white px-2 py-0.5 bg-indigo-600 rounded">
                     {item.material?.itemCode || item.itemCode || "N/A"}
-                </span>
+                </span> */}
+                  <span className="font-mono text-[9px] font-black text-white px-2 py-0.5 bg-indigo-600 rounded shadow-sm uppercase">
+                        {item.material?.itemCode || item.itemCode || item.poNumber || "NEW"}
+                    </span>
+                    {item.category && (
+                        <span className="text-[9px] font-black text-slate-400 uppercase border border-slate-200 px-1.5 py-0.5 rounded">
+                            {item.category}
+                        </span>
+                    )}
             </div>
             <button onClick={() => onEdit(item)} className="p-3 bg-slate-900 text-white rounded-xl shadow-md">
                 <ArrowUpRight size={16} strokeWidth={3}/>
             </button>
         </div>
         <div className="space-y-1">
-            <p className="text-xs font-black text-slate-900">{item.project?.name || "General Ledger"}</p>
-            <p className="text-[11px] text-slate-500 font-bold">{item.description || "No description provided"}</p>
+           {item.project?.name && ( <p className="text-xs font-black text-slate-900">{item.project?.name }</p>)}
+            <p className="text-[11px] text-slate-500 font-bold"> {item.vendorname || item.description || item.material?.description || 'UNSPECIFIED'}</p>
         </div>
         <div className="pt-4 border-t border-slate-50 flex justify-between items-end">
             <span className="text-lg font-black text-slate-900">
-                ${(item.lastKnownCost || 0).toLocaleString()}
+                {/* ${(item.lastKnownCost || 0).toLocaleString()} */}
+                ${(item.lastKnownCost || item.totalValue || (item.quantityRequired * item.estimatedUnitCost) || 0).toLocaleString()}
             </span>
-            <span className="text-[9px] font-black text-slate-400 uppercase">{item.status || 'Active'}</span>
+            <span className="text-[9px] font-black text-slate-400 uppercase">{item.poLineItem?.purchaseOrder?.status||item.status || 'Active'}</span>
         </div>
     </div>
 );
