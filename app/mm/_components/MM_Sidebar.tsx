@@ -71,9 +71,9 @@ export default function MM_Sidebar({ activeTab }: { activeTab?: TabType | 'none'
           {/* <MobileNavLink {...NAV_ITEMS[0]} label="Plans" active={activeTab === 'strategies'} /> */}
           <MobileNavLink {...NAV_ITEMS[2]} label="Projects" active={activeTab === 'projects'} />
           <MobileNavLink {...NAV_ITEMS[3]} label="Activities" active={activeTab === 'activities'} />
-          <MobileNavLink {...NAV_ITEMS[4]} label="Risk" active={activeTab === 'delays'} />
-          <MobileNavLink {...NAV_ITEMS[5]} label="Catalog" active={activeTab === 'mastermaterials'} />
-          <MobileNavLink {...NAV_ITEMS[6]} label="Orders" active={activeTab === 'purchaseorders'} />
+          <MobileNavLink {...NAV_ITEMS[4]} label="P-Delays" active={activeTab === 'delays'} />
+          <MobileNavLink {...NAV_ITEMS[5]} label="Material-Cat" active={activeTab === 'mastermaterials'} />
+          <MobileNavLink {...NAV_ITEMS[6]} label="P-Orders" active={activeTab === 'purchaseorders'} />
           <MobileNavLink {...NAV_ITEMS[7]} label="BoQ" active={activeTab === 'materials'} />
         </div>
       </nav>
