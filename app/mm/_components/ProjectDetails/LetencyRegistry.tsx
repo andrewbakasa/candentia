@@ -230,7 +230,7 @@ const LatencyRegistry: React.FC<LatencyRegistryProps> = ({
                                     <td className="px-6 py-6">
                                         <div className="text-[10px] font-black text-slate-400 uppercase tracking-tight mb-1">{delay.activity?.project?.name || 'Global'}</div>
                                         <div className="text-sm font-bold text-slate-800 leading-tight">{delay.activity?.description}</div>
-                                        <div className="text-xs text-slate-500 italic mt-2 line-clamp-1 group-hover:line-clamp-none transition-all duration-300">"{delay.description}"</div>
+                                        <div className="text-xs text-slate-500 italic mt-2 line-clamp-1 group-hover:line-clamp-none transition-all duration-300">{delay.description}</div>
                                     </td>
                                     <td className="px-6 py-6 text-center">
                                         <span className="inline-block px-3 py-1 bg-slate-100 rounded-lg text-xs font-black text-slate-600 border border-slate-200">{delay.impactHours}h</span>
