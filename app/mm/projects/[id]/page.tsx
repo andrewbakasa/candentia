@@ -67,7 +67,7 @@ export default async function ProjectDetailPage({ params }: { params: { id: stri
     };
     
     const serializedStrategies = JSON.parse(JSON.stringify(strategies));
-    console.log("serializedProject",serializedProject)
+    //console.log("serializedProject",serializedProject)
     return (
         <div className="flex h-screen bg-slate-100/50 overflow-hidden">
             <MM_Sidebar activeTab="projects" />

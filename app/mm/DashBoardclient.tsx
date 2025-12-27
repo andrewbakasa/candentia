@@ -45,7 +45,7 @@ function DashboardContent({ currentUser }: { currentUser: any }) {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingRecord, setEditingRecord] = useState<any>(null);
 
-  const handleTabChange = (tab: TabType) => router.push(`/mm/?tab=${tab}`, { scroll: false });
+  //const handleTabChange = (tab: TabType) => router.push(`/mm/?tab=${tab}`, { scroll: false });
 
   // 2. Data Sync Engine
   const fetchData = useCallback(async () => {
