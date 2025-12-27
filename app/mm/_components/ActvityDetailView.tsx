@@ -97,6 +97,25 @@ export default function ActivityDetailView({
             {/* --- TOP NAVIGATION --- */}
             <nav className="flex items-center justify-between">
                 <button 
+                    onClick={() => {
+                        // Check if project ID exists to go to specific project, else fallback
+                        if (activity.projectId || activity.project?.id) {
+                            router.push(`/mm/projects/${activity.projectId || activity.project.id}`);
+                        } else {
+                            router.back();
+                        }
+                    }}
+                    className="group flex items-center gap-2 text-slate-500 hover:text-indigo-600 transition-all text-[10px] font-black uppercase tracking-widest"
+                >
+                    <div className="p-2 bg-white rounded-lg shadow-sm group-hover:bg-indigo-50 transition-colors border border-slate-100">
+                        <ArrowLeft size={14} />
+                    </div>
+                    <span className="hidden md:inline">Return to {activity.project?.name || 'Project'}</span>
+                </button>
+                
+                
+            
+                <button 
                     onClick={() => router.back()}
                     className="group flex items-center gap-2 text-slate-500 hover:text-indigo-600 transition-all text-[10px] font-black uppercase tracking-widest"
                 >
