@@ -21,9 +21,9 @@ const NAV_ITEMS = [
   { href: "/mm/?tab=workshops", icon: Settings, label: "Workshops", tab: "workshops" },           // 1
   { href: "/mm/?tab=projects", icon: Briefcase, label: "Projects", tab: "projects" },            // 2
   { href: "/mm/?tab=activities", icon: Activity, label: "Activities", tab: "activities" },        // 3
-  { href: "/mm/?tab=delays", icon: AlertOctagon, label: "Delays", tab: "delays" },                // 4
+  { href: "/mm/?tab=delays", icon: AlertOctagon, label: "Process Delays", tab: "delays" },                // 4
   { href: "/mm/?tab=mastermaterials", icon: Layers, label: "Catalogue", tab: "mastermaterials" }, // 5
-  { href: "/mm/?tab=purchaseorders", icon: ShoppingCart, label: "Orders", tab: "purchaseorders" },// 6
+  { href: "/mm/?tab=purchaseorders", icon: ShoppingCart, label: "P-Orders", tab: "purchaseorders" },// 6
   { href: "/mm/?tab=materials", icon: Box, label: "BoQ", tab: "materials" },                      // 7
 ];
 
@@ -68,8 +68,9 @@ export default function MM_Sidebar({ activeTab }: { activeTab?: TabType | 'none'
       {/* MOBILE BOTTOM NAVIGATION */}
       <nav className="lg:hidden fixed bottom-0 left-0 right-0 bg-slate-900/98 backdrop-blur-lg border-t border-slate-800 z-[100] pb-safe">
         <div className="grid grid-cols-6 items-center justify-items-center px-1 py-2">
-          <MobileNavLink {...NAV_ITEMS[0]} label="Plans" active={activeTab === 'strategies'} />
+          {/* <MobileNavLink {...NAV_ITEMS[0]} label="Plans" active={activeTab === 'strategies'} /> */}
           <MobileNavLink {...NAV_ITEMS[2]} label="Projects" active={activeTab === 'projects'} />
+          <MobileNavLink {...NAV_ITEMS[3]} label="Activities" active={activeTab === 'activities'} />
           <MobileNavLink {...NAV_ITEMS[4]} label="Risk" active={activeTab === 'delays'} />
           <MobileNavLink {...NAV_ITEMS[5]} label="Catalog" active={activeTab === 'mastermaterials'} />
           <MobileNavLink {...NAV_ITEMS[6]} label="Orders" active={activeTab === 'purchaseorders'} />

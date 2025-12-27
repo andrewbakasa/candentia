@@ -1,19 +1,8 @@
 import getCurrentUser from "@/app/actions/getCurrentUser";
 import Container from "@/app/components/Container";
 import DefectListClient from "./DefectListClient";
-//import DefectsListPage from "./DefectClientsPage";
-
-
-/**
- * Server Component to fetch the list of business projects and render the client list view.
- */
 const ProjectsPage = async () => {
     const currentUser = await getCurrentUser(); 
-    // The Awaited type from getProjectsList must now include the financial fields
- 
-
-
-    // --- 4. RENDER CLIENT COMPONENT ---
     return (
         <Container>
             <DefectListClient
