@@ -16,6 +16,7 @@ import {
     Hash
 } from 'lucide-react';
 import ConfirmAction from '../ConfirmAction';
+import Link from 'next/link';
 
 /** * DATA INTERFACES
  * Following Guideline 1: Standardized Documentation 
@@ -113,7 +114,15 @@ const ExecutionRegistry: React.FC<ExecutionRegistryProps> = ({
                             <ActivityIcon size={18} />
                         </div>
                         <div>
-                            <h2 className="text-lg font-black text-slate-900 uppercase tracking-tight leading-none">3. Execution Registry</h2>
+                            <Link 
+                                href="/mm?tab=activities" 
+                                className="group block hover:opacity-80 transition-opacity"
+                                >
+                                    <h2 className="text-lg font-black text-slate-900 uppercase tracking-tight leading-none group-hover:text-indigo-600">
+                                        3. Execution Registry 🔗
+                                    </h2>
+                            </Link>
+                            
                             <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest mt-1">Ref: Guideline 1/2025 v2.5</p>
                         </div>
                     </div>

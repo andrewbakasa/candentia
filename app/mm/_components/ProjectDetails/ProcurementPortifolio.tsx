@@ -2,9 +2,11 @@
 import React, { useState, useMemo } from 'react';
 import { 
   ShoppingCart, Plus, Package, Edit2, Trash2, 
-  ChevronRight, Search, X
+  ChevronRight, Search, X,
+  
 } from 'lucide-react';
 import ConfirmAction from '../ConfirmAction';
+import Link from 'next/link';
 
 interface ProcurementPortfolioProps {
   project: any;
@@ -69,9 +71,13 @@ const ProcurementPortfolio: React.FC<ProcurementPortfolioProps> = ({
           </div>
           <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4">
             <div>
-              <h2 className="text-lg font-black text-slate-900 uppercase tracking-tight">
-                4. Procurement Portfolio
-              </h2>
+              
+                <Link 
+                    href="/mm?tab=mastermaterials" 
+                    className="group block hover:opacity-80 transition-opacity"
+                    >
+                        <h2 className="text-lg font-black text-slate-900 uppercase tracking-tight leading-none group-hover:text-indigo-600"> 4. Procurement Portifolio 🔗</h2>
+                </Link>
               <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest italic leading-none mt-1">
                 ERP Transaction Layer
               </p>
