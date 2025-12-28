@@ -53,7 +53,7 @@ export default async function ActivityDetailPage({ params }: { params: { id: str
                     />
                 </div>
                 
-                <div className="p-2 pt-2">
+                <div className="p-0 pt-1">
                     <div className="bg-white rounded-[2.5rem] shadow-sm border border-slate-200 overflow-hidden">
                        
                         <ActivityDetailView 

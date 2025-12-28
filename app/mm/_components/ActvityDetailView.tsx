@@ -96,7 +96,7 @@ export default function ActivityDetailView({
         : 0;
 
     return (
-        <div className="flex flex-col gap-4 md:gap-8 bg-slate-50/50 p-4 md:p-10 min-h-screen font-sans">
+        <div className="flex flex-col gap-2 md:gap-4 bg-slate-50/50 p-2 md:p-4 min-h-screen font-sans">
             
             {/* --- TOP NAVIGATION --- */}
             <nav className="flex items-center justify-between">
@@ -205,7 +205,7 @@ export default function ActivityDetailView({
 
             {/* --- OPERATIONAL SECTION: TASK REGISTRY WITH FILTER --- */}
             <section className="bg-white rounded-[2.5rem] border border-slate-200 shadow-sm overflow-hidden mb-10">
-                <div className="p-6 md:p-10 flex flex-col md:flex-row items-center justify-between border-b border-slate-50 bg-slate-50/20 gap-4">
+                <div className="p-3 md:p-4 flex flex-col md:flex-row items-center justify-between border-b border-slate-50 bg-slate-50/20 gap-4">
                     <div className="flex items-center gap-4 w-full md:w-auto">
                         <div className="p-3 bg-white rounded-2xl text-slate-600 shadow-sm border border-slate-100">
                             <ListChecks size={24} />
@@ -242,7 +242,7 @@ export default function ActivityDetailView({
                     </div>
                 </div>
 
-                <div className="p-6 md:p-10">
+                <div className="p-2 md:p-3">
                     {filteredTasks.length > 0 ? (
                         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
                             {filteredTasks.map((task: any) => (
@@ -322,7 +322,7 @@ function TaskCard({ task, onEdit, onDelete, isDeleting, isAllowedDelete, isAllow
 
     return (
         <div className={`
-            relative p-6 rounded-[2rem] border transition-all group
+            relative p-2 rounded-[2rem] border transition-all group
             ${isDeleting ? 'opacity-50 pointer-events-none' : ''}
             ${isCompleted 
                 ? 'bg-emerald-50/30 border-emerald-100 shadow-sm grayscale-[0.5] hover:grayscale-0' 
@@ -330,7 +330,7 @@ function TaskCard({ task, onEdit, onDelete, isDeleting, isAllowedDelete, isAllow
         `}>
             {/* Status Badge */}
             <div className="flex justify-between items-start mb-6">
-                <span className={`flex items-center gap-1 text-[8px] font-black px-3 py-1 rounded-full uppercase tracking-widest ${
+                <span className={`flex items-center gap-1 text-[8px] font-black px-2 py-1 rounded-full uppercase tracking-widest ${
                     isCompleted 
                         ? 'bg-emerald-100 text-emerald-700' 
                         : 'bg-amber-100 text-amber-700 animate-pulse-slow'
