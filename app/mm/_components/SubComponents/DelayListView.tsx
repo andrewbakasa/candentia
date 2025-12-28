@@ -93,7 +93,7 @@ export function DelayListView({ delays, onEdit }: { delays: any[], onEdit: (r: a
     <div className="space-y-6">
       {/* 📊 SUMMARY & SEARCH ENGINE */}
       <div className="bg-white p-6 rounded-[2.5rem] border border-slate-200 shadow-sm space-y-4">
-        <div className="flex flex-col lg:flex-row gap-4 items-center justify-between">
+        {/* <div className="flex flex-col lg:flex-row gap-4 items-center justify-between">
           <div className="w-full lg:flex-1">
             <SearchFilterEngine 
               scopes={DELAY_SEARCH_SCOPES}
@@ -107,6 +107,27 @@ export function DelayListView({ delays, onEdit }: { delays: any[], onEdit: (r: a
           <button 
             onClick={handleExport}
             className="w-full lg:w-auto flex items-center justify-center gap-2 px-6 py-4 bg-indigo-600 text-white rounded-2xl hover:bg-indigo-700 transition-all shadow-md shadow-indigo-200 text-xs font-black uppercase tracking-widest"
+          >
+            <FileSpreadsheet size={18} />
+            <span>Export ({filteredDelays.length})</span>
+          </button>
+        </div> */}
+
+        {/* Alignment Fix: items-stretch + min-h on button */}
+        <div className="flex flex-col lg:flex-row gap-4 items-stretch justify-between">
+          <div className="w-full lg:flex-1">
+            <SearchFilterEngine 
+              scopes={DELAY_SEARCH_SCOPES}
+              initialActiveScopes={activeSearchFields}
+              onSearchChange={setSearchTerm}
+              onScopesChange={setActiveSearchFields}
+              placeholder="Search via operational scopes..."
+            />
+          </div>
+          
+          <button 
+            onClick={handleExport}
+            className="w-full lg:w-auto min-h-[64px] flex items-center justify-center gap-3 px-8 bg-indigo-600 text-white rounded-2xl hover:bg-indigo-700 transition-all shadow-md shadow-indigo-100 text-[10px] font-black uppercase tracking-widest"
           >
             <FileSpreadsheet size={18} />
             <span>Export ({filteredDelays.length})</span>

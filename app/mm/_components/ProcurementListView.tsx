@@ -79,7 +79,7 @@ const ProcurementListView = ({ items = [], activeTab, onEdit }: {
     return (
         <div className="space-y-6"> 
             {/* REUSABLE SEARCH ENGINE SECTION */}
-            <div className="bg-slate-50/50 p-6 rounded-[2.5rem] border border-slate-100 space-y-4">
+            <div className="bg-white p-6 rounded-[2.5rem] border border-slate-100 space-y-4">
                 <div className="flex flex-col lg:flex-row items-stretch gap-4">
                     <div className="flex-1">
                         <SearchFilterEngine 
