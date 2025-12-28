@@ -57,11 +57,55 @@ export async function POST(request: NextRequest) {
  * 🎯 GET /api/mm/activities
  * Includes tasks and filters for the Variance Engine (Guideline 5.5)
  */
+// export async function GET(request: NextRequest) {
+//     try {
+//         const { searchParams } = new URL(request.url);
+//         const filter = searchParams.get('filter');
+//         const projectId = searchParams.get('projectId');
+
+//         let whereClause: any = {};
+
+//         if (projectId) {
+//             whereClause.projectId = projectId;
+//         }
+
+//         // Variance Engine Logic: Detect overdue activities
+//         if (filter === 'overdue') {
+//             whereClause.actualEnd = null;
+//             whereClause.scheduledEnd = { lt: new Date() };
+//         }
+
+//         const activities = await prisma.mM_Activity.findMany({
+//             where: whereClause,
+//             include: {
+//                 project: { 
+//                     select: { 
+//                         name: true,
+//                         // Include project materials to filter them by activityLabel in the UI
+//                         include :{workshop},
+//                         materialRequirements: true 
+//                     } 
+//                 },
+//                 tasks: {
+//                     orderBy: { createdAt: 'desc' }
+//                 }
+//             },
+//             orderBy: { createdAt: 'desc' }
+//         });
+
+//         return NextResponse.json(activities, { status: 200 });
+//     } catch (error) {
+//         console.error("MM_Activity GET Error:", error);
+//         return NextResponse.json({ message: "Error fetching activities" }, { status: 500 });
+//     }
+// }
+
 export async function GET(request: NextRequest) {
     try {
         const { searchParams } = new URL(request.url);
         const filter = searchParams.get('filter');
         const projectId = searchParams.get('projectId');
+        const workshopName = searchParams.get('workshopName'); // New search parameter
 
         let whereClause: any = {};
 
@@ -69,7 +113,19 @@ export async function GET(request: NextRequest) {
             whereClause.projectId = projectId;
         }
 
-        // Variance Engine Logic: Detect overdue activities
+        // Search logic for Workshop Name via the Project relation
+        if (workshopName) {
+            whereClause.project = {
+                responsibleWorkshop: {
+                    name: {
+                        contains: workshopName,
+                        mode: 'insensitive' // Optional: makes search case-insensitive
+                    }
+                }
+            };
+        }
+
+        // Variance Engine Logic
         if (filter === 'overdue') {
             whereClause.actualEnd = null;
             whereClause.scheduledEnd = { lt: new Date() };
@@ -78,12 +134,17 @@ export async function GET(request: NextRequest) {
         const activities = await prisma.mM_Activity.findMany({
             where: whereClause,
             include: {
-                project: { 
-                    select: { 
-                        name: true,
-                        // Include project materials to filter them by activityLabel in the UI
-                        materialRequirements: true 
-                    } 
+                project: {
+                    include: {
+                        // This includes the full Workshop object inside the Project
+                        responsibleWorkshop: {
+                            select: {
+                                name: true,
+                                location: true
+                            }
+                        },
+                        materialRequirements: true
+                    }
                 },
                 tasks: {
                     orderBy: { createdAt: 'desc' }
@@ -91,7 +152,7 @@ export async function GET(request: NextRequest) {
             },
             orderBy: { createdAt: 'desc' }
         });
-
+        console.log("act------------",activities)
         return NextResponse.json(activities, { status: 200 });
     } catch (error) {
         console.error("MM_Activity GET Error:", error);

@@ -1664,6 +1664,8 @@ model MM_Task {
 
   status         TaskStatus @default(PENDING)
   isCompleted    Boolean    @default(false)
+  // Added dueDate for SVE tracking
+  dueDate        DateTime?
   completionDate DateTime?
 
   // Resource Load & Time Tracking (Guideline Sec 6.2)
