@@ -233,27 +233,27 @@ const filteredActivities = useMemo(() => {
                     </thead>
                     <tbody className="divide-y divide-slate-50">
                         {filteredActivities.map((act, index) => {
-                            const isExpanded = effectiveExpandedRows.includes(act.id);
-                            const tasksToDisplay = act.tasks || [];
+                            const isExpanded = effectiveExpandedRows.includes(act?.id);
+                            const tasksToDisplay = act?.tasks || [];
                             const phaseNumber = index + 1;
 
                             return (
-                                <React.Fragment key={act.id}>
+                                <React.Fragment key={act?.id}>
                                     <tr className={`hover:bg-slate-50/30 transition-all group ${isExpanded ? 'bg-slate-50/50' : ''}`}>
                                         <td className="px-6 py-5">
                                             <div className="flex flex-col items-center gap-1">
                                                 <span className="text-[10px] font-black text-slate-300">{phaseNumber}</span>
-                                                <button onClick={() => toggleExpand(act.id)} className="p-1.5 hover:bg-white rounded-lg border border-transparent hover:border-slate-200 transition-all shadow-sm">
+                                                <button onClick={() => toggleExpand(act?.id)} className="p-1.5 hover:bg-white rounded-lg border border-transparent hover:border-slate-200 transition-all shadow-sm">
                                                     {isExpanded ? <ChevronUp size={14} className="text-indigo-600"/> : <ChevronDown size={14}/>}
                                                 </button>
                                             </div>
                                         </td>
                                         <td className="px-4 py-5">
                                             {/* --- ADDED ACTIVITY LINK --- */}
-                                            <Link href={`/mm/activities/${act.id}`} className="group/link inline-block">
+                                            <Link href={`/mm/activities/${act?.id}`} className="group/link inline-block">
                                                 <div className="flex items-center gap-2">
                                                     <p className="text-sm font-black text-slate-900 tracking-tight group-hover/link:text-indigo-600 transition-colors">
-                                                        {act.description}
+                                                        {act?.description}
                                                     </p>
                                                     <ExternalLink size={12} className="text-slate-300 opacity-0 group-hover/link:opacity-100 transition-all" />
                                                 </div>
@@ -295,8 +295,8 @@ const filteredActivities = useMemo(() => {
                                                 )}
                                                 {permissions.canDelete && onDeleteActivity && (
                                                     <ConfirmAction 
-                                                        onConfirm={() => onDeleteActivity(act.id)} 
-                                                        itemId={act.id.toString()}
+                                                        onConfirm={() => onDeleteActivity(act?.id)} 
+                                                        itemId={act?.id?.toString()}
                                                         action="Delete" 
                                                         triggerButton={
                                                             <button className="p-2 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-xl transition-all">
@@ -370,11 +370,11 @@ const filteredActivities = useMemo(() => {
             <div className="lg:hidden divide-y divide-slate-100">
                 {filteredActivities.map((act, index) => {
                     const isExpanded = effectiveExpandedRows.includes(act.id);
-                    const tasksToDisplay = act.tasks || [];
+                    const tasksToDisplay = act?.tasks || [];
                     const phaseNumber = index + 1;
 
                     return (
-                        <div key={act.id} className="p-4 space-y-4">
+                        <div key={act?.id} className="p-4 space-y-4">
                             <div className={`p-4 rounded-2xl border transition-all ${isExpanded ? 'bg-slate-50 border-indigo-100 shadow-sm' : 'bg-white border-slate-100'}`}>
                                 <div className="flex justify-between items-start mb-3">
                                     <div className="flex-1">
