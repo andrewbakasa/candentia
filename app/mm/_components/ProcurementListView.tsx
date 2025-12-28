@@ -114,6 +114,8 @@ const ProcurementListView = ({ items = [], activeTab, onEdit }: {
                     </div>
                 </div>
             </div>
+            {/* 📊 CONSOLIDATED PROCUREMENT CONTROL BAR */}
+          
 
             {/* CONTENT AREA */}
             <div className="min-h-[400px]">

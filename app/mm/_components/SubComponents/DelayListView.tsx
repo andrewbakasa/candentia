@@ -91,60 +91,63 @@ export function DelayListView({ delays, onEdit }: { delays: any[], onEdit: (r: a
 
   return (
     <div className="space-y-6">
-      {/* 📊 SUMMARY & SEARCH ENGINE */}
-      <div className="bg-white p-6 rounded-[2.5rem] border border-slate-200 shadow-sm space-y-4">
-        {/* <div className="flex flex-col lg:flex-row gap-4 items-center justify-between">
-          <div className="w-full lg:flex-1">
-            <SearchFilterEngine 
-              scopes={DELAY_SEARCH_SCOPES}
-              initialActiveScopes={activeSearchFields}
-              onSearchChange={setSearchTerm}
-              onScopesChange={setActiveSearchFields}
-              placeholder="Search via operational scopes..."
-            />
-          </div>
-          
-          <button 
-            onClick={handleExport}
-            className="w-full lg:w-auto flex items-center justify-center gap-2 px-6 py-4 bg-indigo-600 text-white rounded-2xl hover:bg-indigo-700 transition-all shadow-md shadow-indigo-200 text-xs font-black uppercase tracking-widest"
-          >
-            <FileSpreadsheet size={18} />
-            <span>Export ({filteredDelays.length})</span>
-          </button>
-        </div> */}
+    
+     {/* 📊 PREMIUM CONTROL & KPI BAR */}
+    <div className="bg-white p-2 rounded-[2.5rem] border border-slate-200 shadow-sm">
+      <div className="flex flex-col lg:flex-row gap-2 items-stretch">
+        
+        {/* 1. LEFT: SEARCH SECTION */}
+        <div className="flex-1 p-4">
+          <SearchFilterEngine 
+            scopes={DELAY_SEARCH_SCOPES}
+            initialActiveScopes={activeSearchFields}
+            onSearchChange={setSearchTerm}
+            onScopesChange={setActiveSearchFields}
+            placeholder="Search via operational scopes..."
+          />
+        </div>
 
-        {/* Alignment Fix: items-stretch + min-h on button */}
-        <div className="flex flex-col lg:flex-row gap-4 items-stretch justify-between">
-          <div className="w-full lg:flex-1">
-            <SearchFilterEngine 
-              scopes={DELAY_SEARCH_SCOPES}
-              initialActiveScopes={activeSearchFields}
-              onSearchChange={setSearchTerm}
-              onScopesChange={setActiveSearchFields}
-              placeholder="Search via operational scopes..."
-            />
+        {/* 2. CENTER: KPI INDICATORS (The Improved Summary) */}
+        <div className="flex items-center gap-4 px-6 py-2 bg-slate-50/50 rounded-[1.8rem] border border-slate-100 mx-4 lg:mx-0">
+          {/* Cost Metric */}
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-full bg-rose-100 flex items-center justify-center text-rose-600 shadow-sm border border-rose-200">
+              <DollarSign size={18} />
+            </div>
+            <div className="flex flex-col">
+              <span className="text-[8px] font-black text-rose-400 uppercase tracking-widest leading-none">Cost Impact</span>
+              <span className="text-sm font-black text-slate-900">${totalImpactCost.toLocaleString()}</span>
+            </div>
           </div>
-          
+
+          {/* Vertical Divider */}
+          <div className="h-8 w-[1px] bg-slate-200 hidden sm:block" />
+
+          {/* Time Metric */}
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-600 shadow-sm border border-indigo-200">
+              <Clock size={18} />
+            </div>
+            <div className="flex flex-col">
+              <span className="text-[8px] font-black text-slate-400 uppercase tracking-widest leading-none">Time Loss</span>
+              <span className="text-sm font-black text-slate-900">{totalHours} <span className="text-[10px] text-slate-400">HRS</span></span>
+            </div>
+          </div>
+        </div>
+
+        {/* 3. RIGHT: EXPORT ACTION */}
+        <div className="p-4 flex items-center">
           <button 
             onClick={handleExport}
-            className="w-full lg:w-auto min-h-[64px] flex items-center justify-center gap-3 px-8 bg-indigo-600 text-white rounded-2xl hover:bg-indigo-700 transition-all shadow-md shadow-indigo-100 text-[10px] font-black uppercase tracking-widest"
+            className="w-full lg:w-auto h-12 flex items-center justify-center gap-3 px-8 bg-emerald-600 text-white rounded-2xl hover:bg-emerald-700 hover:scale-[1.02] active:scale-95 transition-all shadow-lg shadow-emerald-100 text-[10px] font-black uppercase tracking-widest"
           >
             <FileSpreadsheet size={18} />
-            <span>Export ({filteredDelays.length})</span>
+            <span>Export</span>
           </button>
         </div>
 
-        <div className="grid grid-cols-2 gap-4 pt-2">
-          <div className="bg-rose-50/50 p-4 rounded-2xl border border-rose-100/50">
-            <p className="text-[10px] font-black text-rose-400 uppercase tracking-widest mb-1 text-center md:text-left">Cost Impact</p>
-            <p className="text-xl font-black text-rose-600 text-center md:text-left">${totalImpactCost.toLocaleString()}</p>
-          </div>
-          <div className="bg-slate-50 p-4 rounded-2xl border border-slate-100/50">
-            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1 text-center md:text-left">Time Loss</p>
-            <p className="text-xl font-black text-slate-900 text-center md:text-left">{totalHours} <span className="text-xs font-medium">hrs</span></p>
-          </div>
-        </div>
       </div>
+    </div>
 
       {/* 📱 VIEWPORT CONTENT AREA */}
       <div className="bg-white rounded-[2rem] shadow-sm border border-slate-200 overflow-hidden min-h-[400px]">
