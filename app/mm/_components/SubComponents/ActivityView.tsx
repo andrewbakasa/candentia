@@ -126,8 +126,13 @@ export const ActivityTableView = ({
       )}
 
       {/* SEARCH & FILTERS */}
+     
+      {/* 🔍 REFACTORED SEARCH & FILTERS BAR */}
       <div className="bg-white p-6 rounded-[2.5rem] border border-slate-200 shadow-sm space-y-4">
-        <div className="flex flex-col lg:flex-row gap-4 items-center justify-between">
+        {/* Changed items-center to items-stretch for height alignment */}
+        <div className="flex flex-col lg:flex-row gap-4 items-stretch justify-between">
+          
+          {/* Left: Search Engine */}
           <div className="w-full lg:flex-1">
             <SearchFilterEngine 
               scopes={ACTIVITY_SEARCH_SCOPES}
@@ -137,17 +142,23 @@ export const ActivityTableView = ({
               placeholder="Search across all operational scopes..."
             />
           </div>
-          <div className="flex items-center gap-2 w-full lg:w-auto">
+
+          {/* Right: Actions Container */}
+          <div className="flex items-stretch gap-2 w-full lg:w-auto">
             <button 
               onClick={() => setShowUnfulfilledOnly(!showUnfulfilledOnly)}
-              className={`flex-1 lg:flex-none flex items-center justify-center gap-2 px-5 py-3.5 rounded-2xl transition-all shadow-sm border font-black uppercase text-[10px] tracking-widest ${
+              className={`flex-1 lg:flex-none flex items-center justify-center gap-2 px-6 rounded-2xl transition-all shadow-sm border font-black uppercase text-[10px] tracking-widest min-h-[64px] ${
                 showUnfulfilledOnly ? 'bg-amber-500 border-amber-600 text-white' : 'bg-white border-slate-200 text-slate-400 hover:border-indigo-300'
               }`}
             >
               {showUnfulfilledOnly ? <ListChecks size={18}/> : <Construction size={18} />}
               {showUnfulfilledOnly ? "Pending Items" : "All Work"}
             </button>
-            <button onClick={handleExport} className="flex-1 lg:flex-none flex items-center justify-center gap-2 px-6 py-3.5 bg-slate-900 text-white rounded-2xl hover:bg-black transition-all shadow-lg">
+
+            <button 
+              onClick={handleExport} 
+              className="flex-1 lg:flex-none flex items-center justify-center gap-3 px-8 bg-slate-900 text-white rounded-2xl hover:bg-black transition-all shadow-lg min-h-[64px]"
+            >
               <FileSpreadsheet size={18} />
               <span className="text-[10px] font-black uppercase tracking-widest">Excel</span>
             </button>
