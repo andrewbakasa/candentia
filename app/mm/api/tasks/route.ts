@@ -4,47 +4,66 @@ import prisma from '../../../libs/prismadb';
 /**
  * 🎯 POST /api/mm/tasks
  * Handles task creation and updates Activity labor/progress metrics.
+ * Integrated with BaseTask Benchmarking (Guideline 1 of 2025).
  */
 export async function POST(request: NextRequest) {
     try {
         const body = await request.json();
 
+        // Basic validation for activity existence
+        if (!body.activityId) {
+            return NextResponse.json({ message: "Activity ID is required." }, { status: 400 });
+        }
+
         const result = await prisma.$transaction(async (tx) => {
-            // 1. Determine Completion Status and Date
-            // User MUST supply body.completionDate if status is COMPLETED
+            // 1. Determine Completion Status
             const isFinished = body.status === 'COMPLETED';
             const userCompletionDate = body.completionDate ? new Date(body.completionDate) : null;
 
-            // 2. Create the Task
+            // 2. Create the Task with New Model Fields
             const task = await tx.mM_Task.create({
                 data: {
                     activityId: body.activityId,
+                    // NEW: Link to the Standard Model
+                    baseTaskId: body.baseTaskId || null, 
                     title: body.title,
                     description: body.description,
                     assignedTo: body.assignedTo,
                     status: body.status || 'PENDING',
                     dueDate: body.dueDate ? new Date(body.dueDate) : null,
+                    
+                    // PERFORMANCE TRACKING
                     estimatedHours: parseFloat(body.estimatedHours) || 0,
                     actualHours: parseFloat(body.actualHours) || 0,
+                    
+                    // NEW: Compliance Tracking (Guideline Sec 6.2)
+                    variationReason: body.variationReason || null,
+                    
+                    // OPERATIONAL SPECIFICS
                     materialNotes: body.materialNotes,
                     isCompleted: isFinished,
-                    // Manual override: uses user-supplied date instead of system 'now'
                     completionDate: isFinished ? userCompletionDate : null,
                 }
             });
 
             // 3. Aggregate Data to Activity (Guideline 1 Sec 5.1 Financial Performance)
+            // Fetching updated task list to calculate total impact
             const allTasks = await tx.mM_Task.findMany({
                 where: { activityId: body.activityId }
             });
 
             const totalActualHours = allTasks.reduce((acc, t) => acc + (t.actualHours || 0), 0);
-            const completedTasks = allTasks.filter(t => t.isCompleted).length;
+            const completedTasksCount = allTasks.filter(t => t.isCompleted).length;
+            
+            // Calculate Progress Percentage
             const progressPercentage = allTasks.length > 0 
-                ? Math.round((completedTasks / allTasks.length) * 100) 
+                ? Math.round((completedTasksCount / allTasks.length) * 100) 
                 : 0;
 
-            // 4. Update Parent Activity with aggregated labor info
+            /** * 4. Update Parent Activity with aggregated labor info
+             * Using $50/hr as a placeholder for standard labor costing.
+             * This ensures the Project Dashboard reflects real-time financial variance.
+             */
             const LABOR_RATE = 50; 
             await tx.mM_Activity.update({
                 where: { id: body.activityId },
@@ -58,11 +77,79 @@ export async function POST(request: NextRequest) {
         });
 
         return NextResponse.json(result, { status: 201 });
-    } catch (error) {
+    } catch (error: any) {
         console.error("MM_Task POST Error:", error);
-        return NextResponse.json({ message: "Task logging failed." }, { status: 500 });
+        return NextResponse.json(
+            { message: "Task logging failed.", error: error.message }, 
+            { status: 500 }
+        );
     }
 }
+// import { NextRequest, NextResponse } from 'next/server';
+// import prisma from '../../../libs/prismadb';
+
+// /**
+//  * 🎯 POST /api/mm/tasks
+//  * Handles task creation and updates Activity labor/progress metrics.
+//  */
+// export async function POST(request: NextRequest) {
+//     try {
+//         const body = await request.json();
+
+//         const result = await prisma.$transaction(async (tx) => {
+//             // 1. Determine Completion Status and Date
+//             // User MUST supply body.completionDate if status is COMPLETED
+//             const isFinished = body.status === 'COMPLETED';
+//             const userCompletionDate = body.completionDate ? new Date(body.completionDate) : null;
+
+//             // 2. Create the Task
+//             const task = await tx.mM_Task.create({
+//                 data: {
+//                     activityId: body.activityId,
+//                     title: body.title,
+//                     description: body.description,
+//                     assignedTo: body.assignedTo,
+//                     status: body.status || 'PENDING',
+//                     dueDate: body.dueDate ? new Date(body.dueDate) : null,
+//                     estimatedHours: parseFloat(body.estimatedHours) || 0,
+//                     actualHours: parseFloat(body.actualHours) || 0,
+//                     materialNotes: body.materialNotes,
+//                     isCompleted: isFinished,
+//                     // Manual override: uses user-supplied date instead of system 'now'
+//                     completionDate: isFinished ? userCompletionDate : null,
+//                 }
+//             });
+
+//             // 3. Aggregate Data to Activity (Guideline 1 Sec 5.1 Financial Performance)
+//             const allTasks = await tx.mM_Task.findMany({
+//                 where: { activityId: body.activityId }
+//             });
+
+//             const totalActualHours = allTasks.reduce((acc, t) => acc + (t.actualHours || 0), 0);
+//             const completedTasks = allTasks.filter(t => t.isCompleted).length;
+//             const progressPercentage = allTasks.length > 0 
+//                 ? Math.round((completedTasks / allTasks.length) * 100) 
+//                 : 0;
+
+//             // 4. Update Parent Activity with aggregated labor info
+//             const LABOR_RATE = 50; 
+//             await tx.mM_Activity.update({
+//                 where: { id: body.activityId },
+//                 data: {
+//                     progress: progressPercentage,
+//                     actualLaborCost: totalActualHours * LABOR_RATE,
+//                 }
+//             });
+
+//             return task;
+//         });
+
+//         return NextResponse.json(result, { status: 201 });
+//     } catch (error) {
+//         console.error("MM_Task POST Error:", error);
+//         return NextResponse.json({ message: "Task logging failed." }, { status: 500 });
+//     }
+// }
 // import { NextRequest, NextResponse } from 'next/server';
 // import prisma from '../../../libs/prismadb';
 

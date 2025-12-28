@@ -70,22 +70,57 @@ const ExecutionRegistry: React.FC<ExecutionRegistryProps> = ({
     const [searchTerm, setSearchTerm] = useState("");
     const [activeSearchFields, setActiveSearchFields] = useState<SearchScope[]>(['phase', 'task']);
 
-    // --- LOGIC: Scoped Filter ---
-    const filteredActivities = useMemo(() => {
-        const lowerTerm = searchTerm.toLowerCase().trim();
-        if (!lowerTerm) return activities;
+    // // --- LOGIC: Scoped Filter ---
+    // const filteredActivities = useMemo(() => {
+    //     const lowerTerm = searchTerm.toLowerCase().trim();
+    //     if (!lowerTerm) return activities;
 
-        return activities.filter(act => {
+    //     return activities.filter(act => {
+    //         const phaseMatches = activeSearchFields.includes('phase') && 
+    //                            act.description.toLowerCase().includes(lowerTerm);
+            
+    //         const taskMatches = activeSearchFields.includes('task') && 
+    //                           act.tasks?.some(t => t.title.toLowerCase().includes(lowerTerm));
+            
+    //         return phaseMatches || taskMatches;
+    //     });
+    // }, [activities, searchTerm, activeSearchFields]);
+    // --- LOGIC: Scoped Filter (Strict Task Filtering) ---
+// --- LOGIC: Scoped Filter (Strict Task Filtering) ---
+const filteredActivities = useMemo(() => {
+    const lowerTerm = searchTerm.toLowerCase().trim();
+    
+    // If no search term, return original activities
+    if (!lowerTerm) return activities;
+
+    return activities
+        .map(act => {
+            // 1. Check if the Phase (Activity) itself matches
             const phaseMatches = activeSearchFields.includes('phase') && 
                                act.description.toLowerCase().includes(lowerTerm);
             
-            const taskMatches = activeSearchFields.includes('task') && 
-                              act.tasks?.some(t => t.title.toLowerCase().includes(lowerTerm));
-            
-            return phaseMatches || taskMatches;
-        });
-    }, [activities, searchTerm, activeSearchFields]);
+            // 2. Filter tasks: only keep tasks that match the term if 'task' search is active
+            const matchingTasks = (act.tasks || []).filter(t => 
+                t.title.toLowerCase().includes(lowerTerm)
+            );
 
+            const hasTaskMatches = activeSearchFields.includes('task') && matchingTasks.length > 0;
+
+            // 3. Logic: If the phase matches, we show the phase. 
+            // If the phase doesn't match but its tasks do, we show the phase with ONLY matching tasks.
+            if (phaseMatches || hasTaskMatches) {
+                return {
+                    ...act,
+                    // If we found specific task matches, show only those. 
+                    // Otherwise, if the phase matched, show all its tasks.
+                    tasks: hasTaskMatches ? matchingTasks : act.tasks
+                };
+            }
+            
+            return null;
+        })
+        .filter(act => act !== null); // Standard filter without the type predicate
+}, [activities, searchTerm, activeSearchFields]);
     // --- LOGIC: Contextual Auto-Expand ---
     const effectiveExpandedRows = useMemo(() => {
         if (!searchTerm.trim()) return expandedActivities;

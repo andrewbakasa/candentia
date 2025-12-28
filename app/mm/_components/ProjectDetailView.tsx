@@ -21,10 +21,11 @@ interface ProjectDetailViewProps {
     onRefresh?: () => void;
     MM_ActivityForm: React.ComponentType<any>;
     allStrategies?: any[]; 
+    baseTasks:any[];
 }
 
 
-export default function ProjectDetailView({ project, onRefresh, MM_ActivityForm, currentUser, allStrategies = [] }: ProjectDetailViewProps) {
+export default function ProjectDetailView({ project, onRefresh, MM_ActivityForm, currentUser,baseTasks, allStrategies = [] }: ProjectDetailViewProps) {
     const router = useRouter();
     const isAllowedDelete = (currentUser?.isAdmin)// || currentUser?.roles?.some((r: string) => ['admin', 'executive'].includes(r.toLowerCase()));
 
@@ -70,12 +71,14 @@ export default function ProjectDetailView({ project, onRefresh, MM_ActivityForm,
      */
     const handleDeleteTask = async (activityId: string | number, taskId: string | number) => {
         try {
+            console.log(`/mm/api/tasks/${taskId}`)
             const res = await fetch(`/mm/api/tasks/${taskId}`, { method: 'DELETE' });
             if (!res.ok) throw new Error('Failed to delete work package');
             
             toast.success('Work Package Removed');
             handleSync();
         } catch (error: any) {
+            console.log('erro',error)
             toast.error(error.message || 'Failed to delete task.');
         }
     };
@@ -257,6 +260,7 @@ export default function ProjectDetailView({ project, onRefresh, MM_ActivityForm,
                 onClose={closeModal}
                 onSuccess={handleSync}
                 forms={{ MM_ActivityForm }}
+                baseTasks={baseTasks}
             />
         </div>
     );

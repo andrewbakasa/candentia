@@ -23,10 +23,13 @@ import { ProjectGridView } from './_components/SubComponents/ProjectListView';
 import { WorkshopListView } from './_components/SubComponents/WorkshopListView';
 import { StrategyListView } from './_components/SubComponents/StrategicListView';
 import MM_StrategicPlanForm from './_components/MM_StrategicPlanForm';
+import BaseTaskForm from './_components/BaseTaskForm';
+import { BaseTaskGridView } from './_components/SubComponents/BaseTaskListView';
+import { TbChevronsDownLeft } from 'react-icons/tb';
 
 // 1. Updated TabType to include mastermaterials
 //export type TabType = 'strategies' | 'projects' | 'activities' | 'workshops' | 'purchaseorders' | 'materials' | 'mastermaterials';
-export type TabType = 'strategies' | 'projects' | 'activities' | 'workshops' | 'purchaseorders' | 'materials' | 'mastermaterials' | 'delays';
+export type TabType = 'strategies' | 'projects' | 'activities' | 'workshops' | 'purchaseorders' | 'materials' | 'mastermaterials' | 'delays' |'basetasks';
 
 function DashboardContent({ currentUser }: { currentUser: any }) {
   const searchParams = useSearchParams();
@@ -41,7 +44,8 @@ function DashboardContent({ currentUser }: { currentUser: any }) {
     purchaseorders: [], 
     materials: [],
     mastermaterials: [] ,
-    delays: []
+    delays: [],
+    basetasks: []
   });
   
   const [loading, setLoading] = useState(true);
@@ -69,6 +73,7 @@ function DashboardContent({ currentUser }: { currentUser: any }) {
         purchaseorders: ['strategies', 'projects'],
         materials: ['strategies', 'projects'],
         delays: ['activities', 'projects'],
+        basetasks: [],
       };
 
       const deps = dependencyMap[activeTab] || [];
@@ -78,6 +83,7 @@ function DashboardContent({ currentUser }: { currentUser: any }) {
         endpoints.map(async (slug) => {
           // Use override if exists, otherwise use slug
           const apiPath = endpointOverride[slug as TabType] || slug;
+         console.log("apiPath",`/mm/api/${apiPath}`)
           const res = await fetch(`/mm/api/${apiPath}`);
           const json = await res.json();
           return { slug, data: Array.isArray(json) ? json : [] };
@@ -146,6 +152,7 @@ const handleDelete = async (tab: TabType, id: string) => {
   useEffect(() => { fetchData(); }, [fetchData]);
 
   const handleSaveSuccess = () => {
+    toast.success("Sussefull......")
     setIsModalOpen(false);
     setEditingRecord(null);
     fetchData(); 
@@ -164,6 +171,7 @@ const tabLabels = {
   purchaseorders:'Purchase Order',
   materials:'Material',
   delays:'Process Delay',
+  basetasks:'Base Tasks',
 };
   return (
     <div className="flex flex-col lg:flex-row h-screen bg-slate-50 overflow-hidden">
@@ -206,6 +214,8 @@ const tabLabels = {
               {activeTab === 'workshops' && <WorkshopListView workshops={data.workshops} onEdit={(r:any)=>{setEditingRecord(r); setIsModalOpen(true);}} permissions={{canEdit:isAllowedEdit}}/>}
               {activeTab === 'projects' && <ProjectGridView projects={data.projects} onEdit={(r:any)=>{setEditingRecord(r); setIsModalOpen(true);}} permissions={{canEdit:isAllowedEdit}}/>}
               {activeTab === 'activities' && <ActivityTableView activities={data.activities} onEdit={(r:any)=>{setEditingRecord(r); setIsModalOpen(true);}} permissions={{canEdit:isAllowedEdit}} refreshData={handleRefreshData}/>}
+              {activeTab === 'basetasks' && <BaseTaskGridView baseTasks={data.basetasks} onEdit={(r:any)=>{setEditingRecord(r); setIsModalOpen(true);}} permissions={{canEdit:isAllowedEdit}} refreshData={handleRefreshData}/>}
+            
               {activeTab === 'delays' && (
                   <DelayListView 
                     delays={data.delays} 
@@ -257,6 +267,9 @@ const tabLabels = {
                   <MM_MaterialForm initialData={editingRecord} projects={data.projects} strategies={data.strategies} onClose={() => setIsModalOpen(false)} onSuccess={handleSaveSuccess} />
                 ) : activeTab === 'activities' ? (
                   <MM_ActivityForm initialData={editingRecord} projects={data.projects} onClose={() => setIsModalOpen(false)} onSuccess={handleSaveSuccess} />
+                  ) : activeTab === 'basetasks' ? (
+                  <BaseTaskForm initialData={editingRecord}  onClose={() => setIsModalOpen(false)} onSuccess={handleSaveSuccess} />            
+                
                 ) : activeTab === 'mastermaterials' ? (
                   <MM_MasterMaterialForm initialData={editingRecord} onClose={() => setIsModalOpen(false)} onSuccess={handleSaveSuccess} />
                 ) : activeTab === 'projects' ? (

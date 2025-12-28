@@ -17,6 +17,7 @@ interface ProjectModalPortalProps {
     selectedActivity?: any;
     onClose: () => void;
     onSuccess: () => void;
+    baseTasks:any[];
     forms: {
         MM_ActivityForm: React.ComponentType<any>;
     };
@@ -31,6 +32,7 @@ const ProjectModalPortal = ({
     selectedActivity,
     onClose,
     onSuccess,
+    baseTasks,
     forms: { MM_ActivityForm }
 }: ProjectModalPortalProps) => {
     if (!isOpen || !type) return null;
@@ -87,11 +89,12 @@ const ProjectModalPortal = ({
 
                     {type === 'task' && (
                         <MM_TaskForm 
-                            initialData={editingRecord} 
+                            initialData={editingRecord}
                             activities={project.activities || []}
-                            preselectedActivity={selectedActivity} 
+                            preselectedActivity={selectedActivity}
                             onClose={onClose}
                             onSuccess={onSuccess} 
+                            baseTasks={baseTasks}                        
                         />
                     )}
 

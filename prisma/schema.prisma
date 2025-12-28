@@ -1652,15 +1652,46 @@ model MM_Activity {
 // --- 5. TASK-LEVEL WORK MANAGEMENT ---
 // Granular breakdown of Activity work-steps assigned to staff.
 // -----------------------------------------------------------------------------
+// // 
+// /* How this works for your Teams (Guideline 1 Methodology)
+// Standardization: When a project starts, the team picks from the BaseTask list. This ensures that every "Foundation Pour" or "Procurement Audit" uses the same baseline description and benchmark hours.
 
+// Flexibility (User Variation): Once a BaseTask is assigned to an MM_Activity, it becomes an MM_Task. The user can change the title to something specific (e.g., "Foundation Pour - Sector B") without breaking the link to the original "Golden Standard."
+
+// Variance Analysis: Because you kept the baseTaskId, your dashboard can now compare MM_Task.actualHours against BaseTask.benchmarkHours. This is critical for the Financial Performance and Costing Examples mentioned in your guidelines.
+//  */
+
+ // 1. The Standardized Blueprint (Non-negotiable Framework)
+model BaseTask {
+  id              String   @id @default(auto()) @map("_id") @db.ObjectId
+  standardTitle   String   @unique
+  standardDesc    String?
+  category        String?  // e.g., "Civil", "Electrical", "Procurement"
+  
+  // Benchmark Metrics (Guideline Sec 6.2)
+  benchmarkHours  Float?   // The "Expected" time for this standard task
+  requiredSkills  String[] // Skill sets needed for this task
+  
+  // Relation to instances created from this template
+  taskInstances   MM_Task[]
+  
+  updatedAt DateTime @updatedAt
+  createdAt       DateTime @default(now())
+}
 model MM_Task {
   id         String      @id @default(auto()) @map("_id") @db.ObjectId
   activityId String      @db.ObjectId
   activity   MM_Activity @relation(fields: [activityId], references: [id])
 
-  title       String
-  description String?
+  // --- Variation Fields ---
+  // If user modifies title/desc, it deviates from the BaseTask
+  title           String   // Defaulted from BaseTask but editable
+  description     String?  // Defaulted from BaseTask but editable
+  
   assignedTo  String?
+  // Link to the Standard Model
+  baseTaskId      String?  @db.ObjectId
+  baseTask        BaseTask? @relation(fields: [baseTaskId], references: [id])
 
   status         TaskStatus @default(PENDING)
   isCompleted    Boolean    @default(false)
@@ -1668,14 +1699,19 @@ model MM_Task {
   dueDate        DateTime?
   completionDate DateTime?
 
-  // Resource Load & Time Tracking (Guideline Sec 6.2)
-  estimatedHours Float?
-  actualHours    Float?
-  materialNotes  String? // Notes on specific part usage/waste
+
+  // --- Performance Tracking vs. Benchmark ---
+  estimatedHours  Float?   // User-defined for this specific job
+  actualHours     Float?   
+  
+  // Operational Specifics
+  materialNotes   String? 
+  variationReason String?  // Why did this task deviate from the Base Model?
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
+
 
 // -----------------------------------------------------------------------------
 // --- 6. PROCUREMENT & FINANCIAL COMMITMENTS ---
