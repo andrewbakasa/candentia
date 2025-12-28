@@ -243,7 +243,7 @@ const ExecutionRegistry: React.FC<ExecutionRegistryProps> = ({
                                             </Link>
                                             <div className="block">
                                                 <span className="text-[9px] bg-indigo-50 text-indigo-600 px-2 py-0.5 rounded-md font-black uppercase mt-1 inline-block">
-                                                    {act.tasks?.length || 0} Work Packages
+                                                    {act?.tasks?.length || 0} Work Packages
                                                 </span>
                                             </div>
                                         </td>
