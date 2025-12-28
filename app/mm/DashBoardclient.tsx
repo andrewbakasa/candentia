@@ -69,7 +69,7 @@ function DashboardContent({ currentUser }: { currentUser: any }) {
         workshops: [],
         mastermaterials: [], // Global catalog is independent
         projects: ['strategies','workshops'],
-        activities: ['projects'],
+        activities: ['projects','basetasks'],
         purchaseorders: ['strategies', 'projects'],
         materials: ['strategies', 'projects'],
         delays: ['activities', 'projects'],
