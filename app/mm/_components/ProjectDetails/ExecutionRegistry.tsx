@@ -124,7 +124,7 @@ const filteredActivities = useMemo(() => {
     // --- LOGIC: Contextual Auto-Expand ---
     const effectiveExpandedRows = useMemo(() => {
         if (!searchTerm.trim()) return expandedActivities;
-        return filteredActivities.map(act => act.id);
+        return filteredActivities.map(act => act?.id);
     }, [filteredActivities, searchTerm, expandedActivities]);
 
     const toggleExpand = (id: string | number) => {
