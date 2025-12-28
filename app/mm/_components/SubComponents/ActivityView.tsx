@@ -23,7 +23,7 @@ const ACTIVITY_SEARCH_SCOPES: SearchScope[] = [
 ];
 
 export const ActivityTableView = ({ 
-  activities = [], onEdit, onDelete, onAddTask, refreshData, permissions 
+  activities = [], onEdit, onDelete, onAddTask, refreshData, permissions, baseTasks, 
 }: any) => {
   const [searchTerm, setSearchTerm] = useState('');
   const [activeFields, setActiveFields] = useState<string[]>(['projectName', 'activityDesc', 'workshop']);
@@ -116,11 +116,11 @@ export const ActivityTableView = ({
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm">
           <div className="bg-white w-full max-w-2xl rounded-[2.5rem] shadow-2xl overflow-hidden animate-in fade-in zoom-in duration-200">
              <MM_TaskForm 
-                initialData={editingTask} activities={activities}
-                preselectedActivity={activeActivity} 
-                onClose={() => { setEditingTask(null); setActiveActivity(null); }}
-                onSuccess={() => { toast.success("Records Updated"); setEditingTask(null); if(refreshData) refreshData(); }} 
-              />
+              initialData={editingTask} activities={activities}
+              preselectedActivity={activeActivity}
+              onClose={() => { setEditingTask(null); setActiveActivity(null); } }
+              onSuccess={() => { toast.success("Records Updated"); setEditingTask(null); if (refreshData) refreshData(); } } 
+              baseTasks={baseTasks}              />
           </div>
         </div>
       )}

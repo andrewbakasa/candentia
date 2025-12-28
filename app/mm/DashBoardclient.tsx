@@ -213,7 +213,7 @@ const tabLabels = {
               {activeTab === 'strategies' && <StrategyListView strategies={data.strategies} onEdit={(r: any) => { setEditingRecord(r); setIsModalOpen(true); } }  permissions={{ canEdit: isAllowedEdit , canDelete: isAllowedDelete}} onDelete={(id: string) => handleDelete('strategies', id)}/>}
               {activeTab === 'workshops' && <WorkshopListView workshops={data.workshops} onEdit={(r:any)=>{setEditingRecord(r); setIsModalOpen(true);}} permissions={{canEdit:isAllowedEdit}}/>}
               {activeTab === 'projects' && <ProjectGridView projects={data.projects} onEdit={(r:any)=>{setEditingRecord(r); setIsModalOpen(true);}} permissions={{canEdit:isAllowedEdit}}/>}
-              {activeTab === 'activities' && <ActivityTableView activities={data.activities} onEdit={(r:any)=>{setEditingRecord(r); setIsModalOpen(true);}} permissions={{canEdit:isAllowedEdit}} refreshData={handleRefreshData}/>}
+              {activeTab === 'activities' && <ActivityTableView baseTasks={data.basetasks} activities={data.activities} onEdit={(r:any)=>{setEditingRecord(r); setIsModalOpen(true);}} permissions={{canEdit:isAllowedEdit}} refreshData={handleRefreshData}/>}
               {activeTab === 'basetasks' && <BaseTaskGridView baseTasks={data.basetasks} onEdit={(r:any)=>{setEditingRecord(r); setIsModalOpen(true);}} permissions={{canEdit:isAllowedEdit}} refreshData={handleRefreshData}/>}
             
               {activeTab === 'delays' && (
