@@ -106,10 +106,11 @@ export async function GET(request: NextRequest) {
             where: whereClause,
             include: {
                 activity: {
-                    select: {
-                        description: true,
-                        projectId: true, // This allows you to see which project it belongs to
-                        project: { select: { name: true } }
+                    include: {
+                        // description: true,
+                        // projectId: true, // This allows you to see which project it belongs to
+                        project: { select: { name: true } },
+                        // scheduledEnd:true
                     }
                 },
                 materialRequest: { include: { material: true } }

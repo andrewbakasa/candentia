@@ -8,11 +8,12 @@ import {
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import ConfirmAction from './ConfirmAction';
-import LatencyRegistry from './ProjectDetails/LetencyRegistry';
+//import LatencyRegistry from './ProjectDetails/LetencyRegistry';
 import ExecutionRegistry from './ProjectDetails/ExecutionRegistry';
 import ProcurementPortfolio from './ProjectDetails/ProcurementPortifolio';
 import ProjectModalPortal from './ProjectDetails/ProjectModalPortal';
 import { SafeUser } from '@/app/types';
+import { LatencyRegistry } from './ProjectDetails/LetencyRegistry';
 
 interface ProjectDetailViewProps {
     project: any;

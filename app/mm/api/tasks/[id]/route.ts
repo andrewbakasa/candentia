@@ -14,7 +14,7 @@ export async function PATCH(
     try {
         const { id } = params;
         const body = await request.json();
-
+        //console.log('body', body)
         // 1. Validation for Business Model Compliance (Sec 5.5)
         if (body.status === 'COMPLETED' && !body.completionDate) {
             return NextResponse.json(
@@ -22,7 +22,7 @@ export async function PATCH(
                 { status: 400 }
             );
         }
-
+        //console.log("Passed here...................")
         // 2. Execute Transaction
         const result = await prisma.$transaction(async (tx) => {
             
@@ -88,7 +88,7 @@ export async function PATCH(
             maxWait: 5000,
             timeout: 20000 // Handle potential DB contention during peak activity sync
         });
-
+        //console.log('tasks results:',result)
         return NextResponse.json(result, { status: 200 });
 
     } catch (error: any) {
