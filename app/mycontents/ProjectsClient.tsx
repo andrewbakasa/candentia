@@ -791,7 +791,7 @@ const dbResult= improvedCode()
 handleSummarize(dbResult) // Call improvedCode with fList
   .then((summary) => {
     summarizedContent = summary;
-    console.log('Summary=====>:',summarizedContent)
+    //console.log('Summary=====>:',summarizedContent)
   })
   .catch((error) => {
     console.error('Error summarizing content:', error);

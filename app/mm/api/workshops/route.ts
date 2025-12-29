@@ -93,7 +93,7 @@ export async function GET() {
             };
         });
 
-        console.log("workshopData",workshopData)
+       // console.log("workshopData",workshopData)
 
         return NextResponse.json(workshopData, { status: 200 });
     } catch (error) {

@@ -45,7 +45,7 @@ export const WorkshopListView = ({ workshops, onEdit, onDelete, permissions }: a
       worksheet.columns = [
         { header: 'Workshop Name', key: 'name', width: 30 },
         { header: 'Location', key: 'location', width: 25 },
-        { header: 'Specialization', key: 'type', width: 20 },
+        { header: 'Specialization', key: 'specialization', width: 20 },
         { header: 'Capacity', key: 'capacity', width: 15 },
         { header: 'Active Projects', key: 'projects', width: 15 },
         { header: 'Load Factor (%)', key: 'load', width: 15 },

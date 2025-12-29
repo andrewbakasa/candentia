@@ -19,7 +19,7 @@ export const handleSummarize = async (text: string): Promise<string> => {
     }
 
     const data = await response.json();
-    console.log("summarized ::::::::   ===>:", data.summary);
+   // console.log("summarized ::::::::   ===>:", data.summary);
     return data.summary;
 
   } catch (error: any) {

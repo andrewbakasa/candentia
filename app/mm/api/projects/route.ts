@@ -23,14 +23,48 @@ interface ProjectRequestData {
 /**
  * 🎯 GET /api/mm/projects
  */
+// export async function GET() {
+//     try {
+//         const projects = await prisma.mM_Project.findMany({
+//             include: {
+//                 responsibleWorkshop: true,
+//                 plan: true,
+//                 materialRequirements: {
+//                     include: { material: true }
+//                 },
+//                 _count: {
+//                     select: { 
+//                         activities: true,
+//                         purchaseOrders: true 
+//                     }
+//                 }
+//             },
+//             orderBy: { createdAt: 'desc' }
+//         });
+
+//         return NextResponse.json(projects, { status: 200 });
+//     } catch (error) {
+//         console.error("MM_PROJECT_GET_ERROR:", error);
+//         return NextResponse.json(
+//             { message: "System Link Failure: Could not retrieve project ledger." }, 
+//             { status: 500 }
+//         );
+//     }
+// }
+
+
 export async function GET() {
     try {
+        const now = new Date();
+
         const projects = await prisma.mM_Project.findMany({
             include: {
                 responsibleWorkshop: true,
                 plan: true,
-                materialRequirements: {
-                    include: { material: true }
+                activities: {
+                    include: {
+                        tasks: true
+                    }
                 },
                 _count: {
                     select: { 
@@ -42,11 +76,60 @@ export async function GET() {
             orderBy: { createdAt: 'desc' }
         });
 
-        return NextResponse.json(projects, { status: 200 });
+        // Transform data to include SVE Statistics
+        const projectStats = projects.map(project => {
+            // 1. Activity Calculations
+            const activityStats = project.activities.reduce((acc, act) => {
+                const isDone = !!act.actualEnd || act.progress === 100;
+                const isOverdue = !isDone && act.scheduledEnd && new Date(act.scheduledEnd) < now;
+                
+                // "Delayed/At Risk" = Not overdue yet, but progress is 0 and we are past start date
+                const isDelayed = !isDone && !isOverdue && 
+                                act.scheduledStart && new Date(act.scheduledStart) < now && 
+                                act.progress < 10;
+
+                if (isDone) acc.completed++;
+                else if (isOverdue) acc.overdue++;
+                else if (isDelayed) acc.delayed++;
+                else acc.onTrack++;
+
+                return acc;
+            }, { completed: 0, overdue: 0, delayed: 0, onTrack: 0 });
+
+            // 2. Task-Level Calculations (Granular Work Management)
+            const allTasks = project.activities.flatMap(a => a.tasks);
+            const taskStats = allTasks.reduce((acc, task) => {
+                const isOverdue = !task.isCompleted && task.dueDate && new Date(task.dueDate) < now;
+                
+                if (task.isCompleted) acc.completed++;
+                else if (isOverdue) acc.overdue++;
+                else acc.pending++;
+
+                return acc;
+            }, { completed: 0, overdue: 0, pending: 0 });
+
+            // 3. Project-Level SVE Status
+            const projectOverdue = !project.actualEnd && project.scheduledEnd && new Date(project.scheduledEnd) < now;
+
+            return {
+                ...project,
+                sveMetrics: {
+                    projectStatus: projectOverdue ? 'OVERDUE' : project.status,
+                    activities: activityStats,
+                    tasks: taskStats,
+                    taskCompletionRate: allTasks.length > 0 
+                        ? Math.round((taskStats.completed / allTasks.length) * 100) 
+                        : 0
+                }
+            };
+        });
+        console.log("projectStats",projectStats)
+        return NextResponse.json(projectStats, { status: 200 });
+
     } catch (error) {
         console.error("MM_PROJECT_GET_ERROR:", error);
         return NextResponse.json(
-            { message: "System Link Failure: Could not retrieve project ledger." }, 
+            { message: "System Link Failure: Could not calculate project variance stats." }, 
             { status: 500 }
         );
     }

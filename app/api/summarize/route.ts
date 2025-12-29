@@ -9,7 +9,7 @@ export async function POST( request: Request ) {
                       
   const body = await request.json();
   const { text } = body;
-  console.log("Total text Len =======>" ,text.length);
+  //console.log("Total text Len =======>" ,text.length);
   if (!text) {
     return new NextResponse('Missing text content', { status: 400 });
   }
@@ -20,7 +20,7 @@ export async function POST( request: Request ) {
     let summary = '';
 
     const chunks: string[] = splitTextWithMerging(text, 5500);
-    console.log("Total chuncks=======>" ,chunks.length);
+    //console.log("Total chuncks=======>" ,chunks.length);
     let counter_ =0
     for (const chunk of chunks) {
       counter_++;

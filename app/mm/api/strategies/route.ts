@@ -40,7 +40,7 @@ export async function GET() {
            
             orderBy: { year: 'desc' }
         });
-        console.log('plans===>', plans)
+        //console.log('plans===>', plans)
         return NextResponse.json(plans, { status: 200 });
     } catch (error) {
         return NextResponse.json({ message: "Error fetching strategic plans." }, { status: 500 });
