@@ -180,7 +180,7 @@ export default function MM_ProjectForm({ initialData, strategies, workshops, onC
                 <option value="">Select Strategy...</option>
                 {strategies.map(plan => (
                   <option key={plan.id} value={plan.id}>
-                    FY {plan.year} (Limit: ${plan.totalBudget.toLocaleString()})
+                    FY {plan.year} {truncateString(plan?.description||"N/A",25)} (Limit: ${plan.totalBudget.toLocaleString()})
                   </option>
                 ))}
               </select>

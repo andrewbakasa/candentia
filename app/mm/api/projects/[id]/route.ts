@@ -13,7 +13,6 @@ interface ProjectUpdateData {
     projectManager?: string;
     status?: MM_ProjectStatus;
     progress?: number;
-    // New SVE Scheduling Fields
     scheduledStart?: string | Date | null;
     scheduledEnd?: string | Date | null;
     actualEnd?: string | Date | null;
@@ -21,7 +20,7 @@ interface ProjectUpdateData {
 
 /**
  * 🎯 PATCH /api/mm/projects/[id]
- * Optimized for SVE (Schedule Variance Engine) and Budget Compliance
+ * Optimized with Atomic Transactions to avoid "Time Lapse" data inconsistencies
  */
 export async function PATCH(
     request: NextRequest,
@@ -31,83 +30,86 @@ export async function PATCH(
         const { id } = params;
         const body: ProjectUpdateData = await request.json();
 
-        // 1. Fetch Current State & Strategy Link
-        const currentProject = await prisma.mM_Project.findUnique({
-            where: { id },
-            include: { 
-                plan: { 
-                    include: { mm_projects: true } 
-                } 
-            }
-        });
+        // WRAP IN TRANSACTION: Ensures budget validation doesn't drift if other users 
+        // update the same plan simultaneously.
+        const result = await prisma.$transaction(async (tx) => {
+            
+            // 1. Fetch Current State with a lock-check intent
+            const currentProject = await tx.mM_Project.findUnique({
+                where: { id },
+                include: { 
+                    plan: { 
+                        include: { mm_projects: true } 
+                    } 
+                }
+            });
 
-        if (!currentProject) {
-            return NextResponse.json({ message: "Project not found" }, { status: 404 });
-        }
+            if (!currentProject) throw new Error("PROJECT_NOT_FOUND");
 
-        // 2. Strategic Ceiling Validation (Guideline Section 5.1)
-        if (body.allocatedBudget !== undefined || body.planId) {
-            const parentPlan = currentProject.plan;
-            if (parentPlan) {
-                const otherProjectsTotal = parentPlan.mm_projects
-                    .filter(p => p.id !== id)
-                    .reduce((acc, p) => acc + (p.allocatedBudget || 0), 0);
+            // 2. Strategic Ceiling Validation (Guideline Section 5.1)
+            if (body.allocatedBudget !== undefined || body.planId) {
+                const parentPlan = currentProject.plan;
+                if (parentPlan) {
+                    const otherProjectsTotal = parentPlan.mm_projects
+                        .filter(p => p.id !== id)
+                        .reduce((acc, p) => acc + (p.allocatedBudget || 0), 0);
 
-                const proposedBudget = body.allocatedBudget ?? currentProject.allocatedBudget;
-                const totalRequested = otherProjectsTotal + proposedBudget;
+                    const proposedBudget = body.allocatedBudget ?? currentProject.allocatedBudget;
+                    const totalRequested = otherProjectsTotal + proposedBudget;
 
-                if (totalRequested > parentPlan.totalBudget) {
-                    return NextResponse.json({ 
-                        message: `Budget Breach: Strategic Plan limit is $${parentPlan.totalBudget.toLocaleString()}. Proposed total reaches $${totalRequested.toLocaleString()}.` 
-                    }, { status: 403 });
+                    if (totalRequested > parentPlan.totalBudget) {
+                        throw new Error("BUDGET_BREACH");
+                    }
                 }
             }
-        }
 
-        // 3. SVE & Status Logic: Auto-handle Completion Dates
-        let finalStatus = body.status;
-        let finalActualEnd = body.actualEnd ? new Date(body.actualEnd) : undefined;
+            // 3. SVE & Status Logic
+            let finalStatus = body.status;
+            let finalActualEnd = body.actualEnd ? new Date(body.actualEnd) : undefined;
 
-        // If progress is pushed to 100%, force status and set completion date if missing
-        if (body.progress === 100) {
-            finalStatus = MM_ProjectStatus.COMPLETED;
-            if (!finalActualEnd && !currentProject.actualEnd) {
-                finalActualEnd = new Date();
+            if (body.progress === 100) {
+                finalStatus = MM_ProjectStatus.COMPLETED;
+                if (!finalActualEnd && !currentProject.actualEnd) {
+                    finalActualEnd = new Date();
+                }
             }
-        }
 
-        // 4. Persistent Update
-        const updatedProject = await prisma.mM_Project.update({
-            where: { id },
-            data: {
-                ...(body.name && { name: body.name }),
-                ...(body.allocatedBudget !== undefined && { allocatedBudget: body.allocatedBudget }),
-                ...(body.projectManager && { projectManager: body.projectManager }),
-                ...(finalStatus && { status: finalStatus }),
-                ...(body.progress !== undefined && { progress: body.progress }),
-                
-                // Date handling for Schedule Variance Engine
-                ...(body.scheduledStart !== undefined && { 
-                    scheduledStart: body.scheduledStart ? new Date(body.scheduledStart) : null 
-                }),
-                ...(body.scheduledEnd !== undefined && { 
-                    scheduledEnd: body.scheduledEnd ? new Date(body.scheduledEnd) : null 
-                }),
-                ...(finalActualEnd !== undefined && { actualEnd: finalActualEnd }),
-
-                // Relational Connectors
-                ...(body.planId && { plan: { connect: { id: body.planId } } }),
-                ...(body.workshopId && { responsibleWorkshop: { connect: { id: body.workshopId } } }),
-            },
-            include: {
-                responsibleWorkshop: true,
-                plan: true
-            }
+            // 4. Persistent Atomic Update
+            return await tx.mM_Project.update({
+                where: { id },
+                data: {
+                    ...(body.name && { name: body.name }),
+                    ...(body.allocatedBudget !== undefined && { allocatedBudget: body.allocatedBudget }),
+                    ...(body.projectManager && { projectManager: body.projectManager }),
+                    ...(finalStatus && { status: finalStatus }),
+                    ...(body.progress !== undefined && { progress: body.progress }),
+                    ...(body.scheduledStart !== undefined && { 
+                        scheduledStart: body.scheduledStart ? new Date(body.scheduledStart) : null 
+                    }),
+                    ...(body.scheduledEnd !== undefined && { 
+                        scheduledEnd: body.scheduledEnd ? new Date(body.scheduledEnd) : null 
+                    }),
+                    ...(finalActualEnd !== undefined && { actualEnd: finalActualEnd }),
+                    ...(body.planId && { plan: { connect: { id: body.planId } } }),
+                    ...(body.workshopId && { responsibleWorkshop: { connect: { id: body.workshopId } } }),
+                },
+                include: {
+                    responsibleWorkshop: true,
+                    plan: true
+                }
+            });
+        }, {
+            // Increase timeout to 10s to ensure heavy calculations finish without lapser
+            maxWait: 5000, 
+            timeout: 10000 
         });
 
-        return NextResponse.json(updatedProject, { status: 200 });
+        return NextResponse.json(result, { status: 200 });
 
     } catch (error: any) {
+        if (error.message === "PROJECT_NOT_FOUND") return NextResponse.json({ message: "Project not found" }, { status: 404 });
+        if (error.message === "BUDGET_BREACH") return NextResponse.json({ message: "Budget limit exceeded for Strategic Plan" }, { status: 403 });
+        
         console.error("MM_Project PATCH Error:", error);
         return NextResponse.json({ message: "Update failed. System Link Failure." }, { status: 500 });
     }
@@ -115,7 +117,7 @@ export async function PATCH(
 
 /**
  * 🎯 DELETE /api/mm/projects/[id]
- * Secure transaction-based cascade to prevent orphaned maintenance data
+ * Transaction-based cascade with increased timeout for large datasets
  */
 export async function DELETE(
     request: NextRequest,
@@ -125,35 +127,27 @@ export async function DELETE(
         const { id } = params;
 
         await prisma.$transaction(async (tx) => {
-            // Identify child clusters for cleanup
-            const activities = await tx.mM_Activity.findMany({
-                where: { projectId: id },
-                select: { id: true }
-            });
+            const activities = await tx.mM_Activity.findMany({ where: { projectId: id }, select: { id: true } });
             const activityIds = activities.map(a => a.id);
 
-            const pos = await tx.mM_PurchaseOrder.findMany({
-                where: { projectId: id },
-                select: { id: true }
-            });
+            const pos = await tx.mM_PurchaseOrder.findMany({ where: { projectId: id }, select: { id: true } });
             const poIds = pos.map(p => p.id);
 
             // Sequential Leaf Node Purge
             if (activityIds.length > 0) {
                 await tx.mM_Task.deleteMany({ where: { activityId: { in: activityIds } } });
             }
-
             if (poIds.length > 0) {
                 await tx.mM_POLineItem.deleteMany({ where: { poId: { in: poIds } } });
             }
 
-            // Relationship node purge
             await tx.mM_MaterialRequirement.deleteMany({ where: { projectId: id } });
             await tx.mM_PurchaseOrder.deleteMany({ where: { projectId: id } });
             await tx.mM_Activity.deleteMany({ where: { projectId: id } });
-
-            // Root Project purge
             await tx.mM_Project.delete({ where: { id } });
+        }, {
+            maxWait: 5000,
+            timeout: 15000 // Extended timeout for deep recursive deletions
         });
 
         return NextResponse.json({ message: "Project and dependencies purged successfully." }, { status: 200 });
@@ -163,6 +157,171 @@ export async function DELETE(
         return NextResponse.json({ message: "Purge failed. Constraint violation." }, { status: 500 });
     }
 }
+// import { NextRequest, NextResponse } from 'next/server';
+// import prisma from '../../../../libs/prismadb';
+// import { MM_ProjectStatus } from '@prisma/client';
+
+// /**
+//  * 🛠️ UPDATED TYPES
+//  */
+// interface ProjectUpdateData {
+//     name?: string;
+//     allocatedBudget?: number;
+//     planId?: string;
+//     workshopId?: string;
+//     projectManager?: string;
+//     status?: MM_ProjectStatus;
+//     progress?: number;
+//     // New SVE Scheduling Fields
+//     scheduledStart?: string | Date | null;
+//     scheduledEnd?: string | Date | null;
+//     actualEnd?: string | Date | null;
+// }
+
+// /**
+//  * 🎯 PATCH /api/mm/projects/[id]
+//  * Optimized for SVE (Schedule Variance Engine) and Budget Compliance
+//  */
+// export async function PATCH(
+//     request: NextRequest,
+//     { params }: { params: { id: string } }
+// ) {
+//     try {
+//         const { id } = params;
+//         const body: ProjectUpdateData = await request.json();
+
+//         // 1. Fetch Current State & Strategy Link
+//         const currentProject = await prisma.mM_Project.findUnique({
+//             where: { id },
+//             include: { 
+//                 plan: { 
+//                     include: { mm_projects: true } 
+//                 } 
+//             }
+//         });
+
+//         if (!currentProject) {
+//             return NextResponse.json({ message: "Project not found" }, { status: 404 });
+//         }
+
+//         // 2. Strategic Ceiling Validation (Guideline Section 5.1)
+//         if (body.allocatedBudget !== undefined || body.planId) {
+//             const parentPlan = currentProject.plan;
+//             if (parentPlan) {
+//                 const otherProjectsTotal = parentPlan.mm_projects
+//                     .filter(p => p.id !== id)
+//                     .reduce((acc, p) => acc + (p.allocatedBudget || 0), 0);
+
+//                 const proposedBudget = body.allocatedBudget ?? currentProject.allocatedBudget;
+//                 const totalRequested = otherProjectsTotal + proposedBudget;
+
+//                 if (totalRequested > parentPlan.totalBudget) {
+//                     return NextResponse.json({ 
+//                         message: `Budget Breach: Strategic Plan limit is $${parentPlan.totalBudget.toLocaleString()}. Proposed total reaches $${totalRequested.toLocaleString()}.` 
+//                     }, { status: 403 });
+//                 }
+//             }
+//         }
+
+//         // 3. SVE & Status Logic: Auto-handle Completion Dates
+//         let finalStatus = body.status;
+//         let finalActualEnd = body.actualEnd ? new Date(body.actualEnd) : undefined;
+
+//         // If progress is pushed to 100%, force status and set completion date if missing
+//         if (body.progress === 100) {
+//             finalStatus = MM_ProjectStatus.COMPLETED;
+//             if (!finalActualEnd && !currentProject.actualEnd) {
+//                 finalActualEnd = new Date();
+//             }
+//         }
+
+//         // 4. Persistent Update
+//         const updatedProject = await prisma.mM_Project.update({
+//             where: { id },
+//             data: {
+//                 ...(body.name && { name: body.name }),
+//                 ...(body.allocatedBudget !== undefined && { allocatedBudget: body.allocatedBudget }),
+//                 ...(body.projectManager && { projectManager: body.projectManager }),
+//                 ...(finalStatus && { status: finalStatus }),
+//                 ...(body.progress !== undefined && { progress: body.progress }),
+                
+//                 // Date handling for Schedule Variance Engine
+//                 ...(body.scheduledStart !== undefined && { 
+//                     scheduledStart: body.scheduledStart ? new Date(body.scheduledStart) : null 
+//                 }),
+//                 ...(body.scheduledEnd !== undefined && { 
+//                     scheduledEnd: body.scheduledEnd ? new Date(body.scheduledEnd) : null 
+//                 }),
+//                 ...(finalActualEnd !== undefined && { actualEnd: finalActualEnd }),
+
+//                 // Relational Connectors
+//                 ...(body.planId && { plan: { connect: { id: body.planId } } }),
+//                 ...(body.workshopId && { responsibleWorkshop: { connect: { id: body.workshopId } } }),
+//             },
+//             include: {
+//                 responsibleWorkshop: true,
+//                 plan: true
+//             }
+//         });
+
+//         return NextResponse.json(updatedProject, { status: 200 });
+
+//     } catch (error: any) {
+//         console.error("MM_Project PATCH Error:", error);
+//         return NextResponse.json({ message: "Update failed. System Link Failure." }, { status: 500 });
+//     }
+// }
+
+// /**
+//  * 🎯 DELETE /api/mm/projects/[id]
+//  * Secure transaction-based cascade to prevent orphaned maintenance data
+//  */
+// export async function DELETE(
+//     request: NextRequest,
+//     { params }: { params: { id: string } }
+// ) {
+//     try {
+//         const { id } = params;
+
+//         await prisma.$transaction(async (tx) => {
+//             // Identify child clusters for cleanup
+//             const activities = await tx.mM_Activity.findMany({
+//                 where: { projectId: id },
+//                 select: { id: true }
+//             });
+//             const activityIds = activities.map(a => a.id);
+
+//             const pos = await tx.mM_PurchaseOrder.findMany({
+//                 where: { projectId: id },
+//                 select: { id: true }
+//             });
+//             const poIds = pos.map(p => p.id);
+
+//             // Sequential Leaf Node Purge
+//             if (activityIds.length > 0) {
+//                 await tx.mM_Task.deleteMany({ where: { activityId: { in: activityIds } } });
+//             }
+
+//             if (poIds.length > 0) {
+//                 await tx.mM_POLineItem.deleteMany({ where: { poId: { in: poIds } } });
+//             }
+
+//             // Relationship node purge
+//             await tx.mM_MaterialRequirement.deleteMany({ where: { projectId: id } });
+//             await tx.mM_PurchaseOrder.deleteMany({ where: { projectId: id } });
+//             await tx.mM_Activity.deleteMany({ where: { projectId: id } });
+
+//             // Root Project purge
+//             await tx.mM_Project.delete({ where: { id } });
+//         });
+
+//         return NextResponse.json({ message: "Project and dependencies purged successfully." }, { status: 200 });
+
+//     } catch (error: any) {
+//         console.error("MM_Project DELETE Error:", error);
+//         return NextResponse.json({ message: "Purge failed. Constraint violation." }, { status: 500 });
+//     }
+// }
 // import { NextRequest, NextResponse } from 'next/server';
 // import prisma from '../../../../libs/prismadb';
 

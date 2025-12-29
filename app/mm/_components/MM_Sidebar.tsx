@@ -19,7 +19,7 @@ import { TabType } from '../DashBoardclient';
 
 const NAV_ITEMS = [
   { href: "/mm/?tab=strategies", icon: Target, label: "Strategies", tab: "strategies" },
-  { href: "/mm/?tab=workshops", icon: Settings, label: "Workshops", tab: "workshops" },
+  { href: "/mm/?tab=workshops", icon: Settings, label: "WorkCenter", tab: "workshops" },
   { href: "/mm/?tab=projects", icon: Briefcase, label: "Projects", tab: "projects" },
   { href: "/mm/?tab=activities", icon: Activity, label: "Activities", tab: "activities" },
   { href: "/mm/?tab=delays", icon: AlertOctagon, label: "Process Delays", tab: "delays" },

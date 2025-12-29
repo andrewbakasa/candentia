@@ -142,7 +142,7 @@ export function DelayListView({ delays, onEdit }: { delays: any[], onEdit: (r: a
             className="w-full lg:w-auto h-12 flex items-center justify-center gap-3 px-8 bg-emerald-600 text-white rounded-2xl hover:bg-emerald-700 hover:scale-[1.02] active:scale-95 transition-all shadow-lg shadow-emerald-100 text-[10px] font-black uppercase tracking-widest"
           >
             <FileSpreadsheet size={18} />
-            <span>Export</span>
+            <span>Export ({filteredDelays.length})</span>
           </button>
         </div>
 
