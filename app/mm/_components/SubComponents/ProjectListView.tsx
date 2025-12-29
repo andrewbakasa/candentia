@@ -8,7 +8,7 @@ import { toast } from "sonner";
 import { 
   MapPin, User as UserIcon, Calendar, Clock, AlertTriangle, 
   TrendingUp, BarChart3, Layers, ArrowRight, FileSpreadsheet,
-  Briefcase, CheckCircle2, Timer, Construction, History
+  Briefcase, CheckCircle2, Timer, Construction, History, ExternalLink
 } from 'lucide-react';
 import { ItemActions } from '../SubComponents';
 import { SearchFilterEngine, SearchScope } from "../SearchEngineFilter";
@@ -38,39 +38,39 @@ export const ProjectGridView = ({ projects, onEdit, onDelete, permissions }: any
   }, [projects, searchTerm, activeSearchFields]);
 
   const handleExport = async () => {
-     try {
-       const workbook = new ExcelJS.Workbook();
-       const worksheet = workbook.addWorksheet('SVE Projects Report');
-       worksheet.columns = [
-         { header: 'Project Name', key: 'name', width: 30 },
-         { header: 'Status', key: 'status', width: 15 },
-         { header: 'Manager', key: 'manager', width: 25 },
-         { header: 'Sched. Start', key: 'start', width: 15 },
-         { header: 'Sched. End', key: 'end', width: 15 },
-         { header: 'Progress (%)', key: 'progress', width: 12 },
-         { header: 'Budget ($)', key: 'budget', width: 15 },
-         { header: 'Actual Cost ($)', key: 'cost', width: 15 },
-       ];
-       worksheet.getRow(1).font = { bold: true };
-       worksheet.getRow(1).fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'F1F5F9' } };
-       filteredProjects.forEach((proj: any) => {
-         worksheet.addRow({
-           name: proj.name,
-           status: proj.status,
-           manager: proj.projectManager,
-           start: proj.scheduledStart ? new Date(proj.scheduledStart).toLocaleDateString() : 'N/A',
-           end: proj.scheduledEnd ? new Date(proj.scheduledEnd).toLocaleDateString() : 'N/A',
-           progress: proj.progress || 0,
-           budget: proj.allocatedBudget || 0,
-           cost: proj.totalActualCost || 0,
-         });
-       });
-       const buffer = await workbook.xlsx.writeBuffer();
-       saveAs(new Blob([buffer]), `Project_SVE_Ledger_${new Date().toISOString().split('T')[0]}.xlsx`);
-       toast.success(`Exported ${filteredProjects.length} projects successfully`);
-     } catch (error) {
-       toast.error("Excel generation failed");
-     }
+      try {
+        const workbook = new ExcelJS.Workbook();
+        const worksheet = workbook.addWorksheet('SVE Projects Report');
+        worksheet.columns = [
+          { header: 'Project Name', key: 'name', width: 30 },
+          { header: 'Status', key: 'status', width: 15 },
+          { header: 'Manager', key: 'manager', width: 25 },
+          { header: 'Sched. Start', key: 'start', width: 15 },
+          { header: 'Sched. End', key: 'end', width: 15 },
+          { header: 'Progress (%)', key: 'progress', width: 12 },
+          { header: 'Budget ($)', key: 'budget', width: 15 },
+          { header: 'Actual Cost ($)', key: 'cost', width: 15 },
+        ];
+        worksheet.getRow(1).font = { bold: true };
+        worksheet.getRow(1).fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'F1F5F9' } };
+        filteredProjects.forEach((proj: any) => {
+          worksheet.addRow({
+            name: proj.name,
+            status: proj.status,
+            manager: proj.projectManager,
+            start: proj.scheduledStart ? new Date(proj.scheduledStart).toLocaleDateString() : 'N/A',
+            end: proj.scheduledEnd ? new Date(proj.scheduledEnd).toLocaleDateString() : 'N/A',
+            progress: proj.progress || 0,
+            budget: proj.allocatedBudget || 0,
+            cost: proj.totalActualCost || 0,
+          });
+        });
+        const buffer = await workbook.xlsx.writeBuffer();
+        saveAs(new Blob([buffer]), `Project_SVE_Ledger_${new Date().toISOString().split('T')[0]}.xlsx`);
+        toast.success(`Exported ${filteredProjects.length} projects successfully`);
+      } catch (error) {
+        toast.error("Excel generation failed");
+      }
   };
 
   return (
@@ -123,8 +123,6 @@ export const ProjectGridView = ({ projects, onEdit, onDelete, permissions }: any
           <tbody className="divide-y divide-slate-50">
             {filteredProjects.map((project: any) => {
               const { activities, projectStatus } = project.sveMetrics || {};
-              
-              // --- TIMELINE CALCULATIONS ---
               const now = new Date();
               const start = project.scheduledStart ? new Date(project.scheduledStart) : null;
               const end = project.scheduledEnd ? new Date(project.scheduledEnd) : null;
@@ -167,7 +165,6 @@ export const ProjectGridView = ({ projects, onEdit, onDelete, permissions }: any
                     </div>
                   </td>
 
-                  {/* NEW TIMELINE COLUMN */}
                   <td className="p-5 w-64">
                     <div className="space-y-1.5">
                       <div className="flex justify-between items-center text-[9px] font-black uppercase">
@@ -202,7 +199,17 @@ export const ProjectGridView = ({ projects, onEdit, onDelete, permissions }: any
                   </td>
 
                   <td className="p-5 text-right">
-                    <ItemActions id={project.id} item={project} onEdit={onEdit} onDelete={onDelete} permissions={permissions}/>
+                    <div className="flex items-center justify-end gap-2">
+                        {/* DESKTOP VIEW DETAILS LINK */}
+                        <Link 
+                            href={`/mm/projects/${project.id}`} 
+                            className="p-2.5 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-xl transition-all"
+                            title="View Project Details"
+                        >
+                            <ExternalLink size={18} />
+                        </Link>
+                        <ItemActions id={project.id} item={project} onEdit={onEdit} onDelete={onDelete} permissions={permissions}/>
+                    </div>
                   </td>
                 </tr>
               );
@@ -232,7 +239,10 @@ export const ProjectGridView = ({ projects, onEdit, onDelete, permissions }: any
                     <span className="text-[10px] font-bold text-slate-400 uppercase">{project.projectManager}</span>
                   </div>
                 </div>
-                <ItemActions id={project.id} item={project} onEdit={onEdit} onDelete={onDelete} permissions={permissions}/>
+                {/* MOBILE VIEW ACTIONS (EDIT/DELETE/DETAILS TOGETHER) */}
+                <div className="flex flex-col gap-2 items-end">
+                    <ItemActions id={project.id} item={project} onEdit={onEdit} onDelete={onDelete} permissions={permissions}/>
+                </div>
               </div>
 
               {/* Progress & Timeline visual for Mobile */}
@@ -255,8 +265,9 @@ export const ProjectGridView = ({ projects, onEdit, onDelete, permissions }: any
                       ${project.totalActualCost?.toLocaleString()}
                     </p>
                  </div>
-                 <Link href={`/mm/projects/${project.id}`} className="p-3 bg-indigo-50 text-indigo-600 rounded-xl hover:bg-indigo-600 hover:text-white transition-all">
-                    <ArrowRight size={16} />
+                 {/* MOBILE DETAILS LINK PLACED CLOSE TO ACTIONS AT BOTTOM */}
+                 <Link href={`/mm/projects/${project.id}`} className="flex items-center gap-2 px-4 py-2.5 bg-indigo-50 text-indigo-600 rounded-xl hover:bg-indigo-600 hover:text-white transition-all font-black text-[10px] uppercase tracking-widest">
+                    Details <ArrowRight size={14} />
                  </Link>
               </div>
             </div>
@@ -266,6 +277,274 @@ export const ProjectGridView = ({ projects, onEdit, onDelete, permissions }: any
     </div>
   );
 };
+// 'use client';
+
+// import React, { useMemo, useState } from 'react';
+// import Link from 'next/link';
+// import ExcelJS from 'exceljs';
+// import { saveAs } from 'file-saver';
+// import { toast } from "sonner";
+// import { 
+//   MapPin, User as UserIcon, Calendar, Clock, AlertTriangle, 
+//   TrendingUp, BarChart3, Layers, ArrowRight, FileSpreadsheet,
+//   Briefcase, CheckCircle2, Timer, Construction, History
+// } from 'lucide-react';
+// import { ItemActions } from '../SubComponents';
+// import { SearchFilterEngine, SearchScope } from "../SearchEngineFilter";
+
+// const PROJECT_SCOPES: SearchScope[] = [
+//   { key: 'name', label: 'Project Name' },
+//   { key: 'projectManager', label: 'Project Manager' },
+//   { key: 'workshopName', label: 'Workshop/Location' },
+// ];
+
+// export const ProjectGridView = ({ projects, onEdit, onDelete, permissions }: any) => {
+//   const [searchTerm, setSearchTerm] = useState('');
+//   const [activeSearchFields, setActiveSearchFields] = useState<string[]>(['name', 'projectManager']);
+
+//   const filteredProjects = useMemo(() => {
+//     const term = searchTerm.toLowerCase().trim();
+//     if (!term) return projects || [];
+//     return projects?.filter((project: any) => {
+//       const dataToSearch = { 
+//         ...project, 
+//         workshopName: project.responsibleWorkshop?.name || 'Central' 
+//       };
+//       return activeSearchFields.some(field => 
+//         String((dataToSearch as any)[field] || '').toLowerCase().includes(term)
+//       );
+//     });
+//   }, [projects, searchTerm, activeSearchFields]);
+
+//   const handleExport = async () => {
+//      try {
+//        const workbook = new ExcelJS.Workbook();
+//        const worksheet = workbook.addWorksheet('SVE Projects Report');
+//        worksheet.columns = [
+//          { header: 'Project Name', key: 'name', width: 30 },
+//          { header: 'Status', key: 'status', width: 15 },
+//          { header: 'Manager', key: 'manager', width: 25 },
+//          { header: 'Sched. Start', key: 'start', width: 15 },
+//          { header: 'Sched. End', key: 'end', width: 15 },
+//          { header: 'Progress (%)', key: 'progress', width: 12 },
+//          { header: 'Budget ($)', key: 'budget', width: 15 },
+//          { header: 'Actual Cost ($)', key: 'cost', width: 15 },
+//        ];
+//        worksheet.getRow(1).font = { bold: true };
+//        worksheet.getRow(1).fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'F1F5F9' } };
+//        filteredProjects.forEach((proj: any) => {
+//          worksheet.addRow({
+//            name: proj.name,
+//            status: proj.status,
+//            manager: proj.projectManager,
+//            start: proj.scheduledStart ? new Date(proj.scheduledStart).toLocaleDateString() : 'N/A',
+//            end: proj.scheduledEnd ? new Date(proj.scheduledEnd).toLocaleDateString() : 'N/A',
+//            progress: proj.progress || 0,
+//            budget: proj.allocatedBudget || 0,
+//            cost: proj.totalActualCost || 0,
+//          });
+//        });
+//        const buffer = await workbook.xlsx.writeBuffer();
+//        saveAs(new Blob([buffer]), `Project_SVE_Ledger_${new Date().toISOString().split('T')[0]}.xlsx`);
+//        toast.success(`Exported ${filteredProjects.length} projects successfully`);
+//      } catch (error) {
+//        toast.error("Excel generation failed");
+//      }
+//   };
+
+//   return (
+//     <div className="space-y-6">
+//       {/* 🔍 SEARCH & EXPORT BAR */}
+//       <div className="bg-white p-4 lg:p-6 rounded-[2.5rem] border border-slate-200 shadow-sm">
+//         <div className="flex flex-col lg:flex-row gap-4 items-center justify-between">
+//           <div className="w-full lg:flex-1">
+//             <SearchFilterEngine 
+//                 scopes={PROJECT_SCOPES}
+//                 initialActiveScopes={activeSearchFields}
+//                 onSearchChange={setSearchTerm}
+//                 onScopesChange={setActiveSearchFields}
+//                 placeholder="Search projects..."
+//             />
+//           </div>
+//           <div className="flex items-center gap-4 w-full lg:w-auto justify-between lg:justify-end border-t lg:border-t-0 pt-4 lg:pt-0">
+//               <div className="flex flex-col text-left lg:text-right lg:pr-4 lg:border-r border-slate-100">
+//                 <span className="text-[9px] font-black text-slate-400 uppercase tracking-[0.15em] leading-tight">Active Ledger</span>
+//                 <span className="text-sm font-black text-indigo-600 flex items-center gap-1.5 lg:justify-end">
+//                   <Layers size={14} className="text-indigo-400" />
+//                   {filteredProjects.length} Projects
+//                 </span>
+//               </div>
+//               <button onClick={handleExport} className="h-16 px-6 lg:px-8 bg-emerald-600 text-white rounded-[1.25rem] hover:bg-emerald-700 transition-all shadow-lg shadow-emerald-100 flex items-center gap-3 shrink-0 group">
+//                 <div className="p-2 bg-emerald-500/50 rounded-lg group-hover:scale-110 transition-transform">
+//                   <FileSpreadsheet size={18} />
+//                 </div>
+//                 <div className="flex flex-col items-start leading-none">
+//                   <span className="text-[10px] font-black uppercase tracking-widest">Export</span>
+//                   <span className="text-[8px] font-medium opacity-80 uppercase tracking-tighter">Excel Report</span>
+//                 </div>
+//               </button>
+//           </div>
+//         </div>
+//       </div>
+
+//       {/* --- DESKTOP TABLE VIEW --- */}
+//       <div className="hidden lg:block overflow-hidden bg-white border border-slate-200 rounded-[2.5rem] shadow-sm">
+//         <table className="w-full text-left border-collapse">
+//           <thead>
+//             <tr className="bg-slate-50/50 border-b border-slate-100">
+//               <th className="p-5 text-[10px] font-black text-slate-400 uppercase tracking-widest">Project / Workshop</th>
+//               <th className="p-5 text-[10px] font-black text-slate-400 uppercase tracking-widest text-center">Activity SVE</th>
+//               <th className="p-5 text-[10px] font-black text-slate-400 uppercase tracking-widest">Time Variance</th>
+//               <th className="p-5 text-[10px] font-black text-slate-400 uppercase tracking-widest">Execution Progress</th>
+//               <th className="p-5 text-[10px] font-black text-slate-400 uppercase tracking-widest text-right">Actions</th>
+//             </tr>
+//           </thead>
+//           <tbody className="divide-y divide-slate-50">
+//             {filteredProjects.map((project: any) => {
+//               const { activities, projectStatus } = project.sveMetrics || {};
+              
+//               // --- TIMELINE CALCULATIONS ---
+//               const now = new Date();
+//               const start = project.scheduledStart ? new Date(project.scheduledStart) : null;
+//               const end = project.scheduledEnd ? new Date(project.scheduledEnd) : null;
+              
+//               let daysLeft = 0;
+//               let timePercent = 0;
+              
+//               if (end) {
+//                 daysLeft = Math.max(0, Math.ceil((end.getTime() - now.getTime()) / (1000 * 60 * 60 * 24)));
+//                 if (start) {
+//                     const totalDuration = end.getTime() - start.getTime();
+//                     const elapsed = now.getTime() - start.getTime();
+//                     timePercent = totalDuration > 0 ? Math.min(100, Math.max(0, (elapsed / totalDuration) * 100)) : 0;
+//                 }
+//               }
+
+//               return (
+//                 <tr key={project.id} className="hover:bg-slate-50/50 transition-colors group">
+//                   <td className="p-5">
+//                     <div className="flex flex-col">
+//                       <Link href={`/mm/projects/${project.id}`} className="text-sm font-bold text-slate-800 hover:text-indigo-600">
+//                         {project.name}
+//                       </Link>
+//                       <span className="text-[10px] text-slate-400 font-bold uppercase flex items-center gap-1">
+//                         <Construction size={10}/> {project.responsibleWorkshop?.name || 'HQ'}
+//                       </span>
+//                     </div>
+//                   </td>
+
+//                   <td className="p-5">
+//                     <div className="flex justify-center items-center gap-2">
+//                       <div className="flex flex-col items-center px-3 py-1 bg-emerald-50 rounded-lg border border-emerald-100">
+//                         <span className="text-[9px] font-black text-emerald-600 leading-none">{activities?.completed || 0}</span>
+//                         <span className="text-[7px] font-bold text-emerald-500 uppercase">Done</span>
+//                       </div>
+//                       <div className={`flex flex-col items-center px-3 py-1 rounded-lg border ${activities?.overdue > 0 ? 'bg-red-50 border-red-100' : 'bg-slate-50 border-slate-100'}`}>
+//                         <span className={`text-[9px] font-black leading-none ${activities?.overdue > 0 ? 'text-red-600' : 'text-slate-400'}`}>{activities?.overdue || 0}</span>
+//                         <span className="text-[7px] font-bold text-slate-400 uppercase">Late</span>
+//                       </div>
+//                     </div>
+//                   </td>
+
+//                   {/* NEW TIMELINE COLUMN */}
+//                   <td className="p-5 w-64">
+//                     <div className="space-y-1.5">
+//                       <div className="flex justify-between items-center text-[9px] font-black uppercase">
+//                         <span className="text-slate-500 flex items-center gap-1">
+//                             <Timer size={10} className="text-indigo-500" /> {daysLeft} Days Remaining
+//                         </span>
+//                         <span className={timePercent > 90 && project.progress < 90 ? 'text-red-500 font-black' : 'text-slate-400'}>
+//                             {Math.round(timePercent)}% Time Used
+//                         </span>
+//                       </div>
+//                       <div className="w-full h-1.5 bg-slate-100 rounded-full overflow-hidden">
+//                         <div 
+//                             className={`h-full transition-all duration-700 ${timePercent > 90 && project.progress < 80 ? 'bg-red-500' : 'bg-slate-400'}`} 
+//                             style={{ width: `${timePercent}%` }} 
+//                         />
+//                       </div>
+//                     </div>
+//                   </td>
+
+//                   <td className="p-5 w-64">
+//                     <div className="space-y-1.5">
+//                       <div className="flex justify-between items-center text-[9px] font-black uppercase">
+//                         <span className={projectStatus === 'OVERDUE' ? 'text-red-600 animate-pulse' : 'text-indigo-600'}>
+//                           {projectStatus} ({project.progress}%)
+//                         </span>
+//                         <span className="text-slate-400">Tasks: {project.sveMetrics?.taskCompletionRate}%</span>
+//                       </div>
+//                       <div className="w-full h-2 bg-slate-100 rounded-full overflow-hidden">
+//                         <div className={`h-full transition-all duration-700 ${projectStatus === 'OVERDUE' ? 'bg-red-500' : 'bg-indigo-600'}`} style={{ width: `${project.progress}%` }} />
+//                       </div>
+//                     </div>
+//                   </td>
+
+//                   <td className="p-5 text-right">
+//                     <ItemActions id={project.id} item={project} onEdit={onEdit} onDelete={onDelete} permissions={permissions}/>
+//                   </td>
+//                 </tr>
+//               );
+//             })}
+//           </tbody>
+//         </table>
+//       </div>
+
+//       {/* --- MOBILE GRID VIEW --- */}
+//       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 lg:hidden">
+//         {filteredProjects?.map((project: any) => {
+//           const { projectStatus } = project.sveMetrics || {};
+//           const now = new Date();
+//           const end = project.scheduledEnd ? new Date(project.scheduledEnd) : null;
+//           const daysLeft = end ? Math.max(0, Math.ceil((end.getTime() - now.getTime()) / (1000 * 60 * 60 * 24))) : 0;
+
+//           return (
+//             <div key={project.id} className="bg-white border border-slate-200 rounded-3xl p-6 flex flex-col shadow-sm relative overflow-hidden">
+//               <div className="flex justify-between items-start mb-4">
+//                 <div className="flex flex-col">
+//                   <h3 className="text-base font-black text-slate-800 leading-tight">{project.name}</h3>
+//                   <div className="flex items-center gap-2 mt-1">
+//                     <span className="text-[10px] font-bold text-indigo-600 uppercase flex items-center gap-1">
+//                         <Timer size={10}/> {daysLeft}d left
+//                     </span>
+//                     <span className="text-slate-300">|</span>
+//                     <span className="text-[10px] font-bold text-slate-400 uppercase">{project.projectManager}</span>
+//                   </div>
+//                 </div>
+//                 <ItemActions id={project.id} item={project} onEdit={onEdit} onDelete={onDelete} permissions={permissions}/>
+//               </div>
+
+//               {/* Progress & Timeline visual for Mobile */}
+//               <div className="space-y-3 mb-5">
+//                 <div className="space-y-1">
+//                     <div className="flex justify-between text-[8px] font-black text-slate-400 uppercase">
+//                         <span>Work Done</span>
+//                         <span>{project.progress}%</span>
+//                     </div>
+//                     <div className="w-full bg-slate-100 h-2 rounded-full overflow-hidden">
+//                         <div className={`h-full transition-all duration-700 ${projectStatus === 'OVERDUE' ? 'bg-red-500' : 'bg-indigo-600'}`} style={{ width: `${project.progress}%` }} />
+//                     </div>
+//                 </div>
+//               </div>
+
+//               <div className="mt-auto pt-4 border-t border-slate-50 flex justify-between items-end">
+//                  <div>
+//                     <span className="text-[8px] font-black text-slate-400 uppercase">Budget Utilization</span>
+//                     <p className={`text-sm font-black ${project.totalActualCost > project.allocatedBudget ? 'text-red-600' : 'text-slate-800'}`}>
+//                       ${project.totalActualCost?.toLocaleString()}
+//                     </p>
+//                  </div>
+//                  <Link href={`/mm/projects/${project.id}`} className="p-3 bg-indigo-50 text-indigo-600 rounded-xl hover:bg-indigo-600 hover:text-white transition-all">
+//                     <ArrowRight size={16} />
+//                  </Link>
+//               </div>
+//             </div>
+//           );
+//         })}
+//       </div>
+//     </div>
+//   );
+// };
 // 'use client';
 
 // import React, { useMemo, useState } from 'react';
