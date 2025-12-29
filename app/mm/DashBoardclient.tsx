@@ -219,14 +219,14 @@ const tabLabels = {
               {activeTab === 'delays' && (
                   <DelayListView 
                     delays={data.delays} 
-                    onEdit={(r) => { setEditingRecord(r); setIsModalOpen(true); }} 
+                    onEdit={(r) => { setEditingRecord(r); setIsModalOpen(true); }} permissions={{canEdit:isAllowedEdit}}
                   />
                 )}
               {(activeTab === 'purchaseorders' || activeTab === 'materials' || activeTab === 'mastermaterials') && (
                 <ProcurementListView 
                   activeTab={activeTab}
                   items={data[activeTab]} 
-                  onEdit={(r:any)=>{setEditingRecord(r); setIsModalOpen(true);}} 
+                  onEdit={(r:any)=>{setEditingRecord(r); setIsModalOpen(true);}} permissions={{canEdit:isAllowedEdit}}
                 />
               )}
             </div>

@@ -19,7 +19,7 @@ const DELAY_SEARCH_SCOPES: SearchScope[] = [
   { key: 'activity', label: 'Activity' }
 ];
 
-export function DelayListView({ delays, onEdit }: { delays: any[], onEdit: (record: any) => void }) {
+export function DelayListView({ delays, onEdit ,permissions}: { delays: any[], onEdit: (record: any) => void, permissions:any } ) {
   const [searchTerm, setSearchTerm] = useState("");
   const [activeSearchFields, setActiveSearchFields] = useState<string[]>(['projectName', 'type', 'description']);
   const [showActiveOnly, setShowActiveOnly] = useState(true);
@@ -145,9 +145,9 @@ export function DelayListView({ delays, onEdit }: { delays: any[], onEdit: (reco
                         <ExternalLink size={14} />
                       </Link>
                     )}
-                    <button onClick={() => onEdit(d)} className="p-2 rounded-lg bg-indigo-50 hover:bg-indigo-600 text-indigo-600 hover:text-white transition-all shadow-sm" title="Edit Record">
+                    {permissions.canEdit && <button onClick={() => onEdit(d)} className="p-2 rounded-lg bg-indigo-50 hover:bg-indigo-600 text-indigo-600 hover:text-white transition-all shadow-sm" title="Edit Record">
                       <Edit3 size={14} />
-                    </button>
+                    </button>}
                   </div>
                 </td>
               </tr>
