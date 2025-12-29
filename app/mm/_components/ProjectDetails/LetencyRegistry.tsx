@@ -222,15 +222,28 @@ const LatencyRegistry: React.FC<LatencyRegistryProps> = ({
                         <tbody className="divide-y divide-slate-100">
                             {filteredDelays.map((delay) => (
                                 <tr key={delay.id} className="group hover:bg-white transition-all">
-                                    <td className="px-10 py-6">
-                                        <span className="text-[10px] font-black text-rose-600 bg-rose-50 border border-rose-100 px-3 py-1.5 rounded-xl uppercase">
-                                            {delay.type?.replace('_', ' ')}
-                                        </span>
+                                    {/* RISK TYPE CELL - FIXED DESIGN */}
+                                    <td className="px-10 py-6 min-w-[200px]">
+                                        <div className="flex items-center">
+                                            <span 
+                                                title={delay.type?.replace(/_/g, ' ')}
+                                                className="text-[10px] font-black text-rose-600 bg-rose-50 border border-rose-100 px-3 py-1.5 rounded-xl uppercase tracking-tighter whitespace-nowrap overflow-hidden text-ellipsis max-w-[180px] block shadow-sm"
+                                            >
+                                                {delay.type?.replace(/_/g, ' ')}
+                                            </span>
+                                        </div>
                                     </td>
+
                                     <td className="px-6 py-6">
-                                        <div className="text-[10px] font-black text-slate-400 uppercase tracking-tight mb-1">{delay.activity?.project?.name || 'Global'}</div>
-                                        <div className="text-sm font-bold text-slate-800 leading-tight">{delay.activity?.description}</div>
-                                        <div className="text-xs text-slate-500 italic mt-2 line-clamp-1 group-hover:line-clamp-none transition-all duration-300">{delay.description}</div>
+                                        <div className="text-[10px] font-black text-slate-400 uppercase tracking-tight mb-1">
+                                            {delay.activity?.project?.name || 'Global Ledger'}
+                                        </div>
+                                        <div className="text-sm font-bold text-slate-800 leading-tight">
+                                            {delay.activity?.description}
+                                        </div>
+                                        <div className="text-xs text-slate-500 italic mt-2 line-clamp-1 group-hover:line-clamp-none transition-all duration-300">
+                                            {delay.description}
+                                        </div>
                                     </td>
                                     <td className="px-6 py-6 text-center">
                                         <span className="inline-block px-3 py-1 bg-slate-100 rounded-lg text-xs font-black text-slate-600 border border-slate-200">{delay.impactHours}h</span>
