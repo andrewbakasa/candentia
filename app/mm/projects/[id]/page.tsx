@@ -23,7 +23,16 @@ export default async function ProjectDetailPage({ params }: { params: { id: stri
                 activities: {
                     include: {
                         tasks: { include: { baseTask: true } }, // Include BaseTask for benchmarking
-                        processDelays: true
+                       // processDelays: true
+                       processDelays: {
+                        include: {
+                            activity: {
+                                include: {
+                                    project: true // This allows delay.activity.project.name
+                                }
+                            }
+                        }
+                    }
                     },
                     orderBy: { scheduledStart: 'asc' }
                 },
