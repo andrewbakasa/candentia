@@ -1550,6 +1550,12 @@ model MM_Project {
   planId String?           @db.ObjectId
   plan   MM_StrategicPlan? @relation(fields: [planId], references: [id])
 
+
+  // Scheduling & Schedule Variance Engine (SVE)
+  scheduledStart DateTime?
+  scheduledEnd   DateTime?
+  actualEnd      DateTime? // Completion date; null value post-scheduledEnd indicates delay
+
   activities MM_Activity[]
   status     MM_ProjectStatus @default(PLANNED)
 

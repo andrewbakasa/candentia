@@ -5,15 +5,19 @@ import { MM_ProjectStatus } from '@prisma/client';
 /**
  * 🛠️ TYPES & INTERFACES
  */
-interface ProjectCreationData {
+interface ProjectRequestData {
+    id?: string;
     name: string;
     allocatedBudget: number;
     planId: string;
     workshopId: string;
     projectManager: string;
-    progress?: number; // Added to interface
-   // status: 'PLANNED' | 'IN_PROGRESS' | 'COMPLETED' | 'ON_HOLD' | 'CANCELLED';
-    status: MM_ProjectStatus//'PLANNED' | 'ACTIVE' | 'COMPLETED' | 'ON_HOLD' | 'CANCELLED';
+    progress?: number;
+    status: MM_ProjectStatus;
+    // New Scheduling Fields
+    scheduledStart?: string | Date | null;
+    scheduledEnd?: string | Date | null;
+    actualEnd?: string | Date | null;
 }
 
 /**
@@ -26,9 +30,7 @@ export async function GET() {
                 responsibleWorkshop: true,
                 plan: true,
                 materialRequirements: {
-                    include: {
-                        material: true 
-                    }
+                    include: { material: true }
                 },
                 _count: {
                     select: { 
@@ -52,13 +54,16 @@ export async function GET() {
 
 /**
  * 🎯 POST /api/mm/projects
- * Creates a Project with initial progress (usually 0).
  */
 export async function POST(request: NextRequest) {
     try {
-        const body: ProjectCreationData = await request.json();
+        const body: ProjectRequestData = await request.json();
 
-        const { name, allocatedBudget, planId, workshopId, projectManager, progress, status } = body;
+        const { 
+            name, allocatedBudget, planId, workshopId, 
+            projectManager, progress, status,
+            scheduledStart, scheduledEnd, actualEnd 
+        } = body;
         
         if (!name || !allocatedBudget || !planId || !workshopId || !projectManager) {
             return NextResponse.json(
@@ -67,15 +72,13 @@ export async function POST(request: NextRequest) {
             );
         }
 
-        // Financial Compliance Check
+        // Financial Compliance Check (Guideline 1 of 2025)
         const plan = await prisma.mM_StrategicPlan.findUnique({
             where: { id: planId },
             include: { mm_projects: true }
         });
 
-        if (!plan) {
-            return NextResponse.json({ message: 'Strategic Plan not found.' }, { status: 404 });
-        }
+        if (!plan) return NextResponse.json({ message: 'Strategic Plan not found.' }, { status: 404 });
 
         const currentSpent = plan.mm_projects.reduce((acc, p) => acc + p.allocatedBudget, 0);
         const availableCeiling = plan.totalBudget - currentSpent;
@@ -92,8 +95,11 @@ export async function POST(request: NextRequest) {
                 name,
                 allocatedBudget,
                 projectManager,
-                status: status,// || MM_ProjectStatus.PLANNED,
-                progress: progress ?? 0, // Accepts progress if provided, defaults to 0
+                status: status || MM_ProjectStatus.PLANNED,
+                progress: progress ?? 0,
+                scheduledStart: scheduledStart ? new Date(scheduledStart) : null,
+                scheduledEnd: scheduledEnd ? new Date(scheduledEnd) : null,
+                actualEnd: actualEnd ? new Date(actualEnd) : null,
                 totalActualCost: 0,
                 plan: { connect: { id: planId } },
                 responsibleWorkshop: { connect: { id: workshopId } }
@@ -108,28 +114,34 @@ export async function POST(request: NextRequest) {
 
     } catch (error: any) {
         console.error("MM_PROJECT_POST_ERROR:", error);
-        if (error.code === 'P2023') {
-            return NextResponse.json({ message: "Invalid ID format for Workshop or Plan." }, { status: 400 });
-        }
         return NextResponse.json({ message: "Internal Server Error" }, { status: 500 });
     }
 }
 
 /**
  * 🎯 PATCH /api/mm/projects/[id]
- * Specifically handles updates to Progress and Status during execution.
  */
 export async function PATCH(request: NextRequest) {
     try {
-        const body = await request.json();
-        const { id, progress, status, name, allocatedBudget, projectManager } = body;
+        const body: ProjectRequestData = await request.json();
+        const { 
+            id, progress, status, name, allocatedBudget, 
+            projectManager, scheduledStart, scheduledEnd, actualEnd 
+        } = body;
 
         if (!id) {
-            return NextResponse.json({ message: "Project ID is required for update." }, { status: 400 });
+            return NextResponse.json({ message: "Project ID is required." }, { status: 400 });
         }
 
-        // Logic to auto-complete if progress reaches 100
-        const updatedStatus = progress === 100 ? 'COMPLETED' : status;
+        // Logic to auto-complete and handle Actual End Date
+        let updatedStatus = status;
+        let finalActualEnd = actualEnd ? new Date(actualEnd) : null;
+
+        if (progress === 100) {
+            updatedStatus = MM_ProjectStatus.COMPLETED;
+            // If completed today and no date set, auto-stamp it
+            if (!finalActualEnd) finalActualEnd = new Date();
+        }
 
         const updatedProject = await prisma.mM_Project.update({
             where: { id },
@@ -139,6 +151,9 @@ export async function PATCH(request: NextRequest) {
                 projectManager,
                 status: updatedStatus,
                 progress: progress !== undefined ? Number(progress) : undefined,
+                scheduledStart: scheduledStart ? new Date(scheduledStart) : undefined,
+                scheduledEnd: scheduledEnd ? new Date(scheduledEnd) : undefined,
+                actualEnd: finalActualEnd,
             }
         });
 
@@ -148,6 +163,156 @@ export async function PATCH(request: NextRequest) {
         return NextResponse.json({ message: "Failed to update project progress." }, { status: 500 });
     }
 }
+// import { NextRequest, NextResponse } from 'next/server';
+// import prisma from '../../../libs/prismadb'; 
+// import { MM_ProjectStatus } from '@prisma/client';
+
+// /**
+//  * 🛠️ TYPES & INTERFACES
+//  */
+// interface ProjectCreationData {
+//     name: string;
+//     allocatedBudget: number;
+//     planId: string;
+//     workshopId: string;
+//     projectManager: string;
+//     progress?: number; // Added to interface
+//    // status: 'PLANNED' | 'IN_PROGRESS' | 'COMPLETED' | 'ON_HOLD' | 'CANCELLED';
+//     status: MM_ProjectStatus//'PLANNED' | 'ACTIVE' | 'COMPLETED' | 'ON_HOLD' | 'CANCELLED';
+// }
+
+// /**
+//  * 🎯 GET /api/mm/projects
+//  */
+// export async function GET() {
+//     try {
+//         const projects = await prisma.mM_Project.findMany({
+//             include: {
+//                 responsibleWorkshop: true,
+//                 plan: true,
+//                 materialRequirements: {
+//                     include: {
+//                         material: true 
+//                     }
+//                 },
+//                 _count: {
+//                     select: { 
+//                         activities: true,
+//                         purchaseOrders: true 
+//                     }
+//                 }
+//             },
+//             orderBy: { createdAt: 'desc' }
+//         });
+
+//         return NextResponse.json(projects, { status: 200 });
+//     } catch (error) {
+//         console.error("MM_PROJECT_GET_ERROR:", error);
+//         return NextResponse.json(
+//             { message: "System Link Failure: Could not retrieve project ledger." }, 
+//             { status: 500 }
+//         );
+//     }
+// }
+
+// /**
+//  * 🎯 POST /api/mm/projects
+//  * Creates a Project with initial progress (usually 0).
+//  */
+// export async function POST(request: NextRequest) {
+//     try {
+//         const body: ProjectCreationData = await request.json();
+
+//         const { name, allocatedBudget, planId, workshopId, projectManager, progress, status } = body;
+        
+//         if (!name || !allocatedBudget || !planId || !workshopId || !projectManager) {
+//             return NextResponse.json(
+//                 { message: 'Missing mandatory fields: Name, Budget, Workshop, Plan, or Manager' }, 
+//                 { status: 400 }
+//             );
+//         }
+
+//         // Financial Compliance Check
+//         const plan = await prisma.mM_StrategicPlan.findUnique({
+//             where: { id: planId },
+//             include: { mm_projects: true }
+//         });
+
+//         if (!plan) {
+//             return NextResponse.json({ message: 'Strategic Plan not found.' }, { status: 404 });
+//         }
+
+//         const currentSpent = plan.mm_projects.reduce((acc, p) => acc + p.allocatedBudget, 0);
+//         const availableCeiling = plan.totalBudget - currentSpent;
+
+//         if (allocatedBudget > availableCeiling) {
+//             return NextResponse.json(
+//                 { message: `Ceiling Violation: FY ${plan.year} only has $${availableCeiling.toLocaleString()} remaining.` }, 
+//                 { status: 403 }
+//             );
+//         }
+
+//         const newProject = await prisma.mM_Project.create({
+//             data: {
+//                 name,
+//                 allocatedBudget,
+//                 projectManager,
+//                 status: status,// || MM_ProjectStatus.PLANNED,
+//                 progress: progress ?? 0, // Accepts progress if provided, defaults to 0
+//                 totalActualCost: 0,
+//                 plan: { connect: { id: planId } },
+//                 responsibleWorkshop: { connect: { id: workshopId } }
+//             },
+//             include: {
+//                 responsibleWorkshop: true,
+//                 plan: true
+//             }
+//         });
+
+//         return NextResponse.json(newProject, { status: 201 });
+
+//     } catch (error: any) {
+//         console.error("MM_PROJECT_POST_ERROR:", error);
+//         if (error.code === 'P2023') {
+//             return NextResponse.json({ message: "Invalid ID format for Workshop or Plan." }, { status: 400 });
+//         }
+//         return NextResponse.json({ message: "Internal Server Error" }, { status: 500 });
+//     }
+// }
+
+// /**
+//  * 🎯 PATCH /api/mm/projects/[id]
+//  * Specifically handles updates to Progress and Status during execution.
+//  */
+// export async function PATCH(request: NextRequest) {
+//     try {
+//         const body = await request.json();
+//         const { id, progress, status, name, allocatedBudget, projectManager } = body;
+
+//         if (!id) {
+//             return NextResponse.json({ message: "Project ID is required for update." }, { status: 400 });
+//         }
+
+//         // Logic to auto-complete if progress reaches 100
+//         const updatedStatus = progress === 100 ? 'COMPLETED' : status;
+
+//         const updatedProject = await prisma.mM_Project.update({
+//             where: { id },
+//             data: {
+//                 name,
+//                 allocatedBudget,
+//                 projectManager,
+//                 status: updatedStatus,
+//                 progress: progress !== undefined ? Number(progress) : undefined,
+//             }
+//         });
+
+//         return NextResponse.json(updatedProject, { status: 200 });
+//     } catch (error) {
+//         console.error("MM_PROJECT_PATCH_ERROR:", error);
+//         return NextResponse.json({ message: "Failed to update project progress." }, { status: 500 });
+//     }
+// }
 // import { NextRequest, NextResponse } from 'next/server';
 // import prisma from '../../../libs/prismadb'; 
 

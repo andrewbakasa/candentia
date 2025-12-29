@@ -152,7 +152,7 @@ const handleDelete = async (tab: TabType, id: string) => {
   useEffect(() => { fetchData(); }, [fetchData]);
 
   const handleSaveSuccess = () => {
-    toast.success("Sussefull......")
+    toast.success("Update successfull")
     setIsModalOpen(false);
     setEditingRecord(null);
     fetchData(); 

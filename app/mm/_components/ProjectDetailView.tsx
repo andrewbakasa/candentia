@@ -212,10 +212,6 @@ export default function ProjectDetailView({ project, onRefresh, MM_ActivityForm,
 
             {/* LATENCY REGISTRY */}
             <LatencyRegistry 
-                //filteredDelays={filteredDelays}
-                //totalFilteredLeakage={totalFilteredLeakage}
-                //delaySearch={delaySearch}
-                //setDelaySearch={setDelaySearch}
                 setEditingRecord={setEditingRecord}
                 setActiveModal={setActiveModal}
                 handleDeleteDelay={handleDeleteDelay}
