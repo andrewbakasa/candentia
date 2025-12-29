@@ -180,10 +180,10 @@ const tabLabels = {
       <main className="flex-1 overflow-y-auto relative pb-24 lg:pb-0">
         <div className="max-w-7xl mx-auto p-4 md:p-8">
           
-          <header className="flex flex-col md:flex-row md:justify-between md:items-end mb-10 gap-6">
+          <header className="flex flex-col md:flex-row md:justify-between md:items-end mb-2 gap-6">
             <div>
               <p className="text-[10px] font-black text-blue-600 uppercase tracking-[0.2em] mb-1">NRZ ERP Gateway</p>
-              <h1 className="text-4xl font-black text-slate-900 capitalize tracking-tight">
+              <h1 className="text-2xl font-black text-slate-900 capitalize tracking-tight">
                 {activeTab === 'purchaseorders' ? 'Procurement' : 
                  activeTab === 'materials' ? 'Project BoQ' : 
                  activeTab === 'mastermaterials' ? 'Master Catalog' : activeTab} 

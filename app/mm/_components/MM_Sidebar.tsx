@@ -49,32 +49,16 @@ export default function MM_Sidebar({ activeTab }: { activeTab?: TabType | 'none'
         <nav className="space-y-6 flex-1 overflow-y-auto pr-2 custom-scrollbar">
           
           <section>
-            <h3 className="px-3 text-[10px] font-semibold text-slate-500 uppercase tracking-[0.15em] mb-2">Strategy</h3>
+            {/* <h3 className="px-3 text-[10px] font-semibold text-slate-500 uppercase tracking-[0.15em] mb-2">Strategy</h3> */}
             <div className="space-y-1">
               <SidebarLink {...NAV_ITEMS[0]} active={activeTab === 'strategies'} />
-              <SidebarLink {...NAV_ITEMS[1]} active={activeTab === 'workshops'} />
-            </div>
-          </section>
-
-          <section>
-            <h3 className="px-3 text-[10px] font-semibold text-amber-500/80 uppercase tracking-[0.15em] mb-2">Standardization</h3>
-            <div className="space-y-1">
-              <SidebarLink {...NAV_ITEMS[8]} active={activeTab === 'basetasks'} />
-            </div>
-          </section>
-          
-          <section>
-            <h3 className="px-3 text-[10px] font-semibold text-slate-500 uppercase tracking-[0.15em] mb-2">Operations</h3>
-            <div className="space-y-1">
+              <SidebarLink {...NAV_ITEMS[1]} active={activeTab === 'workshops'} />           
+              <SidebarLink {...NAV_ITEMS[8]} active={activeTab === 'basetasks'} /> 
+              <hr/>           
               <SidebarLink {...NAV_ITEMS[2]} active={activeTab === 'projects'} />
               <SidebarLink {...NAV_ITEMS[3]} active={activeTab === 'activities'} />
               <SidebarLink {...NAV_ITEMS[4]} active={activeTab === 'delays'} />
-            </div>
-          </section>
-          
-          <section>
-            <h3 className="px-3 text-[10px] font-semibold text-slate-500 uppercase tracking-[0.15em] mb-2">Supply Chain</h3>
-            <div className="space-y-1">
+               <hr/>  
               <SidebarLink {...NAV_ITEMS[5]} active={activeTab === 'mastermaterials'} />
               <SidebarLink {...NAV_ITEMS[6]} active={activeTab === 'purchaseorders'} />
               <SidebarLink {...NAV_ITEMS[7]} active={activeTab === 'materials'} />
